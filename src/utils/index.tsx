@@ -14,8 +14,17 @@ export function insertDot(number: number) {
 
 export function calculateTotalMonthlyOfAllPools(pools: Pool[]) {
   const totalMonthlyPayment = pools.reduce((acc, pool) => {
-    if (!pool.monthlyPayment) return 0;
-    return acc + parseInt(pool.monthlyPayment.toString().replaceAll(/\D/g, ''));
+    if (!pool.isActive) {
+      return acc;
+    }
+    if (pool.monthlyPayment == null) {
+      return acc;
+    }
+    const parsed = parseInt(pool.monthlyPayment.toString().replaceAll(/\D/g, ''), 10);
+    if (Number.isNaN(parsed)) {
+      return acc;
+    }
+    return acc + parsed;
   }, 0);
   return insertDot(totalMonthlyPayment);
 }
