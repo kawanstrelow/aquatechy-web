@@ -38,6 +38,7 @@ export type CreateManyClientsInput = {
   poolState: string;
   poolZip: string;
   poolAddressLine2?: string;
+  bodyOfWater?: string | null;
 }[];
 
 export function useCreateManyClients() {

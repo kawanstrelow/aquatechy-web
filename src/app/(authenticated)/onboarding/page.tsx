@@ -558,6 +558,7 @@ export default function OnboardingPage() {
         enterSide: data.enterSide,
         poolType: data.poolType,
         poolNotes: data.poolNotes,
+        bodyOfWater: data.bodyOfWater?.trim() || undefined,
         assignments: assignments
       };
 
@@ -609,7 +610,8 @@ export default function OnboardingPage() {
         'lockerCode',
         'enterSide',
         'poolType',
-        'poolNotes'
+        'poolNotes',
+        'bodyOfWater'
       ],
       {
         shouldFocus: true
@@ -900,7 +902,7 @@ export default function OnboardingPage() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <InputField
                         name="monthlyPayment"
                         placeholder="Monthly payment by client"
@@ -908,7 +910,10 @@ export default function OnboardingPage() {
                         label="Monthly payment by client"
                       />
                       <InputField name="lockerCode" placeholder="Gate code" label="Gate code" />
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                       <InputField name="enterSide" placeholder="Enter side" label="Enter side" />
+                      <InputField name="bodyOfWater" placeholder="e.g. Main pool, spa" label="Body of water" />
                       <SelectField name="poolType" label="Chemical type" placeholder="Chemical type" options={PoolTypes} />
                     </div>
 

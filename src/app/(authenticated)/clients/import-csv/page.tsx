@@ -46,7 +46,8 @@ type CSVRow = {
   clientCompany: string;
   clientType: string;
   monthlyPayment: string;
-  poolAddressLine2?:string
+  poolAddressLine2?: string;
+  bodyOfWater?: string;
 };
 
 // Add this type
@@ -258,7 +259,10 @@ export default function ImportFromCSV() {
             customerCode: String(row.customerCode || ''),
             timezone: STATE_TIMEZONE_MAP[state.toUpperCase()] || IanaTimeZones.NY,
             monthlyPayment,
-            companyOwnerId: '' // Will be set before import
+            companyOwnerId: '', // Will be set before import
+            ...(row.bodyOfWater?.trim()
+              ? { bodyOfWater: row.bodyOfWater.trim() }
+              : {})
           };
         });
 
@@ -435,6 +439,7 @@ export default function ImportFromCSV() {
                   <TableHead>Animal Danger</TableHead>
                   <TableHead>Enter Side</TableHead>
                   <TableHead>Locker Code</TableHead>
+                  <TableHead>Body of Water</TableHead>
                   <TableHead>Monthly Payment</TableHead>
                 </TableRow>
               </TableHeader>
@@ -459,6 +464,7 @@ export default function ImportFromCSV() {
                     <TableCell>{client.animalDanger ? 'Yes' : 'No'}</TableCell>
                     <TableCell>{client.enterSide}</TableCell>
                     <TableCell>{client.lockerCode}</TableCell>
+                    <TableCell>{client.bodyOfWater ?? '-'}</TableCell>
                     <TableCell>{formatMonthlyPayment(client.monthlyPayment)}</TableCell>
                   </TableRow>
                 ))}

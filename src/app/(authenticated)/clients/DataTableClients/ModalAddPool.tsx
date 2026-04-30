@@ -91,7 +91,8 @@ export function ModalAddPool({ handleAddPool, clientOwnerId, open, setOpen }: Pr
       notes: undefined,
       poolType: undefined,
       state: '',
-      zip: ''
+      zip: '',
+      bodyOfWater: ''
     }
   });
 
@@ -120,7 +121,8 @@ export function ModalAddPool({ handleAddPool, clientOwnerId, open, setOpen }: Pr
       handleAddPool({
         ...data,
         monthlyPayment: data.monthlyPayment ?? undefined,
-        poolType: data.poolType as PoolType
+        poolType: data.poolType as PoolType,
+        bodyOfWater: data.bodyOfWater?.trim() || undefined
       });
       form.reset();
       setOpen(false);
@@ -142,31 +144,25 @@ export function ModalAddPool({ handleAddPool, clientOwnerId, open, setOpen }: Pr
               <InputField name="zip" label="Zip" placeholder="Pool zip" type={FieldType.Zip} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-4">
-                <InputField name="enterSide" label="Enter side" placeholder="Enter side" />
-                <InputField name="lockerCode" label="Locker code" placeholder="Locker code" />
-              </div>
-
-              <div className="grid gap-4">
-                <InputField
-                  name="monthlyPayment"
-                  label="Monthly payment"
-                  placeholder="Monthly payment"
-                  type={FieldType.CurrencyValue}
-                />
-                <SelectField name="poolType" label="Chemical type" placeholder="Chemical type" options={PoolTypes} />
-              </div>
-
-              {/* Add the animal danger checkbox */}
-              <div className="grid gap-4">
-                <InputField
-                  name="animalDanger"
-                  label="Animal danger"
-                  placeholder="Is there a danger of animal attack?"
-                  type={FieldType.Checkbox}
-                />
-              </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <InputField
+                name="monthlyPayment"
+                label="Monthly payment"
+                placeholder="Monthly payment"
+                type={FieldType.CurrencyValue}
+              />
+              <InputField name="lockerCode" label="Locker code" placeholder="Locker code" />
+              <InputField
+                name="animalDanger"
+                label="Animal danger"
+                placeholder="Is there a danger of animal attack?"
+                type={FieldType.Checkbox}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <InputField name="enterSide" label="Enter side" placeholder="Enter side" />
+              <InputField name="bodyOfWater" label="Body of water" placeholder="e.g. Main pool, spa" />
+              <SelectField name="poolType" label="Chemical type" placeholder="Chemical type" options={PoolTypes} />
             </div>
             <div>
               <InputField

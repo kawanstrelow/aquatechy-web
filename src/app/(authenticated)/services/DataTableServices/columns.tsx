@@ -36,7 +36,7 @@ export const columns: ColumnDef<Service>[] = [
           {original.pool?.clientOwner?.firstName} {original.pool?.clientOwner?.lastName}
         </div>
         <div>
-          {original.pool?.address} {original.pool?.addressLine2}, {original.pool?.city}, {original.pool?.state}, {original.pool?.zip}
+          {original.pool?.bodyOfWater ? `${original.pool?.bodyOfWater} - ` : ''}{original.pool?.address}{original.pool?.addressLine2 ? ` ${original.pool?.addressLine2}` : ''}, {original.pool?.city}, {original.pool?.state}, {original.pool?.zip}
         </div>
       </>
       ) : (

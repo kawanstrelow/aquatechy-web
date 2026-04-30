@@ -517,7 +517,7 @@ export const generateTechnicianReportPDF = async (
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(hexToRgb(COLORS.gray600).r, hexToRgb(COLORS.gray600).g, hexToRgb(COLORS.gray600).b);
-        const address = `${service.pool.address} - ${service.serviceType.name} - $${service.paymentPerUnit?.toFixed(2) ?? '$0.00'}`
+        const address = `${service.pool?.bodyOfWater} - ${service.pool.address}${service.pool?.addressLine2 ? ` ${service.pool?.addressLine2}` : ''} - ${service.serviceType.name} - $${service.paymentPerUnit?.toFixed(2) ?? '$0.00'}`
         // .length > 90 ? service.pool.address.substring(0, 90) + '...' : service.pool.address;
         doc.text(address, 40, currentY + 6);
         

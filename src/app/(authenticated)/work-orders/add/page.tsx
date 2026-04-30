@@ -25,7 +25,7 @@ import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServ
 import useGetPoolsByClientId from '@/hooks/react-query/pools/getPoolsByClientId';
 import { Client } from '@/ts/interfaces/Client';
 import { useUserStore } from '@/store/user';
-import { isEmpty } from '@/utils';
+import { formatPoolNameWithBodyOfWater, isEmpty } from '@/utils';
 
 // Define the work order schema
 const workOrderSchema = z.object({
@@ -392,7 +392,7 @@ export default function AddWorkOrderPage() {
                   .filter((pool) => pool.isActive)
                   .map((pool) => ({
                     key: pool.id,
-                    name: pool.name,
+                    name: formatPoolNameWithBodyOfWater(pool),
                     value: pool.id
                   }))}
                 label="Pool"

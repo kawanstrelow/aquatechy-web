@@ -38,6 +38,7 @@ export type Pool = {
   paymentUnit?: number;
   photos?: string[];
   addressLine2?: string;
+  bodyOfWater?: string | null;
 };
 
 // Used only to add a pool to a client
@@ -54,6 +55,7 @@ export type CreatePool = {
   poolType: PoolType;
   state: string;
   zip: string;
+  bodyOfWater?: string | null;
 };
 
 export type Coords = {

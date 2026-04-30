@@ -44,7 +44,8 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
       notes: pool.notes || '',
       zip: pool.zip || '',
       animalDanger: pool.animalDanger || false,
-      addressLine2: pool.addressLine2 || ''
+      addressLine2: pool.addressLine2 || '',
+      bodyOfWater: pool.bodyOfWater ?? ''
     }
   });
 
@@ -55,6 +56,12 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
 
     const data = changedFields as z.infer<typeof editPoolSchema>;
     data.poolId = pool.id;
+
+    if (Object.prototype.hasOwnProperty.call(data, 'bodyOfWater') && data.bodyOfWater !== undefined) {
+      const trimmed =
+        typeof data.bodyOfWater === 'string' ? data.bodyOfWater.trim() : data.bodyOfWater;
+      data.bodyOfWater = trimmed === '' || trimmed === null ? null : trimmed;
+    }
 
     mutate({
       data
@@ -130,7 +137,10 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
             </div>
           </div>
           <InputField label="Gate Code" name="lockerCode" placeholder="Gate Code" />
+        </div>
+        <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-3">
           <InputField label="Enter Side" name="enterSide" placeholder="Enter side" />
+          <InputField label="Body of water" name="bodyOfWater" placeholder="e.g. Main pool, spa" />
           <SelectField
             value={form.watch('poolType')}
             name="poolType"

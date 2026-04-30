@@ -12,8 +12,7 @@ import { useCreateService } from '@/hooks/react-query/services/createService';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 import useGetPoolsByClientId from '@/hooks/react-query/pools/getPoolsByClientId';
-import { isEmpty } from '@/utils';
-import { buildSelectOptions } from '@/utils/formUtils';
+import { formatPoolNameWithBodyOfWater, isEmpty } from '@/utils';
 
 import { Client } from '@/ts/interfaces/Client';
 import { useUserStore } from '@/store/user';
@@ -176,14 +175,13 @@ export function DialogNewService() {
                   />
                   {clientId && (
                     <SelectField
-                      options={buildSelectOptions(
-                        pools.filter((pool) => pool.isActive),
-                        {
-                          key: 'id',
-                          name: 'name',
-                          value: 'id'
-                        }
-                      )}
+                      options={pools
+                        .filter((pool) => pool.isActive)
+                        .map((pool) => ({
+                          key: pool.id,
+                          name: formatPoolNameWithBodyOfWater(pool),
+                          value: pool.id
+                        }))}
                       label="Location"
                       placeholder={isPoolsLoading ? 'Loading pools...' : pools.length === 0 ? 'No pools available' : 'Location'}
                       name="poolId"

@@ -17,7 +17,7 @@ import { useMembersStore } from '@/store/members';
 import { useWeekdayStore } from '@/store/weekday';
 import { Pool } from '@/ts/interfaces/Pool';
 import { WeekdaysUppercase } from '@/ts/interfaces/Weekday';
-import { isEmpty } from '@/utils';
+import { formatPoolNameWithBodyOfWater, isEmpty } from '@/utils';
 import { Frequencies } from '@/constants';
 import { Frequency } from '@/ts/enums/enums';
 import { newAssignmentSchema } from '@/schemas/assignments'; // Import the same schema
@@ -279,7 +279,7 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
   return (
     <Dialog open={open} onOpenChange={isCreating ? undefined : setOpen}>
       <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-scroll rounded-md md:w-[580px]">
-        <DialogTitle>Assign Pool: {pool.name}</DialogTitle>
+        <DialogTitle>Assign Pool: {formatPoolNameWithBodyOfWater(pool)}</DialogTitle>
         {isCreating ? (
           <div className="flex flex-col items-center gap-4 py-8">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
