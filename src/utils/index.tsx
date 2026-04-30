@@ -33,6 +33,24 @@ export function calculateTotalAssignmentsOfAllPools(pools: Pool[]) {
   return pools.reduce((acc, pool) => acc + (pool.services?.length || 0), 0);
 }
 
+/** Pool label with optional body of water for assignment lists (e.g. "Josh … - Pool"). */
+export function formatPoolNameWithBodyOfWater(pool: Pick<Pool, 'name' | 'bodyOfWater'>) {
+  const label = pool.name?.trim() ?? '';
+  const bow = pool.bodyOfWater?.trim() ?? '';
+  if (label && bow) return `${label} - ${bow}`;
+  return label || bow;
+}
+
+/** Pool street line with optional body of water for lists (e.g. "123 Main St - Spa"). */
+export function formatPoolAddressWithBodyOfWater(pool: Pool) {
+  const street = pool.address?.trim() ?? '';
+  const bow = pool.bodyOfWater?.trim() ?? '';
+  if (street && bow) return `${street} - ${bow}`;
+  if (street) return street;
+  if (bow) return bow;
+  return pool.name?.trim() ?? '';
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isEmpty = (val: any) => val == null || !(Object.keys(val) || val).length;
 

@@ -54,6 +54,7 @@ export interface CreateClientWithAssignmentsData {
   enterSide?: string;
   poolType?: string;
   poolNotes?: string;
+  bodyOfWater?: string | null;
 
   // Assignments array
   assignments: Assignment[];

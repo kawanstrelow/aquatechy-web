@@ -34,6 +34,7 @@ import useWindowDimensions from '@/hooks/useWindowDimensions';
 import { useMembersStore } from '@/store/members';
 import { useUserStore } from '@/store/user';
 import { Assignment } from '@/ts/interfaces/Assignments';
+import { formatPoolNameWithBodyOfWater } from '@/utils';
 import { getInitials } from '@/utils/others';
 
 import { DialogDeleteAssignment } from './ModalDeleteAssignment';
@@ -137,7 +138,7 @@ type AssignmentItemProps = {
 };
 
 export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAssignments, currentIndex }: AssignmentItemProps) {
-  const name = assignment.pool.name;
+  const name = formatPoolNameWithBodyOfWater(assignment.pool);
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
@@ -220,7 +221,7 @@ export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAss
       {...attributes}
       {...listeners}
     >
-      <div className={`flex h-[60px] shrink grow basis-0 items-center justify-start gap-2 border-b border-gray-100 px-1 py-2`}>
+      <div className={`flex h-[75px] shrink grow basis-0 items-center justify-start gap-2 border-b border-gray-100 px-1 py-4`}>
         <div className="flex items-center justify-start gap-2 ">
           {!shouldPermitChangeOrder && (
             <div className="min-w-4">

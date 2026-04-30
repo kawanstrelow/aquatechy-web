@@ -190,7 +190,8 @@ export default function Page() {
         'lockerCode',
         'enterSide',
         'poolType',
-        'poolNotes'
+        'poolNotes',
+        'bodyOfWater'
       ],
       {
         shouldFocus: true
@@ -528,6 +529,7 @@ export default function Page() {
         enterSide: data.enterSide,
         poolType: data.poolType,
         poolNotes: data.poolNotes,
+        bodyOfWater: data.bodyOfWater?.trim() || undefined,
         // Assignments
         assignments: assignments
       };
@@ -747,7 +749,7 @@ export default function Page() {
                 </div>
               )}
 
-              <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                 <InputField
                   name="monthlyPayment"
                   placeholder="Monthly payment by client"
@@ -755,7 +757,11 @@ export default function Page() {
                   label="Monthly payment by client"
                 />
                 <InputField name="lockerCode" placeholder="Gate code" label="Gate code" />
+              </div>
+
+              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
                 <InputField name="enterSide" placeholder="Enter side" label="Enter side" />
+                <InputField name="bodyOfWater" placeholder="e.g. Main pool, spa" label="Body of water" />
                 <SelectField name="poolType" label="Chemical type" placeholder="Chemical type" options={PoolTypes} />
               </div>
 

@@ -6,6 +6,7 @@ import { PaginationDemo } from '@/components/PaginationDemo';
 import SelectField from '@/components/SelectField';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useUserStore } from '@/store/user';
+import { formatPoolNameWithBodyOfWater } from '@/utils';
 import { buildSelectOptions } from '@/utils/formUtils';
 
 import { DataTableWorkOrders } from './DataTableWorkOrders';
@@ -22,6 +23,7 @@ import { X } from 'lucide-react';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import { useForm } from 'react-hook-form';
 import useGetPoolsByClient from '@/hooks/react-query/pools/getByClients';
+import { Pool } from '@/ts/interfaces/Pool';
 
 const defaultValues: UseGetWorkOrdersServicesParams = {
   from: (() => {
@@ -287,11 +289,11 @@ export default function Page() {
                               {...field}
                               disabled={!clientId || isLoadingPools}
                               placeholder={isLoadingPools ? 'Loading pools...' : 'Select pool'}
-                              options={buildSelectOptions(pools || [], {
-                                key: 'id',
-                                name: 'name',
-                                value: 'id'
-                              })}
+                              options={(pools || []).map((pool: Pool) => ({
+                                key: pool.id,
+                                name: formatPoolNameWithBodyOfWater(pool),
+                                value: pool.id
+                              }))}
                             />
                           </FormControl>
                         </FormItem>

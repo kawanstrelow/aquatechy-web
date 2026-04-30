@@ -33,7 +33,14 @@ export const poolSchema = z.object({
     invalid_type_error: "Pool type must be 'Chlorine', 'Salt' or 'Other'."
   }),
   poolState: state,
-  poolZip: zipCode
+  poolZip: zipCode,
+  bodyOfWater: z
+    .string({
+      invalid_type_error: 'Body of water must be a string.'
+    })
+    .trim()
+    .nullable()
+    .optional()
 });
 
 export const editPoolSchema = z.object({
@@ -67,5 +74,12 @@ export const editPoolSchema = z.object({
   zip: defaultSchemas.zipCode.optional(),
   animalDanger: z.boolean().optional(),
   isActive: z.boolean().optional(),
-  addressLine2: z.optional(z.string().trim())
+  addressLine2: z.optional(z.string().trim()),
+  bodyOfWater: z
+    .string({
+      invalid_type_error: 'Body of water must be a string.'
+    })
+    .trim()
+    .nullable()
+    .optional()
 });

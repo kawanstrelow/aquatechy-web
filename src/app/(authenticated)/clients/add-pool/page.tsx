@@ -103,7 +103,8 @@ export default function AddPoolPage() {
       poolType: undefined,
       state: '',
       zip: '',
-      addressLine2: ''
+      addressLine2: '',
+      bodyOfWater: ''
     }
   });
 
@@ -133,7 +134,8 @@ export default function AddPoolPage() {
       const poolData: CreatePool = {
         ...data,
         monthlyPayment: data.monthlyPayment ?? undefined,
-        poolType: data.poolType as PoolType
+        poolType: data.poolType as PoolType,
+        bodyOfWater: data.bodyOfWater?.trim() || undefined
       };
 
       addPool(poolData, {
@@ -201,28 +203,26 @@ export default function AddPoolPage() {
               <InputField name="zip" label="Zip Code" placeholder="Zip code" type={FieldType.Zip} />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <InputField name="enterSide" label="Enter Side" placeholder="Enter side" />
-              <InputField name="lockerCode" label="Gate Code" placeholder="Gate code" />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <InputField
                 name="monthlyPayment"
                 label="Monthly Payment"
                 placeholder="Monthly payment"
                 type={FieldType.CurrencyValue}
               />
-              <SelectField name="poolType" label="Chemical Type" placeholder="Select chemical type" options={PoolTypes} />
-            </div>
-
-            <div className="space-y-2">
+              <InputField name="lockerCode" label="Gate Code" placeholder="Gate code" />
               <InputField
                 name="animalDanger"
                 label="Animal Danger"
                 placeholder="Is there a danger of animal attack?"
                 type={FieldType.Checkbox}
               />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <InputField name="enterSide" label="Enter Side" placeholder="Enter side" />
+              <InputField name="bodyOfWater" label="Body of water" placeholder="e.g. Main pool, spa" />
+              <SelectField name="poolType" label="Chemical Type" placeholder="Select chemical type" options={PoolTypes} />
             </div>
 
             <div className="space-y-2">

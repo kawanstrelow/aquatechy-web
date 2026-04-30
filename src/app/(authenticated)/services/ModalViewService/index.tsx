@@ -316,7 +316,7 @@ export function ModalViewService({ service, open, setOpen }: Props) {
           <div className="mt-1 flex items-center gap-1 text-sm text-gray-500">
             <MapPin className="h-4 w-4" />
             <span>
-              {currentService?.pool?.address}, {currentService?.pool?.city}, {currentService?.pool?.state}, {currentService?.pool?.zip}
+              {currentService?.pool?.bodyOfWater ? `${currentService?.pool?.bodyOfWater} - ` : ''}{currentService?.pool?.address}{currentService?.pool?.addressLine2 ? ` ${currentService?.pool?.addressLine2}` : ''}, {currentService?.pool?.city}, {currentService?.pool?.state}, {currentService?.pool?.zip}
             </span>
           </div>
         </DialogHeader>
