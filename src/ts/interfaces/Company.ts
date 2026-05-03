@@ -105,6 +105,10 @@ export interface Company {
       allowAnticipatedServices?: boolean;
     };
     invoiceSettingsPreferences?: InvoiceSettingsPreferences | null;
+    paymentsPreferences?: {
+      allowCardOnFile?: boolean;
+      applicationFeeBps?: number;
+    } | null;
   };
   imageUrl?: string | null;
   checklistTemplates: ChecklistTemplate[];

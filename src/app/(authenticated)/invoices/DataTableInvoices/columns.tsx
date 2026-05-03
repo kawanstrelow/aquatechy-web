@@ -2,10 +2,10 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Invoice } from '../utils/fakeData';
+import { InvoiceListRow } from '../utils/fakeData';
 import { InvoiceActions } from './components/InvoiceActions';
 
-const statusOptions: Record<Invoice['status'], { label: string; className: string }> = {
+const statusOptions: Record<InvoiceListRow['status'], { label: string; className: string }> = {
   paid: {
     label: 'Paid',
     className: 'bg-green-100 text-green-600'
@@ -29,13 +29,13 @@ const statusOptions: Record<Invoice['status'], { label: string; className: strin
 };
 
 export const createColumns = (
-  onView?: (invoice: Invoice) => void,
-  onEdit?: (invoice: Invoice) => void,
-  onDelete?: (invoice: Invoice) => void,
-  onDownload?: (invoice: Invoice) => void,
-  onMarkPaid?: (invoice: Invoice) => void,
-  onMarkUnpaid?: (invoice: Invoice) => void
-): ColumnDef<Invoice>[] => [
+  onView?: (invoice: InvoiceListRow) => void,
+  onEdit?: (invoice: InvoiceListRow) => void,
+  onCancelInvoice?: (invoice: InvoiceListRow) => void,
+  onDownload?: (invoice: InvoiceListRow) => void,
+  onMarkPaid?: (invoice: InvoiceListRow) => void,
+  onMarkUnpaid?: (invoice: InvoiceListRow) => void
+): ColumnDef<InvoiceListRow>[] => [
   {
     accessorKey: 'invoiceNumber',
     header: 'Invoice Number',
@@ -142,7 +142,7 @@ export const createColumns = (
         invoice={row.original}
         onView={onView}
         onEdit={onEdit}
-        onDelete={onDelete}
+        onCancelInvoice={onCancelInvoice}
         onDownload={onDownload}
         onMarkPaid={onMarkPaid}
         onMarkUnpaid={onMarkUnpaid}

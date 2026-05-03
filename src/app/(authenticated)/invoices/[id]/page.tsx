@@ -11,10 +11,19 @@ import useGetInvoiceById from '@/hooks/react-query/invoices/useGetInvoiceById';
 import { useSendInvoice } from '@/hooks/react-query/invoices/useSendInvoice';
 import { useSendInvoiceReminder } from '@/hooks/react-query/invoices/useSendInvoiceReminder';
 import { useDownloadInvoicePDF } from '@/hooks/react-query/invoices/useDownloadInvoicePDF';
-import { useDeleteInvoice } from '@/hooks/react-query/invoices/useDeleteInvoice';
+import { useCancelInvoice } from '@/hooks/react-query/invoices/useCancelInvoice';
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
 import { InvoiceView } from './InvoiceView';
+import { InvoiceActivityTimeline } from './InvoiceActivityTimeline';
 import { InvoiceActions } from './InvoiceActions';
+import useConnectStatus from '@/hooks/react-query/payments/useConnectStatus';
+import { useInvoiceCheckoutSession } from '@/hooks/react-query/invoices/useInvoiceCheckoutSession';
+import { useChargeCardOnFile } from '@/hooks/react-query/invoices/useChargeCardOnFile';
+import { useInvoiceRefund } from '@/hooks/react-query/invoices/useInvoiceRefund';
+import { useRecordExternalRefund } from '@/hooks/react-query/invoices/useRecordExternalRefund';
+import { useToast } from '@/components/ui/use-toast';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
+import { useCompanySetupCheckout } from '@/hooks/react-query/clients/useCompanySetupCheckout';
 
 type Props = {
   params: {
@@ -69,19 +78,63 @@ function transformInvoiceToDetailed(apiInvoice: Invoice): DetailedInvoice {
     notes: apiInvoice.notes || '',
     paymentInstructions: apiInvoice.paymentInstructions || '',
     clientAddress,
-    companyOwner
+    companyOwner,
+    companyOwnerId: apiInvoice.companyOwnerId,
+    paidAt: apiInvoice.paidAt ?? undefined,
+    invoicePaymentSource: apiInvoice.invoicePaymentSource ?? undefined,
+    defaultStripePaymentMethodId: apiInvoice.client.defaultStripePaymentMethodId ?? undefined,
+    cardOnFileLast4: apiInvoice.client.cardOnFileLast4 ?? undefined,
+    cardOnFileBrand: apiInvoice.client.cardOnFileBrand ?? undefined,
+    cardOnFileExp: apiInvoice.client.cardOnFileExp ?? undefined,
+    refundStatus: apiInvoice.refundStatus ?? undefined,
+    refundedAt: apiInvoice.refundedAt ?? undefined,
+    invoiceTotalCents: apiInvoice.total,
+    totalRefundedCents: apiInvoice.totalRefundedCents ?? 0,
+    stripePaymentIntentId: apiInvoice.stripePaymentIntentId ?? undefined,
+    stripeChargeId: apiInvoice.stripeChargeId ?? undefined
   };
+}
+
+function canRefundStripePaidInvoice(inv: DetailedInvoice): boolean {
+  if (inv.status !== 'paid') return false;
+  if (inv.refundStatus === 'full') return false;
+  const src = inv.invoicePaymentSource ?? null;
+  if (src !== 'card' && src !== 'manual_card_on_file') return false;
+  return !!(inv.stripePaymentIntentId || inv.stripeChargeId);
+}
+
+function canRecordExternalRefund(inv: DetailedInvoice): boolean {
+  if (inv.status !== 'paid') return false;
+  if (inv.refundStatus === 'full') return false;
+  return inv.invoicePaymentSource === 'external';
+}
+
+function remainingExternalRefundMaxCents(inv: DetailedInvoice): number {
+  const totalCents = inv.invoiceTotalCents ?? Math.round(inv.total * 100);
+  const refunded = inv.totalRefundedCents ?? 0;
+  return Math.max(0, Math.round(totalCents) - refunded);
 }
 
 export default function InvoicePage({ params: { id } }: Props) {
   const router = useRouter();
   const user = useUserStore((state) => state.user);
+  const { toast } = useToast();
   const { data, isLoading, isError, error } = useGetInvoiceById(id);
   const { mutateAsync: sendInvoice, isPending: isSendingInvoice } = useSendInvoice();
   const { mutateAsync: sendReminder, isPending: isSendingReminder } = useSendInvoiceReminder();
   const { mutateAsync: downloadPDF, isPending: isDownloadingPDF } = useDownloadInvoicePDF();
-  const { mutateAsync: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { mutateAsync: cancelInvoiceMutation, isPending: isCancelling } = useCancelInvoice();
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [paymentRecoverMessage, setPaymentRecoverMessage] = useState<string | null>(null);
+
+  const companyId = data?.invoice.companyOwnerId;
+  const { data: connectStatus, isLoading: isConnectLoading } = useConnectStatus(companyId);
+  const checkoutSession = useInvoiceCheckoutSession();
+  const chargeCard = useChargeCardOnFile();
+  const refundInvoice = useInvoiceRefund();
+  const recordExternalRefund = useRecordExternalRefund();
+  const { data: companies = [] } = useGetCompanies();
+  const companySetupCheckout = useCompanySetupCheckout();
 
   useEffect(() => {
     if (user.firstName === '') {
@@ -112,6 +165,53 @@ export default function InvoicePage({ params: { id } }: Props) {
   }
 
   const invoice = transformInvoiceToDetailed(data.invoice);
+  const stripeReady = !!(connectStatus?.chargesEnabled && connectStatus?.payoutsEnabled);
+  const membership = companies.find((c) => c.id === invoice.companyOwnerId);
+  const role = membership?.role;
+  const canManageClientPaymentMethods =
+    role === 'Owner' || role === 'Admin' || role === 'Office';
+  const showPayActions =
+    stripeReady &&
+    invoice.status !== 'draft' &&
+    invoice.status !== 'cancelled' &&
+    (invoice.status === 'unpaid' || invoice.status === 'overdue');
+  const showSaveClientCardOnInvoice =
+    stripeReady && canManageClientPaymentMethods && invoice.status !== 'cancelled';
+  const showStripeRefundActions =
+    stripeReady && canManageClientPaymentMethods && canRefundStripePaidInvoice(invoice);
+  const showExternalRefundActions =
+    canManageClientPaymentMethods && canRecordExternalRefund(invoice) && remainingExternalRefundMaxCents(invoice) > 0;
+  const hasCardOnFile = !!invoice.defaultStripePaymentMethodId;
+
+  const handlePayCheckout = async () => {
+    setPaymentRecoverMessage(null);
+    const res = await checkoutSession.mutateAsync(id);
+    window.location.href = res.url;
+  };
+
+  const handleSaveClientCardFromInvoice = async () => {
+    const url = await companySetupCheckout.mutateAsync(invoice.clientId);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleChargeCardOnFile = async () => {
+    setPaymentRecoverMessage(null);
+    const res = await chargeCard.mutateAsync(id);
+    if (res.status === 'succeeded') {
+      toast({
+        variant: 'success',
+        title: 'Payment succeeded',
+        description: `Payment intent completed.`
+      });
+    } else if (res.status === 'requires_action') {
+      setPaymentRecoverMessage(res.message);
+      toast({
+        variant: 'default',
+        title: 'Action required',
+        description: res.message
+      });
+    }
+  };
 
   const handleSendInvoice = async (invoiceId: string) => {
     sendInvoice({ invoiceId });
@@ -129,14 +229,21 @@ export default function InvoicePage({ params: { id } }: Props) {
     await downloadPDF({ invoiceId: invoice.id });
   };
 
-  const handleDelete = () => {
-    setDeleteDialogOpen(true);
+  const handleCancelInvoiceClick = () => {
+    setCancelDialogOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    await deleteInvoice({ invoiceId: id });
-    // Navigate back to invoices list after successful deletion
+  const handleConfirmCancelInvoice = async () => {
+    await cancelInvoiceMutation({ invoiceId: id });
     router.push('/invoices');
+  };
+
+  const handleRefundStripe = async (payload: { amountCents?: number }) => {
+    await refundInvoice.mutateAsync({ invoiceId: id, ...payload });
+  };
+
+  const handleRecordExternalRefund = async (amountCents: number) => {
+    await recordExternalRefund.mutateAsync({ invoiceId: id, amountCents });
   };
 
   return (
@@ -147,23 +254,49 @@ export default function InvoicePage({ params: { id } }: Props) {
         onSendReminder={handleSendReminder}
         onEdit={handleEdit}
         onDownload={handleDownload}
-        onDelete={handleDelete}
+        onCancelInvoice={handleCancelInvoiceClick}
         isSendingInvoice={isSendingInvoice}
         isSendingReminder={isSendingReminder}
         isDownloading={isDownloadingPDF}
-        isDeleting={isDeleting}
+        isCancellingInvoice={isCancelling}
+        showStripePayActions={showPayActions}
+        isStripeReadyLoading={isConnectLoading || !companyId}
+        onPayCheckout={handlePayCheckout}
+        onChargeCardOnFile={hasCardOnFile ? handleChargeCardOnFile : undefined}
+        showSaveClientCard={showSaveClientCardOnInvoice}
+        onSaveClientCard={handleSaveClientCardFromInvoice}
+        isSaveClientCardLoading={companySetupCheckout.isPending}
+        isCheckoutLoading={checkoutSession.isPending}
+        isChargeLoading={chargeCard.isPending}
+        recoverMessage={paymentRecoverMessage}
+        onRecoverViaCheckout={handlePayCheckout}
+        showStripeRefund={showStripeRefundActions}
+        onRefundStripe={handleRefundStripe}
+        isRefundLoading={refundInvoice.isPending}
+        totalRefundedCents={invoice.totalRefundedCents ?? 0}
+        showExternalRefund={showExternalRefundActions}
+        externalRefundMaxCents={remainingExternalRefundMaxCents(invoice)}
+        onRecordExternalRefund={handleRecordExternalRefund}
+        isExternalRefundLoading={recordExternalRefund.isPending}
       />
       <ConfirmActionDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Delete Invoice"
-        description={`Are you sure you want to delete invoice #${invoice.invoiceNumber}? This action cannot be undone.`}
-        confirmText={isDeleting ? 'Deleting...' : 'Delete'}
-        cancelText="Cancel"
-        onConfirm={handleConfirmDelete}
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        title="Cancel invoice"
+        description={`Cancel invoice #${invoice.invoiceNumber}? It will remain in your records as cancelled.`}
+        confirmText={isCancelling ? 'Cancelling…' : 'Cancel invoice'}
+        cancelText="Close"
+        onConfirm={handleConfirmCancelInvoice}
         variant="destructive"
       />
-      <InvoiceView invoice={invoice} />
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
+        <aside className="order-2 min-w-0 lg:order-1">
+          <InvoiceActivityTimeline invoice={data.invoice} />
+        </aside>
+        <div className="order-1 min-w-0 lg:order-2">
+          <InvoiceView invoice={invoice} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -30,6 +30,10 @@ export interface InvoiceLineItem {
   updatedAt: string | null;
 }
 
+export type InvoicePaymentSource = 'card' | 'manual_card_on_file' | 'external';
+
+export type InvoiceRefundStatus = 'none' | 'partial' | 'full';
+
 /**
  * Client information included in invoice response
  */
@@ -43,6 +47,11 @@ export interface InvoiceClient {
   city?: string;
   state?: string;
   zip?: string;
+  stripeCustomerId?: string | null;
+  defaultStripePaymentMethodId?: string | null;
+  cardOnFileLast4?: string | null;
+  cardOnFileBrand?: string | null;
+  cardOnFileExp?: string | null;
 }
 
 /**
@@ -77,6 +86,16 @@ export interface Invoice {
   paymentInstructions: string | null;
   createdAt: string;
   updatedAt: string | null;
+  paidAt?: string | null;
+  invoicePaymentSource?: InvoicePaymentSource | null;
+  stripeCheckoutSessionId?: string | null;
+  stripePaymentIntentId?: string | null;
+  stripeChargeId?: string | null;
+  cancelledAt?: string | null;
+  refundedAt?: string | null;
+  refundStatus?: InvoiceRefundStatus | null;
+  /** Cumulative refunds in cents (Stripe mirror or external increments). Default 0. */
+  totalRefundedCents?: number;
   client: InvoiceClient;
   companyOwner: InvoiceCompanyOwner;
   lineItems: InvoiceLineItem[];
@@ -187,17 +206,42 @@ export interface UpdateInvoiceStatusResponse {
 }
 
 /**
- * Delete Invoice Request
+ * Cancel invoice (replaces permanent delete)
  */
-export interface DeleteInvoiceRequest {
+export interface CancelInvoiceRequest {
   invoiceId: string;
 }
 
-/**
- * Delete Invoice Response
- * Note: The API returns an empty response body (204 No Content) on success
- */
-export interface DeleteInvoiceResponse {
+export interface CancelInvoiceResponse {
   message?: string;
+}
+
+/**
+ * Stripe refund via Connect (Checkout, pay link, or card-on-file)
+ */
+export interface RefundInvoiceRequest {
+  /** Omit for full remaining refundable balance on Stripe. */
+  amountCents?: number;
+}
+
+export interface RefundInvoiceResponse {
+  stripeRefundId: string;
+  refundedAmountCents: number;
+  invoiceRefundStatus: InvoiceRefundStatus;
+  invoiceStatus: InvoiceStatus;
+  /** Cumulative refunded on invoice after this call (Stripe-backed when source is card). */
+  totalRefundedCents?: number;
+}
+
+/**
+ * Incrementally record refunds for invoices paid offline (`external` payment source).
+ */
+export interface RecordExternalRefundRequest {
+  invoiceId: string;
+  amountCents: number;
+}
+
+export interface RecordExternalRefundResponse {
+  invoice: Invoice;
 }
 

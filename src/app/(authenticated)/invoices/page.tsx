@@ -12,18 +12,20 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { useUserStore } from '@/store/user';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { PaginationDemo } from '@/components/PaginationDemo';
-import useGetInvoices, { UseGetInvoicesParams, TableInvoice } from '@/hooks/react-query/invoices/useGetInvoices';
+import useGetInvoices, { UseGetInvoicesParams } from '@/hooks/react-query/invoices/useGetInvoices';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useDownloadInvoicePDF } from '@/hooks/react-query/invoices/useDownloadInvoicePDF';
 import { useUpdateInvoiceStatus } from '@/hooks/react-query/invoices/useUpdateInvoiceStatus';
 import { useExportInvoicesCSV } from '@/hooks/react-query/invoices/useExportInvoicesCSV';
-import { useDeleteInvoice } from '@/hooks/react-query/invoices/useDeleteInvoice';
+import { useCancelInvoice } from '@/hooks/react-query/invoices/useCancelInvoice';
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
 
 import { InvoiceSummaryCards } from './_components/InvoiceSummaryCards';
+import { PaymentMethodSetupFeedback } from './_components/PaymentMethodSetupFeedback';
 import { DataTableInvoices } from './DataTableInvoices/index';
 import { createColumns } from './DataTableInvoices/columns';
+import type { InvoiceListRow } from './utils/fakeData';
 
 // Get the first day of the current month at 00:00:00
 const getFirstDayOfMonth = () => {
@@ -56,7 +58,7 @@ export default function InvoicesPage() {
   const { mutateAsync: downloadPDF } = useDownloadInvoicePDF();
   const { mutateAsync: updateInvoiceStatus } = useUpdateInvoiceStatus();
   const { mutateAsync: exportInvoicesCSV, isPending: isExporting } = useExportInvoicesCSV();
-  const { mutateAsync: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
+  const { mutateAsync: cancelInvoice, isPending: isCancelling } = useCancelInvoice();
 
   // Initialize filters and pagination
   const [currentFilters, setCurrentFilters] = useState<UseGetInvoicesParams>({
@@ -69,8 +71,8 @@ export default function InvoicesPage() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20; // Match backend limit
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [invoiceToDelete, setInvoiceToDelete] = useState<TableInvoice | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [invoiceToCancel, setInvoiceToCancel] = useState<InvoiceListRow | null>(null);
 
   const filtersForm = useForm<FilterFormData>({
     defaultValues: {
@@ -201,40 +203,40 @@ export default function InvoicesPage() {
   }, [watchedFrom, watchedTo, watchedStatus, watchedClient, watchedCompany]);
 
   // Action handlers
-  const handleView = (invoice: TableInvoice) => {
+  const handleView = (invoice: InvoiceListRow) => {
     router.push(`/invoices/${invoice.id}`);
   };
 
-  const handleEdit = (invoice: TableInvoice) => {
+  const handleEdit = (invoice: InvoiceListRow) => {
     // TODO: Open edit modal
     console.log('Edit invoice:', invoice);
   };
 
-  const handleDelete = (invoice: TableInvoice) => {
-    setInvoiceToDelete(invoice);
-    setDeleteDialogOpen(true);
+  const handleCancelInvoice = (invoice: InvoiceListRow) => {
+    setInvoiceToCancel(invoice);
+    setCancelDialogOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (invoiceToDelete) {
-      await deleteInvoice({ invoiceId: invoiceToDelete.id });
-      setDeleteDialogOpen(false);
-      setInvoiceToDelete(null);
+  const handleConfirmCancelInvoice = async () => {
+    if (invoiceToCancel) {
+      await cancelInvoice({ invoiceId: invoiceToCancel.id });
+      setCancelDialogOpen(false);
+      setInvoiceToCancel(null);
     }
   };
 
-  const handleDownload = async (invoice: TableInvoice) => {
+  const handleDownload = async (invoice: InvoiceListRow) => {
     await downloadPDF({ invoiceId: invoice.id });
   };
 
-  const handleMarkPaid = async (invoice: TableInvoice) => {
+  const handleMarkPaid = async (invoice: InvoiceListRow) => {
     await updateInvoiceStatus({
       invoiceId: invoice.id,
       status: 'paid'
     });
   };
 
-  const handleMarkUnpaid = async (invoice: TableInvoice) => {
+  const handleMarkUnpaid = async (invoice: InvoiceListRow) => {
     await updateInvoiceStatus({
       invoiceId: invoice.id,
       status: 'unpaid'
@@ -266,12 +268,12 @@ export default function InvoicesPage() {
   };
 
   const columns = createColumns(
-    handleView as any,
-    handleEdit as any,
-    handleDelete as any,
-    handleDownload as any,
-    handleMarkPaid as any,
-    handleMarkUnpaid as any
+    handleView,
+    handleEdit,
+    handleCancelInvoice,
+    handleDownload,
+    handleMarkPaid,
+    handleMarkUnpaid
   );
 
   if (invoicesQuery.isLoading) return <LoadingSpinner />;
@@ -279,19 +281,19 @@ export default function InvoicesPage() {
   return (
     <FormProvider {...filtersForm}>
       <div className="flex flex-col gap-6 p-2">
-        {/* Delete Confirmation Dialog */}
+        <PaymentMethodSetupFeedback />
         <ConfirmActionDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          title="Delete Invoice"
+          open={cancelDialogOpen}
+          onOpenChange={setCancelDialogOpen}
+          title="Cancel invoice"
           description={
-            invoiceToDelete
-              ? `Are you sure you want to delete invoice #${invoiceToDelete.invoiceNumber}? This action cannot be undone.`
-              : 'Are you sure you want to delete this invoice? This action cannot be undone.'
+            invoiceToCancel
+              ? `Cancel invoice #${invoiceToCancel.invoiceNumber}? It will remain in your records as cancelled.`
+              : 'Cancel this invoice? It will remain in your records as cancelled.'
           }
-          confirmText={isDeleting ? 'Deleting...' : 'Delete'}
-          cancelText="Cancel"
-          onConfirm={handleConfirmDelete}
+          confirmText={isCancelling ? 'Cancelling…' : 'Cancel invoice'}
+          cancelText="Close"
+          onConfirm={handleConfirmCancelInvoice}
           variant="destructive"
         />
         {/* Action Buttons and Date Filters */}
@@ -369,12 +371,13 @@ export default function InvoicesPage() {
           <div className="flex flex-col gap-4">
             <DataTableInvoices 
               columns={columns} 
-              data={invoicesQuery.data?.invoices as any || []} 
+              data={invoicesQuery.data?.invoices ?? []} 
               clients={clients.length > 0 ? clients : invoiceClients}
               companies={companiesList}
               onCompanyChange={(companyId) => {
                 filtersForm.setValue('company', companyId);
               }}
+              onRowClick={(invoice) => handleView(invoice)}
             />
             
             {invoicesQuery.data && invoicesQuery.data.totalCount > 0 && (

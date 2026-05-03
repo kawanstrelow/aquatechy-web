@@ -32,6 +32,11 @@ export interface Client {
   timezone: IanaTimeZones;
   status: string;
   addressLine2?: string;
+  stripeCustomerId?: string | null;
+  defaultStripePaymentMethodId?: string | null;
+  cardOnFileLast4?: string | null;
+  cardOnFileBrand?: string | null;
+  cardOnFileExp?: string | null;
   preferences?: {
     serviceEmailPreferences: {
       sendEmails: boolean;

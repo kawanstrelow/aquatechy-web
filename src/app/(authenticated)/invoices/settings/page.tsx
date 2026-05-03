@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUserStore } from '@/store/user';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
-import { Company } from '@/ts/interfaces/Company';
+import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 
 import { CompanyInformationTab } from './components/CompanyInformationTab';
 import { DefaultValuesTab } from './components/DefaultValuesTab';
@@ -44,11 +44,26 @@ const createDefaultFormValues = (): InvoiceSettingsFormData => ({
   }
 });
 
-export default function InvoiceSettingsPage() {
+const VALID_TABS = ['company', 'defaults', 'communication', 'payments'] as const;
+
+function InvoiceSettingsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const user = useUserStore((state) => state.user);
   const { data: companies = [], isLoading: isLoadingCompanies } = useGetCompanies();
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyWithMyRole | null>(null);
+  const tabFromUrl = searchParams.get('tab');
+  const tabFromParams =
+    tabFromUrl && VALID_TABS.includes(tabFromUrl as (typeof VALID_TABS)[number])
+      ? tabFromUrl
+      : 'company';
+  const [activeTab, setActiveTab] = useState<(typeof VALID_TABS)[number]>(
+    tabFromParams as (typeof VALID_TABS)[number]
+  );
+
+  useEffect(() => {
+    setActiveTab(tabFromParams as (typeof VALID_TABS)[number]);
+  }, [tabFromParams]);
 
   // Ensure we always have a valid company selected when companies list changes
   useEffect(() => {
@@ -119,7 +134,16 @@ export default function InvoiceSettingsPage() {
             </div>
 
             {selectedCompany ? (
-              <Tabs defaultValue="company" className="w-full">
+              <Tabs
+                key={selectedCompany.id}
+                value={activeTab}
+                onValueChange={(v) => {
+                  const next = v as (typeof VALID_TABS)[number];
+                  setActiveTab(next);
+                  router.push(`/invoices/settings?tab=${next}`);
+                }}
+                className="w-full"
+              >
                 <TabsList className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-100 p-1 text-slate-500">
                   <TabsTrigger
                     value="company"
@@ -160,7 +184,7 @@ export default function InvoiceSettingsPage() {
                 </TabsContent>
 
                 <TabsContent value="payments" className="mt-6">
-                  <OnlinePaymentsTab />
+                  <OnlinePaymentsTab selectedCompany={selectedCompany} />
                 </TabsContent>
               </Tabs>
             ) : (
@@ -170,5 +194,13 @@ export default function InvoiceSettingsPage() {
         )}
       </div>
     </FormProvider>
+  );
+}
+
+export default function InvoiceSettingsPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <InvoiceSettingsContent />
+    </Suspense>
   );
 }
