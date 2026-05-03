@@ -4,6 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
+import {
+  CLIENT_PORTAL_GRADIENT_BLUE_STYLE,
+  clientPortalOutlineAccentButtonClassName,
+  clientPortalPrimaryButtonClassName,
+  clientPortalFocusSpinnerClassName
+} from '@/constants/clientPortal';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { portalAxios } from '@/lib/portalAxios';
@@ -47,8 +53,8 @@ function ClientPortalPaymentMethodInner() {
 
   if (meQuery.isLoading || !meQuery.data) {
     return (
-      <div className="flex items-center gap-3 text-slate-600">
-        <Loader2 className="h-6 w-6 animate-spin" />
+      <div className="flex items-center gap-3 text-slate-700">
+        <Loader2 className={`h-6 w-6 animate-spin ${clientPortalFocusSpinnerClassName}`} />
         Loading payment method...
       </div>
     );
@@ -91,6 +97,7 @@ function ClientPortalPaymentMethodInner() {
               <Button
                 type="button"
                 variant="outline"
+                className={clientPortalOutlineAccentButtonClassName}
                 onClick={() => setupMutation.mutate()}
                 disabled={setupMutation.isPending}
               >
@@ -104,7 +111,8 @@ function ClientPortalPaymentMethodInner() {
             <p className="text-sm text-slate-600">No saved card yet. Securely add one through Stripe Checkout.</p>
             <Button
               type="button"
-              className="mt-4"
+              className={`mt-4 ${clientPortalPrimaryButtonClassName}`}
+              style={CLIENT_PORTAL_GRADIENT_BLUE_STYLE}
               onClick={() => setupMutation.mutate()}
               disabled={setupMutation.isPending}
             >
@@ -127,8 +135,8 @@ export default function ClientPortalPaymentMethodPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center gap-3 text-slate-600">
-          <Loader2 className="h-6 w-6 animate-spin" />
+        <div className="flex items-center gap-3 text-slate-700">
+          <Loader2 className={`h-6 w-6 animate-spin ${clientPortalFocusSpinnerClassName}`} />
           Loading…
         </div>
       }

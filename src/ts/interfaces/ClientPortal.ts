@@ -8,6 +8,8 @@ export interface PortalClientSnippet {
 export interface PortalCompanySnippet {
   id: string;
   name?: string;
+  /** Company logo URL when exposed by the portal API */
+  imageUrl?: string | null;
 }
 
 export interface PortalCardOnFile {

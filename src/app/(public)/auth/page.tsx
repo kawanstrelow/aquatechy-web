@@ -6,6 +6,11 @@ import { Suspense, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 
+import {
+  clientPortalFocusSpinnerClassName,
+  clientPortalOutlineAccentButtonClassName,
+  clientPortalPageBgClassName
+} from '@/constants/clientPortal';
 import { setPortalAccessToken } from '@/lib/portalAxios';
 import type { ClientPortalExchangeTokenResponse } from '@/ts/interfaces/StripeConnect';
 import { Button } from '@/components/ui/button';
@@ -53,16 +58,18 @@ function ClientPortalAuthInner() {
   }, [searchParams, router]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
+    <div
+      className={`flex min-h-screen flex-col items-center justify-center gap-6 p-6 ${clientPortalPageBgClassName}`}
+    >
       {!message ? (
         <>
-          <Loader2 className="h-10 w-10 animate-spin text-slate-600" aria-hidden />
-          <p className="text-center text-sm text-slate-600">Signing you in...</p>
+          <Loader2 className={`h-10 w-10 animate-spin ${clientPortalFocusSpinnerClassName}`} aria-hidden />
+          <p className="text-center text-sm text-slate-700">Signing you in...</p>
         </>
       ) : (
         <>
           <p className="max-w-md text-center text-sm text-slate-700">{message}</p>
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className={clientPortalOutlineAccentButtonClassName}>
             <Link href="/client-portal/request-link">Email me a new link</Link>
           </Button>
         </>
@@ -74,8 +81,10 @@ function ClientPortalAuthInner() {
 export default function ClientPortalAuthPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-slate-600">
-        <span className="h-10 w-10 animate-spin rounded-full border-2 border-slate-300 border-t-sky-600" />
+      <div
+        className={`flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-slate-700 ${clientPortalPageBgClassName}`}
+      >
+        <span className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[#1c57d5]" />
       </div>
     }>
       <ClientPortalAuthInner />

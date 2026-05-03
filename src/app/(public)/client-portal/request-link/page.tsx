@@ -7,6 +7,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  CLIENT_PORTAL_GRADIENT_BLUE_STYLE,
+  clientPortalLinkClassName,
+  clientPortalMutedSurfaceClassName,
+  clientPortalOutlineAccentButtonClassName,
+  clientPortalPrimaryButtonClassName
+} from '@/constants/clientPortal';
 import { Loader2 } from 'lucide-react';
 
 function apiOrigin(): string {
@@ -16,7 +23,6 @@ function apiOrigin(): string {
 
 export default function ClientPortalRequestLinkPage() {
   const [email, setEmail] = useState('');
-  const [invoiceId, setInvoiceId] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -27,10 +33,7 @@ export default function ClientPortalRequestLinkPage() {
       const base = apiOrigin();
       await axios.post(
         `${base}/api/v1/client-portal/request-link`,
-        {
-          email: email.trim(),
-          ...(invoiceId.trim() ? { invoiceId: invoiceId.trim() } : {})
-        },
+        { email: email.trim() },
         {
           headers: { 'Content-Type': 'application/json' },
           timeout: 25_000
@@ -55,11 +58,16 @@ export default function ClientPortalRequestLinkPage() {
       </div>
 
       {submitted ? (
-        <div className="space-y-4 rounded-lg border border-sky-100 bg-white p-6 shadow-sm">
+        <div className={`space-y-4 rounded-lg p-6 shadow-sm ${clientPortalMutedSurfaceClassName} border`}>
           <p className="text-sm text-slate-700">
             If we found an account matching that email, check your inbox for a secure login link shortly.
           </p>
-          <Button type="button" variant="outline" onClick={() => setSubmitted(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            className={clientPortalOutlineAccentButtonClassName}
+            onClick={() => setSubmitted(false)}
+          >
             Request another link
           </Button>
           <p className="text-xs text-slate-500">
@@ -80,16 +88,12 @@ export default function ClientPortalRequestLinkPage() {
               placeholder="you@example.com"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="portal-invoice">Invoice ID (optional)</Label>
-            <Input
-              id="portal-invoice"
-              value={invoiceId}
-              onChange={(e) => setInvoiceId(e.target.value)}
-              placeholder="If you clicked a reminder with an invoice hint"
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button
+            type="submit"
+            className={`w-full ${clientPortalPrimaryButtonClassName}`}
+            style={CLIENT_PORTAL_GRADIENT_BLUE_STYLE}
+            disabled={loading}
+          >
             {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
             Email me the link
           </Button>
@@ -104,7 +108,7 @@ export default function ClientPortalRequestLinkPage() {
         ).
       </p>
       <p className="text-center text-xs text-slate-500">
-        <Link href="/login" className="font-medium text-sky-700 hover:text-sky-900">
+        <Link href="/login" className={clientPortalLinkClassName}>
           Staff login →
         </Link>
       </p>

@@ -1,12 +1,22 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { getPortalAccessToken, setPortalAccessToken } from '@/lib/portalAxios';
+import { getPortalAccessToken, portalAxios, setPortalAccessToken } from '@/lib/portalAxios';
+import {
+  clientPortalHeaderBarClassName,
+  clientPortalNavLinkClassName,
+  clientPortalOutlineAccentButtonClassName,
+  clientPortalPageBgClassName,
+  clientPortalFocusSpinnerClassName
+} from '@/constants/clientPortal';
+import type { ClientPortalMeResponse } from '@/ts/interfaces/ClientPortal';
 
 /** Paths that must work before JWT exists (exchange token vs request-link form). */
 function isPortalEntryWithoutSession(pathname: string): boolean {
@@ -41,40 +51,94 @@ export default function ClientPortalLayout({ children }: { children: React.React
 
   if (portalEntryPublic) {
     return (
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
-        <Link href="/" className="text-sm font-medium text-slate-600 hover:text-slate-900">
-          Aquatechy
-        </Link>
+      <div className={`flex min-h-screen flex-col ${clientPortalPageBgClassName}`}>
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 p-6">
+        <div className="flex justify-center">
+          <Link href="/" className="inline-block outline-offset-4 rounded-md" aria-label="Aquatechy home">
+            <Image
+              priority
+              width={0}
+              height={0}
+              sizes="100vw"
+              className="h-auto w-52 max-w-[min(13rem,85vw)]"
+              src="/images/logoHor.png"
+              alt="Aquatechy"
+            />
+          </Link>
+        </div>
         {children}
+        </div>
       </div>
     );
   }
 
   if (!gateReady) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-slate-600" aria-hidden />
+      <div
+        className={`flex min-h-screen items-center justify-center ${clientPortalPageBgClassName}`}
+      >
+        <Loader2 className={`h-10 w-10 animate-spin ${clientPortalFocusSpinnerClassName}`} aria-hidden />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
-          <nav className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-700">
-            <Link href="/client-portal" className="hover:text-slate-900">
-              Overview
-            </Link>
-            <Link href="/client-portal/invoices" className="hover:text-slate-900">
-              Invoices
-            </Link>
-            <Link href="/client-portal/payment-method" className="hover:text-slate-900">
-              Payment method
-            </Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={handleLogout}>
+    <ClientPortalAuthedChrome onLogout={handleLogout}>{children}</ClientPortalAuthedChrome>
+  );
+}
+
+function ClientPortalAuthedChrome({
+  children,
+  onLogout
+}: {
+  children: React.ReactNode;
+  onLogout: () => void;
+}) {
+  const meQuery = useQuery({
+    queryKey: ['client-portal-me'],
+    queryFn: async () => {
+      const { data } = await portalAxios.get<ClientPortalMeResponse>('/client-portal/me');
+      return data;
+    },
+    staleTime: 60 * 1000
+  });
+
+  const company = meQuery.data?.company;
+  const logoUrl = company?.imageUrl?.trim();
+  const logoAlt = company?.name ? `${company.name} logo` : 'Company logo';
+
+  return (
+    <div className={`flex min-h-screen flex-col ${clientPortalPageBgClassName}`}>
+      <header className={clientPortalHeaderBarClassName}>
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-2">
+            {logoUrl ? (
+              <Link
+                href="/client-portal"
+                className="order-first shrink-0 self-center"
+                aria-label={company?.name ? `Home — ${company.name}` : 'Client portal home'}
+              >
+                <img
+                  src={logoUrl}
+                  alt={logoAlt}
+                  className="max-h-9 w-auto max-w-[min(9rem,28vw)] object-contain object-left"
+                />
+              </Link>
+            ) : null}
+            <nav className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium ${clientPortalNavLinkClassName}`}>
+              <Link href="/client-portal">Overview</Link>
+              <Link href="/client-portal/invoices">Invoices</Link>
+              <Link href="/client-portal/payment-method">Payment method</Link>
+            </nav>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className={clientPortalOutlineAccentButtonClassName}
+              onClick={onLogout}
+            >
               Sign out
             </Button>
           </div>

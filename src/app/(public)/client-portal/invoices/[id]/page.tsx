@@ -7,6 +7,14 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import { Download, FileText, Loader2 } from 'lucide-react';
 
+import {
+  CLIENT_PORTAL_GRADIENT_BLUE_STYLE,
+  clientPortalFocusSpinnerClassName,
+  clientPortalLinkClassName,
+  clientPortalOutlineAccentButtonClassName,
+  clientPortalPrimaryButtonClassName,
+  clientPortalTableHeadClassName
+} from '@/constants/clientPortal';
 import { Button } from '@/components/ui/button';
 import { portalAxios } from '@/lib/portalAxios';
 import type { ClientPortalInvoiceDetail } from '@/ts/interfaces/ClientPortal';
@@ -62,8 +70,8 @@ export default function ClientPortalInvoiceDetailPage() {
 
   if (detailQuery.isLoading || !detailQuery.data) {
     return (
-      <div className="flex items-center gap-3 text-slate-600">
-        <Loader2 className="h-6 w-6 animate-spin" />
+      <div className="flex items-center gap-3 text-slate-700">
+        <Loader2 className={`h-6 w-6 animate-spin ${clientPortalFocusSpinnerClassName}`} />
         Loading invoice...
       </div>
     );
@@ -78,7 +86,7 @@ export default function ClientPortalInvoiceDetailPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-slate-600">
-            <Link href="/client-portal/invoices" className="hover:text-slate-900">
+            <Link href="/client-portal/invoices" className={clientPortalLinkClassName}>
               Invoices
             </Link>
             <span className="mx-2 text-slate-400">/</span>
@@ -118,7 +126,8 @@ export default function ClientPortalInvoiceDetailPage() {
               type="button"
               onClick={() => checkoutMutation.mutate()}
               disabled={checkoutMutation.isPending}
-              className="gap-2"
+              className={`gap-2 ${clientPortalPrimaryButtonClassName}`}
+              style={CLIENT_PORTAL_GRADIENT_BLUE_STYLE}
             >
               {checkoutMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Pay now
@@ -127,9 +136,9 @@ export default function ClientPortalInvoiceDetailPage() {
           <Button
             type="button"
             variant="outline"
+            className={`gap-2 ${clientPortalOutlineAccentButtonClassName}`}
             onClick={() => pdfMutation.mutate()}
             disabled={pdfMutation.isPending}
-            className="gap-2"
           >
             {pdfMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             PDF
@@ -144,12 +153,12 @@ export default function ClientPortalInvoiceDetailPage() {
         {(inv.lineItems ?? []).length > 0 && (
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse text-left text-sm">
-              <thead className="border-b bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <thead className={`border-b font-semibold ${clientPortalTableHeadClassName}`}>
                 <tr>
-                  <th className="px-6 py-3 font-semibold">Description</th>
-                  <th className="px-6 py-3 font-semibold">Qty</th>
-                  <th className="px-6 py-3 font-semibold text-right">Unit</th>
-                  <th className="px-6 py-3 font-semibold text-right">Amount</th>
+                  <th className="px-6 py-3">Description</th>
+                  <th className="px-6 py-3">Qty</th>
+                  <th className="px-6 py-3 text-right">Unit</th>
+                  <th className="px-6 py-3 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -206,7 +215,7 @@ export default function ClientPortalInvoiceDetailPage() {
             </div>
           ) : null}
           {inv.notes ? (
-            <div className="rounded-lg border bg-white p-4 text-sm shadow-sm md:col-span-2">
+            <div className="col-span-full rounded-lg border bg-white p-4 text-sm shadow-sm">
               <h3 className="mb-2 font-semibold text-slate-900">Notes</h3>
               <p className="whitespace-pre-line text-slate-700">{inv.notes}</p>
             </div>
