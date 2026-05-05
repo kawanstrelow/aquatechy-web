@@ -35,6 +35,10 @@ export default function ClientPortalInvoicesPage() {
 
   const toDollars = (cents: number) => (typeof cents === 'number' ? cents / 100 : 0).toFixed(2);
 
+  const sortedInvoices = [...invoices].sort(
+    (a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()
+  );
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-slate-900">Your invoices</h1>
@@ -44,18 +48,20 @@ export default function ClientPortalInvoicesPage() {
             <tr>
               <th className="px-6 py-3">Invoice</th>
               <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3">Issued</th>
+              <th className="px-6 py-3">Paid</th>
               <th className="px-6 py-3">Due</th>
               <th className="px-6 py-3 text-right">Total</th>
               <th className="px-6 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {invoices.map((inv) => (
+            {sortedInvoices.map((inv) => (
               <tr key={inv.id} className="hover:bg-[#eef2fc]/70">
                 <td className="px-6 py-3 font-medium text-slate-900">{inv.invoiceNumber}</td>
                 <td className="px-6 py-3 capitalize text-slate-700">{inv.status}</td>
-                <td className="px-6 py-3 text-slate-600">{format(new Date(inv.issuedDate), 'MMM d, yyyy')}</td>
+                <td className="px-6 py-3 text-slate-600">
+                  {inv.paidAt ? format(new Date(inv.paidAt), 'MMM d, yyyy') : '—'}
+                </td>
                 <td className="px-6 py-3 text-slate-600">{format(new Date(inv.dueDate), 'MMM d, yyyy')}</td>
                 <td className="px-6 py-3 text-right font-medium text-slate-900">${toDollars(inv.total)}</td>
                 <td className="px-6 py-3 text-right">

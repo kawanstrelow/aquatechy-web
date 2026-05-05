@@ -25,7 +25,7 @@ export const clientPortalPageBgClassName =
 export const clientPortalHeaderBarClassName =
   'border-b border-[#1c57d5]/20 bg-gradient-to-r from-white via-[#f8faff] to-white';
 
-export const clientPortalNavLinkClassName = 'text-[#1c57d5] hover:text-[#102d7c]';
+export const clientPortalNavLinkClassName = 'text-slate-700 hover:text-slate-900';
 
 export const clientPortalTableHeadClassName = 'border-b bg-[#eef2fc] text-xs uppercase tracking-wide text-[#102d7c]/70';
 

@@ -9,6 +9,7 @@ import useGetRecurringInvoiceTemplates, { RecurringInvoiceTemplate } from '@/hoo
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import { useDeleteRecurringInvoiceTemplate } from '@/hooks/react-query/invoices/useDeleteRecurringInvoiceTemplate';
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
+import { RecurringInvoiceSummaryCards } from './_components/RecurringInvoiceSummaryCards';
 import { DataTableRecurringInvoices } from './DataTableRecurringInvoices/index';
 import { createColumns } from './DataTableRecurringInvoices/columns';
 
@@ -72,7 +73,8 @@ export default function RecurringInvoicesPage() {
 
   return (
     <div className="flex flex-col gap-6 p-2">
-      {/* Data Table */}
+      <RecurringInvoiceSummaryCards templates={templates} />
+
       <DataTableRecurringInvoices 
         columns={columns} 
         data={templates} 
