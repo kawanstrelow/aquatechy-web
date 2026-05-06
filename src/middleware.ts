@@ -12,6 +12,15 @@ function isPublicRoute(pathname: string) {
     return true;
   }
 
+  if (
+    pathname === '/auth' ||
+    pathname.startsWith('/client-portal') ||
+    pathname.startsWith('/pay/') ||
+    pathname.startsWith('/invoices/pay/')
+  ) {
+    return true;
+  }
+
   return false;
 }
 

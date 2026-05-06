@@ -14,7 +14,7 @@ import { useForm } from 'react-hook-form';
 import SelectField from '@/components/SelectField';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Invoice } from '../utils/fakeData';
+import { InvoiceListRow } from '../utils/fakeData';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -23,6 +23,7 @@ interface DataTableProps<TData, TValue> {
   clients?: { id: string; name: string }[];
   companies?: Array<{ id: string; name: string }>;
   onCompanyChange?: (companyId: string) => void;
+  onRowClick?: (row: TData) => void;
 }
 
 export function DataTableInvoices<TValue>({ 
@@ -31,8 +32,9 @@ export function DataTableInvoices<TValue>({
   onFiltersChange,
   clients = [],
   companies = [],
-  onCompanyChange
-}: DataTableProps<Invoice, TValue>) {
+  onCompanyChange,
+  onRowClick
+}: DataTableProps<InvoiceListRow, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -178,16 +180,29 @@ export function DataTableInvoices<TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row, index) => (
+              table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="border-b border-gray-100 transition-colors hover:bg-gray-50/50"
+                  className={`border-b border-gray-100 transition-colors hover:bg-gray-50/50${onRowClick ? ' cursor-pointer' : ''}`}
+                  onClick={() => onRowClick?.(row.original)}
+                  onKeyDown={
+                    onRowClick
+                      ? (e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onRowClick(row.original);
+                          }
+                        }
+                      : undefined
+                  }
+                  tabIndex={onRowClick ? 0 : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell 
                       key={cell.id}
                       className="py-4 text-sm"
+                      onClick={cell.column.id === 'actions' ? (e) => e.stopPropagation() : undefined}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>

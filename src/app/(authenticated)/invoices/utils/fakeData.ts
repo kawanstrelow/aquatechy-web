@@ -1,3 +1,17 @@
+import type { InvoicePaymentSource, InvoiceRefundStatus } from '@/ts/interfaces/Invoice';
+
+/** Minimal row shape for the invoices list (API `TableInvoice` and mock rows). */
+export interface InvoiceListRow {
+  id: string;
+  invoiceNumber?: string | null;
+  clientId: string;
+  clientName: string;
+  issuedDate: Date | string;
+  dueDate: Date | string;
+  amount: number;
+  status: 'paid' | 'unpaid' | 'draft' | 'overdue' | 'cancelled';
+}
+
 export interface Invoice {
   id: string;
   invoiceNumber?: string | null | undefined;
@@ -43,6 +57,21 @@ export interface DetailedInvoice extends Invoice {
   paymentInstructions: string;
   clientAddress?: string;
   companyOwner?: DetailedInvoiceCompanyOwner;
+  companyOwnerId?: string;
+  paidAt?: string | null;
+  invoicePaymentSource?: InvoicePaymentSource | null;
+  refundStatus?: InvoiceRefundStatus | null;
+  refundedAt?: string | null;
+  /** Invoice total in cents (API field); used for refund caps and balance display. */
+  invoiceTotalCents?: number;
+  /** Cumulative refunds in cents. */
+  totalRefundedCents?: number;
+  stripePaymentIntentId?: string | null;
+  stripeChargeId?: string | null;
+  defaultStripePaymentMethodId?: string | null;
+  cardOnFileLast4?: string | null;
+  cardOnFileBrand?: string | null;
+  cardOnFileExp?: string | null;
 }
 
 const clientNames = [

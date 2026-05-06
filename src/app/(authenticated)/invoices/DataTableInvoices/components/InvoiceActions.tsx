@@ -1,32 +1,31 @@
 import { useState } from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
-import { MdDeleteOutline, MdEdit, MdVisibility, MdDownload, MdCheckCircle, MdCancel } from 'react-icons/md';
+import { MdEdit, MdVisibility, MdDownload } from 'react-icons/md';
 
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuShortcut,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Invoice } from '../../utils/fakeData';
+import { InvoiceListRow } from '../../utils/fakeData';
 
 interface InvoiceActionsProps {
-  invoice: Invoice;
-  onView?: (invoice: Invoice) => void;
-  onEdit?: (invoice: Invoice) => void;
-  onDelete?: (invoice: Invoice) => void;
-  onDownload?: (invoice: Invoice) => void;
-  onMarkPaid?: (invoice: Invoice) => void;
-  onMarkUnpaid?: (invoice: Invoice) => void;
+  invoice: InvoiceListRow;
+  onView?: (invoice: InvoiceListRow) => void;
+  onEdit?: (invoice: InvoiceListRow) => void;
+  onCancelInvoice?: (invoice: InvoiceListRow) => void;
+  onDownload?: (invoice: InvoiceListRow) => void;
+  onMarkPaid?: (invoice: InvoiceListRow) => void;
+  onMarkUnpaid?: (invoice: InvoiceListRow) => void;
 }
 
 export function InvoiceActions({ 
   invoice, 
   onView, 
   onEdit, 
-  onDelete, 
+  onCancelInvoice, 
   onDownload,
   onMarkPaid,
   onMarkUnpaid
@@ -43,8 +42,8 @@ export function InvoiceActions({
         case 'edit':
           onEdit?.(invoice);
           break;
-        case 'delete':
-          onDelete?.(invoice);
+        case 'cancelInvoice':
+          onCancelInvoice?.(invoice);
           break;
         case 'download':
           onDownload?.(invoice);
@@ -106,15 +105,16 @@ export function InvoiceActions({
               </div>
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem 
-            onSelect={() => handleActionSelect('delete')} 
-            className="text-red-500"
-          >
-            <div className="flex w-full items-center cursor-pointer">
-              Delete
-              
-            </div>
-          </DropdownMenuItem>
+          {invoice.status !== 'paid' && invoice.status !== 'cancelled' ? (
+            <DropdownMenuItem
+              onSelect={() => handleActionSelect('cancelInvoice')}
+              className="text-red-500"
+            >
+              <div className="flex w-full items-center cursor-pointer">
+                Cancel invoice
+              </div>
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
