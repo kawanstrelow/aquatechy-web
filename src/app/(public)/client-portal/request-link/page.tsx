@@ -100,18 +100,8 @@ export default function ClientPortalRequestLinkPage() {
         </form>
       )}
 
-      <p className="text-center text-sm text-slate-600">
-        Already have an email invitation? Open the magic link in the message (often{' '}
-        <code className="rounded bg-slate-100 px-1 py-0.5 text-xs text-slate-800">/auth?token=…</code>
-        or{' '}
-        <code className="rounded bg-slate-100 px-1 py-0.5 text-xs text-slate-800">/client-portal/auth?token=…</code>
-        ).
-      </p>
-      <p className="text-center text-xs text-slate-500">
-        <Link href="/login" className={clientPortalLinkClassName}>
-          Staff login →
-        </Link>
-      </p>
+      
+      
     </div>
   );
 }
