@@ -31,7 +31,7 @@ export interface Dashboard {
     poolName: string;
     address: string;
   }>;
-  /** Recent completed services (newest first); used for dashboard “after service” photos when present on `/users/:id/v2`. */
+  /** Recent completed services (newest first); used for dashboard service photos when present on `/users/:id/v2`. */
   lastServices?: Service[];
   /** Today's route breakdown per technician from `/users/:id/v2`. */
   techniciansProgress?: TechnicianDailyProgress[];
