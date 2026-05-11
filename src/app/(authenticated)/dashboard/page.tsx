@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
 import { MetricCard } from './_components/MetricCard';
+import { DashboardAfterServicePhotos } from './_components/DashboardAfterServicePhotos';
+import { DashboardTechniciansProgress } from './_components/DashboardTechniciansProgress';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
@@ -23,7 +25,7 @@ export default function Page() {
   const user = useUserStore((state) => state.user);
 
   const router = useRouter();
-  const { filterCleaningPunctuality, poolsWithoutAssignment, recentIssues } = dashboard;
+  const { filterCleaningPunctuality, poolsWithoutAssignment, recentIssues, lastServices, techniciansProgress } = dashboard;
 
   const toggleConfidential = () => setShowConfidential(!showConfidential);
 
@@ -38,6 +40,9 @@ export default function Page() {
     return (
       <div className="p-4 pb-20">
         <div className="flex flex-col gap-4">
+          <DashboardAfterServicePhotos services={lastServices} compact />
+          <DashboardTechniciansProgress techniciansProgress={techniciansProgress} compact />
+
           {/* Recent Issues */}
           <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
@@ -172,6 +177,9 @@ export default function Page() {
     <div className="p-6">
       {/* Separator */}
       <div className="mb-8 h-1 w-full bg-gradient-to-r from-blue-100 via-blue-400 to-blue-100 rounded-full" />
+
+      <DashboardAfterServicePhotos services={lastServices} />
+      <DashboardTechniciansProgress techniciansProgress={techniciansProgress} />
 
       {/* Recent Issues Table */}
       <div className="mb-8">

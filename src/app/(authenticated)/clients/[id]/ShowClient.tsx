@@ -144,7 +144,7 @@ export default function ShowClient({ client }: Props) {
                 <Button onClick={handleAddPool} className="w-full" variant={'default'}>
                   Add pool
                 </Button>
-              <Separator className="w-full bg-gray-200 opacity-50" />
+                <Separator className="w-full bg-gray-200 opacity-50" />
               <div className="flex w-full justify-center gap-2">
                   <Button
                     onClick={() => setDeactivateModalOpen(true)}

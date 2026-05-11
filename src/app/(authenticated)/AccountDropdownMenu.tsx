@@ -47,6 +47,11 @@ export function AccountDropdownMenu({ handleLogout }: Props) {
         <DropdownMenuItem>
           <Link href="/settings/profile">Profile</Link>
         </DropdownMenuItem>
+        {/* Stripe Connect settings — re-enable when online payments launch
+        <DropdownMenuItem>
+          <Link href="/settings/payments">Payments (Stripe)</Link>
+        </DropdownMenuItem>
+        */}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <span className="text-red-500">Log out</span>

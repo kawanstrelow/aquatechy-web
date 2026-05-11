@@ -381,6 +381,7 @@ export function ModalViewService({ service, open, setOpen }: Props) {
                                     })}
                                     {/* Add photo button */}
                                     <div className="space-y-2">
+                                      <p className="text-sm font-medium text-gray-700">Add Photo</p>
                                       <button
                                         onClick={handleAddPhotos}
                                         className="flex aspect-square w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-gray-400 hover:bg-gray-100"
@@ -388,7 +389,6 @@ export function ModalViewService({ service, open, setOpen }: Props) {
                                       >
                                         <Plus className="h-8 w-8 text-gray-400" />
                                       </button>
-                                      <p className="text-sm font-medium text-gray-700">Add Photo</p>
                                     </div>
                                   </div>
                                 ) : (

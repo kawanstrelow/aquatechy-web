@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { DetailedInvoice } from '../utils/fakeData';
+import type { InvoicePaymentSource } from '@/ts/interfaces/Invoice';
 import {
   Table,
   TableBody,
@@ -13,6 +14,19 @@ import {
 
 interface InvoiceViewProps {
   invoice: DetailedInvoice;
+}
+
+function paymentSourceLabel(source: InvoicePaymentSource | undefined | null): string {
+  switch (source) {
+    case 'card':
+      return 'Paid via card (Checkout or similar)';
+    case 'manual_card_on_file':
+      return 'Paid via saved card charge';
+    case 'external':
+      return 'Marked paid externally';
+    default:
+      return '';
+  }
 }
 
 const statusOptions: Record<DetailedInvoice['status'], { label: string; className: string }> = {
@@ -44,6 +58,10 @@ export function InvoiceView({ invoice }: InvoiceViewProps) {
     label: invoice.status
   };
 
+  const invoiceTotalCents = invoice.invoiceTotalCents ?? Math.round(invoice.total * 100);
+  const refundedCents = invoice.totalRefundedCents ?? 0;
+  const balanceAfterRefundsCents = Math.max(0, Math.round(invoiceTotalCents) - refundedCents);
+
   const companyOwner = invoice.companyOwner;
 
   // Format company address from invoice companyOwner only
@@ -60,7 +78,7 @@ export function InvoiceView({ invoice }: InvoiceViewProps) {
   const clientAddress = invoice.clientAddress || '';
 
   return (
-    <div className="flex justify-center p-4">
+    <div className="flex justify-center px-4 pb-4 pt-0">
       {/* A4-sized container: 210mm x 297mm ≈ 794px x 1123px at 96dpi */}
       <div className="w-full max-w-[794px] bg-white shadow-lg" style={{ minHeight: '1123px' }}>
         <div className="p-12 md:p-16">
@@ -113,6 +131,18 @@ export function InvoiceView({ invoice }: InvoiceViewProps) {
                   <span className="font-semibold text-gray-500">Due Date:</span>{' '}
                   {format(new Date(invoice.dueDate), 'MMM dd, yyyy')}
                 </div>
+                {invoice.status === 'paid' && invoice.paidAt ? (
+                  <div>
+                    <span className="font-semibold text-gray-500">Paid on:</span>{' '}
+                    {format(new Date(invoice.paidAt), 'MMM dd, yyyy')}
+                  </div>
+                ) : null}
+                {invoice.status === 'paid' && invoice.invoicePaymentSource ? (
+                  <div>
+                    <span className="font-semibold text-gray-500">Payment:</span>{' '}
+                    {paymentSourceLabel(invoice.invoicePaymentSource)}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -123,6 +153,12 @@ export function InvoiceView({ invoice }: InvoiceViewProps) {
             <div className="space-y-1 text-sm text-gray-700">
               <div className="font-semibold text-gray-900">{invoice.clientName}</div>
               {clientAddress && <div className="whitespace-pre-line text-gray-600">{clientAddress}</div>}
+              {invoice.cardOnFileLast4 ? (
+                <div className="mt-2 text-xs text-gray-600">
+                  Card on file: {[invoice.cardOnFileBrand, `••••${invoice.cardOnFileLast4}`].filter(Boolean).join(' ')}{' '}
+                  {invoice.cardOnFileExp ? `(exp ${invoice.cardOnFileExp})` : null}
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -176,6 +212,20 @@ export function InvoiceView({ invoice }: InvoiceViewProps) {
                 <span className="text-gray-900">Total:</span>
                 <span className="text-gray-900">${invoice.total.toFixed(2)}</span>
               </div>
+              {refundedCents > 0 ? (
+                <>
+                  <div className="flex justify-between border-t border-gray-200 pt-2 text-sm">
+                    <span className="text-gray-600">Refunded (cumulative):</span>
+                    <span className="font-semibold text-gray-900">${(refundedCents / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Remaining invoice balance:</span>
+                    <span className="font-semibold text-gray-900">
+                      ${(balanceAfterRefundsCents / 100).toFixed(2)}
+                    </span>
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
 

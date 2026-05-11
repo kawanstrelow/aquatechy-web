@@ -60,9 +60,9 @@ const frequencyOptions = [
 ];
 
 const deliveryOptions = [
-  { key: RecurringInvoiceDelivery.SaveAsDraft, value: RecurringInvoiceDelivery.SaveAsDraft, name: 'Save invoices as draft' },
-  { key: RecurringInvoiceDelivery.SendOnCreation, value: RecurringInvoiceDelivery.SendOnCreation, name: 'Automatically send on creation' },
-  { key: RecurringInvoiceDelivery.CreateOnly, value: RecurringInvoiceDelivery.CreateOnly, name: 'Create only' }
+  { key: RecurringInvoiceDelivery.SaveAsDraft, value: RecurringInvoiceDelivery.SaveAsDraft, name: 'Create invoices and save as draft' },
+  { key: RecurringInvoiceDelivery.SendOnCreation, value: RecurringInvoiceDelivery.SendOnCreation, name: 'Create invoices and send e-mail' },
+  { key: RecurringInvoiceDelivery.CreateOnly, value: RecurringInvoiceDelivery.CreateOnly, name: 'Create invoices only and do not send e-mail' }
 ];
 
 const defaultPaymentInstructions = 'Please make payment via check or bank transfer. Contact us for bank details.';

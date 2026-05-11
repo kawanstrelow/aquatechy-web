@@ -240,16 +240,19 @@ export default function EditInvoicePage({ params: { id } }: Props) {
       }));
   }, [clients]);
 
-  // Build status options
+  // Cancellation uses POST /invoices/cancel — not editable here. Paid invoices cannot be cancelled.
   const statusOptions = useMemo(() => {
-    return [
+    const base = [
       { key: 'draft', value: 'draft', name: 'Draft' },
       { key: 'unpaid', value: 'unpaid', name: 'Unpaid' },
       { key: 'paid', value: 'paid', name: 'Paid' },
-      { key: 'overdue', value: 'overdue', name: 'Overdue' },
-      { key: 'cancelled', value: 'cancelled', name: 'Cancelled' }
+      { key: 'overdue', value: 'overdue', name: 'Overdue' }
     ];
-  }, []);
+    if (currentInvoice?.status === 'cancelled') {
+      return [...base, { key: 'cancelled', value: 'cancelled', name: 'Cancelled' }];
+    }
+    return base;
+  }, [currentInvoice?.status]);
 
   // Get selected client
   const selectedClient = useMemo(() => {

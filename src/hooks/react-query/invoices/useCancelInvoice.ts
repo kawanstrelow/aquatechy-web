@@ -2,33 +2,28 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import { clientAxios } from '@/lib/clientAxios';
-import { DeleteInvoiceRequest, DeleteInvoiceResponse } from '@/ts/interfaces/Invoice';
+import { CancelInvoiceRequest, CancelInvoiceResponse } from '@/ts/interfaces/Invoice';
 
 import { useToast } from '@/components/ui/use-toast';
 
-export const useDeleteInvoice = () => {
+export const useCancelInvoice = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const { mutate, mutateAsync, isPending, isSuccess } = useMutation({
-    mutationFn: async (data: DeleteInvoiceRequest): Promise<DeleteInvoiceResponse> => {
-      const response = await clientAxios.delete<DeleteInvoiceResponse>('/invoices', {
-        data: {
-          invoiceId: data.invoiceId
-        }
+    mutationFn: async (data: CancelInvoiceRequest): Promise<CancelInvoiceResponse> => {
+      const response = await clientAxios.post<CancelInvoiceResponse>('/invoices/cancel', {
+        invoiceId: data.invoiceId
       });
       return response.data;
     },
-    onSuccess: (response, variables) => {
-      // Invalidate invoices list queries
+    onSuccess: (_response, variables) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      
-      // Invalidate the specific invoice query
       queryClient.invalidateQueries({ queryKey: ['invoice', variables.invoiceId] });
 
       toast({
         duration: 2000,
-        title: 'Invoice deleted successfully',
+        title: 'Invoice cancelled',
         variant: 'success'
       });
     },
@@ -40,12 +35,12 @@ export const useDeleteInvoice = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to delete invoice';
+        : errorMessage || 'Failed to cancel invoice';
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error deleting invoice',
+        title: 'Error cancelling invoice',
         description: message
       });
     }
@@ -53,4 +48,3 @@ export const useDeleteInvoice = () => {
 
   return { mutate, mutateAsync, isPending, isSuccess };
 };
-
