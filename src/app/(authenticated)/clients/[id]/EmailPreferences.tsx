@@ -25,7 +25,8 @@ import { Client } from '@/ts/interfaces/Client';
 import { useUpdateClientPreferences } from '@/hooks/react-query/clients/updatePreferences';
 import { useUserStore } from '@/store/user';
 
-import StripeSaveCardSection from './StripeSaveCardSection';
+// Card on file / Stripe setup — next launch
+// import StripeSaveCardSection from './StripeSaveCardSection';
 
 const schema = z.object({
   sendEmails: z.boolean(),
@@ -110,7 +111,9 @@ export default function EmailPreferences({ client }: { client: Client }) {
 
   return (
     <>
+      {/* Card on file — next launch
       <StripeSaveCardSection client={client} variant="preferences" />
+      */}
 
       <Form {...form}>
         <form className="w-full flex-col items-center" onSubmit={form.handleSubmit(() => setShowConfirmModal(true))}>
