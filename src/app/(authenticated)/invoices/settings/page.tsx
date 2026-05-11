@@ -14,7 +14,8 @@ import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import { CompanyInformationTab } from './components/CompanyInformationTab';
 import { DefaultValuesTab } from './components/DefaultValuesTab';
 import { CommunicationTab } from './components/CommunicationTab';
-import { OnlinePaymentsTab } from './components/OnlinePaymentsTab';
+// Stripe Connect onboarding UI disabled until launch — re-enable import + tab below.
+// import { OnlinePaymentsTab } from './components/OnlinePaymentsTab';
 import {
   InvoiceCompanyInformation,
   InvoiceDefaultValues,
@@ -44,7 +45,7 @@ const createDefaultFormValues = (): InvoiceSettingsFormData => ({
   }
 });
 
-const VALID_TABS = ['company', 'defaults', 'communication', 'payments'] as const;
+const VALID_TABS = ['company', 'defaults', 'communication'] as const;
 
 function InvoiceSettingsContent() {
   const router = useRouter();
@@ -163,12 +164,14 @@ function InvoiceSettingsContent() {
                   >
                     Communication
                   </TabsTrigger>
+                  {/* Online Payments / Stripe Connect — re-enable for launch
                   <TabsTrigger
                     value="payments"
                     className="inline-flex items-center justify-center rounded-md px-3 py-1 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
                   >
                     Online Payments
                   </TabsTrigger>
+                  */}
                 </TabsList>
 
                 <TabsContent value="company" className="mt-6">
@@ -183,9 +186,9 @@ function InvoiceSettingsContent() {
                   <CommunicationTab companyId={selectedCompany?.id} />
                 </TabsContent>
 
-                <TabsContent value="payments" className="mt-6">
+                {/* <TabsContent value="payments" className="mt-6">
                   <OnlinePaymentsTab selectedCompany={selectedCompany} />
-                </TabsContent>
+                </TabsContent> */}
               </Tabs>
             ) : (
               <LoadingSpinner />

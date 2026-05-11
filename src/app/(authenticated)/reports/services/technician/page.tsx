@@ -70,20 +70,32 @@ export default function TechnicianReportPage() {
         });
       }
     });
-    return Array.from(uniqueCompanies.values());
+    return Array.from(uniqueCompanies.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    );
   }, [members]);
 
   // Filter technicians based on selected company
   const filteredTechnicians = useMemo(() => {
     if (!members) return [];
-    if (!selectedCompany) return members;
-    return members.filter(member => member.company.id === selectedCompany);
+    const list = !selectedCompany
+      ? members
+      : members.filter((member) => member.company.id === selectedCompany);
+    return [...list].sort((a, b) => {
+      const nameA = `${a.firstName} ${a.lastName}`;
+      const nameB = `${b.firstName} ${b.lastName}`;
+      return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+    });
   }, [members, selectedCompany]);
 
   // Filter Type of service based on selected company
   const filteredTypeOfService = useMemo(() => {
     if (!serviceTypesData?.serviceTypes) return [];
-    return serviceTypesData.serviceTypes.filter((service) => service.isActive);
+    return serviceTypesData.serviceTypes
+      .filter((service) => service.isActive)
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+      );
   }, [serviceTypesData]);
 
   // Handle service type selection and initialize payment values

@@ -6,7 +6,8 @@ import { Suspense, useEffect, useState } from 'react';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { OnlinePaymentsTab } from '@/app/(authenticated)/invoices/settings/components/OnlinePaymentsTab';
+// Stripe Connect UI disabled until launch — restore OnlinePaymentsTab below.
+// import { OnlinePaymentsTab } from '@/app/(authenticated)/invoices/settings/components/OnlinePaymentsTab';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import { useUserStore } from '@/store/user';
@@ -48,13 +49,14 @@ function PaymentsSettingsContent() {
         <div>
           <h1 className="text-2xl font-bold">Payments</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Stripe Connect return and refresh URLs should point here (e.g.{' '}
+            Online invoice payments via Stripe Connect are not enabled yet. When they are, Connect return and refresh URLs
+            can use this route (e.g.{' '}
             <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">/settings/payments?status=return</code>
             ).
           </p>
         </div>
         <Link
-          href="/invoices/settings?tab=payments"
+          href="/invoices/settings"
           className="shrink-0 text-sm font-medium text-sky-700 hover:text-sky-900"
         >
           Invoice branding & messaging → Invoice settings
@@ -62,7 +64,7 @@ function PaymentsSettingsContent() {
       </div>
 
       {companies.length === 0 ? (
-        <p className="text-sm text-slate-600">No companies yet. Create a company to connect Stripe payouts.</p>
+        <p className="text-sm text-slate-600">No companies yet. Create a company to manage billing settings.</p>
       ) : (
         <>
           <div className="w-full max-w-md">
@@ -80,7 +82,15 @@ function PaymentsSettingsContent() {
             </Select>
           </div>
 
-          {selectedCompany ? <OnlinePaymentsTab selectedCompany={selectedCompany} /> : <LoadingSpinner />}
+          {selectedCompany ? (
+            <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-700 shadow-sm">
+              Stripe Connect and online payments are turned off for now. This screen will show connection status and
+              onboarding when the feature is enabled again.
+            </div>
+          ) : (
+            <LoadingSpinner />
+          )}
+          {/* {selectedCompany ? <OnlinePaymentsTab selectedCompany={selectedCompany} /> : <LoadingSpinner />} */}
         </>
       )}
     </div>
