@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { Pool } from '@/ts/interfaces/Pool';
+import { formatDurationMmSsPadded, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
 
 // Brand colors
 const COLORS = {
@@ -27,6 +28,7 @@ interface ServicesByWeekday {
   serviceType: {
     name: string;
   };
+  startedAt?: string | null;
   completedAt: string;
   clientOwner: {
     firstName: string;
@@ -521,8 +523,11 @@ export const generateTechnicianReportPDF = async (
         // .length > 90 ? service.pool.address.substring(0, 90) + '...' : service.pool.address;
         doc.text(address, 40, currentY + 6);
         
-        // Time (moved left to prevent overflow)
-        const timeStr = service.completedAt ? format(new Date(service.completedAt), 'MMMM dd, yyyy h:mm a') : '';
+        // Time + service duration (e.g. "October 18, 2024 3:30 PM (08m15s)")
+        const completedTimeStr = service.completedAt ? format(new Date(service.completedAt), 'MMMM dd, yyyy h:mm a') : '';
+        const durationSecs = getServiceDurationTotalSeconds(service.startedAt, service.completedAt);
+        const durationSuffix = durationSecs != null ? ` (${formatDurationMmSsPadded(durationSecs)})` : '';
+        const timeStr = `${completedTimeStr}${durationSuffix}`;
         doc.text(timeStr, pageWidth - 90, currentY + 10);
         
         // Status badge (moved slightly right)

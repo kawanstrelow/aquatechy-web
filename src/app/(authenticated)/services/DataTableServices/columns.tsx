@@ -6,6 +6,8 @@ import { Service } from '@/ts/interfaces/Service';
 import { ServiceStatus } from '@/ts/interfaces/Service';
 import { format } from 'date-fns';
 
+import { formatDurationMmSs, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
+
 const statusOptions: Record<ServiceStatus, { label: string; className: string }> = {
   Open: {
     label: 'Open',
@@ -76,6 +78,14 @@ export const columns: ColumnDef<Service>[] = [
       } else if (start && end) {
         return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
       } else return true;
+    }
+  },
+  {
+    id: 'duration',
+    header: 'Duration',
+    cell: ({ row: { original } }) => {
+      const secs = getServiceDurationTotalSeconds(original.startedAt, original.completedAt);
+      return <div>{secs != null ? formatDurationMmSs(secs) : ''}</div>;
     }
   },
   {

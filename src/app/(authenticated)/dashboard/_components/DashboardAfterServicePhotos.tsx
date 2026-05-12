@@ -4,11 +4,12 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { ArrowRight, ImageIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Service } from '@/ts/interfaces/Service';
 import { ModalViewService } from '@/app/(authenticated)/services/ModalViewService';
-import { useRouter } from 'next/navigation';
+import { formatDurationMmSs, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
 
 /** One photo per service: first structured photo with a URL, in API order. */
 export function buildFirstServicePhotoItems(services: Service[] | undefined): { service: Service; url: string }[] {
@@ -35,6 +36,16 @@ function clientDisplayName(service: Service): string {
     return [service.clientOwner.firstName, service.clientOwner.lastName].filter(Boolean).join(' ') || 'Client';
   }
   return 'Client';
+}
+
+function serviceTypeDateSubtitle(service: Service): string {
+  const typeName = service.serviceType?.name ?? 'Service';
+  const secs = getServiceDurationTotalSeconds(service.startedAt, service.completedAt);
+  const durationSeg = secs != null ? ` - ${formatDurationMmSs(secs)}` : '';
+  const dateSeg = service.completedAt
+    ? ` - ${format(new Date(service.completedAt), 'MMM d, yyyy')}`
+    : '';
+  return `${typeName}${durationSeg}${dateSeg}`;
 }
 
 type Props = {
@@ -107,10 +118,7 @@ export function DashboardAfterServicePhotos({ services, compact }: Props) {
                 </div>
                 <div className="space-y-0.5 p-3">
                   <p className="line-clamp-1 text-sm font-medium text-gray-900">{clientDisplayName(service)}</p>
-                  <p className="line-clamp-1 text-xs text-gray-500">
-                    {service.serviceType?.name ?? 'Service'}
-                    {service.completedAt ? ` · ${format(new Date(service.completedAt), 'MMM d, yyyy')}` : ''}
-                  </p>
+                  <p className="line-clamp-1 text-xs text-gray-500">{serviceTypeDateSubtitle(service)}</p>
                 </div>
               </button>
             ))}
