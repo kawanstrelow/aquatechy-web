@@ -12,13 +12,25 @@ export type UseGetProductsParams = {
   categoryMap?: Record<string, string>;
 };
 
+function getCategoryName(product: ProductsResponse['products'][number], categoryMap: Record<string, string>): string {
+  if (product.category?.name) {
+    return product.category.name;
+  }
+
+  if (!product.categoryId) {
+    return 'Uncategorized';
+  }
+
+  return categoryMap[product.categoryId] ?? '—';
+}
+
 function toProductListRow(
   product: ProductsResponse['products'][number],
   categoryMap: Record<string, string>
 ): ProductListRow {
   return {
     ...product,
-    categoryName: product.categoryId ? categoryMap[product.categoryId] ?? '—' : 'Uncategorized',
+    categoryName: getCategoryName(product, categoryMap),
     unitPrice: (product.unitPriceCents ?? 0) / 100,
     cost: product.costCents != null ? product.costCents / 100 : null
   };

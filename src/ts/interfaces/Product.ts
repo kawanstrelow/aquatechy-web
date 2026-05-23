@@ -25,6 +25,9 @@ export interface Product {
   categoryId: string | null;
   createdAt: string;
   updatedAt: string;
+  category?: {
+    name: string;
+  };
 }
 
 export interface ProductCategoriesResponse {
