@@ -39,14 +39,14 @@ export interface CreateServiceTypeRequest {
   name: string;
   description?: string;
   isDefault?: boolean;
-  defaultChecklistId?: string;
+  defaultChecklistId?: string | null;
 }
 
 export interface UpdateServiceTypeRequest {
   name?: string;
   description?: string;
   isActive?: boolean;
-  defaultChecklistId?: string;
+  defaultChecklistId?: string | null;
 }
 
 export interface ServiceTypesResponse {
