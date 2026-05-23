@@ -334,7 +334,7 @@ export function AddShoppingItemDialog({
                 type="submit"
                 disabled={isLoading || !canSelectProduct || productOptions.length === 0}
               >
-                {isLoading ? 'Adding...' : 'Add item'}
+                {isLoading ? 'Adding...' : 'Add shopping item'}
               </Button>
             </DialogFooter>
           </form>

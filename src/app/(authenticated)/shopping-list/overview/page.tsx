@@ -223,7 +223,16 @@ export default function ShoppingOverviewPage() {
         <div className="flex w-full flex-wrap items-center gap-2">
           <Button type="button" className="shrink-0" onClick={() => setAddDialogOpen(true)} disabled={!companyId}>
             <PlusIcon className="mr-2" />
-            Add item
+            Add shopping item
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="shrink-0"
+            onClick={() => router.push('/shopping-list/products')}
+          >
+            <PlusIcon className="mr-2" />
+            Add product
           </Button>
           {companies.length > 1 && (
             <div className="min-w-[140px] flex-1">

@@ -184,7 +184,7 @@ export default function ProductsPage() {
   return (
     <FormProvider {...filtersForm}>
       <div className="flex flex-col gap-6 p-2">
-        <div className="flex w-full flex-nowrap items-center gap-2 overflow-x-auto pb-1">
+        <div className="flex w-full flex-wrap items-center gap-2">
           <Button type="button" className="shrink-0" onClick={handleOpenCreateProduct} disabled={!companyId}>
             <PlusIcon className="mr-2" />
             Add product
@@ -200,23 +200,25 @@ export default function ProductsPage() {
               Add category
             </Button>
           )}
+          <div className="min-w-[140px] flex-1 max-w-xs">
+            <Input
+              placeholder="Search by name or SKU"
+              value={search}
+              onChange={(event) => filtersForm.setValue('search', event.target.value)}
+              className="h-10 w-full"
+            />
+          </div>
           {companies.length > 1 && (
-            <div className="w-[160px] shrink-0">
+            <div className="min-w-[140px] flex-1">
               <SelectField name="companyId" options={companyOptions} placeholder="Company" />
             </div>
           )}
-          <div className="w-[160px] shrink-0">
+          <div className="min-w-[140px] flex-1">
             <SelectField name="categoryId" options={categoryOptions} placeholder="Category" />
           </div>
-          <div className="w-[140px] shrink-0">
+          <div className="min-w-[140px] flex-1">
             <SelectField name="status" options={statusOptions} placeholder="Status" />
           </div>
-          <Input
-            placeholder="Search by name or SKU"
-            value={search}
-            onChange={(event) => filtersForm.setValue('search', event.target.value)}
-            className="h-10 min-w-[180px] shrink-0 md:min-w-[220px]"
-          />
           {appliedFilters > 0 && (
             <Button variant="outline" type="button" className="shrink-0" onClick={handleClearFilters}>
               <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
