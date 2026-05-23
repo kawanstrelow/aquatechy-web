@@ -113,7 +113,7 @@ export function EditServiceTypeDialog({
       name: data.name,
       description: data.description,
       isActive: data.isActive,
-      defaultChecklistId: data.checklistTemplateId === 'none' ? undefined : data.checklistTemplateId
+      defaultChecklistId: data.checklistTemplateId === 'none' ? null : data.checklistTemplateId
     };
     onSubmit(submitData);
   };

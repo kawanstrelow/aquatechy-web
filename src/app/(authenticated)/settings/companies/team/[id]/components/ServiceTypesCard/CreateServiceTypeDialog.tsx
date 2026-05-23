@@ -46,7 +46,7 @@ export function CreateServiceTypeDialog({ open, onOpenChange, onSubmit, isLoadin
       name: data.name,
       description: data.description,
       isDefault: data.isDefault,
-      defaultChecklistId: data.checklistTemplateId === 'none' ? undefined : data.checklistTemplateId
+      defaultChecklistId: data.checklistTemplateId === 'none' ? null : data.checklistTemplateId
     };
     onSubmit(submitData);
   };
