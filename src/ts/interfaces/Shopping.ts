@@ -22,6 +22,13 @@ export interface ShoppingItem {
   createdAt: string;
   updatedAt: string;
   product: Product;
+  client?: {
+    firstName: string;
+    lastName: string;
+  };
+  pool?: {
+    name: string;
+  };
 }
 
 export interface ShoppingItemsResponse {
