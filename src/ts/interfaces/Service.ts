@@ -33,6 +33,7 @@ export interface Service {
   poolId: string;
   pool?: Pool;
   status: ServiceStatus;
+  startedAt: string | null;
   completedAt: string | null;
   photos: string[];
   companyOwnerId: string;

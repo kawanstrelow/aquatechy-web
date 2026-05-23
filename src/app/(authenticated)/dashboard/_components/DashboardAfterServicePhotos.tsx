@@ -4,38 +4,21 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { ArrowRight, ImageIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Service } from '@/ts/interfaces/Service';
 import { ModalViewService } from '@/app/(authenticated)/services/ModalViewService';
-import { useRouter } from 'next/navigation';
+import { formatDurationMmSs, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
 
-const AFTER_SERVICE_LABEL = 'after service';
-
-function getAfterServiceDefinitionIds(service: Service): Set<string> {
-  const ids = new Set<string>();
-  for (const group of service.photosSnapshot ?? []) {
-    for (const def of group.photoDefinitions ?? []) {
-      if (def.name.trim().toLowerCase() === AFTER_SERVICE_LABEL) {
-        ids.add(def.id);
-      }
-    }
-  }
-  return ids;
-}
-
-/** One "after service" photo per service; only when snapshot defines that label and structuredPhotos match. */
-export function buildAfterServicePhotoItems(services: Service[] | undefined): { service: Service; url: string }[] {
+/** One photo per service: first structured photo with a URL, in API order. */
+export function buildFirstServicePhotoItems(services: Service[] | undefined): { service: Service; url: string }[] {
   if (!services?.length) return [];
 
   const items: { service: Service; url: string }[] = [];
 
   for (const service of services) {
-    const allowedIds = getAfterServiceDefinitionIds(service);
-    if (allowedIds.size === 0) continue;
-
-    const afterPhotos = (service.structuredPhotos ?? []).filter((p) => allowedIds.has(p.photoDefinitionId));
-    const first = afterPhotos[0];
+    const first = (service.structuredPhotos ?? []).find((p) => p.url?.trim());
     if (first?.url) {
       items.push({ service, url: first.url });
     }
@@ -55,6 +38,16 @@ function clientDisplayName(service: Service): string {
   return 'Client';
 }
 
+function serviceTypeDateSubtitle(service: Service): string {
+  const typeName = service.serviceType?.name ?? 'Service';
+  const secs = getServiceDurationTotalSeconds(service.startedAt, service.completedAt);
+  const durationSeg = secs != null ? ` - ${formatDurationMmSs(secs)}` : '';
+  const dateSeg = service.completedAt
+    ? ` - ${format(new Date(service.completedAt), 'MMM d, yyyy')}`
+    : '';
+  return `${typeName}${durationSeg}${dateSeg}`;
+}
+
 type Props = {
   services: Service[] | undefined;
   /** Smaller padding / single-row scroll on narrow layout */
@@ -65,7 +58,7 @@ export function DashboardAfterServicePhotos({ services, compact }: Props) {
   const router = useRouter();
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const items = useMemo(() => buildAfterServicePhotoItems(services), [services]);
+  const items = useMemo(() => buildFirstServicePhotoItems(services), [services]);
 
   if (items.length === 0) {
     return null;
@@ -117,7 +110,7 @@ export function DashboardAfterServicePhotos({ services, compact }: Props) {
                 <div className="relative aspect-[4/3] w-full bg-gray-200">
                   <Image
                     src={url}
-                    alt={`After service — ${clientDisplayName(service)}`}
+                    alt={`Service photo — ${clientDisplayName(service)}`}
                     fill
                     className="object-cover transition duration-200 group-hover:scale-[1.02]"
                     sizes={compact ? '200px' : '(max-width: 640px) 100vw, 25vw'}
@@ -125,10 +118,7 @@ export function DashboardAfterServicePhotos({ services, compact }: Props) {
                 </div>
                 <div className="space-y-0.5 p-3">
                   <p className="line-clamp-1 text-sm font-medium text-gray-900">{clientDisplayName(service)}</p>
-                  <p className="line-clamp-1 text-xs text-gray-500">
-                    {service.serviceType?.name ?? 'Service'}
-                    {service.completedAt ? ` · ${format(new Date(service.completedAt), 'MMM d, yyyy')}` : ''}
-                  </p>
+                  <p className="line-clamp-1 text-xs text-gray-500">{serviceTypeDateSubtitle(service)}</p>
                 </div>
               </button>
             ))}

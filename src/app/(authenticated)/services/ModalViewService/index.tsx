@@ -25,6 +25,7 @@ import { zipImages } from '@/lib/js-zip';
 import { format } from 'date-fns';
 import { Service } from '@/ts/interfaces/Service';
 import { generateServicePDF } from '@/utils/generateServicePDF';
+import { formatServiceDurationModal, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
 import { useResendServiceEmail } from '@/hooks/react-query/services/useResendServiceEmail';
 import { useDeleteServicePhoto } from '@/hooks/react-query/services/useDeleteServicePhoto';
 import { useAddServicePhotos } from '@/hooks/react-query/services/useAddServicePhotos';
@@ -293,6 +294,11 @@ export function ModalViewService({ service, open, setOpen }: Props) {
     return [];
   };
 
+  const completedDurationSecs = getServiceDurationTotalSeconds(
+    currentService.startedAt,
+    currentService.completedAt
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto p-6">
@@ -306,6 +312,7 @@ export function ModalViewService({ service, open, setOpen }: Props) {
             <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
               <div className="flex-1">
                 {format(new Date(currentService?.completedAt || new Date()), "EEEE, MMMM do 'at' h:mm a")}
+                {completedDurationSecs != null && <> {formatServiceDurationModal(completedDurationSecs)}</>}
                 <span className="ml-1 font-medium">
                   by {currentService?.completedByUser?.firstName || ''} {currentService?.completedByUser?.lastName || ''}
                 </span>

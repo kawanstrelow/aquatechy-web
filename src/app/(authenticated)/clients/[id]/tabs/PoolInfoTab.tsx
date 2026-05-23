@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Info } from 'lucide-react';
+import { Clock, Info, Timer } from 'lucide-react';
 
 import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -19,6 +20,10 @@ import { FieldType } from '@/ts/enums/enums';
 import { Pool } from '@/ts/interfaces/Pool';
 import { isEmpty } from '@/utils';
 import { findDifferenceBetweenTwoObjects } from '@/utils/others';
+import {
+  formatDurationHumanShort,
+  getServiceDurationTotalSeconds
+} from '@/utils/serviceDuration';
 
 interface PoolInfoTabProps {
   pool: Pool;
@@ -51,6 +56,63 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
 
   const changedFields = findDifferenceBetweenTwoObjects(form.formState.defaultValues!, form.watch());
 
+  const serviceStats = useMemo(() => {
+    const services = pool.services ?? [];
+
+    let totalSecondsOfDay = 0;
+    let completedCount = 0;
+    let totalDurationSecs = 0;
+    let durationCount = 0;
+
+    for (const service of services) {
+      if (service.completedAt) {
+        const completedDate = new Date(service.completedAt);
+        if (Number.isFinite(completedDate.getTime())) {
+          totalSecondsOfDay +=
+            completedDate.getHours() * 3600 +
+            completedDate.getMinutes() * 60 +
+            completedDate.getSeconds();
+          completedCount += 1;
+        }
+      }
+
+      const dur = getServiceDurationTotalSeconds(service.startedAt, service.completedAt);
+      if (dur != null) {
+        totalDurationSecs += dur;
+        durationCount += 1;
+      }
+    }
+
+    let averageCompletionTimeOfDay: string | null = null;
+    if (completedCount > 0) {
+      const avgSecondsOfDay = Math.round(totalSecondsOfDay / completedCount);
+      const refDate = new Date();
+      refDate.setHours(
+        Math.floor(avgSecondsOfDay / 3600),
+        Math.floor((avgSecondsOfDay % 3600) / 60),
+        0,
+        0
+      );
+      averageCompletionTimeOfDay = refDate.toLocaleTimeString(undefined, {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    const averageDurationLabel =
+      durationCount > 0
+        ? formatDurationHumanShort(Math.round(totalDurationSecs / durationCount))
+        : null;
+
+    return {
+      averageCompletionTimeOfDay,
+      averageDurationLabel,
+      completedCount,
+      durationCount
+    };
+  }, [pool.services]);
+
   const handleSubmit = () => {
     if (Object.keys(form.formState.errors).length) return;
 
@@ -73,6 +135,57 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="flex w-full flex-col gap-2">
+        {(serviceStats.averageCompletionTimeOfDay || serviceStats.averageDurationLabel) && (
+          <>
+            <div className="flex flex-col gap-2">
+              <div className="flex h-5 w-full justify-between text-sm font-medium">
+                <Typography element="h3" className="text-md">
+                  Service insights
+                </Typography>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-600">
+                      Avg. completion time of day
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {serviceStats.averageCompletionTimeOfDay ?? '—'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Based on {serviceStats.completedCount} completed service
+                      {serviceStats.completedCount === 1 ? '' : 's'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                    <Timer className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-600">
+                      Avg. time spent on site
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {serviceStats.averageDurationLabel ?? '—'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Based on {serviceStats.durationCount} service
+                      {serviceStats.durationCount === 1 ? '' : 's'} with start &amp; end times
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr className="my-3 border-t border-gray-200" />
+          </>
+        )}
+
         <div className="flex h-5 w-full justify-between text-sm font-medium">
           <Typography element="h3" className="text-md">
             Basic information
