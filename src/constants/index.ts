@@ -6,6 +6,7 @@ import {
   FileText,
   Import,
   ListChecks,
+  ShoppingCart,
   Mails,
   Cog,
   UserPlus,
@@ -229,6 +230,27 @@ export const routes: Menu[] = [
         href: '/invoices/settings',
         title: 'Invoice Settings',
         description: 'Configure invoice settings and preferences'
+      }
+    }
+  },
+  {
+    text: 'Shopping list',
+    href: '/shopping-list/overview',
+    icon: ShoppingCart,
+    title: 'Shopping list',
+    description: 'Manage your product catalog and shopping lists',
+    submenu: {
+      overview: {
+        text: 'Overview',
+        href: '/shopping-list/overview',
+        title: 'Shopping list overview',
+        description: 'Track shopping items across clients and pools'
+      },
+      products: {
+        text: 'Products',
+        href: '/shopping-list/products',
+        title: 'Products',
+        description: 'View and manage products in your catalog'
       }
     }
   },
