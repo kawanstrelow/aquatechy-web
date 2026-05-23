@@ -12,6 +12,21 @@ export type UseGetShoppingItemsParams = {
   poolNameById?: Record<string, string>;
 };
 
+function getClientName(
+  item: ShoppingItem,
+  clientNameById: Record<string, string>
+): string {
+  if (item.client) {
+    return `${item.client.firstName} ${item.client.lastName}`.trim();
+  }
+
+  return clientNameById[item.clientId] ?? '—';
+}
+
+function getPoolName(item: ShoppingItem, poolNameById: Record<string, string>): string {
+  return item.pool?.name ?? poolNameById[item.poolId] ?? '—';
+}
+
 function toShoppingListRow(
   item: ShoppingItem,
   clientNameById: Record<string, string>,
@@ -21,8 +36,8 @@ function toShoppingListRow(
     ...item,
     productName: item.product.name,
     unitPrice: (item.product.unitPriceCents ?? 0) / 100,
-    clientName: clientNameById[item.clientId] ?? '—',
-    poolName: poolNameById[item.poolId] ?? '—'
+    clientName: getClientName(item, clientNameById),
+    poolName: getPoolName(item, poolNameById)
   };
 }
 
