@@ -1,20 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
 import { clientAxios } from '@/lib/clientAxios';
 import { Client } from '@/ts/interfaces/Client';
+import { getClientCompanyOwnerId } from '@/utils/clientUtils';
+
+function normalizeClient(client: Client): Client {
+  const companyOwnerId = getClientCompanyOwnerId(client);
+
+  return {
+    ...client,
+    fullName: client.fullName || `${client.firstName} ${client.lastName}`.trim(),
+    companyOwnerId
+  };
+}
 
 export default function useGetAllClients() {
   return useQuery({
     queryKey: ['allClients'],
     queryFn: async () => {
       const response = await clientAxios.get('/clients/all');
-      // create a full name for each client by combining first and last name
-      response.data?.clients.forEach((client: Client) => {
-        client.fullName = `${client.firstName} ${client.lastName}`;
-      });
+      const clients: Client[] = response.data?.clients || [];
 
-      const res: Client[] = response.data.clients || [];
-
-      return res;
+      return clients.map(normalizeClient);
     }
   });
 }
