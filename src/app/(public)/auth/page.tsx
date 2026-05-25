@@ -12,6 +12,7 @@ import {
   clientPortalPageBgClassName
 } from '@/constants/clientPortal';
 import { setPortalAccessToken } from '@/lib/portalAxios';
+import { resolvePortalAuthRedirect } from '@/lib/portalAuthRedirect';
 import type { ClientPortalExchangeTokenResponse } from '@/ts/interfaces/StripeConnect';
 import { Button } from '@/components/ui/button';
 
@@ -44,7 +45,7 @@ function ClientPortalAuthInner() {
         );
         if (cancelled) return;
         setPortalAccessToken(data.accessToken);
-        router.replace('/client-portal');
+        router.replace(resolvePortalAuthRedirect(searchParams));
       } catch {
         if (cancelled) return;
         setMessage('This link is invalid or has expired. Please request a new one.');

@@ -46,6 +46,26 @@ export interface InvoiceSettingsPreferences {
   communication?: InvoiceCommunication | null;
 }
 
+export interface EstimateMessage {
+  emailSubject?: string | null;
+  emailBody?: string | null;
+}
+
+export interface EstimateNotificationMessage {
+  emailSubject?: string | null;
+  emailBody?: string | null;
+}
+
+export interface EstimateCommunication {
+  estimateMessage?: EstimateMessage | null;
+  acceptedNotificationMessage?: EstimateNotificationMessage | null;
+  declinedNotificationMessage?: EstimateNotificationMessage | null;
+}
+
+export interface EstimateSettingsPreferences {
+  communication?: EstimateCommunication | null;
+}
+
 export type CompanyMember = {
   status: Status;
   id: string;
@@ -105,6 +125,7 @@ export interface Company {
       allowAnticipatedServices?: boolean;
     };
     invoiceSettingsPreferences?: InvoiceSettingsPreferences | null;
+    estimateSettingsPreferences?: EstimateSettingsPreferences | null;
     paymentsPreferences?: {
       allowCardOnFile?: boolean;
       applicationFeeBps?: number;

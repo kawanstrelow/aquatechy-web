@@ -63,3 +63,67 @@ export interface ClientPortalInvoiceDetail {
   paymentInstructions?: string | null;
   lineItems?: ClientPortalInvoiceLineItemLike[];
 }
+
+export interface ClientPortalEstimateListItem {
+  id: string;
+  estimateNumber: string;
+  status: string;
+  issuedDate: string;
+  validUntil: string;
+  total: number;
+  acceptedAt?: string | null;
+  declinedAt?: string | null;
+  expiredAt?: string | null;
+  convertedInvoiceId?: string | null;
+}
+
+export interface ClientPortalEstimatesResponse {
+  estimates: ClientPortalEstimateListItem[];
+}
+
+export interface ClientPortalEstimateLineItem extends ClientPortalInvoiceLineItemLike {
+  sku?: string | null;
+  taxRate?: number;
+  taxAmount?: number;
+}
+
+export interface ClientPortalConvertedInvoiceSummary {
+  id: string;
+  invoiceNumber: string;
+  status: string;
+}
+
+export interface ClientPortalEstimateDetail {
+  id: string;
+  estimateNumber?: string;
+  status: string;
+  issuedDate?: string;
+  validUntil?: string;
+  subtotal?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  discountRate?: number;
+  total?: number;
+  notes?: string | null;
+  terms?: string | null;
+  sentAt?: string | null;
+  acceptedAt?: string | null;
+  declinedAt?: string | null;
+  declineReason?: string | null;
+  expiredAt?: string | null;
+  convertedInvoiceId?: string | null;
+  convertedInvoice?: ClientPortalConvertedInvoiceSummary | null;
+  lineItems?: ClientPortalEstimateLineItem[];
+}
+
+export interface ClientPortalDeclineEstimateRequest {
+  declineReason?: string;
+}
+
+export interface ClientPortalDeclineEstimateResponse {
+  status: 'declined';
+}
+
+export interface PublicEstimateRespondDeclineResponse {
+  declined: true;
+}
