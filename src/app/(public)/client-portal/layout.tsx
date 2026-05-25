@@ -129,7 +129,6 @@ function ClientPortalAuthedChrome({
               <Link href="/client-portal">Overview</Link>
               <Link href="/client-portal/invoices">Invoices</Link>
               <Link href="/client-portal/estimates">Estimates</Link>
-              <Link href="/client-portal/payment-method">Payment method</Link>
             </nav>
           </div>
           <div className="flex shrink-0 items-center gap-2">
