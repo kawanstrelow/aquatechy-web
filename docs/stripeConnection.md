@@ -132,11 +132,11 @@ Two steps: **request link** (public) → **exchange token** (public) → call po
 `POST /api/v1/client-portal/request-link`
 
 ```json
-{ "email": "client@example.com", "invoiceId": "<optional>" }
+{ "email": "client@example.com", "invoiceId": "<optional>", "estimateId": "<optional>" }
 ```
 
 - Response: **`{ "ok": true }`** always (mitigates email enumeration).
-- Backend sends email with `${CLIENT_PORTAL_BASE_URL}/auth?token=<one_time_token>`.
+- Backend sends email with `${CLIENT_PORTAL_BASE_URL}/auth?token=<one_time_token>` (optionally `&estimateId=` or `&redirect=/client-portal/estimates/:id`).
 
 **Front-end**: If you expose a **“Email me a login link”** form on the portal marketing page, call this endpoint with the client’s email (and optionally invoice id to aid routing).
 
@@ -153,9 +153,10 @@ Two steps: **request link** (public) → **exchange token** (public) → call po
 
 **Front-end `/auth` route**
 
-1. Read `token` from query.
+1. Read `token` from query (optional `redirect` or `estimateId` for post-login routing).
 2. `POST` exchange-token.
 3. Store `accessToken` (memory + `sessionStorage`, or HTTP-only cookie if you add cookie-setting—backend **accepts** `Authorization: Bearer` **or** cookie name **`clientPortalToken`**).
+4. Redirect: safe internal `redirect` under `/client-portal`, else `estimateId` → `/client-portal/estimates/:id`, else `/client-portal`.
 
 ### 3. Authenticated portal routes
 
@@ -176,8 +177,27 @@ Authorization: Bearer <accessToken>
 | `POST` | `/client-portal/invoices/:invoiceId/checkout-session` | Same as company flow: `{ url, sessionId }`, client-scoped. |
 | `POST` | `/client-portal/payment-method/setup-session` | `{ url }` — Checkout **setup** to add/update saved card on the connected account. |
 | `DELETE` | `/client-portal/payment-method` | **204** — detaches saved method and clears cached display fields server-side when applicable. |
+| `GET` | `/client-portal/estimates` | `{ estimates: [{ id, estimateNumber, status, issuedDate, validUntil, total, … }] }` — excludes draft/cancelled. Amounts in **cents**. |
+| `GET` | `/client-portal/estimates/:estimateId` | Full estimate detail (line items, notes, terms, `convertedInvoice`, timestamps). |
+| `GET` | `/client-portal/estimates/:estimateId/pdf` | **Binary PDF** (`application/pdf`). |
+| `POST` | `/client-portal/estimates/:estimateId/accept` | Accept when `status === sent` and before `validUntil`; returns `{ estimateId, invoice, alreadyConverted }`. |
+| `POST` | `/client-portal/estimates/:estimateId/decline` | Optional body `{ declineReason? }`; returns `{ status: "declined" }`. |
 
 **401** `{ "message": "Unauthorized" }` when JWT missing, expired, wrong `scope`, or invalid.
+
+### Public estimate respond (no portal JWT)
+
+Email one-click links: `${CLIENT_PORTAL_BASE_URL}/estimates/respond?token=<token>&action=accept|decline`
+
+`POST /api/v1/estimates/respond` (plain axios, no staff cookie or portal token)
+
+```json
+{ "token": "<from email>", "declineReason": "<optional>" }
+```
+
+- Accept **200**: `{ estimateId, invoice, alreadyConverted }` — front-end shows confirmation only (no login CTA).
+- Decline **200**: `{ declined: true }`.
+- **404** / **409**: invalid, expired, or already-used token.
 
 ---
 
@@ -193,8 +213,9 @@ Authorization: Bearer <accessToken>
 
 ### Client portal SPA (magic link)
 
-- [ ] **`/auth`**: consume `?token=` → exchange → store JWT → redirect to dashboard.
-- [ ] **Dashboard**: `GET /me`, list invoices, invoice detail.
+- [ ] **`/auth`**: consume `?token=` → exchange → store JWT → redirect (supports `redirect` / `estimateId`).
+- [ ] **`/estimates/respond`**: public email accept/decline via `POST /estimates/respond`.
+- [ ] **Dashboard**: `GET /me`, list invoices, invoice detail, list estimates, estimate detail (accept/decline/PDF).
 - [ ] **Pay**: redirect to Checkout URL from `…/checkout-session`.
 - [ ] **PDF**: fetch `…/pdf` as blob or open in new tab.
 - [ ] **Payment method**: show `cardOnFile` from `me`; buttons for setup-session URL and DELETE to remove card.
@@ -227,6 +248,12 @@ GET    /api/v1/client-portal/invoices/:invoiceId/pdf(portal JWT)
 POST   /api/v1/client-portal/invoices/:invoiceId/checkout-session (portal JWT)
 POST   /api/v1/client-portal/payment-method/setup-session         (portal JWT)
 DELETE /api/v1/client-portal/payment-method                         (portal JWT)
+GET    /api/v1/client-portal/estimates                            (portal JWT)
+GET    /api/v1/client-portal/estimates/:estimateId                (portal JWT)
+GET    /api/v1/client-portal/estimates/:estimateId/pdf            (portal JWT)
+POST   /api/v1/client-portal/estimates/:estimateId/accept         (portal JWT)
+POST   /api/v1/client-portal/estimates/:estimateId/decline        (portal JWT)
+POST   /api/v1/estimates/respond                                  (public — email token)
 ```
 
 ---

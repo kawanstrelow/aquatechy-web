@@ -19,13 +19,17 @@ import { CommunicationTab } from './components/CommunicationTab';
 import {
   InvoiceCompanyInformation,
   InvoiceDefaultValues,
-  InvoiceCommunication
+  InvoiceCommunication,
+  EstimateCommunication
 } from '@/ts/interfaces/Company';
+
+import { EstimateCommunicationTab } from './components/EstimateCommunicationTab';
 
 interface InvoiceSettingsFormData {
   company: InvoiceCompanyInformation;
   defaults: InvoiceDefaultValues;
   communication: InvoiceCommunication;
+  estimateCommunication: EstimateCommunication;
 }
 
 const createDefaultFormValues = (): InvoiceSettingsFormData => ({
@@ -42,10 +46,15 @@ const createDefaultFormValues = (): InvoiceSettingsFormData => ({
     invoiceMessage: null,
     thankYouMessage: null,
     reminderMessage: null
+  },
+  estimateCommunication: {
+    estimateMessage: null,
+    acceptedNotificationMessage: null,
+    declinedNotificationMessage: null
   }
 });
 
-const VALID_TABS = ['company', 'defaults', 'communication'] as const;
+const VALID_TABS = ['company', 'defaults', 'communication', 'estimates'] as const;
 
 function InvoiceSettingsContent() {
   const router = useRouter();
@@ -164,6 +173,12 @@ function InvoiceSettingsContent() {
                   >
                     Communication
                   </TabsTrigger>
+                  <TabsTrigger
+                    value="estimates"
+                    className="inline-flex items-center justify-center rounded-md px-3 py-1 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+                  >
+                    Estimates
+                  </TabsTrigger>
                   {/* Online Payments / Stripe Connect — re-enable for launch
                   <TabsTrigger
                     value="payments"
@@ -184,6 +199,10 @@ function InvoiceSettingsContent() {
 
                 <TabsContent value="communication" className="mt-6">
                   <CommunicationTab companyId={selectedCompany?.id} />
+                </TabsContent>
+
+                <TabsContent value="estimates" className="mt-6">
+                  <EstimateCommunicationTab companyId={selectedCompany?.id} />
                 </TabsContent>
 
                 {/* <TabsContent value="payments" className="mt-6">

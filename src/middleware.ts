@@ -16,7 +16,9 @@ function isPublicRoute(pathname: string) {
     pathname === '/auth' ||
     pathname.startsWith('/client-portal') ||
     pathname.startsWith('/pay/') ||
-    pathname.startsWith('/invoices/pay/')
+    pathname.startsWith('/invoices/pay/') ||
+    pathname === '/estimates/respond' ||
+    pathname.startsWith('/estimates/respond/')
   ) {
     return true;
   }
