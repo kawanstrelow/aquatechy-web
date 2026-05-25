@@ -219,6 +219,12 @@ export const routes: Menu[] = [
         title: 'Invoices Overview',
         description: 'View and manage all your invoices'
       },
+      estimates: {
+        text: 'Estimates',
+        href: '/invoices/estimates',
+        title: 'Estimates',
+        description: 'Create and manage client estimates'
+      },
       recurring: {
         text: 'Recurring',
         href: '/invoices/recurring',

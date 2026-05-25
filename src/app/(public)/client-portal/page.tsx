@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 
 import { portalAxios } from '@/lib/portalAxios';
-import type { ClientPortalInvoicesResponse, ClientPortalMeResponse } from '@/ts/interfaces/ClientPortal';
+import type { ClientPortalEstimatesResponse, ClientPortalInvoicesResponse, ClientPortalMeResponse } from '@/ts/interfaces/ClientPortal';
 import { format } from 'date-fns';
 import {
   CLIENT_PORTAL_GRADIENT_BLUE_STYLE,
@@ -33,7 +33,15 @@ export default function ClientPortalHomePage() {
     }
   });
 
-  if (meQuery.isLoading || invoicesQuery.isLoading) {
+  const estimatesQuery = useQuery({
+    queryKey: ['client-portal-estimates-list'],
+    queryFn: async () => {
+      const { data } = await portalAxios.get<ClientPortalEstimatesResponse>('/client-portal/estimates');
+      return data.estimates ?? [];
+    }
+  });
+
+  if (meQuery.isLoading || invoicesQuery.isLoading || estimatesQuery.isLoading) {
     return (
       <div className="flex items-center gap-3 text-slate-700">
         <Loader2 className={`h-6 w-6 animate-spin ${clientPortalFocusSpinnerClassName}`} />
@@ -42,7 +50,7 @@ export default function ClientPortalHomePage() {
     );
   }
 
-  const meError = !!meQuery.isError || !!invoicesQuery.isError;
+  const meError = !!meQuery.isError || !!invoicesQuery.isError || !!estimatesQuery.isError;
 
   return (
     <div className="space-y-8">
@@ -66,16 +74,6 @@ export default function ClientPortalHomePage() {
           {meQuery.data.company?.name ? (
             <p className="mt-2 text-sm text-slate-600">{meQuery.data.company.name}</p>
           ) : null}
-          {meQuery.data.cardOnFile?.last4 ? (
-            <p className="mt-4 text-sm text-slate-700">
-              Card on file: {[meQuery.data.cardOnFile.brand, `••••${meQuery.data.cardOnFile.last4}`]
-                .filter(Boolean)
-                .join(' ')}{' '}
-              {meQuery.data.cardOnFile.exp ? `(exp ${meQuery.data.cardOnFile.exp})` : null}
-            </p>
-          ) : (
-            <p className="mt-4 text-sm text-slate-600">No card saved yet.</p>
-          )}
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/client-portal/invoices"
@@ -84,8 +82,8 @@ export default function ClientPortalHomePage() {
             >
               View invoices
             </Link>
-            <Link href="/client-portal/payment-method" className={clientPortalSecondaryLinkButtonClassName}>
-              Manage payment method
+            <Link href="/client-portal/estimates" className={clientPortalSecondaryLinkButtonClassName}>
+              View estimates
             </Link>
           </div>
         </div>
@@ -124,6 +122,45 @@ export default function ClientPortalHomePage() {
         </ul>
         {(invoicesQuery.data ?? []).length === 0 && (
           <p className="p-8 text-center text-sm text-slate-600">No invoices yet.</p>
+        )}
+      </div>
+
+      <div className="rounded-lg border bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900">Recent estimates</h2>
+          <Link href="/client-portal/estimates" className={`text-sm ${clientPortalLinkClassName}`}>
+            See all
+          </Link>
+        </div>
+        <ul className="divide-y divide-slate-100">
+          {(estimatesQuery.data ?? [])
+            .filter((est) => est.status === 'sent')
+            .slice(0, 8)
+            .map((est) => {
+              const toDollars = (cents: number) => (typeof cents === 'number' ? cents / 100 : 0).toFixed(2);
+              return (
+                <li key={est.id}>
+                  <Link
+                    href={`/client-portal/estimates/${est.id}`}
+                    className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-x-4 gap-y-1 px-6 py-4 text-sm hover:bg-[#eef2fc]/80"
+                  >
+                    <span className="text-left font-medium text-slate-900">{est.estimateNumber}</span>
+                    <span className="text-left text-slate-600">${toDollars(est.total)}</span>
+                    <span className="text-left">
+                      <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold capitalize text-slate-700">
+                        {est.status}
+                      </span>
+                    </span>
+                    <span className="text-right text-xs text-slate-500 tabular-nums">
+                      {format(new Date(est.validUntil), 'MMM d, yyyy')}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+        </ul>
+        {(estimatesQuery.data ?? []).filter((est) => est.status === 'sent').length === 0 && (
+          <p className="p-8 text-center text-sm text-slate-600">No pending estimates.</p>
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,8 @@ function apiOrigin(): string {
 }
 
 export default function ClientPortalRequestLinkPage() {
+  const searchParams = useSearchParams();
+  const estimateId = searchParams.get('estimateId')?.trim() || undefined;
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,7 +36,7 @@ export default function ClientPortalRequestLinkPage() {
       const base = apiOrigin();
       await axios.post(
         `${base}/api/v1/client-portal/request-link`,
-        { email: email.trim() },
+        { email: email.trim(), ...(estimateId ? { estimateId } : {}) },
         {
           headers: { 'Content-Type': 'application/json' },
           timeout: 25_000

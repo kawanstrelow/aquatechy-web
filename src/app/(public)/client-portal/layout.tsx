@@ -128,7 +128,7 @@ function ClientPortalAuthedChrome({
             <nav className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium ${clientPortalNavLinkClassName}`}>
               <Link href="/client-portal">Overview</Link>
               <Link href="/client-portal/invoices">Invoices</Link>
-              <Link href="/client-portal/payment-method">Payment method</Link>
+              <Link href="/client-portal/estimates">Estimates</Link>
             </nav>
           </div>
           <div className="flex shrink-0 items-center gap-2">
