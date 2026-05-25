@@ -6,7 +6,7 @@ import { MetricCard } from './_components/MetricCard';
 import { DashboardAfterServicePhotos } from './_components/DashboardAfterServicePhotos';
 import { DashboardTechniciansProgress } from './_components/DashboardTechniciansProgress';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { AlertCircle, ArrowRight, Clock, Waves } from 'lucide-react';
 
 import { useUserStore } from '@/store/user';
 import { format } from 'date-fns';
@@ -46,7 +46,10 @@ export default function Page() {
           {/* Recent Issues */}
           <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-md font-semibold text-gray-900">Recent Issues</h2>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-[#364D9D]" />
+                <h2 className="text-md font-semibold text-gray-900">Recent Issues</h2>
+              </div>
               <Button 
                 onClick={() => router.push('/requests')}
                 size="sm"
@@ -85,7 +88,10 @@ export default function Page() {
           {/* Filter Cleaning Punctuality */}
           <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-md font-semibold text-gray-900">Filter Cleaning Punctuality</h2>
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-[#364D9D]" />
+                <h2 className="text-md font-semibold text-gray-900">Filter Cleaning Punctuality</h2>
+              </div>
               <Button 
                 onClick={() => router.push('/reports')}
                 size="sm"
@@ -135,7 +141,10 @@ export default function Page() {
           {/* Pools Without Assignment */}
           <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-md font-semibold text-gray-900">Pools Without Assignment</h2>
+              <div className="flex items-center gap-2">
+                <Waves className="h-5 w-5 text-[#364D9D]" />
+                <h2 className="text-md font-semibold text-gray-900">Pools Without Assignment</h2>
+              </div>
               <Button 
                 onClick={() => router.push('/clients')}
                 size="sm"
@@ -185,7 +194,10 @@ export default function Page() {
       <div className="mb-8">
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Pending Issues</h2>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-6 w-6 text-[#364D9D]" />
+              <h2 className="text-xl font-semibold text-gray-900">Recent Pending Issues</h2>
+            </div>
             <Button 
               onClick={() => router.push('/requests')}
               className="flex items-center gap-2"
@@ -234,7 +246,10 @@ export default function Page() {
       <div className="mb-8">
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Filter Cleaning Punctuality</h2>
+            <div className="flex items-center gap-2">
+              <Clock className="h-6 w-6 text-[#364D9D]" />
+              <h2 className="text-xl font-semibold text-gray-900">Filter Cleaning Punctuality</h2>
+            </div>
             <Button 
               onClick={() => router.push('/reports/team')}
               className="flex items-center gap-2"
@@ -308,7 +323,10 @@ export default function Page() {
       <div className="mb-8">
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Pools Without Assignment</h2>
+            <div className="flex items-center gap-2">
+              <Waves className="h-6 w-6 text-[#364D9D]" />
+              <h2 className="text-xl font-semibold text-gray-900">Pools Without Assignment</h2>
+            </div>
             <Button 
               onClick={() => router.push('/clients')}
               className="flex items-center gap-2"
