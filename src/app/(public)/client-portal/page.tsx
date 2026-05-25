@@ -74,16 +74,6 @@ export default function ClientPortalHomePage() {
           {meQuery.data.company?.name ? (
             <p className="mt-2 text-sm text-slate-600">{meQuery.data.company.name}</p>
           ) : null}
-          {meQuery.data.cardOnFile?.last4 ? (
-            <p className="mt-4 text-sm text-slate-700">
-              Card on file: {[meQuery.data.cardOnFile.brand, `••••${meQuery.data.cardOnFile.last4}`]
-                .filter(Boolean)
-                .join(' ')}{' '}
-              {meQuery.data.cardOnFile.exp ? `(exp ${meQuery.data.cardOnFile.exp})` : null}
-            </p>
-          ) : (
-            <p className="mt-4 text-sm text-slate-600">No card saved yet.</p>
-          )}
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/client-portal/invoices"
@@ -94,9 +84,6 @@ export default function ClientPortalHomePage() {
             </Link>
             <Link href="/client-portal/estimates" className={clientPortalSecondaryLinkButtonClassName}>
               View estimates
-            </Link>
-            <Link href="/client-portal/payment-method" className={clientPortalSecondaryLinkButtonClassName}>
-              Manage payment method
             </Link>
           </div>
         </div>
