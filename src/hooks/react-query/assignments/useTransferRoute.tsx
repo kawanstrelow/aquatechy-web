@@ -1,11 +1,30 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
+import Cookies from 'js-cookie';
 
 import { useToast } from '@/components/ui/use-toast';
 import { useAssignmentsContext } from '@/context/assignments';
 import { clientAxios } from '@/lib/clientAxios';
 import { Assignment, TransferAssignment } from '@/ts/interfaces/Assignments';
-import Cookies from 'js-cookie';
+
+/** Backend sometimes returns `{ message }`, a string, or a JSON array of strings */
+function messageFromAxiosResponseData(data: unknown): string | undefined {
+  if (data == null || typeof data === 'undefined') return undefined;
+  if (typeof data === 'string') return data.trim() || undefined;
+  if (Array.isArray(data)) {
+    const parts = data.filter((item): item is string => typeof item === 'string');
+    return parts.length ? parts.join(' ') : undefined;
+  }
+  if (typeof data === 'object' && data !== null && 'message' in data) {
+    const m = (data as { message: unknown }).message;
+    if (typeof m === 'string') return m.trim() || undefined;
+    if (Array.isArray(m)) {
+      const parts = m.filter((item): item is string => typeof item === 'string');
+      return parts.length ? parts.join(' ') : undefined;
+    }
+  }
+  return undefined;
+}
 
 export interface TransferResult {
   assignmentId: string;
@@ -48,28 +67,32 @@ export const useTransferPermanentlyRoute = (
       });
       return transferPermanently(assignments);
     },
-    onError: (
-      error: AxiosError<{
-        message: string;
-      }>
-    ) => {
-      const errorMessage = error.response?.data?.message ? error.response.data.message : 'Internal server error';
-      
+    onError: (error: AxiosError<unknown>) => {
+      const errorMessage =
+        messageFromAxiosResponseData(error.response?.data) ||
+        (typeof error.message === 'string' && error.message ? error.message : undefined) ||
+        'Internal server error';
+
       // Necessary because it can return an error but some assignments may have been transferred successfully
       queryClient.invalidateQueries({ queryKey: ['assignments', userId] });
       queryClient.invalidateQueries({ queryKey: ['assignments', 'by-pool'] });
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
-      
+
       // Invalidate specific client query if we have the client ID from the assignment
       if (assignmentToTransfer?.pool?.clientOwnerId) {
         queryClient.invalidateQueries({ queryKey: ['clients', assignmentToTransfer.pool.clientOwnerId] });
       }
-      
-      // Call the error callback to display error in dialog
+
       if (onErrorCallback) {
         onErrorCallback(errorMessage);
+      } else {
+        toast({
+          duration: 5000,
+          variant: 'error',
+          title: 'Could not transfer assignment(s)',
+          description: errorMessage
+        });
       }
-      
     },
     onSuccess: (data: TransferResponse) => {
       queryClient.invalidateQueries({ queryKey: ['assignments', userId] });

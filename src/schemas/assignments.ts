@@ -29,7 +29,20 @@ export const transferAssignmentsSchema = z.object({
       invalid_type_error: 'endAfter must be a string'
     })
     .optional()
-});
+})
+  .refine(
+    (data) => {
+      // One-time transfers use scheduledTo; recurring transfers use startOn + endAfter
+      if (data.scheduledTo && String(data.scheduledTo).trim() !== '') {
+        return true;
+      }
+      return Boolean(data.startOn && data.endAfter && String(data.endAfter).trim() !== '');
+    },
+    {
+      message: 'Start on and end after are required',
+      path: ['endAfter']
+    }
+  );
 
 export const newAssignmentSchema = z
   .object({

@@ -6,6 +6,15 @@ import { z } from 'zod';
 import { useShallow } from 'zustand/react/shallow';
 
 import SelectField from '@/components/SelectField';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
@@ -106,8 +115,11 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
     setOpen(false);
   };
 
-  const handleTransferError = () => {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleTransferError = (message: string) => {
     setManualLoading(false); // Clear manual loading state on error
+    setErrorMessage(message);
   };
 
   const { mutate: transferPermanently, isPending: isPendingPermanently } = useTransferPermanentlyRoute(assignment, handleTransferSuccess, handleTransferError);
@@ -287,6 +299,12 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
   }, [isOneTimeService, weekday, open]);
 
   useEffect(() => {
+    if (!open) {
+      setErrorMessage(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (weekday) {
       if (isOneTimeService) {
         form.resetField('scheduledTo');
@@ -308,6 +326,7 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
   }, [startOn]);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={isPending ? undefined : setOpen}>
       <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-scroll rounded-md md:w-[580px]">
         <DialogTitle className='mb-2'>Transfer assignment</DialogTitle>
@@ -359,7 +378,7 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
                       <SelectField
                         label="Start on"
                         name="startOn"
-                        placeholder="Start on"
+                        placeholder="Select start on date"
                         options={next10WeekdaysStartOn.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -369,7 +388,7 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
                       <SelectField
                         label="End after"
                         name="endAfter"
-                        placeholder="End after"
+                        placeholder="Select end after date"
                         options={next10WeekdaysEndAfter.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -399,5 +418,18 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
         )}
       </DialogContent>
     </Dialog>
+
+      <AlertDialog open={!!errorMessage} onOpenChange={(shown) => !shown && setErrorMessage(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error transferring assignment</AlertDialogTitle>
+            <AlertDialogDescription className="text-red-600">{errorMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>Close</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
