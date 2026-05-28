@@ -40,7 +40,8 @@ export const poolSchema = z.object({
     })
     .trim()
     .nullable()
-    .optional()
+    .optional(),
+  estimatesConvertedFrom: z.number().int().optional()
 });
 
 export const editPoolSchema = z.object({
@@ -81,5 +82,6 @@ export const editPoolSchema = z.object({
     })
     .trim()
     .nullable()
-    .optional()
+    .optional(),
+  estimatesConvertedFrom: z.number().int().optional()
 });

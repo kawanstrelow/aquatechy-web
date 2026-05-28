@@ -559,6 +559,7 @@ export default function OnboardingPage() {
         poolType: data.poolType,
         poolNotes: data.poolNotes,
         bodyOfWater: data.bodyOfWater?.trim() || undefined,
+        estimatesConvertedFrom: data.estimatesConvertedFrom,
         assignments: assignments
       };
 
@@ -611,7 +612,8 @@ export default function OnboardingPage() {
         'enterSide',
         'poolType',
         'poolNotes',
-        'bodyOfWater'
+        'bodyOfWater',
+        'estimatesConvertedFrom'
       ],
       {
         shouldFocus: true

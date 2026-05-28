@@ -191,7 +191,8 @@ export default function Page() {
         'enterSide',
         'poolType',
         'poolNotes',
-        'bodyOfWater'
+        'bodyOfWater',
+        'estimatesConvertedFrom'
       ],
       {
         shouldFocus: true
@@ -530,6 +531,7 @@ export default function Page() {
         poolType: data.poolType,
         poolNotes: data.poolNotes,
         bodyOfWater: data.bodyOfWater?.trim() || undefined,
+        estimatesConvertedFrom: data.estimatesConvertedFrom,
         // Assignments
         assignments: assignments
       };
