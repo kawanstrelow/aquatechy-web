@@ -48,6 +48,7 @@ type CSVRow = {
   monthlyPayment: string;
   poolAddressLine2?: string;
   bodyOfWater?: string;
+  estimatesConvertedFrom?: string;
 };
 
 // Add this type
@@ -262,7 +263,13 @@ export default function ImportFromCSV() {
             companyOwnerId: '', // Will be set before import
             ...(row.bodyOfWater?.trim()
               ? { bodyOfWater: row.bodyOfWater.trim() }
-              : {})
+              : {}),
+            ...(() => {
+              const raw = row.estimatesConvertedFrom?.trim();
+              if (!raw) return {};
+              const parsed = Number.parseInt(raw, 10);
+              return Number.isFinite(parsed) ? { estimatesConvertedFrom: parsed } : {};
+            })()
           };
         });
 

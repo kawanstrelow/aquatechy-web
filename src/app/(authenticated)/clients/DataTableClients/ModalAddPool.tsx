@@ -122,7 +122,8 @@ export function ModalAddPool({ handleAddPool, clientOwnerId, open, setOpen }: Pr
         ...data,
         monthlyPayment: data.monthlyPayment ?? undefined,
         poolType: data.poolType as PoolType,
-        bodyOfWater: data.bodyOfWater?.trim() || undefined
+        bodyOfWater: data.bodyOfWater?.trim() || undefined,
+        estimatesConvertedFrom: data.estimatesConvertedFrom
       });
       form.reset();
       setOpen(false);

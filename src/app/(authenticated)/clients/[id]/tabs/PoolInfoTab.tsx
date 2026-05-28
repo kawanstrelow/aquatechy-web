@@ -192,6 +192,12 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
           </Typography>
         </div>
 
+        {pool.estimatesConvertedFrom != null && (
+          <p className="text-sm text-gray-600">
+            Created from estimate #{pool.estimatesConvertedFrom}
+          </p>
+        )}
+
         <AddressInput
           name="address"
           label="Address"

@@ -39,6 +39,7 @@ export type CreateManyClientsInput = {
   poolZip: string;
   poolAddressLine2?: string;
   bodyOfWater?: string | null;
+  estimatesConvertedFrom?: number;
 }[];
 
 export function useCreateManyClients() {
