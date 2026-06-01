@@ -202,7 +202,7 @@ function InvoiceSettingsContent() {
                 </TabsContent>
 
                 <TabsContent value="estimates" className="mt-6">
-                  <EstimateCommunicationTab companyId={selectedCompany?.id} />
+                  <EstimateCommunicationTab companyId={selectedCompany?.id} userRole={selectedCompany?.role} />
                 </TabsContent>
 
                 {/* <TabsContent value="payments" className="mt-6">
