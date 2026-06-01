@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 import { toast } from '@/components/ui/use-toast';
+import { buildEstimateCommunicationPayload } from '@/app/(authenticated)/invoices/settings/estimateCommunicationDefaults';
 import { clientAxios } from '@/lib/clientAxios';
 import { EstimateCommunication } from '@/ts/interfaces/Company';
 
@@ -16,7 +17,7 @@ export const useUpdateEstimateCommunicationSettings = (companyId: string) => {
     mutationFn: async (settings: EstimateCommunication) => {
       const response = await clientAxios.patch(
         `/companies/${companyId}/estimate-settings/communication`,
-        settings
+        buildEstimateCommunicationPayload(settings)
       );
       return response.data;
     },
