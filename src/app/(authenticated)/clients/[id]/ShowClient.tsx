@@ -1,10 +1,11 @@
 'use client';
 
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
@@ -17,6 +18,8 @@ import ClientInfo from './ClientInfo';
 import PoolHeader from './PoolHeader';
 import { ModalDeactivateClient } from '../DataTableClients/ModalDeactivateClient';
 import EmailPreferences from './EmailPreferences';
+import EstimatesTab from './tabs/EstimatesTab';
+import InvoicesTab from './tabs/InvoicesTab';
 import { Separator } from '@/components/ui/separator';
 import { ModalDeleteClient } from '../DataTableClients/ModalDeleteClient';
 import { useDeleteClient } from '@/hooks/react-query/clients/deleteClient';
@@ -31,8 +34,13 @@ export default function ShowClient({ client }: Props) {
   const { mutate: updateClient, isPending } = useUpdateClient<{ isActive: boolean }>();
   const { mutate: deleteClient, isPending: isDeleting } = useDeleteClient();
   const router = useRouter();
+  const { data: companies = [] } = useGetCompanies();
+  const membership = companies.find((c) => c.id === client.companyOwnerId);
+  const canViewBilling = membership?.role === 'Owner' || membership?.role === 'Admin';
 
-  const [tab, setTab] = useState<'client_info' | 'pools' | 'email_preferences'>('client_info');
+  const [tab, setTab] = useState<'client_info' | 'pools' | 'invoices' | 'estimates' | 'email_preferences'>(
+    'client_info'
+  );
 
   if (isPending || isDeleting) return <LoadingSpinner />;
 
@@ -210,6 +218,26 @@ export default function ShowClient({ client }: Props) {
                 </div>
                 {tab === 'pools' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
+              {canViewBilling ? (
+                <div onClick={() => setTab('invoices')} className="inline-flex flex-col items-start justify-start gap-2.5">
+                  <div
+                    className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'invoices' && selectedTabStyles}`}
+                  >
+                    Invoices
+                  </div>
+                  {tab === 'invoices' && <div className="h-0.5 self-stretch bg-gray-800" />}
+                </div>
+              ) : null}
+              {canViewBilling ? (
+                <div onClick={() => setTab('estimates')} className="inline-flex flex-col items-start justify-start gap-2.5">
+                  <div
+                    className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'estimates' && selectedTabStyles}`}
+                  >
+                    Estimates
+                  </div>
+                  {tab === 'estimates' && <div className="h-0.5 self-stretch bg-gray-800" />}
+                </div>
+              ) : null}
               <div
                 onClick={() => setTab('email_preferences')}
                 className="inline-flex flex-col items-start justify-start gap-2.5"
@@ -242,6 +270,10 @@ export default function ShowClient({ client }: Props) {
                   </Button>
                 </div>
               )
+            ) : tab === 'invoices' ? (
+              <InvoicesTab clientId={client.id} />
+            ) : tab === 'estimates' ? (
+              <EstimatesTab clientId={client.id} />
             ) : (
               <EmailPreferences client={client} />
             )}

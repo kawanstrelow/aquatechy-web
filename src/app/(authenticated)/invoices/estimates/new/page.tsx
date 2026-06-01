@@ -1,7 +1,7 @@
 'use client';
 
 import { addDays } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
@@ -42,6 +42,8 @@ const defaultValidUntil = () => addDays(new Date(), 30);
 
 export default function CreateEstimatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const clientIdFromQuery = searchParams.get('clientId');
   const user = useUserStore((state) => state.user);
   const { data: clients = [], isLoading: isLoadingClients } = useGetAllClients();
   const { mutate: createEstimate, isPending: isCreating } = useCreateEstimate();
@@ -73,6 +75,12 @@ export default function CreateEstimatePage() {
   useEffect(() => {
     if (user.firstName === '') router.push('/onboarding');
   }, [user, router]);
+
+  useEffect(() => {
+    if (clientIdFromQuery) {
+      form.setValue('clientId', clientIdFromQuery, { shouldValidate: true });
+    }
+  }, [clientIdFromQuery, form]);
 
   useEffect(() => {
     if (company?.preferences?.invoiceSettingsPreferences?.defaultValues) {

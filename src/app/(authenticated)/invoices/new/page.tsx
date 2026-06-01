@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2, Repeat } from 'lucide-react';
@@ -75,6 +75,8 @@ const generatePaymentTermsText = (paymentTerm: PaymentTermsDays | string | null 
 
 export default function CreateInvoicePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const clientIdFromQuery = searchParams.get('clientId');
   const user = useUserStore((state) => state.user);
 
   const { data: clients = [], isLoading: isLoadingClients } = useGetAllClients();
@@ -140,6 +142,12 @@ export default function CreateInvoicePage() {
       router.push('/onboarding');
     }
   }, [user, router]);
+
+  useEffect(() => {
+    if (clientIdFromQuery) {
+      form.setValue('clientId', clientIdFromQuery, { shouldValidate: true });
+    }
+  }, [clientIdFromQuery, form]);
 
   // Update form values when company defaults are loaded
   useEffect(() => {
