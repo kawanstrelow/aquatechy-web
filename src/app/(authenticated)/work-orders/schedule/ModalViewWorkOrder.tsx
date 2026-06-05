@@ -8,6 +8,7 @@ import {
   FlaskConical,
   ImageIcon,
   Mail,
+  MessageSquare,
   Download,
   MapPin,
   FileText,
@@ -28,6 +29,7 @@ import { format } from 'date-fns';
 import { Service } from '@/ts/interfaces/Service';
 import { generateServicePDF } from '@/utils/generateServicePDF';
 import { useResendServiceEmail } from '@/hooks/react-query/services/useResendServiceEmail';
+import { useResendServiceSms } from '@/hooks/react-query/services/useResendServiceSms';
 import { useDeleteServicePhoto } from '@/hooks/react-query/services/useDeleteServicePhoto';
 import { useAddServicePhotos } from '@/hooks/react-query/services/useAddServicePhotos';
 import { useUpdateServiceInstructions } from '@/hooks/react-query/services/useUpdateServiceInstructions';
@@ -42,6 +44,7 @@ type Props = {
 export function ModalViewWorkOrder({ service, open, setOpen }: Props) {
   console.log('service', service);
   const resendEmailMutation = useResendServiceEmail();
+  const resendSmsMutation = useResendServiceSms();
   const deletePhotoMutation = useDeleteServicePhoto();
   const addPhotosMutation = useAddServicePhotos();
   const updateInstructionsMutation = useUpdateServiceInstructions();
@@ -49,6 +52,7 @@ export function ModalViewWorkOrder({ service, open, setOpen }: Props) {
   const [photoToDelete, setPhotoToDelete] = useState<any>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAddPhotoDialog, setShowAddPhotoDialog] = useState(false);
+  const [showResendSmsDialog, setShowResendSmsDialog] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,6 +88,26 @@ export function ModalViewWorkOrder({ service, open, setOpen }: Props) {
           },
           onError: () => {
             alert('Failed to resend email. Please try again.');
+          }
+        }
+      );
+    }
+  };
+
+  const handleResendSmsClick = () => {
+    setShowResendSmsDialog(true);
+  };
+
+  const handleResendSms = () => {
+    if (currentService?.id) {
+      resendSmsMutation.mutate(
+        { serviceId: currentService.id },
+        {
+          onSuccess: () => {
+            setShowResendSmsDialog(false);
+          },
+          onError: () => {
+            setShowResendSmsDialog(false);
           }
         }
       );
@@ -784,6 +808,16 @@ export function ModalViewWorkOrder({ service, open, setOpen }: Props) {
                   {resendEmailMutation.isPending ? 'Sending...' : 'Send e-mail'}
                 </Button>
 
+                <Button
+                  onClick={handleResendSmsClick}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  disabled={resendSmsMutation.isPending}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  {resendSmsMutation.isPending ? 'Sending...' : 'Resend SMS'}
+                </Button>
+
                 {hasPhotos() && (
                   <Button
                     onClick={async () => {
@@ -893,6 +927,27 @@ export function ModalViewWorkOrder({ service, open, setOpen }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Resend SMS Confirmation Dialog */}
+      <AlertDialog open={showResendSmsDialog} onOpenChange={setShowResendSmsDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Resend Service SMS</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to resend the service report link by text message? The client will receive a new link to view their report.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResendSms}
+              disabled={resendSmsMutation.isPending}
+            >
+              {resendSmsMutation.isPending ? 'Sending...' : 'Resend SMS'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

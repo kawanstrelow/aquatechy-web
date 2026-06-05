@@ -8,6 +8,7 @@ import {
   FlaskConical,
   ImageIcon,
   Mail,
+  MessageSquare,
   Download,
   MapPin,
   Trash2,
@@ -28,6 +29,7 @@ import { Pool } from '@/ts/interfaces/Pool';
 import DeleteServiceDialog from '../services-datatable/cancel-dialog';
 import { formatServiceDurationModal, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
 import { useResendServiceEmail } from '@/hooks/react-query/services/useResendServiceEmail';
+import { useResendServiceSms } from '@/hooks/react-query/services/useResendServiceSms';
 import { useDeleteServicePhoto } from '@/hooks/react-query/services/useDeleteServicePhoto';
 import { useAddServicePhotos } from '@/hooks/react-query/services/useAddServicePhotos';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -41,6 +43,7 @@ type Props = {
 
 export function ModalViewService({ service, pool, open, setOpen }: Props) {
   const resendEmailMutation = useResendServiceEmail();
+  const resendSmsMutation = useResendServiceSms();
   const deletePhotoMutation = useDeleteServicePhoto();
   const addPhotosMutation = useAddServicePhotos();
 
@@ -48,6 +51,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAddPhotoDialog, setShowAddPhotoDialog] = useState(false);
   const [showResendEmailDialog, setShowResendEmailDialog] = useState(false);
+  const [showResendSmsDialog, setShowResendSmsDialog] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,6 +88,26 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
           },
           onError: () => {
             setShowResendEmailDialog(false);
+          }
+        }
+      );
+    }
+  };
+
+  const handleResendSmsClick = () => {
+    setShowResendSmsDialog(true);
+  };
+
+  const handleResendSms = () => {
+    if (currentService?.id) {
+      resendSmsMutation.mutate(
+        { serviceId: currentService.id },
+        {
+          onSuccess: () => {
+            setShowResendSmsDialog(false);
+          },
+          onError: () => {
+            setShowResendSmsDialog(false);
           }
         }
       );
@@ -623,6 +647,16 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                 {resendEmailMutation.isPending ? 'Sending...' : 'Resend Email'}
               </Button>
 
+              <Button
+                onClick={handleResendSmsClick}
+                variant="outline"
+                className="flex items-center gap-2"
+                disabled={resendSmsMutation.isPending}
+              >
+                <MessageSquare className="h-4 w-4" />
+                {resendSmsMutation.isPending ? 'Sending...' : 'Resend SMS'}
+              </Button>
+
               {hasPhotos() && (
                 <Button
                   onClick={async () => {
@@ -752,6 +786,27 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                 disabled={resendEmailMutation.isPending}
               >
                 {resendEmailMutation.isPending ? 'Sending...' : 'Resend Email'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Resend SMS Confirmation Dialog */}
+        <AlertDialog open={showResendSmsDialog} onOpenChange={setShowResendSmsDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Resend Service SMS</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to resend the service report link by text message? The client will receive a new link to view their report.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleResendSms}
+                disabled={resendSmsMutation.isPending}
+              >
+                {resendSmsMutation.isPending ? 'Sending...' : 'Resend SMS'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
