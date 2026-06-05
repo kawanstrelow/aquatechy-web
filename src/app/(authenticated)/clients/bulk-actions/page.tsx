@@ -94,6 +94,9 @@ export default function BulkActionsPage() {
         if (originalPrefs?.sendEmails !== currentPrefs.sendEmails) {
           modifiedPreferences.sendEmails = currentPrefs.sendEmails;
         }
+        if (originalPrefs?.sendSMS !== currentPrefs.sendSMS) {
+          modifiedPreferences.sendSMS = currentPrefs.sendSMS;
+        }
         // if (originalPrefs?.attachChemicalsReadings !== currentPrefs.attachChemicalsReadings) {
         //   modifiedPreferences.attachChemicalsReadings = currentPrefs.attachChemicalsReadings;
         // }
@@ -218,6 +221,7 @@ export default function BulkActionsPage() {
               <TableHead>Client Name</TableHead>
               <TableHead>Address</TableHead>
               <TableHead className="text-center">Send Service E-mails</TableHead>
+              <TableHead className="text-center">Send Service SMS</TableHead>
               {/* <TableHead className="text-center">Include Chemical Readings</TableHead>
               <TableHead className="text-center">Include Checklist</TableHead>
               <TableHead className="text-center">Include Service Photos</TableHead> */}
@@ -253,6 +257,18 @@ export default function BulkActionsPage() {
                     checked={client.preferences?.serviceEmailPreferences?.sendEmails || false}
                     onCheckedChange={(checked) => {
                       handlePreferenceChange(client.id, 'sendEmails', checked as boolean);
+                      // Automatically select the row when preference changes
+                      if (!selectedClients.has(client.id)) {
+                        setSelectedClients(prev => new Set([...Array.from(prev), client.id]));
+                      }
+                    }}
+                  />
+                </TableCell>
+                <TableCell className="text-center">
+                  <Checkbox
+                    checked={client.preferences?.serviceEmailPreferences?.sendSMS || false}
+                    onCheckedChange={(checked) => {
+                      handlePreferenceChange(client.id, 'sendSMS', checked as boolean);
                       // Automatically select the row when preference changes
                       if (!selectedClients.has(client.id)) {
                         setSelectedClients(prev => new Set([...Array.from(prev), client.id]));

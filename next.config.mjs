@@ -41,6 +41,16 @@ const nextConfig = {
         source: '/team/:id',
         destination: '/settings/companies/team/:id',
         permanent: true
+      },
+      {
+        source: '/services/:serviceId',
+        destination: '/service-notifications/:serviceId',
+        permanent: false
+      },
+      {
+        source: '/client-portal/services/:serviceId',
+        destination: '/service-notifications/:serviceId',
+        permanent: false
       }
     ];
   },

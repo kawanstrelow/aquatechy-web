@@ -8,6 +8,7 @@ export interface BulkPreferenceUpdate {
   clientId: string;
   serviceEmailPreferences: {
     sendEmails?: boolean;
+    sendSMS?: boolean;
     attachChemicalsReadings?: boolean;
     attachChecklist?: boolean;
     attachServicePhotos?: boolean;

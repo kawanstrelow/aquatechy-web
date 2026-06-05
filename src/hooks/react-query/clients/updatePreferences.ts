@@ -6,6 +6,7 @@ import { clientAxios } from '@/lib/clientAxios';
 
 type ClientEmailPreferences = {
   sendEmails: boolean;
+  sendSMS: boolean;
   attachChemicalsReadings: boolean;
   attachChecklist: boolean;
   attachServicePhotos: boolean;

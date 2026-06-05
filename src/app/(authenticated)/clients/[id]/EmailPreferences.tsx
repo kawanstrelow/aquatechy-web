@@ -30,6 +30,7 @@ import { useUserStore } from '@/store/user';
 
 const schema = z.object({
   sendEmails: z.boolean(),
+  sendSMS: z.boolean(),
   attachChemicalsReadings: z.boolean(),
   attachChecklist: z.boolean(),
   attachServicePhotos: z.boolean(),
@@ -60,6 +61,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
     resolver: zodResolver(schema),
     defaultValues: {
       sendEmails: client.preferences?.serviceEmailPreferences?.sendEmails || false,
+      sendSMS: client.preferences?.serviceEmailPreferences?.sendSMS || false,
       attachChemicalsReadings: client.preferences?.serviceEmailPreferences?.attachChemicalsReadings || false,
       attachChecklist: client.preferences?.serviceEmailPreferences?.attachChecklist || false,
       attachServicePhotos: client.preferences?.serviceEmailPreferences?.attachServicePhotos || false,
@@ -138,9 +140,9 @@ export default function EmailPreferences({ client }: { client: Client }) {
             </div>
           )}
 
-          <div className="flex w-full flex-col gap-2 divide-y border-gray-200 [&>:nth-child(3)]:pt-2">
+          <div className="flex w-full flex-col divide-y border-gray-200">
             {fields.map((field) => (
-              <div key={field.label} className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
+              <div key={field.label} className="grid w-full grid-cols-1 items-center space-y-4 py-6 md:grid-cols-12">
                 <div className="col-span-8 row-auto flex flex-col">
                   <label htmlFor={field.label} className="flex flex-col space-y-1">
                     <span className="text-sm font-semibold text-gray-800">{field.label}</span>
@@ -149,13 +151,14 @@ export default function EmailPreferences({ client }: { client: Client }) {
                 </div>
                 <div className="col-span-4 flex flex-col gap-2">
                   {field.itens.map((item) => {
-                    const isFieldSendEmails = item.name === 'sendEmails';
+                    const isIndependentToggle =
+                      item.name === 'sendEmails' || item.name === 'sendSMS' || item.name === 'sendFilterCleaningEmails';
 
                     return (
                       <div key={item.name} className="flex w-full items-center gap-4">
                         <div className={field.type === FieldType.Default ? 'w-full' : ''}>
                           <InputField
-                            disabled={isFieldSendEmails ? false : item.name === 'sendFilterCleaningEmails' ? false : sendEmails ? false : true}
+                            disabled={isIndependentToggle ? false : sendEmails ? false : true}
                             key={item.name}
                             name={item.name}
                             type={field.type}
@@ -185,12 +188,12 @@ export default function EmailPreferences({ client }: { client: Client }) {
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent>
           <DialogHeader className="text-left">
-            <DialogTitle className="text-xl mb-4">Update Email Preferences</DialogTitle>
+            <DialogTitle className="text-xl mb-4">Update Notification Preferences</DialogTitle>
             <DialogDescription className="mt-4 text-left">
               <>
-                This action will update the email notification preferences for this specific client.
+                This action will update the service notification preferences for this specific client.
                 <br /><br />
-                <strong>Note:</strong> In order to send service emails or filter cleaning emails, both the client preferences AND company preferences must be enabled.
+                <strong>Note:</strong> In order to send service emails, SMS messages, or filter cleaning emails, both the client preferences AND company preferences must be enabled.
               </>
             </DialogDescription>
           </DialogHeader>
@@ -239,6 +242,19 @@ const fields: Fields = [
         label: 'Send service e-mails',
         description: 'Send e-mails when a service is done.',
         name: 'sendEmails'
+      }
+    ]
+  },
+  {
+    inputClassName: 'flex justify-center items-center gap-4',
+    type: FieldType.Switch,
+    description: 'Send SMS when a service is done. Requires a valid client phone number.',
+    label: 'Send service SMS',
+    itens: [
+      {
+        label: 'Send service SMS',
+        description: 'Send SMS when a service is done.',
+        name: 'sendSMS'
       }
     ]
   },

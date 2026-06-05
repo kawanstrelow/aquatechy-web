@@ -127,3 +127,71 @@ export interface ClientPortalDeclineEstimateResponse {
 export interface PublicEstimateRespondDeclineResponse {
   declined: true;
 }
+
+export interface ServiceReportItem {
+  label: string;
+  value: string | number;
+  unit?: string;
+}
+
+export interface ServiceReportGroup {
+  name: string;
+  items: ServiceReportItem[];
+}
+
+export interface ServiceReportPhoto {
+  name: string;
+  url: string;
+}
+
+export interface ServiceReportPhotoGroup {
+  name: string;
+  photos: ServiceReportPhoto[];
+}
+
+export interface ServiceReportChecklistItem {
+  label: string;
+}
+
+export interface ServiceReportResponse {
+  service: {
+    id: string;
+    status: 'Completed' | 'Skipped' | 'Open' | 'InProgress' | null;
+    scheduledTo: string;
+    completedAt: string | null;
+    startedAt: string | null;
+    skippedReason: string | null;
+  };
+  serviceType: {
+    id: string;
+    name: string;
+  } | null;
+  pool: {
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+  };
+  company: {
+    id: string;
+    name: string;
+    email: string;
+    imageUrl: string | null;
+  };
+  client: {
+    firstName: string;
+    lastName: string;
+  };
+  technician: {
+    firstName: string;
+    lastName: string;
+  } | null;
+  report: {
+    readingsGroups: ServiceReportGroup[];
+    consumablesGroups: ServiceReportGroup[];
+    selectorsGroups: ServiceReportGroup[];
+    checklist: ServiceReportChecklistItem[];
+    photosGroups: ServiceReportPhotoGroup[];
+    technicianNotes: string | null;
+  };
+}
