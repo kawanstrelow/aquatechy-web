@@ -13,7 +13,8 @@ import {
   MapPin,
   FileText,
   Trash2,
-  Plus
+  Plus,
+  Loader2
 } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
@@ -39,6 +40,26 @@ type Props = {
   setOpen: (open: boolean) => void;
 };
 
+type ViewingPhoto = {
+  url: string;
+  alt: string;
+  index: number;
+};
+
+function getDownloadFilename(url: string, index: number): string {
+  try {
+    const pathname = new URL(url).pathname;
+    const base = pathname.split('/').pop() || '';
+    if (base && /\.(jpe?g|png|gif|heic|webp)$/i.test(base)) return base;
+  } catch {
+    // ignore
+  }
+  return `service-photo-${index + 1}.jpg`;
+}
+
+const PHOTO_DIALOG_PADDING = 48;
+const PHOTO_DIALOG_CHROME_HEIGHT = 110;
+
 export function ModalViewService({ service, open, setOpen }: Props) {
   const resendEmailMutation = useResendServiceEmail();
   const resendSmsMutation = useResendServiceSms();
@@ -51,6 +72,9 @@ export function ModalViewService({ service, open, setOpen }: Props) {
   const [showResendEmailDialog, setShowResendEmailDialog] = useState(false);
   const [showResendSmsDialog, setShowResendSmsDialog] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [viewingPhoto, setViewingPhoto] = useState<ViewingPhoto | null>(null);
+  const [photoDisplaySize, setPhotoDisplaySize] = useState<{ width: number; height: number } | null>(null);
+  const [isDownloadingPhoto, setIsDownloadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [currentService, setCurrentService] = useState<Service>(service);
@@ -58,6 +82,10 @@ export function ModalViewService({ service, open, setOpen }: Props) {
   useEffect(() => {
     setCurrentService(service);
   }, [service]);
+
+  useEffect(() => {
+    setPhotoDisplaySize(null);
+  }, [viewingPhoto?.url]);
 
   const getStatusMessage = (status: string) => {
     switch (status) {
@@ -109,6 +137,41 @@ export function ModalViewService({ service, open, setOpen }: Props) {
           }
         }
       );
+    }
+  };
+
+  const handleViewPhoto = (url: string, alt: string, index: number) => {
+    setViewingPhoto({ url, alt, index });
+  };
+
+  const handlePhotoLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = event.currentTarget;
+    const maxImageWidth = window.innerWidth * 0.92 - PHOTO_DIALOG_PADDING * 2;
+    const maxImageHeight = window.innerHeight * 0.88 - PHOTO_DIALOG_CHROME_HEIGHT;
+    const scale = Math.min(1, maxImageWidth / naturalWidth, maxImageHeight / naturalHeight);
+
+    setPhotoDisplaySize({
+      width: Math.round(naturalWidth * scale),
+      height: Math.round(naturalHeight * scale)
+    });
+  };
+
+  const handleDownloadPhoto = async (url: string, index: number) => {
+    setIsDownloadingPhoto(true);
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = getDownloadFilename(url, index);
+      link.rel = 'noopener';
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      window.open(url, '_blank', 'noopener');
+    } finally {
+      setIsDownloadingPhoto(false);
     }
   };
 
@@ -388,7 +451,16 @@ export function ModalViewService({ service, open, setOpen }: Props) {
                                           {photo.notes && (
                                             <p className="text-xs text-gray-500">{photo.notes}</p>
                                           )}
-                                          <div className="group relative aspect-square overflow-hidden rounded-lg">
+                                          <div
+                                            className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg"
+                                            onClick={() =>
+                                              handleViewPhoto(
+                                                photo.url,
+                                                photoDefinition?.name || `Service photo ${photoIndex + 1}`,
+                                                photoIndex
+                                              )
+                                            }
+                                          >
                                             <Image
                                               src={photo.url}
                                               alt={photoDefinition?.name || `Service photo ${photoIndex + 1}`}
@@ -397,7 +469,10 @@ export function ModalViewService({ service, open, setOpen }: Props) {
                                             />
                                             {/* Delete button on hover */}
                                             <button
-                                              onClick={() => handleDeletePhoto(photo)}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeletePhoto(photo);
+                                              }}
                                               className="absolute right-2 top-2 hidden rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-all hover:bg-red-600 group-hover:block"
                                               disabled={deletePhotoMutation.isPending}
                                             >
@@ -441,7 +516,11 @@ export function ModalViewService({ service, open, setOpen }: Props) {
                         // Legacy photos
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                           {getStructuredPhotos()?.map((photo: any, index: number) => (
-                            <div key={index} className="group relative aspect-square overflow-hidden rounded-lg">
+                            <div
+                              key={index}
+                              className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg"
+                              onClick={() => handleViewPhoto(photo.url, `Service photo ${index + 1}`, index)}
+                            >
                               <Image
                                 src={photo.url}
                                 alt={`Service photo ${index + 1}`}
@@ -450,7 +529,10 @@ export function ModalViewService({ service, open, setOpen }: Props) {
                               />
                               {/* Delete button on hover for legacy photos */}
                               <button
-                                onClick={() => handleDeletePhoto(photo)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeletePhoto(photo);
+                                }}
                                 className="absolute right-2 top-2 hidden rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-all hover:bg-red-600 group-hover:block"
                                 disabled={deletePhotoMutation.isPending}
                               >
@@ -792,6 +874,57 @@ export function ModalViewService({ service, open, setOpen }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Photo Viewer Dialog */}
+      <Dialog open={!!viewingPhoto} onOpenChange={(isOpen) => !isOpen && setViewingPhoto(null)}>
+        <DialogContent
+          className="w-auto max-w-[95vw] gap-3 overflow-hidden p-6"
+          style={
+            photoDisplaySize
+              ? { width: photoDisplaySize.width + PHOTO_DIALOG_PADDING }
+              : undefined
+          }
+        >
+          <DialogHeader className="text-center">
+            <DialogTitle className="truncate pr-8 text-base font-medium">
+              {viewingPhoto?.alt || 'Service Photo'}
+            </DialogTitle>
+          </DialogHeader>
+          {viewingPhoto && (
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative flex min-h-[4rem] items-center justify-center">
+                {!photoDisplaySize && (
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                )}
+                <img
+                  src={viewingPhoto.url}
+                  alt={viewingPhoto.alt}
+                  onLoad={handlePhotoLoad}
+                  className={photoDisplaySize ? 'rounded-md' : 'invisible absolute h-0 w-0'}
+                  style={
+                    photoDisplaySize
+                      ? { width: photoDisplaySize.width, height: photoDisplaySize.height }
+                      : undefined
+                  }
+                />
+              </div>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                disabled={isDownloadingPhoto || !photoDisplaySize}
+                onClick={() => handleDownloadPhoto(viewingPhoto.url, viewingPhoto.index)}
+              >
+                {isDownloadingPhoto ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {isDownloadingPhoto ? 'Downloading...' : 'Download Photo'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Resend SMS Confirmation Dialog */}
       <AlertDialog open={showResendSmsDialog} onOpenChange={setShowResendSmsDialog}>
