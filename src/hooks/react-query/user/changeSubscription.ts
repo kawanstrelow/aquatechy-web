@@ -11,16 +11,20 @@ export const useChangeSubscription = (subscriptionPlan: UserSubscription) => {
   const user = useUserStore((state) => state.user);
   const { toast } = useToast();
 
-  const { mutate, isPending, data, isSuccess } = useMutation({
-    mutationFn: async () =>
-      await clientAxios.post('/subscriptions', {
-        userId: user.id,
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      const { data } = await clientAxios.post<string>('/subscriptions', {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
         company: user.company,
         subscriptionPlan
-      }),
+      });
+      return data;
+    },
+    onSuccess: (checkoutUrl) => {
+      window.location.href = checkoutUrl;
+    },
     onError: (error): Error | AxiosError => {
       toast({
         variant: 'error',
@@ -30,5 +34,5 @@ export const useChangeSubscription = (subscriptionPlan: UserSubscription) => {
       return error;
     }
   });
-  return { mutate, isPending, data, isSuccess };
+  return { mutate, isPending };
 };
