@@ -2,7 +2,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientAxios } from '@/lib/clientAxios';
 import { AxiosError } from 'axios';
 import { useToast } from '@/components/ui/use-toast';
-import { useRouter } from 'next/navigation';
+
+export function getCreateManyClientsErrorMessage(error: unknown, fallback = 'Failed to import clients') {
+  const axiosError = error as AxiosError<{ message?: string | string[] }>;
+  const errorMessage = axiosError.response?.data?.message;
+
+  if (Array.isArray(errorMessage)) {
+    return errorMessage.join(', ');
+  }
+
+  if (typeof errorMessage === 'string') {
+    return errorMessage;
+  }
+
+  return fallback;
+}
 
 export type CreateManyClientsInput = {
   clientAddress: string;
@@ -44,7 +58,6 @@ export type CreateManyClientsInput = {
 
 export function useCreateManyClients() {
   const queryClient = useQueryClient();
-  const router = useRouter();
   const { toast } = useToast();
 
   return useMutation({
@@ -63,9 +76,6 @@ export function useCreateManyClients() {
         title: 'Clients added successfully',
         variant: 'success'
       });
-    },
-    onError: (error: AxiosError<{ message: string }>) => {
-      throw error.response?.data?.message || 'Error creating clients';
     }
   });
 }

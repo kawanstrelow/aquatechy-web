@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { useCreateManyClients, CreateManyClientsInput } from '@/hooks/react-query/clients/createManyClients';
+import {
+  useCreateManyClients,
+  CreateManyClientsInput,
+  getCreateManyClientsErrorMessage
+} from '@/hooks/react-query/clients/createManyClients';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { STATE_TIMEZONE_MAP, IanaTimeZones } from '@/ts/enums/enums';
@@ -200,12 +204,12 @@ export default function ImportFromQuickbooks() {
       await createManyClients(dataWithCompany);
       setParsedData([]);
       router.push('/clients');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         duration: 5000,
         title: 'Error importing clients',
         variant: 'error',
-        description: error.response?.data?.message || 'Internal server error'
+        description: getCreateManyClientsErrorMessage(error, 'Internal server error')
       });
     }
   };
