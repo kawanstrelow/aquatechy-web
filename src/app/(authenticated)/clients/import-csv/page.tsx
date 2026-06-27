@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { useCreateManyClients, CreateManyClientsInput } from '@/hooks/react-query/clients/createManyClients';
+import {
+  useCreateManyClients,
+  CreateManyClientsInput,
+  getCreateManyClientsErrorMessage
+} from '@/hooks/react-query/clients/createManyClients';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { STATE_TIMEZONE_MAP, IanaTimeZones } from '@/ts/enums/enums';
@@ -306,14 +310,10 @@ export default function ImportFromCSV() {
       }));
       await createManyClients(dataWithCompany);
       router.push('/clients');
-    } catch (error: any) {
-      const message = Array.isArray(error)
-        ? `One of the rows returned an error: ${error[0]}`
-        : 'Failed to import clients';
-
+    } catch (error: unknown) {
       toast({
         title: 'Error',
-        description: message,
+        description: getCreateManyClientsErrorMessage(error),
         variant: 'error'
       });
     }
