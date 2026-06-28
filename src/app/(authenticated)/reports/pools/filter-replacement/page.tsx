@@ -52,14 +52,30 @@ function formatDate(dateString: string | null, emptyLabel: string) {
 
 function sortReportRows(rows: PoolFilterReplacementReportRow[]) {
   return [...rows].sort((a, b) => {
-    if (a.lastFilterReplacementDate === null && b.lastFilterReplacementDate === null) {
-      return getOverdueDays(b.nextFilterReplacementDate) - getOverdueDays(a.nextFilterReplacementDate);
+    const aOverdue = isFilterReplacementOverdue(a);
+    const bOverdue = isFilterReplacementOverdue(b);
+
+    if (aOverdue !== bOverdue) {
+      return aOverdue ? 1 : -1;
     }
 
-    if (a.lastFilterReplacementDate === null) return -1;
-    if (b.lastFilterReplacementDate === null) return 1;
+    if (!aOverdue) {
+      const aDaysUntil = getDaysUntilNext(a.nextFilterReplacementDate);
+      const bDaysUntil = getDaysUntilNext(b.nextFilterReplacementDate);
 
-    return getOverdueDays(b.nextFilterReplacementDate) - getOverdueDays(a.nextFilterReplacementDate);
+      if (aDaysUntil !== null && bDaysUntil !== null && aDaysUntil !== bDaysUntil) {
+        return bDaysUntil - aDaysUntil;
+      }
+
+      const aLast = a.lastFilterReplacementDate ? new Date(a.lastFilterReplacementDate).getTime() : 0;
+      const bLast = b.lastFilterReplacementDate ? new Date(b.lastFilterReplacementDate).getTime() : 0;
+      return bLast - aLast;
+    }
+
+    if (a.lastFilterReplacementDate === null && b.lastFilterReplacementDate !== null) return 1;
+    if (b.lastFilterReplacementDate === null && a.lastFilterReplacementDate !== null) return -1;
+
+    return getOverdueDays(a.nextFilterReplacementDate) - getOverdueDays(b.nextFilterReplacementDate);
   });
 }
 
