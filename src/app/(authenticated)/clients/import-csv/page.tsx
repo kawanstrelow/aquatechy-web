@@ -52,6 +52,7 @@ type CSVRow = {
   monthlyPayment: string;
   poolAddressLine2?: string;
   bodyOfWater?: string;
+  volumeInGallons?: string;
   estimatesConvertedFrom?: string;
 };
 
@@ -269,6 +270,12 @@ export default function ImportFromCSV() {
               ? { bodyOfWater: row.bodyOfWater.trim() }
               : {}),
             ...(() => {
+              const raw = row.volumeInGallons?.trim();
+              if (!raw) return {};
+              const parsed = parseInt(raw.replace(/\D/g, ''), 10);
+              return Number.isInteger(parsed) && parsed > 0 ? { volumeInGallons: parsed } : {};
+            })(),
+            ...(() => {
               const raw = row.estimatesConvertedFrom?.trim();
               if (!raw) return {};
               const parsed = Number.parseInt(raw, 10);
@@ -447,6 +454,7 @@ export default function ImportFromCSV() {
                   <TableHead>Enter Side</TableHead>
                   <TableHead>Locker Code</TableHead>
                   <TableHead>Body of Water</TableHead>
+                  <TableHead>Volume (gal)</TableHead>
                   <TableHead>Monthly Payment</TableHead>
                 </TableRow>
               </TableHeader>
@@ -472,6 +480,7 @@ export default function ImportFromCSV() {
                     <TableCell>{client.enterSide}</TableCell>
                     <TableCell>{client.lockerCode}</TableCell>
                     <TableCell>{client.bodyOfWater ?? '-'}</TableCell>
+                    <TableCell>{client.volumeInGallons ?? '-'}</TableCell>
                     <TableCell>{formatMonthlyPayment(client.monthlyPayment)}</TableCell>
                   </TableRow>
                 ))}

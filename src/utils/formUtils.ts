@@ -47,6 +47,9 @@ export function createFormData(data: Record<string, any>) {
         // convert to number
         formData.append('monthlyPayment', data.monthlyPayment.toString());
         break;
+      case 'volumeInGallons':
+        formData.append('volumeInGallons', data.volumeInGallons.toString());
+        break;
       default:
         formData.append(key, data[key]);
         break;

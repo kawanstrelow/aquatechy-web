@@ -192,6 +192,7 @@ export default function Page() {
         'poolType',
         'poolNotes',
         'bodyOfWater',
+        'volumeInGallons',
         'estimatesConvertedFrom'
       ],
       {
@@ -532,6 +533,9 @@ export default function Page() {
         poolNotes: data.poolNotes,
         bodyOfWater: data.bodyOfWater?.trim() || undefined,
         estimatesConvertedFrom: data.estimatesConvertedFrom,
+        ...(data.volumeInGallons != null && data.volumeInGallons > 0
+          ? { volumeInGallons: data.volumeInGallons }
+          : {}),
         // Assignments
         assignments: assignments
       };
@@ -761,9 +765,19 @@ export default function Page() {
                 <InputField name="lockerCode" placeholder="Gate code" label="Gate code" />
               </div>
 
-              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                 <InputField name="enterSide" placeholder="Enter side" label="Enter side" />
                 <InputField name="bodyOfWater" placeholder="e.g. Main pool, spa" label="Body of water" />
+              </div>
+
+              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                <InputField
+                  name="volumeInGallons"
+                  label="Volume (gallons)"
+                  placeholder="e.g. 15000"
+                  type={FieldType.Number}
+                  props={{ min: 1, step: 1 }}
+                />
                 <SelectField name="poolType" label="Chemical type" placeholder="Chemical type" options={PoolTypes} />
               </div>
 

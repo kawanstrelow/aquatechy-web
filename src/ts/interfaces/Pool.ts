@@ -39,6 +39,7 @@ export type Pool = {
   photos?: string[];
   addressLine2?: string;
   bodyOfWater?: string | null;
+  volumeInGallons: number | null;
   estimatesConvertedFrom?: number;
 };
 
@@ -57,6 +58,7 @@ export type CreatePool = {
   state: string;
   zip: string;
   bodyOfWater?: string | null;
+  volumeInGallons?: number;
   estimatesConvertedFrom?: number;
 };
 

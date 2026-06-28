@@ -2,7 +2,7 @@ import * as z from 'zod';
 
 import { defaultSchemas } from './defaultSchemas';
 
-const { address, city, notes, state, zipCode, poolType } = defaultSchemas;
+const { address, city, notes, state, zipCode, poolType, volumeInGallons } = defaultSchemas;
 
 export const poolSchema = z.object({
   poolAddress: address,
@@ -41,6 +41,7 @@ export const poolSchema = z.object({
     .trim()
     .nullable()
     .optional(),
+  volumeInGallons,
   estimatesConvertedFrom: z.number().int().optional()
 });
 
@@ -83,5 +84,6 @@ export const editPoolSchema = z.object({
     .trim()
     .nullable()
     .optional(),
+  volumeInGallons: volumeInGallons.optional(),
   estimatesConvertedFrom: z.number().int().optional()
 });

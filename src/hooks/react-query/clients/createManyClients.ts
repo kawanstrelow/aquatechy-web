@@ -53,6 +53,7 @@ export type CreateManyClientsInput = {
   poolZip: string;
   poolAddressLine2?: string;
   bodyOfWater?: string | null;
+  volumeInGallons?: number;
   estimatesConvertedFrom?: number;
 }[];
 

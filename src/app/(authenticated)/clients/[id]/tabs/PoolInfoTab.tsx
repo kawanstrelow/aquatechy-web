@@ -50,7 +50,8 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
       zip: pool.zip || '',
       animalDanger: pool.animalDanger || false,
       addressLine2: pool.addressLine2 || '',
-      bodyOfWater: pool.bodyOfWater ?? ''
+      bodyOfWater: pool.bodyOfWater ?? '',
+      volumeInGallons: pool.volumeInGallons ?? undefined
     }
   });
 
@@ -113,10 +114,11 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
     };
   }, [pool.services]);
 
-  const handleSubmit = () => {
-    if (Object.keys(form.formState.errors).length) return;
-
-    const data = changedFields as z.infer<typeof editPoolSchema>;
+  const handleSubmit = form.handleSubmit((values) => {
+    const data = findDifferenceBetweenTwoObjects(
+      form.formState.defaultValues!,
+      values
+    ) as z.infer<typeof editPoolSchema>;
     data.poolId = pool.id;
 
     if (Object.prototype.hasOwnProperty.call(data, 'bodyOfWater') && data.bodyOfWater !== undefined) {
@@ -125,16 +127,28 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
       data.bodyOfWater = trimmed === '' || trimmed === null ? null : trimmed;
     }
 
+    if (Object.prototype.hasOwnProperty.call(data, 'volumeInGallons')) {
+      const volume =
+        typeof values.volumeInGallons === 'number'
+          ? values.volumeInGallons
+          : Number.parseInt(String(values.volumeInGallons ?? ''), 10);
+      if (!Number.isInteger(volume) || volume <= 0) {
+        delete data.volumeInGallons;
+      } else {
+        data.volumeInGallons = volume;
+      }
+    }
+
     mutate({
       data
     });
-  };
+  });
 
   if (isPending) return <LoadingSpinner />;
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex w-full flex-col gap-2">
+      <form onSubmit={handleSubmit} className="flex w-full flex-col gap-2">
         {(serviceStats.averageCompletionTimeOfDay || serviceStats.averageDurationLabel) && (
           <>
             <div className="flex flex-col gap-2">
@@ -257,9 +271,18 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
           </div>
           <InputField label="Gate Code" name="lockerCode" placeholder="Gate Code" />
         </div>
-        <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-3">
+        <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-2">
           <InputField label="Enter Side" name="enterSide" placeholder="Enter side" />
           <InputField label="Body of water" name="bodyOfWater" placeholder="e.g. Main pool, spa" />
+        </div>
+        <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-2">
+          <InputField
+            label="Volume (gallons)"
+            name="volumeInGallons"
+            placeholder="e.g. 15000"
+            type={FieldType.Number}
+            props={{ min: 1, step: 1 }}
+          />
           <SelectField
             value={form.watch('poolType')}
             name="poolType"
