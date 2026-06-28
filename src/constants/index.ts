@@ -13,7 +13,8 @@ import {
   Users,
   PlayCircle,
   ClipboardList,
-  Calendar
+  Calendar,
+  Waves
 } from 'lucide-react';
 
 import RouteIcon from '@/components/ui/route-icon';
@@ -310,6 +311,13 @@ export const routes: Menu[] = [
         title: 'Team Reports',
         description: 'Team performance and productivity reports',
         icon: UserPlus
+      },
+      poolReports: {
+        text: 'Pool Reports',
+        href: '/reports/pools',
+        title: 'Pool Reports',
+        description: 'Pool equipment and filter maintenance reports',
+        icon: Waves
       }
     }
   },

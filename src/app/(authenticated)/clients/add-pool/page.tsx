@@ -104,7 +104,8 @@ export default function AddPoolPage() {
       state: '',
       zip: '',
       addressLine2: '',
-      bodyOfWater: ''
+      bodyOfWater: '',
+      volumeInGallons: undefined
     }
   });
 
@@ -131,13 +132,18 @@ export default function AddPoolPage() {
   async function handleSubmit(data: CreatePoolType) {
     const isValid = await validateForm();
     if (isValid) {
+      const { volumeInGallons, bodyOfWater, monthlyPayment, addressLine2, ...rest } = data;
       const poolData: CreatePool = {
-        ...data,
-        monthlyPayment: data.monthlyPayment ?? undefined,
+        ...rest,
+        monthlyPayment: monthlyPayment ?? undefined,
         poolType: data.poolType as PoolType,
-        bodyOfWater: data.bodyOfWater?.trim() || undefined,
-        estimatesConvertedFrom: data.estimatesConvertedFrom
+        bodyOfWater: bodyOfWater?.trim() || undefined,
+        estimatesConvertedFrom: data.estimatesConvertedFrom,
+        ...(volumeInGallons != null && volumeInGallons > 0 ? { volumeInGallons } : {})
       };
+      if (addressLine2) {
+        (poolData as CreatePool & { addressLine2?: string }).addressLine2 = addressLine2;
+      }
 
       addPool(poolData, {
         onSuccess: () => {
@@ -220,9 +226,19 @@ export default function AddPoolPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <InputField name="enterSide" label="Enter Side" placeholder="Enter side" />
               <InputField name="bodyOfWater" label="Body of water" placeholder="e.g. Main pool, spa" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <InputField
+                name="volumeInGallons"
+                label="Volume (gallons)"
+                placeholder="e.g. 15000"
+                type={FieldType.Number}
+                props={{ min: 1, step: 1 }}
+              />
               <SelectField name="poolType" label="Chemical Type" placeholder="Select chemical type" options={PoolTypes} />
             </div>
 

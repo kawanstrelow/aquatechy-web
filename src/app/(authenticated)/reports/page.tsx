@@ -1,6 +1,6 @@
 'use client';
 
-import { FileBarChartIcon, Users, ListChecks, UserPlus } from 'lucide-react';
+import { FileBarChartIcon, Users, ListChecks, UserPlus, Waves } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -26,6 +26,13 @@ export default function ReportsPage() {
       href: '/reports/team',
       icon: UserPlus,
       color: 'text-purple-600'
+    },
+    {
+      title: 'Pool Reports',
+      description: 'Pool equipment and filter maintenance reports',
+      href: '/reports/pools',
+      icon: Waves,
+      color: 'text-cyan-600'
     }
   ];
 
@@ -41,7 +48,7 @@ export default function ReportsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         {reportCategories.map((category) => {
           const IconComponent = category.icon;
           return (

@@ -55,6 +55,7 @@ export interface CreateClientWithAssignmentsData {
   poolType?: string;
   poolNotes?: string;
   bodyOfWater?: string | null;
+  volumeInGallons?: number;
   estimatesConvertedFrom?: number;
 
   // Assignments array

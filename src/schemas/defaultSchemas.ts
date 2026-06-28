@@ -43,6 +43,10 @@ export const defaultSchemas = {
   }),
   monthlyPayment: z.number().nullable().optional(),
   paymentUnit: z.coerce.number().int().min(1, { message: 'Payment unit must be 1 or higher.' }).optional(),
+  volumeInGallons: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : v),
+    z.coerce.number().int().min(1, { message: 'Volume must be greater than 0.' }).optional()
+  ),
   clientType: z.enum(['Residential', 'Commercial'], {
     required_error: 'Client type is required.',
     invalid_type_error: "Client type must be 'Residential' or 'Company'."

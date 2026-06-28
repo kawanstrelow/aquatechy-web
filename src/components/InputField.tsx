@@ -130,12 +130,15 @@ export default function InputField({ name, placeholder, type = FieldType.Default
         <Input
           type="number"
           {...field}
+          value={field.value ?? ''}
           className="h-9"
           {...(props.props || {})}
           onChange={(e) => {
-            // Update react-hook-form field first
-            field.onChange(e);
-            // Then call custom onChange if provided (for additional logic like amount calculation)
+            const nextValue =
+              e.target.value === '' ? undefined : e.target.valueAsNumber;
+            field.onChange(
+              nextValue !== undefined && Number.isNaN(nextValue) ? e.target.value : nextValue
+            );
             if (props.props?.onChange) {
               props.props.onChange(e);
             }
