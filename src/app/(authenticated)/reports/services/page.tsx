@@ -13,7 +13,7 @@ export default function ServiceReportsPage() {
           Service Reports
         </h1>
         <p className="text-gray-600 mt-2">
-          Generate reports on service completion, technician performance, and operational efficiency
+          Generate reports on technician performance and operational efficiency
         </p>
       </div>
 
@@ -23,7 +23,7 @@ export default function ServiceReportsPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <FileBarChartIcon className="h-5 w-5 text-blue-600" />
-                Technician Performance Report
+                Service report by technician
               </CardTitle>
               <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                 Available
@@ -40,51 +40,10 @@ export default function ServiceReportsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <FileBarChartIcon className="h-5 w-5 text-green-600" />
-                Service Completion Summary
-              </CardTitle>
-              <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                Coming Soon
-              </Badge>
-            </div>
-            <CardDescription>
-              Daily, weekly, and monthly service completion rates
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">
-              Track service completion rates and identify trends over time.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <FileBarChartIcon className="h-5 w-5 text-purple-600" />
-                Chemical Usage Report
-              </CardTitle>
-              <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                Coming Soon
-              </Badge>
-            </div>
-            <CardDescription>
-              Monitor chemical consumption and costs
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">
-              Track chlorine, tablets, phosphate, and acid usage across all services.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => (window.location.href = '/reports/services/route-efficiency')}
+        >
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -92,7 +51,7 @@ export default function ServiceReportsPage() {
                 Route Efficiency Report
               </CardTitle>
               <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                Coming Soon
+                Available
               </Badge>
             </div>
             <CardDescription>
@@ -101,7 +60,7 @@ export default function ServiceReportsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600">
-              Analyze time spent per route and identify optimization opportunities.
+              Analyze planned route distance and time by technician and weekday to identify optimization opportunities.
             </p>
           </CardContent>
         </Card>
