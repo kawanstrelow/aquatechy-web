@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Button } from '@/components/ui/button';
 import DataTableServicesSkeleton from '../../services/DataTableServices/skeleton';
 import { ReloadIcon } from '@radix-ui/react-icons';
-import { X } from 'lucide-react';
+import { PlusIcon, X } from 'lucide-react';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import { useForm } from 'react-hook-form';
 import useGetPoolsByClient from '@/hooks/react-query/pools/getByClients';
@@ -315,6 +315,10 @@ export default function Page() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <Button type="button" onClick={() => router.push('/work-orders/add')}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Add Work Order
+            </Button>
             {appliedFilters > 0 && (
               <Button variant="outline" onClick={handleClearFilters}>
                 <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">

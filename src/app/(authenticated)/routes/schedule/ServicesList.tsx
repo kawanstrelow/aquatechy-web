@@ -8,6 +8,7 @@ import useWindowDimensions from '@/hooks/useWindowDimensions';
 import { useMembersStore } from '@/store/members';
 import { useUserStore } from '@/store/user';
 import { getInitials } from '@/utils/others';
+import { ServiceTypeLabel } from '@/components/ServiceTypeLabel';
 import { Service } from '@/ts/interfaces/Service';
 import { ServiceActions } from './components/ServiceActions';
 
@@ -80,7 +81,10 @@ export function ServiceItem({ id, service, shouldPermitChangeOrder }: ServiceIte
             </Avatar>
           )}
           <div className="inline-flex flex-col items-start justify-center gap-1 text-pretty">
-            <div className="text-pretty text-sm font-medium">{`${name} ${service.serviceType?.name ? `(${service.serviceType?.name})` : ''}`}</div>
+            <div className="flex flex-wrap items-center gap-x-1 text-pretty text-sm font-medium">
+              <span>{name}</span>
+              <ServiceTypeLabel name={service.serviceType?.name} />
+            </div>
             <div className="overflow-hidden text-xs text-gray-500">{address}</div>
           </div>
         </div>

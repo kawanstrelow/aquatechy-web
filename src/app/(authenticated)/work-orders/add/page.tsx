@@ -122,7 +122,7 @@ export default function AddWorkOrderPage() {
       weekday: 'SUNDAY',
       scheduledTo: '',
       startOn: undefined,
-      endAfter: '',
+      endAfter: undefined,
       cost: 0,
       price: 0
     }
@@ -149,24 +149,36 @@ export default function AddWorkOrderPage() {
     .filter((member, index, self) => index === self.findIndex((t) => t.id === member.id));
 
   useEffect(() => {
+    if (!isOnlyOnce && weekday) {
+      form.resetField('startOn');
+      form.resetField('endAfter');
+      getNext10DatesForStartOnBasedOnWeekday(weekday);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnlyOnce]);
+
+  useEffect(() => {
     if (weekday) {
       form.resetField('startOn');
       form.resetField('endAfter');
       getNext10DatesForEndAfterBasedOnWeekday(startOn!);
       getNext10DatesForStartOnBasedOnWeekday(weekday);
     }
-  }, [weekday, form, startOn]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekday]);
 
   useEffect(() => {
     if (startOn) {
       getNext10DatesForEndAfterBasedOnWeekday(startOn);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startOn]);
 
   useEffect(() => {
     if (isOnlyOnce) {
       generateScheduledToOptions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnlyOnce]);
 
   // Reset poolId when client changes
@@ -315,8 +327,8 @@ export default function AddWorkOrderPage() {
             ...assignmentData,
             weekday: data.weekday,
             frequency: data.frequency,
-            startOn: data.startOn!,
-            endAfter: data.endAfter!
+            startOn: new Date(data.startOn!).toString(),
+            endAfter: data.endAfter === 'No end' ? data.endAfter : new Date(data.endAfter!).toString()
           },
           {
             onSuccess: () => {
