@@ -268,19 +268,19 @@ export const routes: Menu[] = [
     title: 'Work Orders',
     description: 'Manage work orders and track their progress',
     submenu: {
+      overview: {
+        text: 'Overview',
+        href: '/work-orders/schedule',
+        title: 'Work Orders Overview',
+        description: 'View and manage work orders',
+        icon: Calendar
+      },
       add: {
-        text: 'Add',
+        text: 'Add Work Order',
         href: '/work-orders/add',
         title: 'Add Work Order',
         description: 'Create a new work order',
         icon: ClipboardList
-      },
-      schedule: {
-        text: 'Schedule',
-        href: '/work-orders/schedule',
-        title: 'Schedule Work Orders',
-        description: 'View and manage work order schedules',
-        icon: Calendar
       }
     }
   },
