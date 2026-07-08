@@ -36,6 +36,7 @@ import { useUserStore } from '@/store/user';
 import { Assignment } from '@/ts/interfaces/Assignments';
 import { formatPoolNameWithBodyOfWater } from '@/utils';
 import { getInitials } from '@/utils/others';
+import { ServiceTypeLabel } from '@/components/ServiceTypeLabel';
 
 import { DialogDeleteAssignment } from './ModalDeleteAssignment';
 import { DialogTransferRoute } from './ModalTransferRoute';
@@ -235,8 +236,9 @@ export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAss
             </Avatar>
           )}
           <div className="inline-flex flex-col items-start justify-center gap-1">
-            <div className={`text-pretty text-sm font-medium ${isExpired ? 'text-gray-600' : ''}`}>
-              {`${name} ${assignment.serviceType?.name ? `(${assignment.serviceType?.name})` : ''}`}
+            <div className={`flex flex-wrap items-center gap-x-1 text-pretty text-sm font-medium ${isExpired ? 'text-gray-600' : ''}`}>
+              <span>{name}</span>
+              <ServiceTypeLabel name={assignment.serviceType?.name} />
               {isExpired && <span className="ml-2 text-xs font-semibold text-red-600">(EXPIRED)</span>}
             </div>
             {isOneServiceOnly ? (
