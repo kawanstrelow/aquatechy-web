@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useState } from 'react';
 
+import { AddressInput } from '@/components/AddressInput';
+import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import SelectField from '@/components/SelectField';
@@ -14,7 +16,6 @@ import { useUpdateClient } from '@/hooks/react-query/clients/updateClient';
 import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { FieldType, IanaTimeZones } from '@/ts/enums/enums';
 import { Client } from '@/ts/interfaces/Client';
-import { AddressInput } from '@/components/AddressInput';
 
 const formSchema = z.object({
   firstName: defaultSchemas.firstName,
@@ -119,7 +120,10 @@ export default function ClientInfo({ client }: { client: Client }) {
             placeholder="Apt, suite, unit"
           />
           <div className="flex w-full flex-wrap gap-4 md:flex-nowrap [&>*]:flex-1">
+            <StateAndCitySelect cityName="city" stateName="state" />
             <InputField name="zip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
+          </div>
+          <div className="flex w-full flex-wrap gap-4 md:flex-nowrap [&>*]:flex-1">
             <InputField name="clientCompany" label="Company" placeholder="Company" />
             <SelectField
               placeholder="Client Type"
