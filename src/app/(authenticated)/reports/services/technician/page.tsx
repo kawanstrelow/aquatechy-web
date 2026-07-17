@@ -3,12 +3,6 @@
 import { useState, useMemo } from 'react';
 import { ArrowLeft, Download, FileBarChartIcon, CalendarIcon, Building2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,6 +14,9 @@ import { useGenerateTechnicianReport } from '@/hooks/react-query/reports/useGene
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 import { MultiSelect } from '@/components/MultiSelect';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+
+const MAX_ADJUSTMENT_DESCRIPTION_LENGTH = 120;
 
 export default function TechnicianReportPage() {
   const router = useRouter();
@@ -55,6 +52,10 @@ export default function TechnicianReportPage() {
     paymentAmountPerService?: number | string;
     paymentPercentagePerService?: number | string;
   }}>({});
+  const [extrasAmount, setExtrasAmount] = useState<number | string>('');
+  const [extrasDescription, setExtrasDescription] = useState('');
+  const [discountsAmount, setDiscountsAmount] = useState<number | string>('');
+  const [discountsDescription, setDiscountsDescription] = useState('');
  const { data: serviceTypesData, isLoading: isServiceTypesLoading } = useGetServiceTypes(
    selectedCompany || ''
   );
@@ -181,14 +182,17 @@ export default function TechnicianReportPage() {
           serviceTypeId,
           serviceTypeName: serviceType?.name || 'Unknown Service',
           calculateMethod: payment.calculateMethod,
-          ...(payment.calculateMethod === "amount" && {
-            paymentAmountPerService: payment.paymentAmountPerService === '' || payment.paymentAmountPerService === undefined ? 0 : payment.paymentAmountPerService
+          ...(payment.calculateMethod === 'amount' && {
+            paymentAmountPerService: parsePaymentValue(payment.paymentAmountPerService) ?? 0
           }),
-          ...(payment.calculateMethod === "percentage" && {
-            paymentPercentagePerService: payment.paymentPercentagePerService === '' || payment.paymentPercentagePerService === undefined ? 0 : payment.paymentPercentagePerService
+          ...(payment.calculateMethod === 'percentage' && {
+            paymentPercentagePerService: parsePaymentValue(payment.paymentPercentagePerService) ?? 0
           })
         };
       });
+
+      const extrasValue = parsePaymentValue(extrasAmount);
+      const discountsValue = parsePaymentValue(discountsAmount);
 
       await generateReportMutation.mutateAsync({
         assignedToId: selectedTechnician,
@@ -196,12 +200,28 @@ export default function TechnicianReportPage() {
         serviceTypes: serviceTypesWithPayments,
         fromDate: fromDateString!,
         toDate: toDateString!,
-      } as any);
+        ...(extrasValue !== null && extrasValue > 0 && {
+          extras: {
+            amount: extrasValue,
+            description: extrasDescription.trim()
+          }
+        }),
+        ...(discountsValue !== null && discountsValue > 0 && {
+          discounts: {
+            amount: discountsValue,
+            description: discountsDescription.trim()
+          }
+        })
+      });
       setSelectedServiceTypes([]);
       setServiceTypePayments({});
+      setExtrasAmount('');
+      setExtrasDescription('');
+      setDiscountsAmount('');
+      setDiscountsDescription('');
     } catch (error) {
       console.error('Error generating report:', error);
-      alert('Failed to generate report. Please check the console for details.');
+      alert(error instanceof Error ? error.message : 'Failed to generate report. Please try again.');
     }
   };
 
@@ -210,6 +230,18 @@ export default function TechnicianReportPage() {
     if (value === '' || value === undefined) return null;
     const parsed = typeof value === 'string' ? parseFloat(value) : value;
     return isNaN(parsed) ? null : parsed;
+  };
+
+  const validateAdjustment = (amount: number | string, description: string) => {
+    const parsedAmount = parsePaymentValue(amount);
+    if (parsedAmount === null || parsedAmount === 0) {
+      return true;
+    }
+    if (parsedAmount < 0) {
+      return false;
+    }
+    const trimmedDescription = description.trim();
+    return trimmedDescription.length > 0 && trimmedDescription.length <= MAX_ADJUSTMENT_DESCRIPTION_LENGTH;
   };
 
   // Validation function for payment configuration
@@ -239,9 +271,9 @@ export default function TechnicianReportPage() {
     selectedCompany &&
     selectedTechnician &&
     selectedServiceTypes.length > 0 &&
-    validatePaymentConfiguration();
-    // fromDateString &&
-    // toDateString;
+    validatePaymentConfiguration() &&
+    validateAdjustment(extrasAmount, extrasDescription) &&
+    validateAdjustment(discountsAmount, discountsDescription);
 
   if (membersLoading || isServiceTypesLoading) {
     return <LoadingSpinner />;
@@ -465,6 +497,117 @@ export default function TechnicianReportPage() {
                 })}
               </div>
             )}
+
+            <div className="space-y-4">
+              <label className="text-sm font-medium block">Payment Adjustments (Optional)</label>
+              <p className="text-xs text-gray-500">
+                Add extras or discounts to the report total. Leave amount at 0 to skip.
+              </p>
+
+              <div className="border rounded-lg p-4 space-y-3">
+                <span className="text-sm font-medium text-gray-800">Extras</span>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-600">Amount (US$)</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">$</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={extrasAmount}
+                      onChange={(e) => setExtrasAmount(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
+                      className={`text-sm ${
+                        parsePaymentValue(extrasAmount) !== null && parsePaymentValue(extrasAmount)! < 0
+                          ? 'border-red-500 focus:border-red-500'
+                          : ''
+                      }`}
+                    />
+                  </div>
+                  {parsePaymentValue(extrasAmount) !== null && parsePaymentValue(extrasAmount)! < 0 && (
+                    <p className="text-xs text-red-500">Amount cannot be negative</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-600">Description</label>
+                  <Textarea
+                    placeholder="e.g. Holiday route coverage bonus"
+                    value={extrasDescription}
+                    maxLength={MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
+                    onChange={(e) => setExtrasDescription(e.target.value)}
+                    className={`text-sm min-h-[72px] ${
+                      parsePaymentValue(extrasAmount) !== null &&
+                      parsePaymentValue(extrasAmount)! > 0 &&
+                      extrasDescription.trim().length === 0
+                        ? 'border-red-500 focus:border-red-500'
+                        : ''
+                    }`}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>
+                      {parsePaymentValue(extrasAmount) !== null &&
+                        parsePaymentValue(extrasAmount)! > 0 &&
+                        extrasDescription.trim().length === 0 && (
+                          <span className="text-red-500">Description is required when amount is greater than 0</span>
+                        )}
+                    </span>
+                    <span>{extrasDescription.length}/{MAX_ADJUSTMENT_DESCRIPTION_LENGTH}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border rounded-lg p-4 space-y-3">
+                <span className="text-sm font-medium text-gray-800">Discounts</span>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-600">Amount (US$)</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">$</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={discountsAmount}
+                      onChange={(e) => setDiscountsAmount(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
+                      className={`text-sm ${
+                        parsePaymentValue(discountsAmount) !== null && parsePaymentValue(discountsAmount)! < 0
+                          ? 'border-red-500 focus:border-red-500'
+                          : ''
+                      }`}
+                    />
+                  </div>
+                  {parsePaymentValue(discountsAmount) !== null && parsePaymentValue(discountsAmount)! < 0 && (
+                    <p className="text-xs text-red-500">Amount cannot be negative</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-600">Description</label>
+                  <Textarea
+                    placeholder="e.g. Credit adjustment for missed service"
+                    value={discountsDescription}
+                    maxLength={MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
+                    onChange={(e) => setDiscountsDescription(e.target.value)}
+                    className={`text-sm min-h-[72px] ${
+                      parsePaymentValue(discountsAmount) !== null &&
+                      parsePaymentValue(discountsAmount)! > 0 &&
+                      discountsDescription.trim().length === 0
+                        ? 'border-red-500 focus:border-red-500'
+                        : ''
+                    }`}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>
+                      {parsePaymentValue(discountsAmount) !== null &&
+                        parsePaymentValue(discountsAmount)! > 0 &&
+                        discountsDescription.trim().length === 0 && (
+                          <span className="text-red-500">Description is required when amount is greater than 0</span>
+                        )}
+                    </span>
+                    <span>{discountsDescription.length}/{MAX_ADJUSTMENT_DESCRIPTION_LENGTH}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div>
               <label className="text-sm font-medium mb-2 block">From Date</label>

@@ -243,8 +243,9 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
               <InputField
                 label="Payment Unit"
                 name="paymentUnit"
-                placeholder="Payment unit"
+                placeholder="e.g. 1.5"
                 type={FieldType.Number}
+                props={{ min: 1, step: 'any' }}
               />
             </div>
             <div className="pt-6">
@@ -261,7 +262,7 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
                     <div className="text-sm">
                       <p className="font-medium">Example:</p>
                       <p className="text-gray-600">
-                        If service payment is $50 and payment unit is 2, the technician will receive $100 (2 × $50).
+                        If service payment is $50 and payment unit is 1.5, the technician will receive $75 (1.5 × $50).
                       </p>
                     </div>
                   </div>
