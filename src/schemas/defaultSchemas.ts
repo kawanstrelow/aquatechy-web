@@ -42,7 +42,7 @@ export const defaultSchemas = {
     invalid_type_error: "Language must be 'English', 'Portuguese' or 'Spanish'."
   }),
   monthlyPayment: z.number().nullable().optional(),
-  paymentUnit: z.coerce.number().int().min(1, { message: 'Payment unit must be 1 or higher.' }).optional(),
+  paymentUnit: z.coerce.number().min(1, { message: 'Payment unit must be 1 or higher.' }).optional(),
   volumeInGallons: z.preprocess(
     (v) => (v === '' || v === null || v === undefined ? undefined : v),
     z.coerce.number().int().min(1, { message: 'Volume must be greater than 0.' }).optional()
