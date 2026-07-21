@@ -90,7 +90,10 @@ export default function ShowClient({ client }: Props) {
                     </span>
                   ) : null}
                 </span>
-                <div className="text-sm font-medium text-gray-500">{client.address}, {client.addressLine2}</div>
+                <div className="text-wrap text-center text-sm font-medium text-gray-500">
+                  {client.address}
+                  {client.addressLine2 ? ` ${client.addressLine2}` : ''}, {client.city}, {client.state} {client.zip}
+                </div>
               </div>
             </div>
             <div className="flex flex-row flex-wrap items-start justify-start gap-[18px] self-start lg:flex-col lg:flex-nowrap">
