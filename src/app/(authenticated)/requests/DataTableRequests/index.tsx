@@ -11,15 +11,31 @@ import {
 import React, { useState } from 'react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { RequestCategory } from '@/ts/enums/enums';
 import { Request } from '@/ts/interfaces/Request';
 
 import { ModalEditRequest } from '../ModalEditRequest';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  globalFilter?: string;
 }
 
-export function DataTableRequests<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+const statusLabels: Record<Request['status'], string> = {
+  Pending: 'Pending',
+  Processing: 'Processing',
+  Done: 'Done',
+  ClientNotified: 'Client Notified',
+  WaintingClientApproval: 'Waiting Client Approval',
+  ApprovedByClient: 'Approved by Client',
+  RejectedByClient: 'Rejected by Client'
+};
+
+export function DataTableRequests<TData, TValue>({
+  columns,
+  data,
+  globalFilter = ''
+}: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
 
@@ -30,7 +46,35 @@ export function DataTableRequests<TData, TValue>({ columns, data }: DataTablePro
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     state: {
-      columnFilters
+      columnFilters,
+      globalFilter
+    },
+    globalFilterFn: (row, _columnId, filterValue) => {
+      if (!filterValue) return true;
+
+      const searchTerm = filterValue.toLowerCase();
+      const request = row.original as Request;
+      const categoryName =
+        RequestCategory[request.category as keyof typeof RequestCategory] || request.category;
+      const statusLabel = statusLabels[request.status] ?? request.status;
+
+      const combinedSearchString = [
+        request.client.fullName,
+        request.client.firstName,
+        request.client.lastName,
+        request.pool?.name,
+        categoryName,
+        request.category,
+        request.description,
+        statusLabel,
+        request.status,
+        request.createdAt
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return combinedSearchString.includes(searchTerm);
     },
     initialState: {
       columnVisibility: {

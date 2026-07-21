@@ -19,12 +19,25 @@ interface MultiSelectProps {
   className?: string;
   placeholder: string;
   disabled?: boolean;
+  popoverClassName?: string;
 }
 
 // Atualmente não será usado, mas futuramente provavelmente será
 
-function MultiSelect({ options, selected, onChange, placeholder, disabled, ...props }: MultiSelectProps) {
+function MultiSelect({
+  options,
+  selected,
+  onChange,
+  placeholder,
+  disabled,
+  popoverClassName,
+  ...props
+}: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    return () => setOpen(false);
+  }, []);
 
   const handleUnselect = (item: string) => {
     onChange(selected.filter((i) => i !== item));
@@ -32,7 +45,7 @@ function MultiSelect({ options, selected, onChange, placeholder, disabled, ...pr
 
   return (
     <div className="w-[100%]">
-      <Popover open={open} onOpenChange={setOpen}  {...props}>
+      <Popover open={open} onOpenChange={setOpen} {...props}>
         <PopoverTrigger disabled={disabled} asChild>
           <Button
             variant="outline"
@@ -72,7 +85,11 @@ function MultiSelect({ options, selected, onChange, placeholder, disabled, ...pr
             <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-500 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="p-0">
+        <PopoverContent
+          align="start"
+          className={cn('pointer-events-auto z-[100] p-0', popoverClassName)}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <Command className="">
             <CommandInput placeholder="Search ..." />
             <CommandEmpty>No item found.</CommandEmpty>

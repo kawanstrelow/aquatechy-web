@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Loader2, X } from 'lucide-react';
 
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { MultiSelect } from '@/components/MultiSelect';
 import SelectField from '@/components/SelectField';
 import { Categories, RequestStatus } from '@/constants';
 import useGetRequests, { UseGetRequestsParams } from '@/hooks/react-query/requests/getRequests';
@@ -29,7 +30,7 @@ import { PaginationDemo } from '@/components/PaginationDemo';
 const defaultValues: UseGetRequestsParams = {
   from: new Date(new Date().setDate(new Date().getDate() - 14)).toISOString(),
   to: new Date(new Date().setHours(23, 59, 59, 999)).toISOString(),
-  status: 'Pending',
+  status: ['Pending'],
   category: null,
   clientId: null,
   companyId: null,
@@ -43,6 +44,12 @@ const countAppliedFilters = (filters: UseGetRequestsParams): number => {
     const defaultValue = defaultValues[key as keyof UseGetRequestsParams];
 
     if (currentValue === undefined || currentValue === defaultValue) return count;
+
+    if (key === 'status') {
+      const current = ((currentValue as string[]) ?? []).slice().sort().join(',');
+      const def = ((defaultValue as string[]) ?? []).slice().sort().join(',');
+      return current !== def ? count + 1 : count;
+    }
 
     const isDate = key === 'from' || key === 'to';
     if (isDate) {
@@ -64,6 +71,7 @@ export default function Page() {
   // Initialize requestsQuery with initial filters
   const [currentFilters, setCurrentFilters] = useState<UseGetRequestsParams>(defaultValues);
   const [currentPage, setCurrentPage] = useState(1);
+  const [globalFilter, setGlobalFilter] = useState('');
   const itemsPerPage = 20; // Match this with your backend limit
 
   const requestsQuery = useGetRequests({
@@ -90,6 +98,14 @@ export default function Page() {
     filtersForm.reset(currentFilters);
   }, [currentFilters, filtersForm]);
 
+  const [filtersDialogOpen, setFiltersDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!filtersDialogOpen) {
+      document.body.style.pointerEvents = '';
+    }
+  }, [filtersDialogOpen]);
+
   const onSubmit = async (formData: UseGetRequestsParams) => {
     const newFilters = {
       ...formData,
@@ -98,35 +114,20 @@ export default function Page() {
     };
     setCurrentPage(1);
     setCurrentFilters(newFilters);
+    setFiltersDialogOpen(false);
     await requestsQuery.refetch(newFilters);
-    setDialogOpen(false);
   };
 
   const handleClearFilters = async () => {
     filtersForm.reset(defaultValues);
     setCurrentPage(1);
     setCurrentFilters(defaultValues);
+    setFiltersDialogOpen(false);
     await requestsQuery.refetch(defaultValues);
   };
 
-  // Add state for dialog
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  const handleDialogClose = useCallback(() => {
-    // Reset focus and close dialog
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    setDialogOpen(false);
-  }, []);
-
-  const handlePageChange = async (page: number) => {
+  const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    await requestsQuery.refetch({
-      ...currentFilters,
-      page,
-      limit: itemsPerPage
-    });
   };
 
   if (requestsQuery.isLoading) return <LoadingSpinner />;
@@ -143,11 +144,9 @@ export default function Page() {
 
             <Input
               className="w-full md:w-[250px]"
-              placeholder="Filter clients..."
-              value={filtersForm.watch('clientId') || ''}
-              onChange={(event) =>
-                filtersForm.setValue('clientId', event.target.value, { shouldDirty: true })
-              }
+              placeholder="Filter requests..."
+              value={globalFilter}
+              onChange={(event) => setGlobalFilter(event.target.value)}
             />
 
             <FormItem className="flex flex-col md:flex-row items-start md:items-center gap-2 w-full md:w-auto">
@@ -194,9 +193,9 @@ export default function Page() {
               </FormControl>
             </FormItem>
 
-            <Dialog>
+            <Dialog open={filtersDialogOpen} onOpenChange={setFiltersDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2 w-full md:w-auto">
+                <Button type="button" className="flex items-center gap-2 w-full md:w-auto">
                   More filters
                   {filtersForm.formState.isDirty && (
                     <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
@@ -205,15 +204,7 @@ export default function Page() {
                   )}
                 </Button>
               </DialogTrigger>
-              <DialogContent
-                className="sm:max-w-xl"
-                onEscapeKeyDown={handleDialogClose}
-                onInteractOutside={handleDialogClose}
-                onCloseAutoFocus={(e) => {
-                  e.preventDefault();
-                  handleDialogClose();
-                }}
-              >
+              <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
                   <DialogTitle>Requests filter</DialogTitle>
                 </DialogHeader>
@@ -250,7 +241,14 @@ export default function Page() {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <SelectField placeholder="Select status" {...field} options={RequestStatus} />
+                            <MultiSelect
+                              placeholder="Select status"
+                              options={RequestStatus.map((s) => ({ label: s.name, value: s.value }))}
+                              selected={field.value ?? []}
+                              onChange={(value) => {
+                                field.onChange(value);
+                              }}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -311,25 +309,13 @@ export default function Page() {
                 <DialogFooter>
                   <Button
                     type="button"
-                    onClick={() => {
-                      filtersForm.handleSubmit((data) => {
-                        onSubmit(data);
-                        handleDialogClose();
-                      })();
-                    }}
+                    onClick={() => filtersForm.handleSubmit(onSubmit)()}
                   >
                     {requestsQuery.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Apply
                   </Button>
                   {appliedFilters > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        handleClearFilters();
-                        handleDialogClose();
-                      }}
-                    >
+                    <Button type="button" variant="outline" onClick={handleClearFilters}>
                       Clear
                     </Button>
                   )}
@@ -372,15 +358,21 @@ export default function Page() {
         <DataTableRequestsSkeleton />
       ) : (
         <div className="flex flex-col gap-4">
-          <DataTableRequests columns={columns} data={requestsQuery.data?.requests || []} />
+          <DataTableRequests
+            columns={columns}
+            data={requestsQuery.data?.requests || []}
+            globalFilter={globalFilter}
+          />
 
           <div className="flex justify-center py-4">
-            <PaginationDemo
-              currentPage={currentPage}
-              totalItems={requestsQuery.data?.total || 0}
-              itemsPerPage={itemsPerPage}
-              onPageChange={handlePageChange}
-            />
+            {requestsQuery.data && requestsQuery.data.totalCount > 0 && (
+              <PaginationDemo
+                currentPage={Number(requestsQuery.data.currentPage) || currentPage}
+                totalItems={requestsQuery.data.totalCount}
+                itemsPerPage={requestsQuery.data.itemsPerPage || itemsPerPage}
+                onPageChange={handlePageChange}
+              />
+            )}
           </div>
         </div>
       )}
