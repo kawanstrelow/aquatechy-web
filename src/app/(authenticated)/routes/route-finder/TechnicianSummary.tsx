@@ -7,7 +7,6 @@ import useGetMembersOfAllCompaniesByUserId from '@/hooks/react-query/companies/g
 import { useUserStore } from '@/store/user';
 import Cookies from 'js-cookie';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Accordion,
   AccordionContent,
@@ -31,50 +30,123 @@ interface TechnicianWeekdayColors {
   };
 }
 
-export function TechnicianSummary({ 
-  assignments, 
-  onFilterChange, 
+type TechFilters = {
+  [techId: string]: {
+    [day: string]: boolean;
+  };
+};
+
+function getFiltersCookieName(userId: string) {
+  return `route-finder-tech-filters-${userId}`;
+}
+
+function defaultDaysForTech(): { [day: string]: boolean } {
+  return weekdays.reduce<{ [key: string]: boolean }>((days, day) => ({
+    ...days,
+    [day]: true
+  }), {});
+}
+
+function loadTechFilters(userId: string): TechFilters {
+  if (!userId) return {};
+  const stored = Cookies.get(getFiltersCookieName(userId));
+  if (!stored) return {};
+  try {
+    return JSON.parse(stored) as TechFilters;
+  } catch {
+    return {};
+  }
+}
+
+function saveTechFilters(userId: string, filters: TechFilters) {
+  if (!userId) return;
+  Cookies.set(getFiltersCookieName(userId), JSON.stringify(filters), {
+    expires: 30,
+    path: '/'
+  });
+}
+
+function mergeTechFilters(existing: TechFilters, assignments: Assignment[]): TechFilters {
+  const techIds = Array.from(new Set(assignments.map((a) => a.assignmentToId)));
+  const merged: TechFilters = {};
+
+  techIds.forEach((techId) => {
+    if (existing[techId]) {
+      merged[techId] = { ...existing[techId] };
+      weekdays.forEach((day) => {
+        if (merged[techId][day] === undefined) {
+          merged[techId][day] = true;
+        }
+      });
+    } else {
+      merged[techId] = defaultDaysForTech();
+    }
+  });
+
+  return merged;
+}
+
+function getAssignmentWeekday(assignment: Assignment): typeof weekdays[number] {
+  return new Date(assignment.startOn)
+    .toLocaleDateString('en-US', { weekday: 'long' })
+    .toLowerCase() as typeof weekdays[number];
+}
+
+function filterAssignments(
+  assignments: Assignment[],
+  techFilters: TechFilters,
+  colorScheme: TechnicianWeekdayColors
+) {
+  return assignments
+    .filter((assignment) => {
+      const techFilter = techFilters[assignment.assignmentToId];
+      const weekday = getAssignmentWeekday(assignment);
+      return techFilter && techFilter[weekday];
+    })
+    .map((assignment) => {
+      const weekday = getAssignmentWeekday(assignment);
+      return {
+        ...assignment,
+        color: colorScheme[assignment.assignmentToId]?.[weekday] || '#808080'
+      };
+    });
+}
+
+export function TechnicianSummary({
+  assignments,
+  onFilterChange,
   onColorChange,
-  initialColorScheme 
+  initialColorScheme
 }: Props) {
-  const [techFilters, setTechFilters] = useState<{
-    [techId: string]: {
-      [day: string]: boolean;
-    };
-  }>({});
-  
+  const userId = Cookies.get('userId') ?? '';
+
+  const [techFilters, setTechFilters] = useState<TechFilters>(() => loadTechFilters(userId));
+
   const [colorScheme, setColorScheme] = useState<TechnicianWeekdayColors>(initialColorScheme);
 
   const user = useUserStore((state) => state.user);
-  const { data: members, isLoading } = useGetMembersOfAllCompaniesByUserId(user.id);
+  const { data: members } = useGetMembersOfAllCompaniesByUserId(user.id);
 
-  // Update colorScheme when initialColorScheme changes
   useEffect(() => {
     setColorScheme(initialColorScheme);
   }, [initialColorScheme]);
 
-  // Remove the cookie loading from this useEffect since we're getting colors from props
   useEffect(() => {
-    const initialFilters = assignments.reduce<{
-      [key: string]: { [key: string]: boolean };
-    }>((acc, assignment) => {
-      const techId = assignment.assignmentToId;
-      if (!acc[techId]) {
-        acc[techId] = weekdays.reduce<{ [key: string]: boolean }>((days, day) => ({
-          ...days,
-          [day]: true
-        }), {});
-      }
-      return acc;
-    }, {});
-    setTechFilters(initialFilters);
-  }, [assignments]);
+    setTechFilters((prev) => {
+      const merged = mergeTechFilters(prev, assignments);
+      if (userId) saveTechFilters(userId, merged);
+      return merged;
+    });
+  }, [assignments, userId]);
 
-  // Group assignments by technician
+  useEffect(() => {
+    onFilterChange(filterAssignments(assignments, techFilters, colorScheme));
+  }, [assignments, techFilters, colorScheme, onFilterChange]);
+
   const technicianAssignments = assignments.reduce((acc, assignment) => {
     const techId = assignment.assignmentToId;
     const technician = members?.find(member => member.id === techId);
-    
+
     if (!acc[techId]) {
       acc[techId] = {
         name: technician ? `${technician.firstName} ${technician.lastName}` : techId,
@@ -94,27 +166,8 @@ export function TechnicianSummary({
       }
     };
     setTechFilters(newFilters);
-
-    // Filter assignments - only include assignments where the day is checked
-    const filtered = assignments.filter(assignment => {
-      const techFilter = newFilters[assignment.assignmentToId];
-      const weekday = new Date(assignment.startOn)
-        .toLocaleDateString('en-US', { weekday: 'long' })
-        .toLowerCase() as typeof weekdays[number];
-      
-      return techFilter && techFilter[weekday];
-    }).map(assignment => {
-      const weekday = new Date(assignment.startOn)
-        .toLocaleDateString('en-US', { weekday: 'long' })
-        .toLowerCase() as typeof weekdays[number];
-      
-      return {
-        ...assignment,
-        color: colorScheme[assignment.assignmentToId]?.[weekday] || '#808080'
-      };
-    });
-
-    onFilterChange(filtered);
+    saveTechFilters(userId, newFilters);
+    onFilterChange(filterAssignments(assignments, newFilters, colorScheme));
   };
 
   const handleColorChange = (techId: string, day: string, color: string) => {
@@ -125,7 +178,7 @@ export function TechnicianSummary({
         [day]: color
       }
     };
-    
+
     setColorScheme(newColorScheme);
     Cookies.set(COOKIE_NAME, JSON.stringify(newColorScheme), {
       expires: 30,
@@ -143,40 +196,14 @@ export function TechnicianSummary({
       }), {})
     };
     setTechFilters(newFilters);
-
-    // Filter assignments - only include assignments where the day is checked
-    const filtered = assignments.filter(assignment => {
-      const techFilter = newFilters[assignment.assignmentToId];
-      const weekday = new Date(assignment.startOn)
-        .toLocaleDateString('en-US', { weekday: 'long' })
-        .toLowerCase() as typeof weekdays[number];
-      
-      return techFilter && techFilter[weekday];
-    }).map(assignment => {
-      const weekday = new Date(assignment.startOn)
-        .toLocaleDateString('en-US', { weekday: 'long' })
-        .toLowerCase() as typeof weekdays[number];
-      
-      return {
-        ...assignment,
-        color: colorScheme[assignment.assignmentToId]?.[weekday] || '#808080'
-      };
-    });
-
-    onFilterChange(filtered);
+    saveTechFilters(userId, newFilters);
+    onFilterChange(filterAssignments(assignments, newFilters, colorScheme));
   };
 
   const isTechnicianAllChecked = (techId: string) => {
     const techFilter = techFilters[techId];
     if (!techFilter) return false;
     return weekdays.every(day => techFilter[day]);
-  };
-
-  const isTechnicianIndeterminate = (techId: string) => {
-    const techFilter = techFilters[techId];
-    if (!techFilter) return false;
-    const checkedDays = weekdays.filter(day => techFilter[day]).length;
-    return checkedDays > 0 && checkedDays < weekdays.length;
   };
 
   return (
@@ -198,26 +225,26 @@ export function TechnicianSummary({
                   }}
                   className={`
                     p-1 rounded-md transition-colors shrink-0
-                    ${isTechnicianAllChecked(techId) 
-                      ? 'text-green-600 bg-green-50 hover:bg-green-100' 
+                    ${isTechnicianAllChecked(techId)
+                      ? 'text-green-600 bg-green-50 hover:bg-green-100'
                       : 'text-gray-400 bg-gray-50 hover:bg-gray-100'
                     }
                   `}
                 >
-                  <svg 
+                  <svg
                     className="w-5 h-5"
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d={isTechnicianAllChecked(techId) 
-                        ? "M5 13l4 4L19 7" 
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d={isTechnicianAllChecked(techId)
+                        ? "M5 13l4 4L19 7"
                         : "M6 18L18 6M6 6l12 12"
-                      } 
+                      }
                     />
                   </svg>
                 </button>
@@ -238,7 +265,6 @@ export function TechnicianSummary({
             </AccordionTrigger>
 
             <AccordionContent>
-              {/* Weekdays Table */}
               <div className="p-3">
                 <div className="divide-y divide-gray-100">
                   {weekdays.map((day) => {
@@ -247,7 +273,7 @@ export function TechnicianSummary({
                     ).length;
                     const isActive = techFilters[techId]?.[day] ?? true;
                     const currentColor = colorScheme[techId]?.[day] || '#808080';
-                    
+
                     return (
                       <div
                         key={`${techId}-${day}`}
@@ -266,7 +292,7 @@ export function TechnicianSummary({
                               className="w-6 h-6 p-0 rounded-full cursor-pointer border-0
                                 opacity-0 absolute inset-0"
                             />
-                            <div 
+                            <div
                               className="w-6 h-6 rounded-full ring-2 ring-offset-2 ring-gray-200"
                               style={{ backgroundColor: currentColor }}
                             />
@@ -293,26 +319,26 @@ export function TechnicianSummary({
                           onClick={() => handleDayToggle(techId, day, !isActive)}
                           className={`
                             p-1 rounded-md transition-colors
-                            ${isActive 
-                              ? 'text-green-600 bg-green-50 hover:bg-green-100' 
+                            ${isActive
+                              ? 'text-green-600 bg-green-50 hover:bg-green-100'
                               : 'text-gray-400 bg-gray-50 hover:bg-gray-100'
                             }
                           `}
                         >
-                          <svg 
+                          <svg
                             className="w-5 h-5"
-                            fill="none" 
-                            viewBox="0 0 24 24" 
+                            fill="none"
+                            viewBox="0 0 24 24"
                             stroke="currentColor"
                           >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d={isActive 
-                                ? "M5 13l4 4L19 7" 
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d={isActive
+                                ? "M5 13l4 4L19 7"
                                 : "M6 18L18 6M6 6l12 12"
-                              } 
+                              }
                             />
                           </svg>
                         </button>
@@ -327,4 +353,4 @@ export function TechnicianSummary({
       </Accordion>
     </div>
   );
-} 
+}

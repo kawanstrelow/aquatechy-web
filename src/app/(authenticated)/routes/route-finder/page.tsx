@@ -206,24 +206,6 @@ function RouteFinderContent() {
     setCurrentColorScheme(newColors);
   }, [allAssignments, currentColorScheme]);
 
-  useEffect(() => {
-    const assignmentsWithColors = allAssignments.map(assignment => {
-      const weekday = new Date(assignment.startOn)
-        .toLocaleDateString('en-US', { weekday: 'long' })
-        .toLowerCase() as typeof WEEKDAYS[number];
-      
-      // Get the color from currentColorScheme, if not found generate a new one
-      const color = currentColorScheme[assignment.assignmentToId]?.[weekday];
-      
-      return {
-        ...assignment,
-        // Don't generate random color as fallback, use the stored color or a default
-        color: color || '#808080'
-      };
-    });
-    setFilteredAssignments(assignmentsWithColors);
-  }, [allAssignments, currentColorScheme]);
-
   const handleColorChange = (newColorScheme: TechnicianWeekdayColors) => {
     setCurrentColorScheme(newColorScheme);
   };
