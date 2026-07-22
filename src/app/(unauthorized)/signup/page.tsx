@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,6 +24,7 @@ import { Form } from '../../../components/ui/form';
 import { useSignup } from '@/hooks/react-query/user/createUser';
 import { Checkbox } from '@/components/ui/checkbox';
 import Script from 'next/script';
+import { trackFbEvent } from '@/lib/fbpixel';
 
 const formSchema = z
   .object({
@@ -58,6 +59,10 @@ export default function Page() {
   });
   const { signup, isPending } = useSignup();
 
+  useEffect(() => {
+    trackFbEvent('Lead');
+  }, []);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -71,6 +76,7 @@ export default function Page() {
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
     signup(data, {
       onSuccess: () => {
+        trackFbEvent('CompleteRegistration');
         setModal({
           isOpen: true,
           type: 'success',
