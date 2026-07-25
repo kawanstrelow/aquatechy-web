@@ -27,6 +27,7 @@ export interface Dashboard {
   }>;
   poolsWithoutAssignment: Array<{
     id: string;
+    clientId: string;
     clientName: string;
     poolName: string;
     address: string;
