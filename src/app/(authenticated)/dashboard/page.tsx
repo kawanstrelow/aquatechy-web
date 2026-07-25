@@ -157,7 +157,11 @@ export default function Page() {
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {dashboard.poolsWithoutAssignment?.length > 0 ? (
                 dashboard.poolsWithoutAssignment.map((pool) => (
-                  <div key={pool.id} className="bg-gray-50 rounded-lg p-3">
+                  <div
+                    key={pool.id}
+                    className="bg-gray-50 rounded-lg p-3 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => router.push(`/clients/${pool.clientId}`)}
+                  >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="font-medium text-gray-900 mb-1">{pool.clientName}</div>
@@ -348,7 +352,11 @@ export default function Page() {
               <tbody>
                 {poolsWithoutAssignment?.length > 0 ? (
                   poolsWithoutAssignment.map((pool) => (
-                    <tr key={pool.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={pool.id}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/clients/${pool.clientId}`)}
+                    >
                       <td className="py-3 px-4 text-gray-900 font-medium">{pool.clientName}</td>
                       <td className="py-3 px-4 text-gray-600">{pool.poolName}</td>
                       <td className="py-3 px-4 text-gray-600">{pool.address}</td>
