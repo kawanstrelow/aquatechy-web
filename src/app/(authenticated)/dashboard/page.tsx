@@ -26,6 +26,7 @@ export default function Page() {
 
   const router = useRouter();
   const { filterCleaningPunctuality, poolsWithoutAssignment, recentIssues, lastServices, techniciansProgress } = dashboard;
+  const filterCleaningWithPools = filterCleaningPunctuality?.filter((tech) => tech.assignedPools > 0) ?? [];
 
   const toggleConfidential = () => setShowConfidential(!showConfidential);
 
@@ -102,8 +103,8 @@ export default function Page() {
               </Button>
             </div>
             <div className="space-y-4">
-              {dashboard.filterCleaningPunctuality?.length > 0 ? (
-                dashboard.filterCleaningPunctuality.slice(0, 3).map((tech: any) => (
+              {filterCleaningWithPools.length > 0 ? (
+                filterCleaningWithPools.slice(0, 3).map((tech) => (
                   <div key={tech.id} className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
@@ -274,8 +275,8 @@ export default function Page() {
                 </tr>
               </thead>
               <tbody>
-                {filterCleaningPunctuality?.length > 0 ? (
-                  filterCleaningPunctuality.map((tech) => (
+                {filterCleaningWithPools.length > 0 ? (
+                  filterCleaningWithPools.map((tech) => (
                     <tr key={tech.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-4 text-gray-900 font-medium">{tech.technician}</td>
                       <td className="py-3 px-4">
