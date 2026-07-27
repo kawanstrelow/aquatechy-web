@@ -1,10 +1,10 @@
-import { City, ICity, State } from 'country-state-city';
+import { ICity, State } from 'country-state-city';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
+import { buildCitySelectOptions, getCitiesOfState } from '@/constants/usCities';
+
 import SelectField from './SelectField';
-import { useUserStore } from '@/store/user';
-import { useShallow } from 'zustand/react/shallow';
 
 type Props = {
   stateName?: string;
@@ -35,7 +35,7 @@ export default function CompanyStateAndCitySelect({
   const handleStateChange = (selectedState: string) => {
     if (!selectedState) return;
     form.setValue(stateName, selectedState);
-    const citiesOfSelectedState = City.getCitiesOfState('US', selectedState);
+    const citiesOfSelectedState = getCitiesOfState('US', selectedState);
     setCities(citiesOfSelectedState);
 
     if (citiesOfSelectedState.length === 0) {
@@ -77,13 +77,7 @@ export default function CompanyStateAndCitySelect({
           name={cityName}
           value={city}
           placeholder={'City'}
-          options={cities.map((city) => {
-            return {
-              key: city.name,
-              value: city.name,
-              name: city.name
-            };
-          })}
+          options={buildCitySelectOptions(cities, city)}
           {...props}
         />
       )}
