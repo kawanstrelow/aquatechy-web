@@ -5,6 +5,7 @@ import { useFormContext } from 'react-hook-form';
 import { Input } from './ui/input';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { IanaTimeZones, STATE_TIMEZONE_MAP } from '@/ts/enums/enums';
+import { parseGoogleAddressComponents } from '@/utils/parseGoogleAddressComponents';
 
 type AddressInputProps = {
   name: string;
@@ -56,35 +57,7 @@ export function AddressInput({ name, label, placeholder, className, disabled, on
 
       if (!place?.address_components) return;
 
-      let streetNumber = '';
-      let route = '';
-      let city = '';
-      let state = '';
-      let zipCode = '';
-
-      for (const component of place.address_components) {
-        const type = component.types[0];
-        switch (type) {
-          case 'street_number':
-            streetNumber = component.long_name;
-            break;
-          case 'route':
-            route = component.long_name;
-            break;
-          case 'locality':
-            city = component.long_name;
-            break;
-          case 'administrative_area_level_1':
-            state = component.short_name;
-            break;
-          case 'postal_code':
-            zipCode = component.long_name;
-            break;
-          
-        }
-      }
-
-      const fullAddress = `${streetNumber} ${route}`.trim();
+      const { fullAddress, city, state, zipCode } = parseGoogleAddressComponents(place.address_components);
 
       // Update form values
       form.setValue(name, fullAddress, { shouldValidate: true });
