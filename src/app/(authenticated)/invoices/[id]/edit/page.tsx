@@ -464,17 +464,17 @@ export default function EditInvoicePage({ params: { id } }: Props) {
         return sum + (item.quantity * item.unitPrice) / 100;
       }, 0);
 
-      // Prepare dates - set to start/end of day for proper ISO conversion
+      // Backend expects Date.toString() format for date fields
       const issuedDate = new Date(formData.issuedDate);
       issuedDate.setHours(0, 0, 0, 0);
-      
+
       const dueDate = new Date(formData.dueDate);
       dueDate.setHours(23, 59, 59, 999);
 
       // Add non-status fields for draft invoices
       requestData.clientId = formData.clientId;
-      requestData.issuedDate = issuedDate.toISOString();
-      requestData.dueDate = dueDate.toISOString();
+      requestData.issuedDate = issuedDate.toString();
+      requestData.dueDate = dueDate.toString();
       requestData.lineItems = validLineItems;
       requestData.subtotal = Math.round(subtotalDollars * 100); // Backend stores in cents
       requestData.discountRate = Number(formData.discountRate) || 0;
