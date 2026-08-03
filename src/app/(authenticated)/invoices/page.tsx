@@ -208,8 +208,7 @@ export default function InvoicesPage() {
   };
 
   const handleEdit = (invoice: InvoiceListRow) => {
-    // TODO: Open edit modal
-    console.log('Edit invoice:', invoice);
+    router.push(`/invoices/${invoice.id}/edit`);
   };
 
   const handleCancelInvoice = (invoice: InvoiceListRow) => {
