@@ -6,6 +6,7 @@ import {
   FileText,
   Import,
   ListChecks,
+  MessageSquare,
   ShoppingCart,
   Mails,
   Cog,
@@ -121,6 +122,13 @@ export const routes: Menu[] = [
     icon: TabIcon,
     title: 'Dashboard',
     description: 'Overview of your pools as a technician or a manager'
+  },
+  {
+    text: 'Chat',
+    href: '/chat',
+    icon: MessageSquare,
+    title: 'AI Chat',
+    description: 'Ask questions about your company data'
   },
   {
     title: 'Clients',

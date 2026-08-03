@@ -1,31 +1,21 @@
 'use client';
 
 import { DollarSign, FileText, AlertCircle, CheckCircle, Clock } from 'lucide-react';
-import { Invoice } from '../utils/fakeData';
+
+import type { InvoiceListSummaryDollars } from '@/hooks/react-query/invoices/useGetInvoices';
 
 interface InvoiceSummaryCardsProps {
-  invoices: Invoice[];
+  summary?: InvoiceListSummaryDollars | null;
 }
 
-export function InvoiceSummaryCards({ invoices }: InvoiceSummaryCardsProps) {
-  const now = new Date();
-  
-  const totalInvoices = invoices.length;
-  const totalAmount = invoices.reduce((sum, inv) => sum + inv.amount, 0);
-  const paidCount = invoices.filter(inv => inv.status === 'paid').length;
-  const unpaidCount = invoices.filter(inv => inv.status === 'unpaid').length;
-  const overdueCount = invoices.filter(inv => 
-    inv.status === 'overdue' || (new Date(inv.dueDate) < now && inv.status !== 'paid' && inv.status !== 'cancelled')
-  ).length;
-  const draftCount = invoices.filter(inv => inv.status === 'draft').length;
-  
-  const paidAmount = invoices
-    .filter(inv => inv.status === 'paid')
-    .reduce((sum, inv) => sum + inv.amount, 0);
-  
-  const unpaidAmount = invoices
-    .filter(inv => inv.status === 'unpaid' || inv.status === 'overdue')
-    .reduce((sum, inv) => sum + inv.amount, 0);
+export function InvoiceSummaryCards({ summary }: InvoiceSummaryCardsProps) {
+  const totalInvoices = summary?.totalInvoices ?? 0;
+  const totalAmount = summary?.totalAmount ?? 0;
+  const paidCount = summary?.paid.count ?? 0;
+  const paidAmount = summary?.paid.amount ?? 0;
+  const unpaidCount = summary?.unpaid.count ?? 0;
+  const unpaidAmount = summary?.unpaid.amount ?? 0;
+  const overdueCount = summary?.overdue.count ?? 0;
 
   const cards = [
     {
@@ -94,4 +84,3 @@ export function InvoiceSummaryCards({ invoices }: InvoiceSummaryCardsProps) {
     </div>
   );
 }
-
