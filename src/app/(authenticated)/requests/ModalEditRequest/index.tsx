@@ -124,7 +124,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
 
           <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
             <div className="flex-1">
-              {format(new Date(request.createdAt), "EEEE, MMMM do 'at' h:mm a")}
+              {format(new Date(request.createdAt), "EEEE, MMMM do, yyyy 'at' h:mm a")}
               <span className="ml-1 font-medium">
                 by {request.createdByUser?.firstName} {request.createdByUser?.lastName}
               </span>

@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
@@ -87,32 +87,34 @@ function MultiSelect({
         </PopoverTrigger>
         <PopoverContent
           align="start"
-          className={cn('pointer-events-auto z-[100] p-0', popoverClassName)}
+          className={cn('pointer-events-auto z-[100] w-[var(--radix-popover-trigger-width)] p-0', popoverClassName)}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          <Command className="">
+          <Command>
             <CommandInput placeholder="Search ..." />
-            <CommandEmpty>No item found.</CommandEmpty>
-            <CommandGroup className="max-h-46 overflow-auto">
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  onSelect={() => {
-                    onChange(
-                      selected.includes(option.value)
-                        ? selected.filter((item) => item !== option.value)
-                        : [...selected, option.value]
-                    );
-                    setOpen(true);
-                  }}
-                >
-                  <Check
-                    className={cn('mr-2 h-4 w-4', selected.includes(option.value) ? 'opacity-100' : 'opacity-0')}
-                  />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            <CommandList>
+              <CommandEmpty>No item found.</CommandEmpty>
+              <CommandGroup>
+                {options.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    onSelect={() => {
+                      onChange(
+                        selected.includes(option.value)
+                          ? selected.filter((item) => item !== option.value)
+                          : [...selected, option.value]
+                      );
+                      setOpen(true);
+                    }}
+                  >
+                    <Check
+                      className={cn('mr-2 h-4 w-4', selected.includes(option.value) ? 'opacity-100' : 'opacity-0')}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
           </Command>
         </PopoverContent>
       </Popover>

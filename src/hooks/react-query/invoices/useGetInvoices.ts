@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { clientAxios } from '@/lib/clientAxios';
-import { Invoice as ApiInvoice } from '@/ts/interfaces/Invoice';
+import { Invoice as ApiInvoice, InvoiceListSummary } from '@/ts/interfaces/Invoice';
 
 export interface UseGetInvoicesParams {
   page?: number;
@@ -18,7 +18,11 @@ export interface ListInvoicesResponse {
   currentPage: number;
   itemsPerPage: number;
   totalPages: number;
+  summary: InvoiceListSummary;
 }
+
+/** Summary with money fields converted to dollars (same as table `amount`). */
+export type InvoiceListSummaryDollars = InvoiceListSummary;
 
 // Table-compatible invoice type (extends API invoice with computed fields)
 export interface TableInvoice extends Omit<ApiInvoice, 'amount'> {
@@ -27,12 +31,67 @@ export interface TableInvoice extends Omit<ApiInvoice, 'amount'> {
   poolId?: string; // Optional for compatibility
 }
 
+const toDollars = (cents: number) => (cents ?? 0) / 100;
+
+const emptySummary: InvoiceListSummaryDollars = {
+  totalInvoices: 0,
+  totalAmount: 0,
+  paid: { count: 0, amount: 0 },
+  unpaid: { count: 0, amount: 0 },
+  overdue: { count: 0, amount: 0 }
+};
+
+function transformSummary(summary?: InvoiceListSummary | null): InvoiceListSummaryDollars {
+  if (!summary) return emptySummary;
+
+  return {
+    totalInvoices: summary.totalInvoices ?? 0,
+    totalAmount: toDollars(summary.totalAmount),
+    paid: {
+      count: summary.paid?.count ?? 0,
+      amount: toDollars(summary.paid?.amount)
+    },
+    unpaid: {
+      count: summary.unpaid?.count ?? 0,
+      amount: toDollars(summary.unpaid?.amount)
+    },
+    overdue: {
+      count: summary.overdue?.count ?? 0,
+      amount: toDollars(summary.overdue?.amount)
+    }
+  };
+}
+
+function buildQueryParams(params: UseGetInvoicesParams): Record<string, string> {
+  const queryParams: Record<string, string> = {};
+
+  if (params.page) {
+    queryParams.page = params.page.toString();
+  }
+  if (params.clientId) {
+    queryParams.clientId = params.clientId;
+  }
+  if (params.companyOwnerId) {
+    queryParams.companyOwnerId = params.companyOwnerId;
+  }
+  if (params.status) {
+    queryParams.status = params.status;
+  }
+  if (params.fromDate) {
+    queryParams.fromDate = params.fromDate;
+  }
+  if (params.toDate) {
+    queryParams.toDate = params.toDate;
+  }
+
+  return queryParams;
+}
+
 export default function useGetInvoices(params: UseGetInvoicesParams) {
   const queryClient = useQueryClient();
 
   // Transform API invoice to table-compatible format (backend stores prices in cents)
   const transformInvoice = (invoice: ApiInvoice): TableInvoice => {
-    const toDollars = (cents: number) => (cents ?? 0) / 100;
     return {
       ...invoice,
       clientName: `${invoice.client.firstName} ${invoice.client.lastName}`,
@@ -42,84 +101,28 @@ export default function useGetInvoices(params: UseGetInvoicesParams) {
     };
   };
 
+  const fetchInvoices = async (fetchParams: UseGetInvoicesParams) => {
+    const response = await clientAxios.get<ListInvoicesResponse>('/invoices', {
+      params: buildQueryParams(fetchParams)
+    });
+
+    return {
+      ...response.data,
+      invoices: response.data.invoices.map(transformInvoice),
+      summary: transformSummary(response.data.summary)
+    };
+  };
+
   const query = useQuery({
     queryKey: ['invoices', params],
-    queryFn: async () => {
-      // Build query params - only include defined, non-null values
-      const queryParams: Record<string, string> = {};
-      
-      if (params.page) {
-        queryParams.page = params.page.toString();
-      }
-      if (params.clientId) {
-        queryParams.clientId = params.clientId;
-      }
-      if (params.companyOwnerId) {
-        queryParams.companyOwnerId = params.companyOwnerId;
-      }
-      if (params.status) {
-        queryParams.status = params.status;
-      }
-      if (params.fromDate) {
-        queryParams.fromDate = params.fromDate;
-      }
-      if (params.toDate) {
-        queryParams.toDate = params.toDate;
-      }
-
-      const response = await clientAxios.get<ListInvoicesResponse>('/invoices', {
-        params: queryParams
-      });
-
-      // Transform invoices to table-compatible format
-      const transformedInvoices = response.data.invoices.map(transformInvoice);
-
-      return {
-        ...response.data,
-        invoices: transformedInvoices
-      };
-    },
+    queryFn: () => fetchInvoices(params),
     staleTime: Infinity
   });
 
   const refetch = async (newParams: UseGetInvoicesParams) => {
     return queryClient.fetchQuery({
       queryKey: ['invoices', newParams],
-      queryFn: async () => {
-        // Build query params - only include defined, non-null values
-        const queryParams: Record<string, string> = {};
-        
-        if (newParams.page) {
-          queryParams.page = newParams.page.toString();
-        }
-        if (newParams.clientId) {
-          queryParams.clientId = newParams.clientId;
-        }
-        if (newParams.companyOwnerId) {
-          queryParams.companyOwnerId = newParams.companyOwnerId;
-        }
-        if (newParams.status) {
-          queryParams.status = newParams.status;
-        }
-        if (newParams.fromDate) {
-          queryParams.fromDate = newParams.fromDate;
-        }
-        if (newParams.toDate) {
-          queryParams.toDate = newParams.toDate;
-        }
-
-        const response = await clientAxios.get<ListInvoicesResponse>('/invoices', {
-          params: queryParams
-        });
-
-        // Transform invoices to table-compatible format
-        const transformedInvoices = response.data.invoices.map(transformInvoice);
-
-        return {
-          ...response.data,
-          invoices: transformedInvoices
-        };
-      }
+      queryFn: () => fetchInvoices(newParams)
     });
   };
 

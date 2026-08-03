@@ -75,7 +75,9 @@ export const columns: ColumnDef<Request>[] = [
   {
     accessorKey: 'createdAt',
     header: 'Date',
-    cell: ({ row: { original } }) => <div>{format(new Date(original.createdAt!), "EEEE, MMMM do 'at' h:mm a")}</div>,
+    cell: ({ row: { original } }) => (
+      <div>{format(new Date(original.createdAt!), "EEEE, MMMM do, yyyy 'at' h:mm a")}</div>
+    ),
     filterFn: (row, columnId, value) => {
       let date: string | Date = row.original.createdAt;
 

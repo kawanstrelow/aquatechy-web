@@ -361,8 +361,8 @@ export default function InvoicesPage() {
           </div>
         </form>
 
-        {/* Summary Cards */}
-        <InvoiceSummaryCards invoices={invoicesQuery.data?.invoices as any || []} />
+        {/* Summary Cards — full filtered set from API (not current page) */}
+        <InvoiceSummaryCards summary={invoicesQuery.data?.summary} />
 
         {/* Data Table */}
         {invoicesQuery.isPending || invoicesQuery.isLoading ? (

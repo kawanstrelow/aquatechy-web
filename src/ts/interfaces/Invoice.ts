@@ -102,6 +102,27 @@ export interface Invoice {
 }
 
 /**
+ * Status bucket used by list invoices `summary` (paid / unpaid / overdue)
+ */
+export type InvoiceStatusAmountSummary = {
+  count: number;
+  amount: number;
+};
+
+/**
+ * Aggregates for the invoices page header.
+ * Amounts use the same unit as invoice rows (cents from API).
+ * `status` filter applies to the table only — not to summary.
+ */
+export type InvoiceListSummary = {
+  totalInvoices: number;
+  totalAmount: number;
+  paid: InvoiceStatusAmountSummary;
+  unpaid: InvoiceStatusAmountSummary;
+  overdue: InvoiceStatusAmountSummary;
+};
+
+/**
  * Create Invoice as Draft Request
  */
 export interface CreateInvoiceAsDraftRequest {
