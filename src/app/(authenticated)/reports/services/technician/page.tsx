@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 import { ArrowLeft, Download, FileBarChartIcon, CalendarIcon, Building2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 const MAX_ADJUSTMENT_DESCRIPTION_LENGTH = 120;
+
+/** Local calendar date as YYYY-MM-DD (avoids UTC day-shift from toISOString). */
+const toLocalDateString = (date: Date) => format(date, 'yyyy-MM-dd');
 
 export default function TechnicianReportPage() {
   const router = useRouter();
@@ -43,8 +47,8 @@ export default function TechnicianReportPage() {
   const [selectedTechnician, setSelectedTechnician] = useState<string>('');
   const [fromDate, setFromDate] = useState<Date | undefined>(defaultFrom);
   const [toDate, setToDate] = useState<Date | undefined>(defaultTo);
-  const [fromDateString, setFromDateString] = useState<string | undefined>(defaultFrom.toISOString());
-  const [toDateString, setToDateString] = useState<string | undefined>(defaultTo.toISOString());
+  const [fromDateString, setFromDateString] = useState<string | undefined>(toLocalDateString(defaultFrom));
+  const [toDateString, setToDateString] = useState<string | undefined>(toLocalDateString(defaultTo));
 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
   const [serviceTypePayments, setServiceTypePayments] = useState<{[key: string]: {
@@ -620,7 +624,7 @@ export default function TechnicianReportPage() {
                     const startOfDay = new Date(date);
                     startOfDay.setHours(0, 0, 0, 0);
                     setFromDate(startOfDay);
-                    setFromDateString(startOfDay.toISOString());
+                    setFromDateString(toLocalDateString(startOfDay));
                   } else {
                     setFromDate(undefined);
                     setFromDateString(undefined);
@@ -640,8 +644,7 @@ export default function TechnicianReportPage() {
                     const endOfDay = new Date(date);
                     endOfDay.setHours(23, 59, 59, 999);
                     setToDate(endOfDay);
-
-                    setToDateString(endOfDay.toISOString());
+                    setToDateString(toLocalDateString(endOfDay));
                   } else {
                     setToDate(undefined);
                     setToDateString(undefined);
