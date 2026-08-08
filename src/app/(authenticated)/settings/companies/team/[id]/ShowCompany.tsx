@@ -127,8 +127,10 @@ export default function ShowCompany({ company }: Props) {
                 <div className="z-10 self-stretch text-wrap text-center text-xl font-semibold leading-[30px] text-gray-800">
                   {company.name}
                 </div>
-                <div className="text-sm font-medium text-gray-500">
-                  {company.address}{company.addressLine2 ? `, ${company.addressLine2}` : ''}
+                <div className="text-wrap text-center text-sm font-medium text-gray-500">
+                  {company.address}
+                  {company.addressLine2 ? ` ${company.addressLine2}` : ''}, {company.city},{' '}
+                  {company.state} {company.zip}
                 </div>
               </div>
             </div>
