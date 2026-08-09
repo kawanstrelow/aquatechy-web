@@ -1,8 +1,9 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 
 import {
   CLIENT_PORTAL_GRADIENT_BLUE_STYLE,
@@ -19,6 +20,7 @@ function ClientPortalPaymentMethodInner() {
   const searchParams = useSearchParams();
   const statusNote = searchParams.get('status');
   const queryClient = useQueryClient();
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const meQuery = useQuery({
     queryKey: ['client-portal-me'],
@@ -31,23 +33,33 @@ function ClientPortalPaymentMethodInner() {
 
   const setupMutation = useMutation({
     mutationFn: async () => {
+      setActionError(null);
       const { data } = await portalAxios.post<{ url: string }>('/client-portal/payment-method/setup-session');
       return data.url;
     },
     onSuccess: (url) => {
       window.location.href = url;
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        const msg = error.response?.data?.message;
+        setActionError(typeof msg === 'string' ? msg : 'Could not start card setup. Try again.');
+      } else {
+        setActionError('Could not start card setup. Try again.');
+      }
     }
   });
 
   const removeMutation = useMutation({
     mutationFn: async () => {
+      setActionError(null);
       await portalAxios.delete('/client-portal/payment-method');
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['client-portal-me'] });
     },
     onError: () => {
-      alert('Could not remove saved card. Try again or contact your pool technician.');
+      setActionError('Could not remove saved card. Try again or contact your pool technician.');
     }
   });
 
@@ -121,6 +133,11 @@ function ClientPortalPaymentMethodInner() {
             </Button>
           </>
         )}
+        {actionError ? (
+          <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+            {actionError}
+          </p>
+        ) : null}
       </div>
 
       <p className="text-xs text-slate-500">

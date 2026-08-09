@@ -11,8 +11,8 @@ import type { Client } from '@/ts/interfaces/Client';
 
 interface Props {
   client: Client;
-  /** `preferences`: client Preferences tab section. `inline`: compact (e.g. sidebars). */
-  variant?: 'inline' | 'preferences';
+  /** `payments`: full section layout (Payments tab). `inline`: compact (e.g. sidebars). */
+  variant?: 'inline' | 'payments';
 }
 
 export default function StripeSaveCardSection({ client, variant = 'inline' }: Props) {
@@ -26,8 +26,8 @@ export default function StripeSaveCardSection({ client, variant = 'inline' }: Pr
   const setup = useClientSetupCheckout();
 
   if (companiesLoading) {
-    return variant === 'preferences' ? (
-      <div className="mb-8 flex justify-center rounded-lg border border-gray-200 bg-gray-50 py-8">
+    return variant === 'payments' ? (
+      <div className="flex justify-center rounded-lg border border-gray-200 bg-gray-50 py-8">
         <LoadingSpinner />
       </div>
     ) : null;
@@ -42,11 +42,11 @@ export default function StripeSaveCardSection({ client, variant = 'inline' }: Pr
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const isPreferences = variant === 'preferences';
+  const isPayments = variant === 'payments';
 
   const inner = (
     <div className="w-full space-y-3 text-left">
-      {!isPreferences ? (
+      {!isPayments ? (
         <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">Online payments</div>
       ) : (
         <>
@@ -72,7 +72,7 @@ export default function StripeSaveCardSection({ client, variant = 'inline' }: Pr
         onClick={() => void handleSetup()}
         title={
           !stripeReady
-            ? 'Connect Stripe and enable charges in Invoice Settings → Online Payments.'
+            ? 'Connect Stripe and enable charges under Payments (account menu) or Invoice Settings → Online Payments.'
             : undefined
         }
       >
@@ -82,8 +82,8 @@ export default function StripeSaveCardSection({ client, variant = 'inline' }: Pr
     </div>
   );
 
-  if (isPreferences) {
-    return <div className="mb-8 rounded-lg border border-gray-200 bg-gray-50 p-6">{inner}</div>;
+  if (isPayments) {
+    return <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">{inner}</div>;
   }
 
   return inner;
