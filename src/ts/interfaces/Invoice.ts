@@ -217,6 +217,8 @@ export interface UpdateInvoiceResponse {
 export interface UpdateInvoiceStatusRequest {
   invoiceId: string;
   status: InvoiceStatus;
+  /** Calendar date only: YYYY-MM-DD. Used when status is "paid"; omitted → paidAt is now. */
+  paymentDate?: string;
 }
 
 /**

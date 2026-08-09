@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { Download, FileText, Loader2 } from 'lucide-react';
+import { CreditCard, Download, FileText, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -139,6 +139,17 @@ export default function ClientPortalInvoiceDetailPage() {
                 Pay now
               </Button>
             )}
+            <Button
+              asChild
+              type="button"
+              variant="outline"
+              className={`gap-2 ${clientPortalOutlineAccentButtonClassName}`}
+            >
+              <Link href="/client-portal/payment-method">
+                <CreditCard className="h-4 w-4" />
+                Payment method
+              </Link>
+            </Button>
             <Button
               type="button"
               variant="outline"

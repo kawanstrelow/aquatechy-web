@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import React from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import React, { Suspense } from 'react';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
@@ -18,10 +18,25 @@ type Props = {
   };
 };
 
-export default function SideMenuNavLink({ route }: Props) {
+function isSubItemActive(pathname: string, searchParams: URLSearchParams, subItemHref: string): boolean {
+  if (pathname === subItemHref) return true;
+
+  if (
+    subItemHref === '/settings/preferences' &&
+    /^\/settings\/companies\/team\/[^/]+$/.test(pathname) &&
+    searchParams.get('tab') === 'preferences'
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function SideMenuNavLinkInner({ route }: Props) {
   const { icon, text, href, submenu } = route;
   const Icon = icon;
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const pathResource = `/${pathname.split('/')[1]}`;
 
   const isActive = href === pathResource;
@@ -50,12 +65,13 @@ export default function SideMenuNavLink({ route }: Props) {
                 <div className="flex w-[100%] items-start justify-start text-slate-50">{text}</div>
               </AccordionTrigger>
               {Object.entries(submenu).map(([key, subItem]) => {
+                const active = isSubItemActive(pathname, searchParams, subItem.href);
                 return (
                   <Link href={subItem.href} key={key + subItem.href + subItem.text}>
                     <AccordionContent
                       className={
                         'text-ls font-medium leading-none text-gray-500 hover:font-semibold hover:text-blue-500' +
-                        (pathname === submenu[key].href ? ' font-semibold text-blue-500' : '')
+                        (active ? ' font-semibold text-blue-500' : '')
                       }
                     >
                       <div className="ml-10 flex w-[50%] items-start justify-start text-nowrap">{subItem.text}</div>
@@ -68,5 +84,19 @@ export default function SideMenuNavLink({ route }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SideMenuNavLink(props: Props) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex w-full items-start justify-start px-2 text-gray-300">
+          <div className="flex w-full items-center py-4" />
+        </div>
+      }
+    >
+      <SideMenuNavLinkInner {...props} />
+    </Suspense>
   );
 }

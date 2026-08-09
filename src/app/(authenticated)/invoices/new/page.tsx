@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { Suspense, useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2, Repeat } from 'lucide-react';
 import { differenceInDays, isSameDay } from 'date-fns';
@@ -73,7 +73,7 @@ const generatePaymentTermsText = (paymentTerm: PaymentTermsDays | string | null 
   return `Net ${days} - Payment due within ${days} days`;
 };
 
-export default function CreateInvoicePage() {
+function CreateInvoicePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientIdFromQuery = searchParams.get('clientId');
@@ -789,6 +789,14 @@ export default function CreateInvoicePage() {
         </div>
       </div>
     </FormProvider>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <CreateInvoicePage />
+    </Suspense>
   );
 }
 

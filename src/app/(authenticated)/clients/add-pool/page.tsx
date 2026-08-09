@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -10,6 +10,7 @@ import InputField from '@/components/InputField';
 import SelectField from '@/components/SelectField';
 import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import { AddressInput } from '@/components/AddressInput';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { PoolTypes } from '@/constants';
@@ -77,7 +78,7 @@ const createPoolSchema = poolSchema
 
 export type CreatePoolType = z.infer<typeof createPoolSchema>;
 
-export default function AddPoolPage() {
+function AddPoolPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientId = searchParams.get('clientId');
@@ -274,5 +275,13 @@ export default function AddPoolPage() {
         </form>
       </Form>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <AddPoolPage />
+    </Suspense>
   );
 }

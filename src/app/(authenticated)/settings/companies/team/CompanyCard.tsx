@@ -17,16 +17,17 @@ type Props = {
   role?: string;
   status: string;
   imageUrl?: string | null;
+  href?: string;
 };
 
-export function CompanyCard({ companyId, name, email, phone, role, status, imageUrl }: Props) {
+export function CompanyCard({ companyId, name, email, phone, role, status, imageUrl, href }: Props) {
   const router = useRouter();
   const isPendingAcceptance = status !== 'Active';
   const canOpenCompanyPage = role === 'Owner' || role === 'Admin';
 
   const goToCompany = () => {
     if (!canOpenCompanyPage) return;
-    router.push(`/settings/companies/team/${companyId}`);
+    router.push(href ?? `/settings/companies/team/${companyId}`);
   };
 
   return (

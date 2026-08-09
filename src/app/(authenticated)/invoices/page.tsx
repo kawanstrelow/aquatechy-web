@@ -4,11 +4,21 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { PlusIcon } from '@radix-ui/react-icons';
-import { X, Download } from 'lucide-react';
+import { format } from 'date-fns';
+import { X, Download, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { FormControl, FormItem, FormLabel } from '@/components/ui/form';
 import { DatePicker } from '@/components/ui/date-picker';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { useUserStore } from '@/store/user';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { PaginationDemo } from '@/components/PaginationDemo';
@@ -56,7 +66,7 @@ export default function InvoicesPage() {
   const { data: allClients } = useGetAllClients();
   const { data: companies = [] } = useGetCompanies();
   const { mutateAsync: downloadPDF } = useDownloadInvoicePDF();
-  const { mutateAsync: updateInvoiceStatus } = useUpdateInvoiceStatus();
+  const { mutateAsync: updateInvoiceStatus, isPending: isUpdatingStatus } = useUpdateInvoiceStatus();
   const { mutateAsync: exportInvoicesCSV, isPending: isExporting } = useExportInvoicesCSV();
   const { mutateAsync: cancelInvoice, isPending: isCancelling } = useCancelInvoice();
 
@@ -73,6 +83,9 @@ export default function InvoicesPage() {
   const itemsPerPage = 20; // Match backend limit
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [invoiceToCancel, setInvoiceToCancel] = useState<InvoiceListRow | null>(null);
+  const [markPaidDialogOpen, setMarkPaidDialogOpen] = useState(false);
+  const [invoiceToMarkPaid, setInvoiceToMarkPaid] = useState<InvoiceListRow | null>(null);
+  const [paymentDate, setPaymentDate] = useState<Date>(() => new Date());
 
   const filtersForm = useForm<FilterFormData>({
     defaultValues: {
@@ -228,11 +241,28 @@ export default function InvoicesPage() {
     await downloadPDF({ invoiceId: invoice.id });
   };
 
-  const handleMarkPaid = async (invoice: InvoiceListRow) => {
+  const handleMarkPaid = (invoice: InvoiceListRow) => {
+    setInvoiceToMarkPaid(invoice);
+    setPaymentDate(new Date());
+    setMarkPaidDialogOpen(true);
+  };
+
+  const handleConfirmMarkPaid = async () => {
+    if (!invoiceToMarkPaid) return;
     await updateInvoiceStatus({
-      invoiceId: invoice.id,
-      status: 'paid'
+      invoiceId: invoiceToMarkPaid.id,
+      status: 'paid',
+      paymentDate: format(paymentDate, 'yyyy-MM-dd')
     });
+    setMarkPaidDialogOpen(false);
+    setInvoiceToMarkPaid(null);
+  };
+
+  const handleMarkPaidDialogOpenChange = (open: boolean) => {
+    setMarkPaidDialogOpen(open);
+    if (!open) {
+      setInvoiceToMarkPaid(null);
+    }
   };
 
   const handleMarkUnpaid = async (invoice: InvoiceListRow) => {
@@ -295,6 +325,35 @@ export default function InvoicesPage() {
           onConfirm={handleConfirmCancelInvoice}
           variant="destructive"
         />
+        <Dialog open={markPaidDialogOpen} onOpenChange={handleMarkPaidDialogOpenChange}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Mark as Paid</DialogTitle>
+              <DialogDescription>
+                {invoiceToMarkPaid
+                  ? `Mark invoice #${invoiceToMarkPaid.invoiceNumber} as paid. Choose the payment date.`
+                  : 'Mark this invoice as paid. Choose the payment date.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label>Payment date</Label>
+              <DatePicker
+                value={paymentDate}
+                onChange={(date) => date && setPaymentDate(date)}
+                placeholder="Select payment date"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => handleMarkPaidDialogOpenChange(false)} disabled={isUpdatingStatus}>
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmMarkPaid} disabled={isUpdatingStatus}>
+                {isUpdatingStatus ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Mark as Paid
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         {/* Action Buttons and Date Filters */}
         <form className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row">

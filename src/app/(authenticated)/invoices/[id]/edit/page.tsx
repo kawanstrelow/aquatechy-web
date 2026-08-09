@@ -241,14 +241,17 @@ export default function EditInvoicePage({ params: { id } }: Props) {
   }, [clients]);
 
   // Cancellation uses POST /invoices/cancel — not editable here. Paid invoices cannot be cancelled.
+  // Once issued (paid/unpaid/overdue), draft is not offered as a status option.
   const statusOptions = useMemo(() => {
+    const currentStatus = currentInvoice?.status;
+    const canReturnToDraft = currentStatus === 'draft' || !currentStatus;
     const base = [
-      { key: 'draft', value: 'draft', name: 'Draft' },
+      ...(canReturnToDraft ? [{ key: 'draft', value: 'draft', name: 'Draft' }] : []),
       { key: 'unpaid', value: 'unpaid', name: 'Unpaid' },
       { key: 'paid', value: 'paid', name: 'Paid' },
       { key: 'overdue', value: 'overdue', name: 'Overdue' }
     ];
-    if (currentInvoice?.status === 'cancelled') {
+    if (currentStatus === 'cancelled') {
       return [...base, { key: 'cancelled', value: 'cancelled', name: 'Cancelled' }];
     }
     return base;

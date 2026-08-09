@@ -1,10 +1,11 @@
 'use client';
 
 import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import AvatarEditor from 'react-avatar-editor';
 
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -28,9 +29,39 @@ type Props = {
 
 const DELETE_CONFIRMATION = 'DELETE';
 
-export default function ShowCompany({ company }: Props) {
+type CompanyTab = 'company_info' | 'preferences' | 'team';
+
+function parseTab(value: string | null): CompanyTab {
+  if (value === 'preferences' || value === 'team' || value === 'company_info') {
+    return value;
+  }
+  return 'company_info';
+}
+
+function ShowCompanyInner({ company }: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<'company_info' | 'preferences' | 'team'>('company_info');
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useState<CompanyTab>(() => parseTab(searchParams.get('tab')));
+
+  const selectTab = useCallback(
+    (nextTab: CompanyTab) => {
+      setTab(nextTab);
+      const params = new URLSearchParams(searchParams.toString());
+      if (nextTab === 'company_info') {
+        params.delete('tab');
+      } else {
+        params.set('tab', nextTab);
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  useEffect(() => {
+    setTab(parseTab(searchParams.get('tab')));
+  }, [searchParams]);
 
   const { data: companies } = useGetCompanies();
   const myRole = companies?.find((c) => c.id === company.id)?.role;
@@ -295,7 +326,7 @@ export default function ShowCompany({ company }: Props) {
             </div>
             <div className="inline-flex items-start justify-start gap-4 self-stretch border-b border-gray-200">
               <div
-                onClick={() => setTab('company_info')}
+                onClick={() => selectTab('company_info')}
                 className="inline-flex flex-col items-start justify-start gap-2.5"
               >
                 <div
@@ -306,7 +337,7 @@ export default function ShowCompany({ company }: Props) {
                 {tab === 'company_info' && <div className="Rectangle2 h-0.5 self-stretch bg-gray-800" />}
               </div>
               <div
-                onClick={() => setTab('preferences')}
+                onClick={() => selectTab('preferences')}
                 className="inline-flex flex-col items-start justify-start gap-2.5"
               >
                 <div
@@ -317,7 +348,7 @@ export default function ShowCompany({ company }: Props) {
                 {tab === 'preferences' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
               <div
-                onClick={() => setTab('team')}
+                onClick={() => selectTab('team')}
                 className="inline-flex flex-col items-start justify-start gap-2.5"
               >
                 <div
@@ -339,5 +370,13 @@ export default function ShowCompany({ company }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ShowCompany(props: Props) {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ShowCompanyInner {...props} />
+    </Suspense>
   );
 }
