@@ -6,6 +6,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { Download, FileText, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   CLIENT_PORTAL_GRADIENT_BLUE_STYLE,
@@ -23,6 +24,7 @@ import type { CheckoutSessionResponse } from '@/ts/interfaces/StripeConnect';
 export default function ClientPortalInvoiceDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const detailQuery = useQuery({
     queryKey: ['client-portal-invoice', id],
@@ -35,6 +37,7 @@ export default function ClientPortalInvoiceDetailPage() {
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
+      setCheckoutError(null);
       const { data } = await portalAxios.post<CheckoutSessionResponse>(
         `/client-portal/invoices/${id}/checkout-session`
       );
@@ -46,7 +49,9 @@ export default function ClientPortalInvoiceDetailPage() {
     onError: (error) => {
       if (axios.isAxiosError(error)) {
         const msg = error.response?.data?.message;
-        alert(typeof msg === 'string' ? msg : 'Unable to open checkout.');
+        setCheckoutError(typeof msg === 'string' ? msg : 'Unable to open checkout.');
+      } else {
+        setCheckoutError('Unable to open checkout.');
       }
     }
   });
@@ -120,32 +125,39 @@ export default function ClientPortalInvoiceDetailPage() {
             ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {canPayOnline && (
+        <div className="flex flex-col items-stretch gap-2 sm:items-end">
+          <div className="flex flex-wrap gap-2">
+            {canPayOnline && (
+              <Button
+                type="button"
+                onClick={() => checkoutMutation.mutate()}
+                disabled={checkoutMutation.isPending}
+                className={`gap-2 ${clientPortalPrimaryButtonClassName}`}
+                style={CLIENT_PORTAL_GRADIENT_BLUE_STYLE}
+              >
+                {checkoutMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Pay now
+              </Button>
+            )}
             <Button
               type="button"
-              onClick={() => checkoutMutation.mutate()}
-              disabled={checkoutMutation.isPending}
-              className={`gap-2 ${clientPortalPrimaryButtonClassName}`}
-              style={CLIENT_PORTAL_GRADIENT_BLUE_STYLE}
+              variant="outline"
+              className={`gap-2 ${clientPortalOutlineAccentButtonClassName}`}
+              onClick={() => pdfMutation.mutate()}
+              disabled={pdfMutation.isPending}
             >
-              {checkoutMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Pay now
+              {pdfMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              PDF
             </Button>
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            className={`gap-2 ${clientPortalOutlineAccentButtonClassName}`}
-            onClick={() => pdfMutation.mutate()}
-            disabled={pdfMutation.isPending}
-          >
-            {pdfMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            PDF
-          </Button>
-          <Button type="button" variant="ghost" onClick={() => void detailQuery.refetch()}>
-            Refresh
-          </Button>
+            <Button type="button" variant="ghost" onClick={() => void detailQuery.refetch()}>
+              Refresh
+            </Button>
+          </div>
+          {checkoutError ? (
+            <p className="max-w-sm rounded-md bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+              {checkoutError}
+            </p>
+          ) : null}
         </div>
       </div>
 

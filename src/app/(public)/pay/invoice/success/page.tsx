@@ -11,6 +11,7 @@ const invoicePayGradient =
 
 function InvoiceCheckoutSuccessInner() {
   const searchParams = useSearchParams();
+  // Stripe Checkout success URL includes {CHECKOUT_SESSION_ID}; webhook finalizes the invoice.
   const sessionId = searchParams.get('session_id') ?? searchParams.get('checkout_session_id');
 
   return (
@@ -20,10 +21,13 @@ function InvoiceCheckoutSuccessInner() {
       >
         Payment received
       </h1>
-      <p className="max-w-lg text-sm text-slate-600 mb-4">
+      <p className="mb-4 max-w-lg text-sm text-slate-600">
         Thank you for your payment. Your invoice status will update automatically when Stripe confirms the charge.
       </p>
-      
+      {sessionId ? (
+        <p className="max-w-lg break-all text-xs text-slate-400">Reference: {sessionId}</p>
+      ) : null}
+
       <div className="flex flex-wrap justify-center gap-3">
         <Button
           asChild
@@ -32,7 +36,6 @@ function InvoiceCheckoutSuccessInner() {
         >
           <Link href="/client-portal">Back to invoices</Link>
         </Button>
-       
       </div>
     </div>
   );

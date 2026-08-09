@@ -20,6 +20,7 @@ import { ModalDeactivateClient } from '../DataTableClients/ModalDeactivateClient
 import EmailPreferences from './EmailPreferences';
 import EstimatesTab from './tabs/EstimatesTab';
 import InvoicesTab from './tabs/InvoicesTab';
+import PaymentsTab from './tabs/PaymentsTab';
 import { Separator } from '@/components/ui/separator';
 import { ModalDeleteClient } from '../DataTableClients/ModalDeleteClient';
 import { useDeleteClient } from '@/hooks/react-query/clients/deleteClient';
@@ -27,6 +28,8 @@ import { useDeleteClient } from '@/hooks/react-query/clients/deleteClient';
 type Props = {
   client: Client;
 };
+
+type ClientTab = 'client_info' | 'pools' | 'invoices' | 'estimates' | 'payments' | 'email_preferences';
 
 export default function ShowClient({ client }: Props) {
   const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
@@ -37,10 +40,10 @@ export default function ShowClient({ client }: Props) {
   const { data: companies = [] } = useGetCompanies();
   const membership = companies.find((c) => c.id === client.companyOwnerId);
   const canViewBilling = membership?.role === 'Owner' || membership?.role === 'Admin';
+  const canViewPayments =
+    membership?.role === 'Owner' || membership?.role === 'Admin' || membership?.role === 'Office';
 
-  const [tab, setTab] = useState<'client_info' | 'pools' | 'invoices' | 'estimates' | 'email_preferences'>(
-    'client_info'
-  );
+  const [tab, setTab] = useState<ClientTab>('client_info');
 
   if (isPending || isDeleting) return <LoadingSpinner />;
 
@@ -241,6 +244,16 @@ export default function ShowClient({ client }: Props) {
                   {tab === 'estimates' && <div className="h-0.5 self-stretch bg-gray-800" />}
                 </div>
               ) : null}
+              {canViewPayments ? (
+                <div onClick={() => setTab('payments')} className="inline-flex flex-col items-start justify-start gap-2.5">
+                  <div
+                    className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'payments' && selectedTabStyles}`}
+                  >
+                    Payments
+                  </div>
+                  {tab === 'payments' && <div className="h-0.5 self-stretch bg-gray-800" />}
+                </div>
+              ) : null}
               <div
                 onClick={() => setTab('email_preferences')}
                 className="inline-flex flex-col items-start justify-start gap-2.5"
@@ -277,6 +290,8 @@ export default function ShowClient({ client }: Props) {
               <InvoicesTab clientId={client.id} />
             ) : tab === 'estimates' ? (
               <EstimatesTab clientId={client.id} />
+            ) : tab === 'payments' ? (
+              <PaymentsTab client={client} />
             ) : (
               <EmailPreferences client={client} />
             )}
