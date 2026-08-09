@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { History } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ function visibleChatMessages(messages: AiMessage[]) {
   return messages.filter((m) => m.role === 'user' || m.role === 'assistant');
 }
 
-export default function ChatPage() {
+function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -314,5 +314,13 @@ export default function ChatPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ChatPage />
+    </Suspense>
   );
 }

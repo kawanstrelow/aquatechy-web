@@ -2,7 +2,7 @@
 
 import { addDays } from 'date-fns';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { Suspense, useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 
@@ -40,7 +40,7 @@ interface EstimateFormData {
 
 const defaultValidUntil = () => addDays(new Date(), 30);
 
-export default function CreateEstimatePage() {
+function CreateEstimatePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientIdFromQuery = searchParams.get('clientId');
@@ -486,5 +486,13 @@ export default function CreateEstimatePage() {
         </div>
       </div>
     </FormProvider>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <CreateEstimatePage />
+    </Suspense>
   );
 }

@@ -2,7 +2,7 @@
 
 import { AlertCircle, Check, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -65,7 +65,7 @@ const alertType: Record<
   }
 };
 
-export default function Page() {
+function SubscriptionPage() {
   const searchParams = useSearchParams();
   const status = searchParams.get('status');
   const session_id = searchParams.get('session_id');
@@ -225,5 +225,13 @@ export default function Page() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <SubscriptionPage />
+    </Suspense>
   );
 }

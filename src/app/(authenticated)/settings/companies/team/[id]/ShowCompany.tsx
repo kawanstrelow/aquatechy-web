@@ -2,9 +2,10 @@
 
 import { format } from 'date-fns';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import AvatarEditor from 'react-avatar-editor';
 
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -37,7 +38,7 @@ function parseTab(value: string | null): CompanyTab {
   return 'company_info';
 }
 
-export default function ShowCompany({ company }: Props) {
+function ShowCompanyInner({ company }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -369,5 +370,13 @@ export default function ShowCompany({ company }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ShowCompany(props: Props) {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ShowCompanyInner {...props} />
+    </Suspense>
   );
 }

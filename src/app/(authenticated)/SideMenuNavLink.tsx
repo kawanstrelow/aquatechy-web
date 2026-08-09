@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { Suspense } from 'react';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
@@ -32,7 +32,7 @@ function isSubItemActive(pathname: string, searchParams: URLSearchParams, subIte
   return false;
 }
 
-export default function SideMenuNavLink({ route }: Props) {
+function SideMenuNavLinkInner({ route }: Props) {
   const { icon, text, href, submenu } = route;
   const Icon = icon;
   const pathname = usePathname();
@@ -84,5 +84,19 @@ export default function SideMenuNavLink({ route }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SideMenuNavLink(props: Props) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex w-full items-start justify-start px-2 text-gray-300">
+          <div className="flex w-full items-center py-4" />
+        </div>
+      }
+    >
+      <SideMenuNavLinkInner {...props} />
+    </Suspense>
   );
 }

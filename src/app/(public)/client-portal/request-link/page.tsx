@@ -1,8 +1,7 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, Suspense, useState } from 'react';
 import axios from 'axios';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   CLIENT_PORTAL_GRADIENT_BLUE_STYLE,
-  clientPortalLinkClassName,
   clientPortalMutedSurfaceClassName,
   clientPortalOutlineAccentButtonClassName,
   clientPortalPrimaryButtonClassName
@@ -22,7 +20,7 @@ function apiOrigin(): string {
   return raw.endsWith('/') ? raw.slice(0, -1) : raw;
 }
 
-export default function ClientPortalRequestLinkPage() {
+function ClientPortalRequestLinkPage() {
   const searchParams = useSearchParams();
   const estimateId = searchParams.get('estimateId')?.trim() || undefined;
   const [email, setEmail] = useState('');
@@ -103,8 +101,18 @@ export default function ClientPortalRequestLinkPage() {
         </form>
       )}
 
-      
-      
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto flex max-w-md items-center justify-center py-16 text-sm text-slate-500">Loading...</div>
+      }
+    >
+      <ClientPortalRequestLinkPage />
+    </Suspense>
   );
 }
