@@ -52,10 +52,10 @@ const filterFields = [
     type: FieldType.Switch,
     description: 'Require technicians to take photos when cleaning or replacing filters.',
     label: 'Filter Maintenance Photos',
+    growOnly: true,
     itens: [
       {
         label: 'Require photo to every filter cleaned or replaced',
-        subLabel: '(only on grow plan)',
         description: 'Technicians must take photos when cleaning or replacing filters',
         name: 'filterCleaningMustHavePhotos'
       }
@@ -65,11 +65,11 @@ const filterFields = [
     inputClassName: 'flex justify-center items-center gap-4',
     type: FieldType.Switch,
     description: 'Send e-mails when filter cleaning is completed.',
-    label: 'Filter cleaning notifications',
+    label: 'Filter Cleaning Notifications',
+    growOnly: true,
     itens: [
       {
         label: 'Send filter cleaning e-mails',
-        subLabel: '(only on grow plan)',
         description: 'Send e-mails when filter cleaning is completed.',
         name: 'sendFilterCleaningEmails'
       }
@@ -97,26 +97,26 @@ export function FilterMaintenanceCard({
   };
 
   return (
-    <Card className="w-full border-2 border-green-200">
+    <Card className="w-full border-2">
       <CardHeader 
-        className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 cursor-pointer hover:from-green-100 hover:to-emerald-100 transition-colors"
+        className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition-colors"
         onClick={toggleCollapsed}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Filter className="h-6 w-6 text-green-600" />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Filter className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <CardTitle className="text-xl text-green-900">Filter Maintenance</CardTitle>
-              <CardDescription className="text-green-700">
+              <CardTitle className="text-xl text-blue-900">Filter Maintenance</CardTitle>
+              <CardDescription className="text-blue-700">
                 Set up automatic filter cleaning schedules and reminders
               </CardDescription>
             </div>
           </div>
           <ChevronDown 
             className={cn(
-              "h-5 w-5 text-green-600 transition-transform duration-200",
+              "h-5 w-5 text-blue-600 transition-transform duration-200",
               collapsed ? "rotate-180" : "rotate-0"
             )}
           />
@@ -124,49 +124,44 @@ export function FilterMaintenanceCard({
       </CardHeader>
       {!collapsed && (
         <>
-          <CardContent className="p-6">
-            {filterFields.map((field) => (
-              <div key={field.label} className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
-                <div className="col-span-8 row-auto flex flex-col">
-                  <label htmlFor={field.label} className="flex flex-col space-y-1">
-                    <span className="text-sm font-semibold text-gray-800">{field.label}</span>
+          <CardContent className="flex flex-col gap-6 p-6">
+            {filterFields.map((field) => {
+              const isGrowOnlySection = 'growOnly' in field && field.growOnly;
+
+              return (
+              <div key={field.label} className="grid w-full grid-cols-1 items-center gap-3 md:grid-cols-12 md:gap-4">
+                <div className="col-span-8 flex flex-col gap-1">
+                  <label htmlFor={field.label} className="flex flex-col">
+                    <span className="text-sm font-semibold text-gray-800">
+                      {field.label}
+                      {isFreePlan && isGrowOnlySection ? (
+                        <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>
+                      ) : null}
+                    </span>
                   </label>
                   <span className="text-muted-foreground text-sm font-normal">{field.description}</span>
                 </div>
-                <div className="col-span-4 flex flex-col gap-2">
+                <div className="col-span-4 flex items-center md:justify-end">
                   {field.itens.map((item) => {
                     const isGrowOnlyField =
                       item.name === 'sendFilterCleaningEmails' ||
                       item.name === 'filterCleaningMustHavePhotos';
 
                     return (
-                      <div key={item.name} className="flex w-full items-center gap-4">
-                        <div className={field.type === FieldType.Default ? 'w-full' : ''}>
-                          <InputField
-                            disabled={isFreePlan && isGrowOnlyField}
-                            name={item.name}
-                            type={'type' in item ? item.type : field.type}
-                            placeholder={field.type === FieldType.Default ? item.label : ''}
-                          />
-                        </div>
-                        {field.type === FieldType.Switch && (
-                          <label htmlFor={item.label}>
-                            <div>
-                              <span className="text-sm font-semibold text-gray-800">{item.label}</span>
-                            </div>
-                            {'subLabel' in item && item.subLabel ? (
-                              <div>
-                                <span className="text-sm font-normal text-gray-800">{item.subLabel}</span>
-                              </div>
-                            ) : null}
-                          </label>
-                        )}
+                      <div key={item.name} className="flex w-full items-center md:w-auto md:justify-end">
+                        <InputField
+                          disabled={isFreePlan && isGrowOnlyField}
+                          name={item.name}
+                          type={'type' in item ? item.type : field.type}
+                          placeholder={field.type === FieldType.Default ? item.label : ''}
+                        />
                       </div>
                     );
                   })}
                 </div>
               </div>
-            ))}
+            );
+            })}
           </CardContent>
           
           {/* Filter Maintenance Save Button */}

@@ -2,13 +2,14 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import CompanyStateAndCitySelect from '@/components/CompanyStateAndCitySelect';
+import { CompanyLogoPicker } from '@/components/CompanyLogoPicker';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { AddressInput } from '@/components/AddressInput';
@@ -76,6 +77,7 @@ export type CreateCompanyData = z.infer<typeof schema>;
 export default function AddCompanyPage() {
   const router = useRouter();
   const { mutate: createCompany, isPending: isPendingCreate } = useCreateCompany();
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const form = useForm<CreateCompanyData>({
     resolver: zodResolver(schema),
@@ -93,9 +95,12 @@ export default function AddCompanyPage() {
 
   function handleSubmit(data: CreateCompanyData) {
     if (isEmpty(form.formState.errors)) {
-      createCompany(data);
+      createCompany({
+        ...data,
+        addressLine2: data.addressLine2 || undefined,
+        logo: logoFile || undefined
+      });
     }
-
   }
 
   const isLoading = isPendingCreate;
@@ -126,15 +131,20 @@ export default function AddCompanyPage() {
           onSubmit={form.handleSubmit(handleSubmit)}
         >
           <div className="space-y-6">
-            {/* Basic Information */}
             <div className="space-y-4">
-
-                <InputField
-                  name="name"
-                  label="Company Name"
-                  placeholder="Enter company name"
-                />
-
+              <Typography element="h2" className="text-lg font-medium">
+                Company profile
+              </Typography>
+              <CompanyLogoPicker
+                value={logoFile}
+                onChange={setLogoFile}
+                companyName={form.watch('name') || 'Company'}
+              />
+              <InputField
+                name="name"
+                label="Company Name"
+                placeholder="Enter company name"
+              />
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <InputField
                   name="email"
@@ -148,10 +158,8 @@ export default function AddCompanyPage() {
                   type={FieldType.Phone}
                 />
               </div>
-
             </div>
 
-            {/* Address Information */}
             <div className="space-y-4">
               <Typography element="h2" className="text-lg font-medium">
                 Address Information

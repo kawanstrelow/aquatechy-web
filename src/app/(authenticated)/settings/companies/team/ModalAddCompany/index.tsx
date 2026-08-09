@@ -9,6 +9,7 @@ import { z } from 'zod';
 import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import CompanyStateAndCitySelect from '@/components/CompanyStateAndCitySelect';
+import { CompanyLogoPicker } from '@/components/CompanyLogoPicker';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
@@ -73,6 +74,7 @@ export type CreateRequest = z.infer<typeof schema>;
 
 export function ModalAddCompany() {
   const [open, setOpen] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const { mutate: createCompany, isPending: isPendingCreate } = useCreateCompany();
 
   const form = useForm<z.infer<typeof schema>>({
@@ -90,11 +92,15 @@ export function ModalAddCompany() {
 
   useEffect(() => {
     form.reset();
+    setLogoFile(null);
   }, [open]);
 
   function handleSubmit(data: z.infer<typeof schema>) {
     if (isEmpty(form.formState.errors)) {
-      createCompany(data);
+      createCompany({
+        ...data,
+        logo: logoFile || undefined
+      });
       setOpen(false);
     }
   }
@@ -115,6 +121,13 @@ export function ModalAddCompany() {
         <Form {...form}>
           <form className="flex flex-col gap-4" onSubmit={form.handleSubmit((data) => handleSubmit(data))}>
             <DialogTitle>New company</DialogTitle>
+
+            <CompanyLogoPicker
+              value={logoFile}
+              onChange={setLogoFile}
+              companyName={form.watch('name') || 'Company'}
+              className="bg-white"
+            />
 
             <div className="flex gap-4">
               <InputField name="name" placeholder="Name" />

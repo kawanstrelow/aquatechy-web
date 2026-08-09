@@ -46,6 +46,28 @@ const schema = z.object({
   serviceTypes: z.record(z.string(), serviceTypeEmailSchema)
 });
 
+function GrowPlanSwitchLabel({
+  label,
+  description,
+  isFreePlan
+}: {
+  label: string;
+  description: string;
+  isFreePlan: boolean;
+}) {
+  return (
+    <div className="col-span-8 row-auto flex flex-col">
+      <label className="flex flex-col space-y-1">
+        <span className="text-sm font-semibold text-gray-800">
+          {label}
+          {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>}
+        </span>
+      </label>
+      <span className="text-muted-foreground text-sm font-normal">{description}</span>
+    </div>
+  );
+}
+
 export interface EmailPreferencesCardProps {
   company: Company;
   form: any;
@@ -274,14 +296,11 @@ function EmailPreferencesContent({
             </div>
 
             <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12 mt-6">
-              <div className="col-span-8 row-auto flex flex-col">
-                <label className="flex flex-col space-y-1">
-                  <span className="text-sm font-semibold text-gray-800">Send Skipped Service Emails</span>
-                </label>
-                <span className="text-muted-foreground text-sm font-normal">
-                  Send email notifications when services are skipped
-                </span>
-              </div>
+              <GrowPlanSwitchLabel
+                label="Send Skipped Service Emails"
+                description="Send email notifications when services are skipped"
+                isFreePlan={isFreePlan}
+              />
               <div className="col-span-4 flex items-center gap-4">
                 <InputField
                   disabled={isFreePlan}
@@ -430,7 +449,14 @@ function EmailPreferencesContent({
                     <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
                       <div className="col-span-8 row-auto flex flex-col">
                         <label className="flex flex-col space-y-1">
-                          <span className="text-sm font-semibold text-gray-800">Email Header</span>
+                          <span className="text-sm font-semibold text-gray-800">
+                            Email Header
+                            {isFreePlan && (
+                              <span className="ml-1.5 text-xs font-medium text-blue-600">
+                                (upgrade to grow plan to be able to edit)
+                              </span>
+                            )}
+                          </span>
                         </label>
                         <span className="text-muted-foreground text-sm font-normal">
                           Custom header text for the email
@@ -454,7 +480,14 @@ function EmailPreferencesContent({
                     <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
                       <div className="col-span-8 row-auto flex flex-col">
                         <label className="flex flex-col space-y-1">
-                          <span className="text-sm font-semibold text-gray-800">Email Body</span>
+                          <span className="text-sm font-semibold text-gray-800">
+                            Email Body
+                            {isFreePlan && (
+                              <span className="ml-1.5 text-xs font-medium text-blue-600">
+                                (upgrade to grow plan to be able to edit)
+                              </span>
+                            )}
+                          </span>
                         </label>
                         <span className="text-muted-foreground text-sm font-normal">
                           Main content of the email
@@ -478,7 +511,14 @@ function EmailPreferencesContent({
                     <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
                       <div className="col-span-8 row-auto flex flex-col">
                         <label className="flex flex-col space-y-1">
-                          <span className="text-sm font-semibold text-gray-800">Email Footer</span>
+                          <span className="text-sm font-semibold text-gray-800">
+                            Email Footer
+                            {isFreePlan && (
+                              <span className="ml-1.5 text-xs font-medium text-blue-600">
+                                (upgrade to grow plan to be able to edit)
+                              </span>
+                            )}
+                          </span>
                         </label>
                         <span className="text-muted-foreground text-sm font-normal">
                           Footer text for the email
@@ -505,14 +545,11 @@ function EmailPreferencesContent({
                     
                     {/* Technician Notes */}
                     <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
-                      <div className="col-span-8 row-auto flex flex-col">
-                        <label className="flex flex-col space-y-1">
-                          <span className="text-sm font-semibold text-gray-800">Technician Notes</span>
-                        </label>
-                        <span className="text-muted-foreground text-sm font-normal">
-                          Include technician notes in the email
-                        </span>
-                      </div>
+                      <GrowPlanSwitchLabel
+                        label="Technician Notes"
+                        description="Include technician notes in the email"
+                        isFreePlan={isFreePlan}
+                      />
                       <div className="col-span-4 flex items-center gap-4">
                         <InputField
                           disabled={isFreePlan}
@@ -524,14 +561,11 @@ function EmailPreferencesContent({
 
                     {/* Reading Groups */}
                     <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
-                      <div className="col-span-8 row-auto flex flex-col">
-                        <label className="flex flex-col space-y-1">
-                          <span className="text-sm font-semibold text-gray-800">Reading Groups</span>
-                        </label>
-                        <span className="text-muted-foreground text-sm font-normal">
-                          Include reading groups data in the email
-                        </span>
-                      </div>
+                      <GrowPlanSwitchLabel
+                        label="Reading Groups"
+                        description="Include reading groups data in the email"
+                        isFreePlan={isFreePlan}
+                      />
                       <div className="col-span-4 flex items-center gap-4">
                         <InputField
                           disabled={isFreePlan}
@@ -543,14 +577,11 @@ function EmailPreferencesContent({
 
                     {/* Consumable Groups */}
                     <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
-                      <div className="col-span-8 row-auto flex flex-col">
-                        <label className="flex flex-col space-y-1">
-                          <span className="text-sm font-semibold text-gray-800">Consumable Groups</span>
-                        </label>
-                        <span className="text-muted-foreground text-sm font-normal">
-                          Include consumable groups data in the email
-                        </span>
-                      </div>
+                      <GrowPlanSwitchLabel
+                        label="Consumable Groups"
+                        description="Include consumable groups data in the email"
+                        isFreePlan={isFreePlan}
+                      />
                       <div className="col-span-4 flex items-center gap-4">
                         <InputField
                           disabled={isFreePlan}
@@ -580,14 +611,11 @@ function EmailPreferencesContent({
 
                     {/* Selector Groups */}
                     <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
-                      <div className="col-span-8 row-auto flex flex-col">
-                        <label className="flex flex-col space-y-1">
-                          <span className="text-sm font-semibold text-gray-800">Selector Groups</span>
-                        </label>
-                        <span className="text-muted-foreground text-sm font-normal">
-                          Include selector groups data in the email
-                        </span>
-                      </div>
+                      <GrowPlanSwitchLabel
+                        label="Selector Groups"
+                        description="Include selector groups data in the email"
+                        isFreePlan={isFreePlan}
+                      />
                       <div className="col-span-4 flex items-center gap-4">
                         <InputField
                           disabled={isFreePlan}
@@ -599,14 +627,11 @@ function EmailPreferencesContent({
 
                     {/* Checklist */}
                     <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
-                      <div className="col-span-8 row-auto flex flex-col">
-                        <label className="flex flex-col space-y-1">
-                          <span className="text-sm font-semibold text-gray-800">Checklist</span>
-                        </label>
-                        <span className="text-muted-foreground text-sm font-normal">
-                          Include checklist data in the email
-                        </span>
-                      </div>
+                      <GrowPlanSwitchLabel
+                        label="Checklist"
+                        description="Include checklist data in the email"
+                        isFreePlan={isFreePlan}
+                      />
                       <div className="col-span-4 flex items-center gap-4">
                         <InputField
                           disabled={isFreePlan}

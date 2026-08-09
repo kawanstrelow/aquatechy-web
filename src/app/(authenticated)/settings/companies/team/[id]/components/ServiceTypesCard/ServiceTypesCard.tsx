@@ -20,26 +20,26 @@ export function ServiceTypesCard({ company }: ServiceTypesCardProps) {
   };
 
   return (
-    <Card className="w-full border-2 border-teal-200">
+    <Card className="w-full border-2">
       <CardHeader 
-        className="bg-gradient-to-r from-teal-50 to-cyan-50 border-b border-teal-200 cursor-pointer hover:from-teal-100 hover:to-cyan-100 transition-colors"
+        className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition-colors"
         onClick={toggleCollapsed}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-teal-100 rounded-lg">
-              <Settings className="h-6 w-6 text-teal-600" />
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Settings className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <CardTitle className="text-xl text-teal-900">Service Types</CardTitle>
-              <CardDescription className="text-teal-700">
+              <CardTitle className="text-xl text-blue-900">Service Types</CardTitle>
+              <CardDescription className="text-blue-700">
                 Manage service types that can be selected when creating service reports. These help categorize and organize your services.
               </CardDescription>
             </div>
           </div>
           <ChevronDown 
             className={cn(
-              "h-5 w-5 text-teal-600 transition-transform duration-200",
+              "h-5 w-5 text-blue-600 transition-transform duration-200",
               collapsed ? "rotate-180" : "rotate-0"
             )}
           />
