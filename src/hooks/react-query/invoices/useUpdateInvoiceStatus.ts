@@ -12,10 +12,14 @@ export const useUpdateInvoiceStatus = () => {
 
   const { mutate, mutateAsync, isPending, isSuccess } = useMutation({
     mutationFn: async (data: UpdateInvoiceStatusRequest): Promise<UpdateInvoiceStatusResponse> => {
-      const response = await clientAxios.patch<UpdateInvoiceStatusResponse>('/invoices/status', {
+      const body: UpdateInvoiceStatusRequest = {
         invoiceId: data.invoiceId,
         status: data.status
-      });
+      };
+      if (data.status === 'paid' && data.paymentDate) {
+        body.paymentDate = data.paymentDate;
+      }
+      const response = await clientAxios.patch<UpdateInvoiceStatusResponse>('/invoices/status', body);
       return response.data;
     },
     onSuccess: (response, variables) => {

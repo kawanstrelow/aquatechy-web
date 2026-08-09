@@ -347,6 +347,12 @@ export const routes: Menu[] = [
         title: 'Subscription',
         description: 'Manage your subscription and see our plans'
       },
+      preferences: {
+        text: 'Preferences',
+        href: '/settings/preferences',
+        title: 'Preferences',
+        description: 'Manage company preference settings.'
+      },
       companies: {
         text: 'Companies',
         href: '/settings/companies',
