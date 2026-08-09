@@ -140,14 +140,59 @@ export interface Company {
 
 // ChecklistTemplate and ChecklistTemplateItem are now imported from ChecklistTemplates.ts
 
+export type PhotoDefinitionPrefsInput = {
+  isRequired?: boolean;
+  allowGallery?: boolean;
+  sendOnEmail?: boolean;
+};
+
+export type CompanyPreferencesOnCreate = {
+  serviceEmailPreferences?: {
+    sendFilterCleaningEmails?: boolean;
+    sendSkippedServiceEmails?: boolean;
+    ccEmail?: string;
+  };
+  equipmentMaintenancePreferences?: {
+    filterCleaningIntervalDays?: number;
+    filterReplacementIntervalDays?: number;
+    filterCleaningMustHavePhotos?: boolean;
+  };
+  servicePreferences?: {
+    allowAnticipatedServices?: boolean;
+  };
+  invoiceSettingsPreferences?: InvoiceSettingsPreferences | null;
+  estimateSettingsPreferences?: EstimateSettingsPreferences | null;
+  poolCleaning?: {
+    emailPreferences?: {
+      sendAutomaticEmails?: boolean;
+      header?: string | null;
+      body?: string | null;
+      footer?: string | null;
+      technicianNotes?: boolean;
+      sendReadingsGroups?: boolean;
+      sendConsumablesGroups?: boolean;
+      sendPhotoGroups?: boolean;
+      sendSelectorsGroups?: boolean;
+      sendChecklist?: boolean;
+    };
+    photos?: {
+      beforeService?: PhotoDefinitionPrefsInput;
+      afterService?: PhotoDefinitionPrefsInput;
+    };
+  };
+};
+
 export interface CreateCompany {
   name: string;
   email: string;
   phone: string;
   address: string;
+  addressLine2?: string;
   city: string;
   state: string;
   zip: string;
+  preferences?: CompanyPreferencesOnCreate;
+  logo?: File;
 }
 
 export interface UpdateCompany {

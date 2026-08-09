@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, getDay } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useShallow } from 'zustand/react/shallow';
@@ -21,19 +21,22 @@ import { clientSchema } from '@/schemas/client';
 import { poolSchema } from '@/schemas/pool';
 import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { useUserStore } from '@/store/user';
-import { FieldType, Frequency, IanaTimeZones, LanguageOptions } from '@/ts/enums/enums';
+import { FieldType, Frequency, IanaTimeZones, LanguageOptions, STATE_TIMEZONE_MAP } from '@/ts/enums/enums';
 import { isEmpty } from '@/utils';
 import useGetMembersOfAllCompaniesByUserId from '@/hooks/react-query/companies/getMembersOfAllCompaniesByUserId';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { Stepper, useSteps } from '@/components/stepper';
 import { ArrowLeftIcon, Loader2Icon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { AddressInput } from '@/components/AddressInput';
+import { CompanyCreatePreferencesForm } from '@/components/CompanyCreatePreferencesForm';
+import { CompanyLogoPicker } from '@/components/CompanyLogoPicker';
 import { useCreateClientWithMultipleAssignments, Assignment, CreateClientWithAssignmentsData } from '@/hooks/react-query/clients/createClientWithMultipleAssignments';
 import { useUpdateUser } from '@/hooks/react-query/user/updateUser';
 import { useCreateCompany } from '@/hooks/react-query/companies/createCompany';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { CompanyPreferencesOnCreate } from '@/ts/interfaces/Company';
 
 // Step 1: Personal Data Schema
 const personalDataSchema = z.object({
@@ -43,6 +46,7 @@ const personalDataSchema = z.object({
   phone: defaultSchemas.phone,
   email: defaultSchemas.email,
   address: defaultSchemas.address,
+  addressLine2: defaultSchemas.addressLine2,
   zip: defaultSchemas.zipCode,
   state: defaultSchemas.state,
   city: defaultSchemas.city,
@@ -80,6 +84,7 @@ const companySchema = z.object({
     })
     .trim()
     .min(1, { message: 'Address must be at least 1 character.' }),
+  addressLine2: defaultSchemas.addressLine2,
   city: z
     .string({
       required_error: 'City is required.',
@@ -105,7 +110,7 @@ const companySchema = z.object({
 
 export type ICompanySchema = z.infer<typeof companySchema>;
 
-// Step 3: Client/Pool/Assignment Schema
+// Step 4: Client/Pool/Assignment Schema
 const assignmentSchema = z.object({
   assignmentToId: z.string().min(1),
   serviceTypeId: z.string().min(1, 'Service type is required'),
@@ -124,10 +129,21 @@ const additionalSchemas = z.object({
   timezone: defaultSchemas.timezone,
   companyOwnerId: z.string().min(1, {
     message: 'Company owner is required.'
-  })
+  }),
+  clientAddressLine2: z.optional(z.string().trim()),
+  poolAddressLine2: z.optional(z.string().trim())
 });
 
 const poolAndClientSchema = clientSchema.and(poolSchema).and(additionalSchemas);
+
+const emptyAssignment = (): Assignment => ({
+  assignmentToId: '',
+  serviceTypeId: '',
+  weekday: undefined,
+  frequency: '' as Frequency,
+  startOn: '',
+  endAfter: ''
+});
 
 type PoolAndClientSchema = z.infer<typeof poolAndClientSchema>;
 
@@ -161,6 +177,12 @@ export default function OnboardingPage() {
       index: 2,
       active: false,
       complete: false,
+      title: 'Company Preferences'
+    },
+    {
+      index: 3,
+      active: false,
+      complete: false,
       title: 'First Client'
     }
   ]);
@@ -174,6 +196,7 @@ export default function OnboardingPage() {
       phone: user?.phone || '',
       email: user?.email || '',
       address: user?.address || '',
+      addressLine2: user?.addressLine2 || '',
       zip: user?.zip || '',
       state: user?.state || '',
       city: user?.city || '',
@@ -192,6 +215,7 @@ export default function OnboardingPage() {
       email: '',
       phone: '',
       address: '',
+      addressLine2: '',
       city: '',
       state: '',
       zip: ''
@@ -199,8 +223,9 @@ export default function OnboardingPage() {
   });
 
   const { mutate: createCompany, isPending: isCreatingCompany, isSuccess: isCompanyCreated } = useCreateCompany({ skipRedirect: true });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
-  // Step 3: Client/Pool/Assignment Form
+  // Step 4: Client/Pool/Assignment Form
   const { data: members } = useGetMembersOfAllCompaniesByUserId(user.id);
   const { data: companies, isLoading: isCompaniesLoading, isSuccess: isCompaniesSuccess } = useGetCompanies();
   const { mutateAsync: createClientWithAssignments, isPending: isCreatingClient } = useCreateClientWithMultipleAssignments({ redirectTo: '/quickstart' });
@@ -208,24 +233,26 @@ export default function OnboardingPage() {
   const clientForm = useForm<PoolAndClientSchema>({
     resolver: zodResolver(poolAndClientSchema),
     defaultValues: {
-      animalDanger: false,
-      sameBillingAddress: false,
+      firstName: 'Test',
+      lastName: 'Client',
+      animalDanger: true,
+      sameBillingAddress: true,
       clientType: 'Residential',
-      monthlyPayment: 0
+      monthlyPayment: 12000,
+      volumeInGallons: 15000,
+      lockerCode: '123',
+      enterSide: 'Left',
+      poolType: 'Salt',
+      poolNotes: 'Pool has a screen around it.',
     }
   });
 
+  const hasPrefilledTestClient = useRef(false);
+  const assignmentSectionRef = useRef<HTMLDivElement>(null);
+
   // State for managing multiple assignments
-  const [assignments, setAssignments] = useState<Assignment[]>([
-    {
-      assignmentToId: '',
-      serviceTypeId: '',
-      weekday: 'SUNDAY' as const,
-      frequency: Frequency.WEEKLY,
-      startOn: '',
-      endAfter: ''
-    }
-  ]);
+  const [assignments, setAssignments] = useState<Assignment[]>([emptyAssignment()]);
+  const [showAssignmentErrors, setShowAssignmentErrors] = useState(false);
 
   // State for managing assignment-specific date options
   const [assignmentDateOptions, setAssignmentDateOptions] = useState<{
@@ -258,6 +285,7 @@ export default function OnboardingPage() {
       companyForm.setValue('email', personalData.email || '');
       companyForm.setValue('phone', personalData.phone || '');
       companyForm.setValue('address', personalData.address || '');
+      companyForm.setValue('addressLine2', personalData.addressLine2 || '');
       companyForm.setValue('state', personalData.state || '');
       companyForm.setValue('city', personalData.city || '');
       companyForm.setValue('zip', personalData.zip || '');
@@ -265,7 +293,44 @@ export default function OnboardingPage() {
     }
   }, [isUserUpdated]);
 
-  // Handle step 2 completion
+  const prefillTestClient = () => {
+    if (hasPrefilledTestClient.current) return;
+    hasPrefilledTestClient.current = true;
+
+    const address = user.address || companyForm.getValues('address') || '';
+    const city = user.city || companyForm.getValues('city') || '';
+    const state = user.state || companyForm.getValues('state') || '';
+    const zip = user.zip || companyForm.getValues('zip') || '';
+    const timezone = STATE_TIMEZONE_MAP[state] || IanaTimeZones.NY;
+
+    clientForm.reset({
+      ...clientForm.getValues(),
+      firstName: 'Test',
+      lastName: 'Client',
+      phone: user.phone || '',
+      email: user.email || '',
+      timezone,
+      clientAddress: address,
+      clientCity: city,
+      clientState: state,
+      clientZip: zip,
+      animalDanger: true,
+      sameBillingAddress: true,
+      poolAddress: address,
+      poolCity: city,
+      poolState: state,
+      poolZip: zip,
+      volumeInGallons: 15000,
+      lockerCode: '123',
+      monthlyPayment: 12000,
+      enterSide: 'Left',
+      poolType: 'Salt',
+      poolNotes: 'Pool has a screen around it',
+      clientType: 'Residential'
+    });
+  };
+
+  // Handle company create completion (after preferences step) → First Client
   useEffect(() => {
     if (isCompanyCreated && isCompaniesSuccess) {
       // Wait a bit for the company to be available
@@ -276,6 +341,7 @@ export default function OnboardingPage() {
         if (ownerAdminOfficeCompanies.length > 0) {
           clientForm.setValue('companyOwnerId', ownerAdminOfficeCompanies[0].id, { shouldValidate: true });
         }
+        prefillTestClient();
         steps.nextStep();
       }, 500);
     }
@@ -287,6 +353,13 @@ export default function OnboardingPage() {
       clientForm.setValue('companyOwnerId', ownerAdminOfficeCompanies[0].id, { shouldValidate: true });
     }
   }, [companies, isCompaniesSuccess, ownerAdminOfficeCompanies.length]);
+
+  // Prefill test client if the user lands on the first-client step without going through create success
+  useEffect(() => {
+    if (steps.currentStepIndex === 3) {
+      prefillTestClient();
+    }
+  }, [steps.currentStepIndex]);
 
   // Step 1 Handlers
   const handlePersonalDataSubmit = (data: IPersonalDataSchema) => {
@@ -306,9 +379,12 @@ export default function OnboardingPage() {
     personalDataForm.setValue('zip', address.zipCode);
   };
 
-  // Step 2 Handlers
-  const handleCompanySubmit = (data: ICompanySchema) => {
-    createCompany(data);
+  // Step 2 Handlers — validate and advance; company is created with preferences on step 3
+  const handleCompanyContinue = async () => {
+    const isValid = await companyForm.trigger();
+    if (isValid) {
+      steps.nextStep();
+    }
   };
 
   const handleCompanyAddressSelect = ({ state, city, zipCode }: { state: string; city: string; zipCode: string }) => {
@@ -319,6 +395,17 @@ export default function OnboardingPage() {
     }, 500);
   };
 
+  // Step 3 Handlers — create company with preferences
+  const handlePreferencesSubmit = (preferences: CompanyPreferencesOnCreate) => {
+    const companyData = companyForm.getValues();
+    createCompany({
+      ...companyData,
+      addressLine2: companyData.addressLine2 || undefined,
+      preferences,
+      logo: logoFile || undefined
+    });
+  };
+
   // Step 3 Handlers
   function handleSameBillingAddress() {
     if (clientForm.watch('sameBillingAddress')) {
@@ -326,15 +413,17 @@ export default function OnboardingPage() {
       clientForm.setValue('poolCity', clientForm.getValues('clientCity'));
       clientForm.setValue('poolState', clientForm.getValues('clientState'));
       clientForm.setValue('poolZip', clientForm.getValues('clientZip'));
+      clientForm.setValue('poolAddressLine2', clientForm.getValues('clientAddressLine2') || '');
     }
   }
 
-  const [sameBillingAddress, clientAddress, clientCity, clientState, clientZip] = clientForm.watch([
+  const [sameBillingAddress, clientAddress, clientCity, clientState, clientZip, clientAddressLine2] = clientForm.watch([
     'sameBillingAddress',
     'clientAddress',
     'clientCity',
     'clientState',
-    'clientZip'
+    'clientZip',
+    'clientAddressLine2'
   ]);
 
   const handleCheckboxSameBillingAddress = useMemo(() => {
@@ -343,9 +432,10 @@ export default function OnboardingPage() {
       clientAddress,
       clientCity,
       clientState,
-      clientZip
+      clientZip,
+      clientAddressLine2
     };
-  }, [sameBillingAddress, clientAddress, clientCity, clientState, clientZip]);
+  }, [sameBillingAddress, clientAddress, clientCity, clientState, clientZip, clientAddressLine2]);
 
   useEffect(() => {
     handleSameBillingAddress();
@@ -445,15 +535,7 @@ export default function OnboardingPage() {
   }
 
   const addAssignment = () => {
-    const newAssignment: Assignment = {
-      assignmentToId: '',
-      serviceTypeId: '',
-      weekday: 'SUNDAY' as const,
-      frequency: Frequency.WEEKLY,
-      startOn: '',
-      endAfter: ''
-    };
-    setAssignments([...assignments, newAssignment]);
+    setAssignments([...assignments, emptyAssignment()]);
   };
 
   const removeAssignment = (index: number) => {
@@ -464,13 +546,74 @@ export default function OnboardingPage() {
       const newOptions = { ...assignmentDateOptions };
       delete newOptions[index];
       setAssignmentDateOptions(newOptions);
+
+      // Clear errors for removed and shifted assignment fields
+      (['assignmentToId', 'serviceTypeId', 'weekday', 'frequency', 'startOn', 'endAfter'] as const).forEach((field) => {
+        clientForm.clearErrors(`${field}-${index}` as never);
+      });
     }
+  };
+
+  const setAssignmentFieldError = (index: number, field: string, message: string) => {
+    clientForm.setError(`${field}-${index}` as never, { type: 'manual', message });
+  };
+
+  const clearAssignmentFieldError = (index: number, field: string) => {
+    clientForm.clearErrors(`${field}-${index}` as never);
+  };
+
+  const validateAssignments = () => {
+    let hasErrors = false;
+
+    (['assignmentToId', 'serviceTypeId', 'weekday', 'frequency', 'startOn', 'endAfter'] as const).forEach((field) => {
+      assignments.forEach((_, index) => {
+        clearAssignmentFieldError(index, field);
+      });
+    });
+
+    if (assignments.length === 0) {
+      setShowAssignmentErrors(true);
+      return false;
+    }
+
+    assignments.forEach((assignment, index) => {
+      if (!assignment.assignmentToId) {
+        setAssignmentFieldError(index, 'assignmentToId', 'Technician is required');
+        hasErrors = true;
+      }
+      if (!assignment.serviceTypeId) {
+        setAssignmentFieldError(index, 'serviceTypeId', 'Service type is required');
+        hasErrors = true;
+      }
+      if (!assignment.frequency) {
+        setAssignmentFieldError(index, 'frequency', 'Frequency is required');
+        hasErrors = true;
+      }
+      if (!assignment.weekday) {
+        setAssignmentFieldError(index, 'weekday', 'Weekday is required');
+        hasErrors = true;
+      }
+      if (assignment.weekday && assignment.frequency) {
+        if (!assignment.startOn) {
+          setAssignmentFieldError(index, 'startOn', 'Start on is required');
+          hasErrors = true;
+        }
+        if (!assignment.endAfter) {
+          setAssignmentFieldError(index, 'endAfter', 'End after is required');
+          hasErrors = true;
+        }
+      }
+    });
+
+    setShowAssignmentErrors(hasErrors);
+    return !hasErrors;
   };
 
   const updateAssignment = (index: number, field: keyof Assignment, value: string) => {
     const newAssignments = [...assignments];
     newAssignments[index] = { ...newAssignments[index], [field]: value };
     setAssignments(newAssignments);
+    clearAssignmentFieldError(index, field);
 
     if (field === 'weekday' || field === 'frequency') {
       const assignment = newAssignments[index];
@@ -503,29 +646,34 @@ export default function OnboardingPage() {
         }
       }
     }
+
+    if (showAssignmentErrors) {
+      const stillInvalid = newAssignments.some(
+        (assignment) =>
+          !assignment.assignmentToId ||
+          !assignment.serviceTypeId ||
+          !assignment.weekday ||
+          !assignment.frequency ||
+          !assignment.startOn ||
+          !assignment.endAfter
+      );
+      if (!stillInvalid) {
+        setShowAssignmentErrors(false);
+      }
+    }
   };
 
   async function handleClientSubmit(data: PoolAndClientSchema) {
-    if (assignments.length === 0) {
+    if (!validateAssignments()) {
+      assignmentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       toast({
         duration: 5000,
         title: 'Error',
         variant: 'error',
-        description: 'At least one assignment is required'
-      });
-      return;
-    }
-
-    const invalidAssignments = assignments.filter(
-      assignment => !assignment.assignmentToId || !assignment.serviceTypeId || !assignment.weekday || !assignment.frequency || !assignment.startOn || !assignment.endAfter
-    );
-
-    if (invalidAssignments.length > 0) {
-      toast({
-        duration: 5000,
-        title: 'Error',
-        variant: 'error',
-        description: 'Please fill in all required fields for all assignments'
+        description:
+          assignments.length === 0
+            ? 'At least one assignment is required'
+            : 'Please fill in all required fields for all assignments'
       });
       return;
     }
@@ -547,6 +695,10 @@ export default function OnboardingPage() {
         email: data.email,
         secondaryEmail: data.secondaryEmail || undefined,
         clientNotes: data.clientNotes,
+        clientAddressLine2: data.clientAddressLine2 || undefined,
+        poolAddressLine2: data.sameBillingAddress
+          ? data.clientAddressLine2 || undefined
+          : data.poolAddressLine2 || undefined,
         sameBillingAddress: data.sameBillingAddress,
         animalDanger: data.animalDanger,
         poolAddress: data.poolAddress,
@@ -675,6 +827,7 @@ export default function OnboardingPage() {
                       placeholder="Enter your address"
                       onAddressSelect={handlePersonalDataAddressSelect}
                     />
+                    <InputField name="addressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                       <InputField name="state" label="State" placeholder="State"  />
                       <InputField name="city" label="City" placeholder="City"  />
@@ -708,50 +861,64 @@ export default function OnboardingPage() {
         {/* Step 2: Company Information */}
         {steps.currentStepIndex === 1 && (
           <Form {...companyForm}>
-            <form onSubmit={companyForm.handleSubmit(handleCompanySubmit)}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCompanyContinue();
+              }}
+            >
               <div className="space-y-6 rounded-lg border bg-white p-6">
                 <Typography element="h2" className="text-xl font-semibold">
                   Company Information
                 </Typography>
                 <Typography element="p" className="text-sm text-gray-600">
-                  Now let's create your company profile
+                  Now let's set up your company profile
                 </Typography>
 
-                <div className="space-y-4">
-                  <InputField
-                    name="name"
-                    label="Company Name"
-                    placeholder="Enter company name"
+                <div className="space-y-6">
+                  <CompanyLogoPicker
+                    value={logoFile}
+                    onChange={setLogoFile}
+                    companyName={companyForm.watch('name') || 'Company'}
                   />
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-4">
                     <InputField
-                      name="email"
-                      label="Email"
-                      placeholder="Enter email address"
+                      name="name"
+                      label="Company Name"
+                      placeholder="Enter company name"
                     />
-                    <InputField
-                      name="phone"
-                      label="Phone"
-                      placeholder="Enter phone number"
-                      type={FieldType.Phone}
-                    />
-                  </div>
 
-                  <AddressInput
-                    name="address"
-                    label="Address"
-                    placeholder="Enter address"
-                    onAddressSelect={handleCompanyAddressSelect}
-                  />
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <InputField
+                        name="email"
+                        label="Email"
+                        placeholder="Enter email address"
+                      />
+                      <InputField
+                        name="phone"
+                        label="Phone"
+                        placeholder="Enter phone number"
+                        type={FieldType.Phone}
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <CompanyStateAndCitySelect stateName="state" cityName="city" />
-                    <InputField
-                      name="zip"
-                      label="Zip Code"
-                      placeholder="Enter zip code"
+                    <AddressInput
+                      name="address"
+                      label="Address"
+                      placeholder="Enter address"
+                      onAddressSelect={handleCompanyAddressSelect}
                     />
+                    <InputField name="addressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <CompanyStateAndCitySelect stateName="state" cityName="city" />
+                      <InputField
+                        name="zip"
+                        label="Zip Code"
+                        placeholder="Enter zip code"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -760,15 +927,8 @@ export default function OnboardingPage() {
                     <ArrowLeftIcon className="mr-2 h-4 w-4" />
                     Previous
                   </Button>
-                  <Button type="submit" disabled={isCreatingCompany} className="min-w-[120px]">
-                    {isCreatingCompany ? (
-                      <>
-                        <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      'Continue'
-                    )}
+                  <Button type="submit" className="min-w-[120px]">
+                    Continue
                   </Button>
                 </div>
               </div>
@@ -776,8 +936,18 @@ export default function OnboardingPage() {
           </Form>
         )}
 
-        {/* Step 3: Client/Pool/Assignment */}
+        {/* Step 3: Company Preferences */}
         {steps.currentStepIndex === 2 && (
+          <CompanyCreatePreferencesForm
+            companyEmail={companyForm.watch('email')}
+            isSubmitting={isCreatingCompany}
+            onBack={steps.prevStep}
+            onSubmit={handlePreferencesSubmit}
+          />
+        )}
+
+        {/* Step 4: Client/Pool/Assignment */}
+        {steps.currentStepIndex === 3 && (
           <Form {...clientForm}>
             <form onSubmit={clientForm.handleSubmit(handleClientSubmit)}>
               <div className="space-y-6">
@@ -786,7 +956,8 @@ export default function OnboardingPage() {
                     Create Your First Client
                   </Typography>
                   <Typography element="p" className="mb-6 text-sm text-gray-600">
-                    Let's add your first client, pool, and assignment to get started
+                    We pre-filled a sample test client so you can explore the app quickly. Add at least one assignment
+                    before finishing setup.
                   </Typography>
 
                   {/* Client Information */}
@@ -829,6 +1000,11 @@ export default function OnboardingPage() {
                           clientForm.setValue('timezone', timezone, { shouldValidate: true });
                         }, 500);
                       }}
+                    />
+                    <InputField
+                      name="clientAddressLine2"
+                      label="Address Line 2"
+                      placeholder="Apt, suite, unit"
                     />
 
                     <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row w-full">
@@ -896,14 +1072,21 @@ export default function OnboardingPage() {
                     </div>
 
                     {!clientForm.watch('sameBillingAddress') && (
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <InputField name="poolAddress" placeholder="Pool address" label="Pool address" />
-                        <StateAndCitySelect stateName="poolState" cityName="poolCity" />
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                          <InputField name="poolAddress" placeholder="Pool address" label="Pool address" />
+                          <StateAndCitySelect stateName="poolState" cityName="poolCity" />
+                          <InputField
+                            name="poolZip"
+                            label="Zip code"
+                            placeholder="Zip code"
+                            type={FieldType.Zip}
+                          />
+                        </div>
                         <InputField
-                          name="poolZip"
-                          label="Zip code"
-                          placeholder="Zip code"
-                          type={FieldType.Zip}
+                          name="poolAddressLine2"
+                          label="Pool Address Line 2"
+                          placeholder="Apt, suite, unit"
                         />
                       </div>
                     )}
@@ -942,13 +1125,37 @@ export default function OnboardingPage() {
                   </div>
 
                   {/* Assignment Information */}
-                  <div className="space-y-4">
-                    <Typography element="h3" className="text-base font-medium">
-                      Assignment Information
-                    </Typography>
+                  <div ref={assignmentSectionRef} className="space-y-4">
+                    <div className="space-y-1">
+                      <Typography element="h3" className="text-base font-medium">
+                        Assignment Information
+                      </Typography>
+                      <p className="text-sm text-gray-500">
+                        Choose who will service this pool, the service type, and the schedule.
+                      </p>
+                      {showAssignmentErrors && (
+                        <p className="text-sm font-medium text-red-500">
+                          Please complete the required assignment fields below.
+                        </p>
+                      )}
+                    </div>
 
                     {assignments.map((assignment, index) => (
-                      <div key={index} className="w-full space-y-4 rounded-lg border p-4">
+                      <div
+                        key={index}
+                        className={`w-full space-y-4 rounded-lg border p-4 ${
+                          showAssignmentErrors &&
+                          (!assignment.assignmentToId ||
+                            !assignment.serviceTypeId ||
+                            !assignment.weekday ||
+                            !assignment.frequency ||
+                            (assignment.weekday &&
+                              assignment.frequency &&
+                              (!assignment.startOn || !assignment.endAfter)))
+                            ? 'border-red-300 bg-red-50/40'
+                            : ''
+                        }`}
+                      >
                         <div className="flex items-center justify-between">
                           <Typography element="h4" className="text-sm font-medium">
                             Assignment {index + 1}
@@ -1010,7 +1217,7 @@ export default function OnboardingPage() {
                             label="Weekday"
                             placeholder="Weekday"
                             options={Weekdays}
-                            value={assignment.weekday}
+                            value={assignment.weekday || ''}
                             onValueChange={(value) => updateAssignment(index, 'weekday', value)}
                           />
                           <SelectField
@@ -1018,7 +1225,7 @@ export default function OnboardingPage() {
                             label="Frequency"
                             placeholder="Frequency"
                             options={Frequencies}
-                            value={assignment.frequency}
+                            value={assignment.frequency || ''}
                             onValueChange={(value) => updateAssignment(index, 'frequency', value)}
                           />
                         </div>
