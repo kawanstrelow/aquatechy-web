@@ -2,9 +2,9 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 import InputField from '@/components/InputField';
@@ -44,6 +44,21 @@ const schema = z.object({
   attachCustomChecklist: z.boolean(),
 });
 
+const GROW_ONLY_FIELDS = [
+  'sendSMS',
+  'sendFilterCleaningEmails',
+  'attachReadingsGroups',
+  'attachConsumablesGroups',
+  'attachSelectorsGroups',
+  'attachCustomChecklist'
+] as const;
+
+type GrowOnlyField = (typeof GROW_ONLY_FIELDS)[number];
+
+function isGrowOnlyField(name: string): name is GrowOnlyField {
+  return (GROW_ONLY_FIELDS as readonly string[]).includes(name);
+}
+
 export default function EmailPreferences({ client }: { client: Client }) {
   const { isPending, mutate } = useUpdateClientPreferences(client.id);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -61,38 +76,61 @@ export default function EmailPreferences({ client }: { client: Client }) {
     resolver: zodResolver(schema),
     defaultValues: {
       sendEmails: client.preferences?.serviceEmailPreferences?.sendEmails || false,
-      sendSMS: client.preferences?.serviceEmailPreferences?.sendSMS || false,
+      sendSMS: isFreePlan ? false : client.preferences?.serviceEmailPreferences?.sendSMS || false,
       attachChemicalsReadings: client.preferences?.serviceEmailPreferences?.attachChemicalsReadings || false,
       attachChecklist: client.preferences?.serviceEmailPreferences?.attachChecklist || false,
       attachServicePhotos: client.preferences?.serviceEmailPreferences?.attachServicePhotos || false,
-      sendFilterCleaningEmails: client.preferences?.serviceEmailPreferences?.sendFilterCleaningEmails || false,
+      sendFilterCleaningEmails: isFreePlan
+        ? false
+        : client.preferences?.serviceEmailPreferences?.sendFilterCleaningEmails || false,
 
-      // New fields
-      attachReadingsGroups: client.preferences?.serviceEmailPreferences?.attachReadingsGroups || false,
-      attachConsumablesGroups: client.preferences?.serviceEmailPreferences?.attachConsumablesGroups || false,
+      // New fields — photos stay available on Free; other include options are Grow-only
+      attachReadingsGroups: isFreePlan
+        ? false
+        : client.preferences?.serviceEmailPreferences?.attachReadingsGroups || false,
+      attachConsumablesGroups: isFreePlan
+        ? false
+        : client.preferences?.serviceEmailPreferences?.attachConsumablesGroups || false,
       attachPhotoGroups: client.preferences?.serviceEmailPreferences?.attachPhotoGroups || false,
-      attachSelectorsGroups: client.preferences?.serviceEmailPreferences?.attachSelectorsGroups || false,
-      attachCustomChecklist: client.preferences?.serviceEmailPreferences?.attachCustomChecklist || false,
+      attachSelectorsGroups: isFreePlan
+        ? false
+        : client.preferences?.serviceEmailPreferences?.attachSelectorsGroups || false,
+      attachCustomChecklist: isFreePlan
+        ? false
+        : client.preferences?.serviceEmailPreferences?.attachCustomChecklist || false,
     }
   });
 
-  const { sendEmails } = form.getValues();
+  const sendEmails = form.watch('sendEmails');
   useDidUpdateEffect(handleEmailsChange, [sendEmails]);
+
+  // Keep Grow-only options off while on Free plan
+  useEffect(() => {
+    if (!isFreePlan) return;
+
+    form.setValue('sendSMS', false);
+    form.setValue('sendFilterCleaningEmails', false);
+    form.setValue('attachReadingsGroups', false);
+    form.setValue('attachConsumablesGroups', false);
+    form.setValue('attachSelectorsGroups', false);
+    form.setValue('attachCustomChecklist', false);
+  }, [isFreePlan, form]);
 
   function handleEmailsChange() {
     if (sendEmails) {
-      // form.setValue('attachChemicalsReadings', true);
-      // form.setValue('attachChecklist', true);
-      // form.setValue('attachServicePhotos', true);
-      form.setValue('attachReadingsGroups', true);
-      form.setValue('attachConsumablesGroups', true);
       form.setValue('attachPhotoGroups', true);
-      form.setValue('attachSelectorsGroups', true);
-      form.setValue('attachCustomChecklist', true);
+      if (!isFreePlan) {
+        form.setValue('attachReadingsGroups', true);
+        form.setValue('attachConsumablesGroups', true);
+        form.setValue('attachSelectorsGroups', true);
+        form.setValue('attachCustomChecklist', true);
+      } else {
+        form.setValue('attachReadingsGroups', false);
+        form.setValue('attachConsumablesGroups', false);
+        form.setValue('attachSelectorsGroups', false);
+        form.setValue('attachCustomChecklist', false);
+      }
     } else {
-      // form.setValue('attachChemicalsReadings', false);
-      // form.setValue('attachChecklist', false);
-      // form.setValue('attachServicePhotos', false);
       form.setValue('attachReadingsGroups', false);
       form.setValue('attachConsumablesGroups', false);
       form.setValue('attachPhotoGroups', false);
@@ -103,7 +141,18 @@ export default function EmailPreferences({ client }: { client: Client }) {
 
   const handleConfirmSave = () => {
     const formData = form.getValues();
-    mutate(formData);
+    const payload = isFreePlan
+      ? {
+          ...formData,
+          sendSMS: false,
+          sendFilterCleaningEmails: false,
+          attachReadingsGroups: false,
+          attachConsumablesGroups: false,
+          attachSelectorsGroups: false,
+          attachCustomChecklist: false
+        }
+      : formData;
+    mutate(payload);
     setShowConfirmModal(false);
   };
 
@@ -123,8 +172,8 @@ export default function EmailPreferences({ client }: { client: Client }) {
             <div className="mb-6 space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
               <p className="text-sm text-amber-900">
                 On the Free plan you can turn on service emails for this client. Only <strong>photos</strong> will be sent in
-                those emails—readings, consumables, selectors, checklist, and any custom email content are not included or
-                customizable on Free.
+                those emails—readings, consumables, selectors, checklist, SMS, and filter cleaning notifications require
+                Grow.
               </p>
               <p className="text-sm text-amber-900">
                 Service emails must also be enabled and configured in your{' '}
@@ -145,7 +194,12 @@ export default function EmailPreferences({ client }: { client: Client }) {
               <div key={field.label} className="grid w-full grid-cols-1 items-center space-y-4 py-6 md:grid-cols-12">
                 <div className="col-span-8 row-auto flex flex-col">
                   <label htmlFor={field.label} className="flex flex-col space-y-1">
-                    <span className="text-sm font-semibold text-gray-800">{field.label}</span>
+                    <span className="text-sm font-semibold text-gray-800">
+                      {field.label}
+                      {isFreePlan && field.growOnly && (
+                        <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>
+                      )}
+                    </span>
                   </label>
                   <span className="text-muted-foreground text-sm font-normal">{field.description}</span>
                 </div>
@@ -153,12 +207,15 @@ export default function EmailPreferences({ client }: { client: Client }) {
                   {field.itens.map((item) => {
                     const isIndependentToggle =
                       item.name === 'sendEmails' || item.name === 'sendSMS' || item.name === 'sendFilterCleaningEmails';
+                    const growOnly = item.growOnly || isGrowOnlyField(item.name);
+                    const disabledByPlan = isFreePlan && growOnly;
+                    const disabledByEmail = !isIndependentToggle && !sendEmails;
 
                     return (
                       <div key={item.name} className="flex w-full items-center gap-4">
                         <div className={field.type === FieldType.Default ? 'w-full' : ''}>
                           <InputField
-                            disabled={isIndependentToggle ? false : sendEmails ? false : true}
+                            disabled={disabledByPlan || disabledByEmail}
                             key={item.name}
                             name={item.name}
                             type={field.type}
@@ -168,7 +225,12 @@ export default function EmailPreferences({ client }: { client: Client }) {
                         {field.type === FieldType.Switch && (
                           <label htmlFor={item.label}>
                             <div>
-                              <span className="text-sm font-semibold text-gray-800">{item.label}</span>
+                              <span className="text-sm font-semibold text-gray-800">
+                                {item.label}
+                                {isFreePlan && growOnly && !field.growOnly && (
+                                  <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>
+                                )}
+                              </span>
                             </div>
                           </label>
                         )}
@@ -224,10 +286,13 @@ type Fields = {
   type: FieldType;
   description: string;
   label: string;
+  /** When true, the whole section is Grow-only (tag on section title). */
+  growOnly?: boolean;
   itens: {
     label: string;
     description: string;
     name: string;
+    growOnly?: boolean;
   }[];
 }[];
 
@@ -250,11 +315,13 @@ const fields: Fields = [
     type: FieldType.Switch,
     description: 'Send SMS when a service is done. Requires a valid client phone number.',
     label: 'Send service SMS',
+    growOnly: true,
     itens: [
       {
         label: 'Send service SMS',
         description: 'Send SMS when a service is done.',
-        name: 'sendSMS'
+        name: 'sendSMS',
+        growOnly: true
       }
     ]
   },
@@ -264,30 +331,17 @@ const fields: Fields = [
     description: 'Select the information you want to send in the service e-mails.',
     label: 'Include in service e-mails',
     itens: [
-      // {
-      //   label: 'Chemicals Readings',
-      //   description: 'Send service e-mails with chemicals readings.',
-      //   name: 'attachChemicalsReadings'
-      // },
-      // {
-      //   label: 'Checklist',
-      //   description: 'Send service e-mails with checklist.',
-      //   name: 'attachChecklist'
-      // },
-      // {
-      //   label: 'Service Photos',
-      //   description: 'Send service e-mails with service photos.',
-      //   name: 'attachServicePhotos'
-      // }
       {
         label: 'Readings',
         description: 'Send service e-mails with readings.',
-        name: 'attachReadingsGroups'
+        name: 'attachReadingsGroups',
+        growOnly: true
       },
       {
         label: 'Consumables',
         description: 'Send service e-mails with consumables.',
-        name: 'attachConsumablesGroups'
+        name: 'attachConsumablesGroups',
+        growOnly: true
       },
       {
         label: 'Photos',
@@ -297,12 +351,14 @@ const fields: Fields = [
       {
         label: 'Selectors',
         description: 'Send service e-mails with selectors.',
-        name: 'attachSelectorsGroups'
+        name: 'attachSelectorsGroups',
+        growOnly: true
       },
       {
         label: 'Checklist',
         description: 'Send service e-mails with checklist.',
-        name: 'attachCustomChecklist'
+        name: 'attachCustomChecklist',
+        growOnly: true
       }
     ]
   },
@@ -311,11 +367,13 @@ const fields: Fields = [
     type: FieldType.Switch,
     description: 'Send e-mails when filter cleaning is completed.',
     label: 'Filter cleaning notifications',
+    growOnly: true,
     itens: [
       {
         label: 'Send filter cleaning e-mails',
         description: 'Send e-mails when filter cleaning is completed.',
-        name: 'sendFilterCleaningEmails'
+        name: 'sendFilterCleaningEmails',
+        growOnly: true
       }
     ]
   }
