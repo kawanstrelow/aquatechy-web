@@ -18,6 +18,7 @@ type ClientEmailPreferences = {
   attachPhotoGroups: boolean;
   attachSelectorsGroups: boolean;
   attachCustomChecklist: boolean;
+  attachTechnicianNotes: boolean;
 };
 
 export const useUpdateClientPreferences = (clientId: string) => {

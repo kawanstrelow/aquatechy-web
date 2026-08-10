@@ -52,6 +52,12 @@ export interface Client {
       attachPhotoGroups: boolean;
       attachSelectorsGroups: boolean;
       attachCustomChecklist: boolean;
+      attachTechnicianNotes?: boolean; // optional: older clients omit it
+    };
+    equipmentMaintenancePreferences?: {
+      filterCleaningIntervalDays?: number;
+      filterReplacementIntervalDays?: number;
+      filterCleaningMustHavePhotos?: boolean;
     };
   };
 }

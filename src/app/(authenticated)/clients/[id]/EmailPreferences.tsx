@@ -39,6 +39,7 @@ const schema = z.object({
   attachPhotoGroups: z.boolean(),
   attachSelectorsGroups: z.boolean(),
   attachCustomChecklist: z.boolean(),
+  attachTechnicianNotes: z.boolean(),
 });
 
 const GROW_ONLY_FIELDS = [
@@ -47,7 +48,8 @@ const GROW_ONLY_FIELDS = [
   'attachReadingsGroups',
   'attachConsumablesGroups',
   'attachSelectorsGroups',
-  'attachCustomChecklist'
+  'attachCustomChecklist',
+  'attachTechnicianNotes'
 ] as const;
 
 type GrowOnlyField = (typeof GROW_ONLY_FIELDS)[number];
@@ -95,6 +97,9 @@ export default function EmailPreferences({ client }: { client: Client }) {
       attachCustomChecklist: isFreePlan
         ? false
         : client.preferences?.serviceEmailPreferences?.attachCustomChecklist || false,
+      attachTechnicianNotes: isFreePlan
+        ? false
+        : client.preferences?.serviceEmailPreferences?.attachTechnicianNotes || false,
     }
   });
 
@@ -111,6 +116,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
     form.setValue('attachConsumablesGroups', false);
     form.setValue('attachSelectorsGroups', false);
     form.setValue('attachCustomChecklist', false);
+    form.setValue('attachTechnicianNotes', false);
   }, [isFreePlan, form]);
 
   function handleEmailsChange() {
@@ -121,11 +127,13 @@ export default function EmailPreferences({ client }: { client: Client }) {
         form.setValue('attachConsumablesGroups', true);
         form.setValue('attachSelectorsGroups', true);
         form.setValue('attachCustomChecklist', true);
+        form.setValue('attachTechnicianNotes', true);
       } else {
         form.setValue('attachReadingsGroups', false);
         form.setValue('attachConsumablesGroups', false);
         form.setValue('attachSelectorsGroups', false);
         form.setValue('attachCustomChecklist', false);
+        form.setValue('attachTechnicianNotes', false);
       }
     } else {
       form.setValue('attachReadingsGroups', false);
@@ -133,6 +141,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
       form.setValue('attachPhotoGroups', false);
       form.setValue('attachSelectorsGroups', false);
       form.setValue('attachCustomChecklist', false);
+      form.setValue('attachTechnicianNotes', false);
     }
   }
 
@@ -146,7 +155,8 @@ export default function EmailPreferences({ client }: { client: Client }) {
           attachReadingsGroups: false,
           attachConsumablesGroups: false,
           attachSelectorsGroups: false,
-          attachCustomChecklist: false
+          attachCustomChecklist: false,
+          attachTechnicianNotes: false
         }
       : formData;
     mutate(payload);
@@ -165,8 +175,8 @@ export default function EmailPreferences({ client }: { client: Client }) {
             <div className="mb-6 space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
               <p className="text-sm text-amber-900">
                 On the Free plan you can turn on service emails for this client. Only <strong>photos</strong> will be sent in
-                those emails—readings, consumables, selectors, checklist, SMS, and filter cleaning notifications require
-                Grow.
+                those emails—readings, consumables, selectors, checklist, technician notes, SMS, and filter cleaning
+                notifications require Grow.
               </p>
               <p className="text-sm text-amber-900">
                 Service emails must also be enabled and configured in your{' '}
@@ -351,6 +361,12 @@ const fields: Fields = [
         label: 'Checklist',
         description: 'Send service e-mails with checklist.',
         name: 'attachCustomChecklist',
+        growOnly: true
+      },
+      {
+        label: 'Technician Notes',
+        description: 'Send service e-mails with technician notes.',
+        name: 'attachTechnicianNotes',
         growOnly: true
       }
     ]

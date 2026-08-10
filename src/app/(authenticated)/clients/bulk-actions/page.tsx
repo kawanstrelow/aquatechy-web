@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
+import useGetAllClientsWithPreferences from '@/hooks/react-query/clients/getAllClientsWithPreferences';
 import { useUpdateBulkPreferences, BulkPreferenceUpdate } from '@/hooks/react-query/clients/updateBulkPreferences';
 import { Client } from '@/ts/interfaces/Client';
 import { useToast } from '@/components/ui/use-toast';
@@ -20,8 +20,8 @@ export default function BulkActionsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
 
-  // Get real client data
-  const { data: allClients = [], isLoading } = useGetAllClients();
+  // Get clients with preferences in a single request
+  const { data: allClients = [], isLoading } = useGetAllClientsWithPreferences();
 
   // Hook for updating bulk preferences
   const { mutate: updateBulkPreferences, isPending: isUpdating } = useUpdateBulkPreferences();
@@ -123,6 +123,9 @@ export default function BulkActionsPage() {
         }
         if (originalPrefs?.attachCustomChecklist !== currentPrefs.attachCustomChecklist) {
           modifiedPreferences.attachCustomChecklist = currentPrefs.attachCustomChecklist;
+        }
+        if (originalPrefs?.attachTechnicianNotes !== currentPrefs.attachTechnicianNotes) {
+          modifiedPreferences.attachTechnicianNotes = currentPrefs.attachTechnicianNotes;
         }
       }
 
@@ -230,6 +233,7 @@ export default function BulkActionsPage() {
               <TableHead className="text-center">Include Photos</TableHead>
               <TableHead className="text-center">Include Selectors</TableHead>
               <TableHead className="text-center">Include Checklist</TableHead>
+              <TableHead className="text-center">Include Technician Notes</TableHead>
               <TableHead className="text-center">Filter Cleaning Notifications</TableHead>
             </TableRow>
           </TableHeader>
@@ -365,6 +369,18 @@ export default function BulkActionsPage() {
                     checked={client.preferences?.serviceEmailPreferences?.attachCustomChecklist || false}
                     onCheckedChange={(checked) => {
                       handlePreferenceChange(client.id, 'attachCustomChecklist', checked as boolean);
+                      // Automatically select the row when preference changes
+                      if (!selectedClients.has(client.id)) {
+                        setSelectedClients(prev => new Set([...Array.from(prev), client.id]));
+                      }
+                    }}
+                  />
+                </TableCell>
+                <TableCell className="text-center">
+                  <Checkbox
+                    checked={client.preferences?.serviceEmailPreferences?.attachTechnicianNotes || false}
+                    onCheckedChange={(checked) => {
+                      handlePreferenceChange(client.id, 'attachTechnicianNotes', checked as boolean);
                       // Automatically select the row when preference changes
                       if (!selectedClients.has(client.id)) {
                         setSelectedClients(prev => new Set([...Array.from(prev), client.id]));

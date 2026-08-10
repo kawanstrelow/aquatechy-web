@@ -20,6 +20,7 @@ export interface BulkPreferenceUpdate {
     attachPhotoGroups?: boolean;
     attachSelectorsGroups?: boolean;
     attachCustomChecklist?: boolean;
+    attachTechnicianNotes?: boolean;
   };
 }
 
@@ -39,7 +40,8 @@ export const useUpdateBulkPreferences = () => {
       // Invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       queryClient.invalidateQueries({ queryKey: ['allClients'] });
-      
+      queryClient.invalidateQueries({ queryKey: ['allClientsWithPreferences'] });
+
       // Invalidate specific client queries if we have client IDs
       variables.clients.forEach(client => {
         queryClient.invalidateQueries({ queryKey: ['clients', client.clientId] });
