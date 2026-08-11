@@ -50,14 +50,14 @@ function PaymentsSettingsContent() {
           <p className="mt-1 text-sm text-slate-600">
             Connect Stripe so clients can pay invoices online. After Stripe onboarding you return here (e.g.{' '}
             <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">/settings/payments?status=return</code>
-            ). You can also manage Connect under Invoice settings → Online Payments.
+            ). You can also manage Connect under Company Preferences → Invoice Settings → Online Payments.
           </p>
         </div>
         <Link
           href="/invoices/settings?tab=payments"
           className="shrink-0 text-sm font-medium text-sky-700 hover:text-sky-900"
         >
-          Invoice settings → Online Payments
+          Invoice Settings → Online Payments
         </Link>
       </div>
 

@@ -81,10 +81,7 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
             <h2 className="text-lg font-semibold text-gray-900">Stripe payouts & online invoices</h2>
             <p className="mt-1 max-w-xl text-sm text-gray-600">
               Connect your company&apos;s Stripe account so clients can pay invoices online with Checkout and save cards
-              for future charges (when enabled). After onboarding, Stripe returns you to{' '}
-              <span className="font-medium text-slate-800">Payments</span> in the account menu (
-              <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">/settings/payments</code>
-              ).
+              for future charges (when enabled).
             </p>
           </div>
         </div>
@@ -130,9 +127,7 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
                   <ShieldCheck className="h-5 w-5 text-emerald-600" aria-hidden />
                 )}
               </div>
-              {status.stripeAccountId ? (
-                <p className="mt-2 font-mono text-xs text-slate-600">{status.stripeAccountId}</p>
-              ) : (
+              {!status.stripeAccountId && (
                 <p className="mt-2 text-sm text-slate-600">No connected account yet.</p>
               )}
             </div>

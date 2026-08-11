@@ -1,10 +1,12 @@
 'use client';
 
 import { CheckCircle2, Circle, PlayCircle, ExternalLink } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { VideoModal } from '@/components/VideoModal';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/user';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
+import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 
 interface Step {
   id: number;
@@ -16,10 +18,31 @@ interface Step {
   actionText?: string;
 }
 
+function canAccessCompanySettings(role: string | undefined): boolean {
+  return role === 'Owner' || role === 'Admin';
+}
+
 export default function QuickStartPage() {
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
   const router = useRouter();
   const user = useUserStore((state) => state.user);
+  const { data: companies = [] } = useGetCompanies();
+
+  const manageableCompanies = useMemo(
+    () => companies.filter((company: CompanyWithMyRole) => canAccessCompanySettings(company.role)),
+    [companies]
+  );
+
+  const primaryCompanyId = manageableCompanies.length === 1 ? manageableCompanies[0].id : null;
+
+  const addTeamUrl = primaryCompanyId
+    ? `/settings/companies/team/${primaryCompanyId}/add-member`
+    : '/settings/companies';
+
+  const invoiceSettingsUrl = primaryCompanyId
+    ? `/settings/companies/team/${primaryCompanyId}?tab=preferences&prefsTab=invoice-settings`
+    : '/invoices/settings';
+
   const [steps, setSteps] = useState<Step[]>([
     {
       id: 1,
@@ -43,7 +66,15 @@ export default function QuickStartPage() {
       description: 'Invite team members, assign roles, and set up permissions for your pool service staff.',
       completed: false,
       redirectUrl: '/settings/companies',
-      actionText: 'Manage companies'
+      actionText: 'Add team member'
+    },
+    {
+      id: 5,
+      title: 'Setup Stripe and invoice settings',
+      description: 'Connect Stripe for online payments and configure your invoice defaults, communication, and company details.',
+      completed: false,
+      redirectUrl: '/invoices/settings',
+      actionText: 'Go to Invoice Settings'
     },
     {
       id: 6,
@@ -58,6 +89,28 @@ export default function QuickStartPage() {
       setSteps((currentSteps) => currentSteps.map((step) => (step.id === 1 ? { ...step, completed: true } : step)));
     }
   }, [user.firstName]);
+
+  useEffect(() => {
+    setSteps((currentSteps) =>
+      currentSteps.map((step) => {
+        if (step.id === 4) {
+          return { ...step, redirectUrl: addTeamUrl, actionText: 'Add team member' };
+        }
+        if (step.id === 5) {
+          return { ...step, redirectUrl: invoiceSettingsUrl, actionText: 'Go to Invoice Settings' };
+        }
+        return step;
+      })
+    );
+  }, [addTeamUrl, invoiceSettingsUrl]);
+
+  const handleRedirect = (url: string) => {
+    if (url.startsWith('http')) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    router.push(url);
+  };
 
   return (
     <div className="ml-4 mr-4 w-90% py-4">
@@ -91,7 +144,7 @@ export default function QuickStartPage() {
                 {step.redirectUrl && (
                   <button
                     className="inline-flex items-center gap-2 text-sm text-blue-500 hover:text-blue-600"
-                    onClick={() => router.push(step.redirectUrl!)}
+                    onClick={() => handleRedirect(step.redirectUrl!)}
                   >
                     <ExternalLink className="h-4 w-4" />
                     {step.actionText || 'Go to section'}
