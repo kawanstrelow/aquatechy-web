@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -19,12 +19,25 @@ export function CompanyInformationTab({ companyId }: CompanyInformationTabProps)
   const form = useFormContext<{ company: InvoiceCompanyInformation }>();
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId || '');
 
-  // Sync reply-to from company data whenever it loads, unless the user has edited the field
+  // Guard against re-syncing on every render. useFormContext() returns a new object
+  // identity when FormProvider re-renders, so `form` must not be an effect dependency
+  // alongside setValue — that combination infinite-loops and freezes the browser.
+  const lastLoadedCompanyIdRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
-    if (!companyId || isLoadingCompany || !company) return;
+    if (lastLoadedCompanyIdRef.current !== companyId) {
+      lastLoadedCompanyIdRef.current = undefined;
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    if (!companyId || isLoadingCompany || !company || lastLoadedCompanyIdRef.current === companyId) return;
 
     const isDirty = form.formState.dirtyFields.company?.replyToEmail;
-    if (isDirty) return;
+    if (isDirty) {
+      lastLoadedCompanyIdRef.current = companyId;
+      return;
+    }
 
     const companyInfo = company.preferences?.invoiceSettingsPreferences?.companyInformation;
     const replyToEmail = companyInfo?.replyToEmail ?? company.email ?? null;
@@ -34,7 +47,10 @@ export function CompanyInformationTab({ companyId }: CompanyInformationTabProps)
       shouldValidate: true,
       shouldTouch: false
     });
-  }, [company, isLoadingCompany, companyId, form]);
+
+    lastLoadedCompanyIdRef.current = companyId;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- form from useFormContext is not referentially stable
+  }, [company, isLoadingCompany, companyId]);
 
   const { mutate: updateSettings, isPending } = useUpdateInvoiceCompanyInformation(companyId || '', {
     onSuccess: (_, variables) => {
