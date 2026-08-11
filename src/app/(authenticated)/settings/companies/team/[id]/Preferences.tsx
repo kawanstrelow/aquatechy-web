@@ -9,23 +9,6 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
-
-import { cn } from '@/lib/utils';
-import { useUserStore } from '@/store/user';
-import { FieldType } from '@/ts/enums/enums';
-import { useUpdateCompanyPreferences } from '@/hooks/react-query/companies/updatePreferences';
-import { useUpdateServicePreferences } from '@/hooks/react-query/companies/updateServicePreferences';
-// ChecklistTemplate hook no longer needed as it's managed separately
-import { Company, } from '@/ts/interfaces/Company';
-import {
-  EmailPreferencesCard,
-  FilterMaintenanceCard,
-  GeneralPreferencesCard,
-  ChecklistTemplatesCard,
-  ReadingAndConsumableGroupsCard,
-  ServiceTypesCard,
-} from './components';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +17,19 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
+import { Form } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useUpdateCompanyPreferences } from '@/hooks/react-query/companies/updatePreferences';
+import { useUpdateServicePreferences } from '@/hooks/react-query/companies/updateServicePreferences';
+import { useUserStore } from '@/store/user';
+import { Company } from '@/ts/interfaces/Company';
+
+import {
+  EmailPreferencesCard,
+  FilterMaintenanceCard,
+  ReadingAndConsumableGroupsCard,
+  ServiceTypesCard
+} from './components';
 
 // Update the schema to include the new fields
 const schema = z.object({
@@ -61,7 +57,6 @@ const schema = z.object({
 export default function Page({ company }: { company: Company }) {
   const { isPending: isEmailPending, mutate: updateEmailPrefs } = useUpdateCompanyPreferences(company.id);
   const { isPending: isServicePrefsPending, mutate: updateServicePrefs } = useUpdateServicePreferences(company.id);
-  // Checklist templates are now managed separately
   const { isFreePlan } = useUserStore(
     useShallow((state) => ({
       isFreePlan: state.isFreePlan
@@ -192,8 +187,6 @@ export default function Page({ company }: { company: Company }) {
       return currentValue !== originalValue;
     });
   };
-
-  // Customizations are now handled separately in ChecklistTemplatesCard
 
   // Helper function to get original values
   const getOriginalValue = (field: string) => {
@@ -343,8 +336,6 @@ export default function Page({ company }: { company: Company }) {
     });
   };
 
-  // Checklist templates are now managed separately in ChecklistTemplatesCard
-
   const ccEmail = form.watch('ccEmail');
 
   const originalCcEmail = company.preferences?.serviceEmailPreferences?.ccEmail || undefined;
@@ -367,63 +358,87 @@ export default function Page({ company }: { company: Company }) {
 
 
   return (
-    <div
-    className="w-full space-y-4 md:space-y-8">
+    <div className="w-full space-y-4 md:space-y-8">
       <Form {...form}>
         <form
-          className="w-full space-y-4 md:space-y-8"
+          className="w-full"
           onSubmit={(e) => {
             e.preventDefault();
             // Form submission is now handled by individual buttons
           }}
         >
+          <Tabs defaultValue="email" className="w-full">
+            <TabsList className="flex h-auto min-h-9 w-full flex-wrap items-stretch justify-stretch gap-1 rounded-lg bg-slate-100 p-1 text-slate-500">
+              <TabsTrigger
+                value="email"
+                className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+              >
+                Communication
+              </TabsTrigger>
+              <TabsTrigger
+                value="filter"
+                className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+              >
+                Equipment Maintenance
+              </TabsTrigger>
+              <TabsTrigger
+                value="service-config"
+                className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+              >
+                App Customization
+              </TabsTrigger>
+              <TabsTrigger
+                value="service-types"
+                className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+              >
+                Service Types
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Email Preferences Card */}
-          <EmailPreferencesCard
-            company={company}
-            form={form}
-            onEmailSubmit={(data) => {
-              setFormData(data);
-              setModalType('email');
-              setShowConfirmModal(true);
-            }}
-            onCcEmailSubmit={handleCcEmailSubmit}
-            emailFieldsChanged={emailFieldsChanged}
-          />
+            <TabsContent value="email" className="mt-6">
+              <EmailPreferencesCard
+                company={company}
+                form={form}
+                onEmailSubmit={(data) => {
+                  setFormData(data);
+                  setModalType('email');
+                  setShowConfirmModal(true);
+                }}
+                onCcEmailSubmit={handleCcEmailSubmit}
+                emailFieldsChanged={emailFieldsChanged}
+              />
+            </TabsContent>
 
-          {/* Filter Maintenance Card */}
-          <FilterMaintenanceCard
-            company={company}
-            form={form}
-            onFilterSubmit={(data) => {
-              setFormData(data);
-              setModalType('filter');
-              setShowConfirmModal(true);
-            }}
-            filterFieldsChanged={filterFieldsChanged}
-          />
+            <TabsContent value="filter" className="mt-6">
+              <FilterMaintenanceCard
+                company={company}
+                form={form}
+                onFilterSubmit={(data) => {
+                  setFormData(data);
+                  setModalType('filter');
+                  setShowConfirmModal(true);
+                }}
+                filterFieldsChanged={filterFieldsChanged}
+              />
+            </TabsContent>
 
-          {/* General Preferences Card */}
-          <GeneralPreferencesCard
-            company={company}
-            form={form}
-            onGeneralSubmit={(data) => {
-              setFormData(data);
-              setModalType('general');
-              setShowConfirmModal(true);
-            }}
-            generalFieldsChanged={generalFieldsChanged}
-          />
+            <TabsContent value="service-config" className="mt-6">
+              <ReadingAndConsumableGroupsCard company={company} />
+            </TabsContent>
 
-          {/* Checklist Templates Card */}
-          <ChecklistTemplatesCard company={company} />
-
-          {/* Reading and Consumable Groups Card */}
-          <ReadingAndConsumableGroupsCard company={company} />
-
-          {/* Service Types Card */}
-          <ServiceTypesCard company={company} />
-
+            <TabsContent value="service-types" className="mt-6">
+              <ServiceTypesCard
+                company={company}
+                form={form}
+                onGeneralSubmit={(data) => {
+                  setFormData(data);
+                  setModalType('general');
+                  setShowConfirmModal(true);
+                }}
+                generalFieldsChanged={generalFieldsChanged}
+              />
+            </TabsContent>
+          </Tabs>
         </form>
       </Form>
 
@@ -434,7 +449,7 @@ export default function Page({ company }: { company: Company }) {
               {modalType === 'email'
                 ? 'Update Email Preferences'
                 : modalType === 'filter'
-                ? 'Update Filter Maintenance'
+                ? 'Update Equipment Maintenance'
                 : 'Update General Preferences'
               }
             </DialogTitle>

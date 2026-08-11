@@ -46,6 +46,32 @@ const schema = z.object({
   serviceTypes: z.record(z.string(), serviceTypeEmailSchema)
 });
 
+const SKIPPED_SERVICE_EMAIL_REASONS = [
+  {
+    title: 'Inclement Weather',
+    description:
+      'Severe rain, lightning, high winds, or other hazardous weather made service impossible or unsafe'
+  },
+  {
+    title: 'Gate/Entry Locked',
+    description: 'Main gate, side gate, or pool enclosure was locked, preventing access to the service area'
+  },
+  {
+    title: 'Unsecured Animal',
+    description: 'A dog or other large pet was loose in the yard, preventing safe entry to the pool area'
+  },
+  {
+    title: 'Client Unresponsive',
+    description:
+      'Contact was attempted via phone/doorbell to resolve an access issue, but no response was received'
+  },
+  {
+    title: 'Excess Debris / Post-Storm',
+    description:
+      'The volume of leaves, branches, or storm-related debris exceeds standard service capacity and requires a separate, specialized cleanup visit'
+  }
+] as const;
+
 function GrowPlanSwitchLabel({
   label,
   description,
@@ -91,52 +117,20 @@ export function EmailPreferencesCard({
   );
 
   const [collapsedServiceTypes, setCollapsedServiceTypes] = useState<Record<string, boolean>>({});
-  const [mainCardCollapsed, setMainCardCollapsed] = useState(true);
-
-  const toggleMainCardCollapsed = () => {
-    setMainCardCollapsed(!mainCardCollapsed);
-  };
 
   return (
     <Card className="w-full border-2">
-      <CardHeader 
-        className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition-colors"
-        onClick={toggleMainCardCollapsed}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Mail className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <CardTitle className="text-xl text-blue-900">Email Notifications</CardTitle>
-              <CardDescription className="text-blue-700">
-                Configure email preferences for each service type
-              </CardDescription>
-            </div>
-          </div>
-          <ChevronDown 
-            className={cn(
-              "h-5 w-5 text-blue-600 transition-transform duration-200",
-              mainCardCollapsed ? "rotate-180" : "rotate-0"
-            )}
-          />
-        </div>
-      </CardHeader>
-      
-      {!mainCardCollapsed && (
-        <EmailPreferencesContent 
-          company={company}
-          form={form}
-          onEmailSubmit={onEmailSubmit}
-          onCcEmailSubmit={onCcEmailSubmit}
-          emailFieldsChanged={emailFieldsChanged}
-          isEmailPending={isEmailPending}
-          isFreePlan={isFreePlan}
-          collapsedServiceTypes={collapsedServiceTypes}
-          setCollapsedServiceTypes={setCollapsedServiceTypes}
-        />
-      )}
+      <EmailPreferencesContent
+        company={company}
+        form={form}
+        onEmailSubmit={onEmailSubmit}
+        onCcEmailSubmit={onCcEmailSubmit}
+        emailFieldsChanged={emailFieldsChanged}
+        isEmailPending={isEmailPending}
+        isFreePlan={isFreePlan}
+        collapsedServiceTypes={collapsedServiceTypes}
+        setCollapsedServiceTypes={setCollapsedServiceTypes}
+      />
     </Card>
   );
 }
@@ -167,6 +161,7 @@ function EmailPreferencesContent({
   const { data: serviceTypesData, isLoading } = useGetServiceTypes(company.id);
   const [activeServiceTypeId, setActiveServiceTypeId] = useState<string | null>(null);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [skippedReasonsModalOpen, setSkippedReasonsModalOpen] = useState(false);
   const updateEmailPreferences = useUpdateServiceTypeEmailPreferences(activeServiceTypeId || '');
 
   const toggleServiceTypeCollapsed = (serviceTypeId: string) => {
@@ -269,12 +264,6 @@ function EmailPreferencesContent({
       {/* CC Email Section */}
       <div className="mb-8">
         <Card className="border border-gray-200">
-          <CardHeader className="bg-gray-50">
-            <CardTitle className="text-lg text-gray-900">Email Configuration</CardTitle>
-            <CardDescription className="text-gray-600">
-              Set up the CC email address for service notifications
-            </CardDescription>
-          </CardHeader>
           <CardContent className="p-6">
             <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
               <div className="col-span-8 row-auto flex flex-col">
@@ -296,72 +285,32 @@ function EmailPreferencesContent({
             </div>
 
             <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12 mt-6">
-              <GrowPlanSwitchLabel
-                label="Send Skipped Service Emails"
-                description="Send email notifications when services are skipped"
-                isFreePlan={isFreePlan}
-              />
+              <div className="col-span-8 row-auto flex flex-col">
+                <label className="flex flex-col space-y-1">
+                  <span className="text-sm font-semibold text-gray-800">
+                    Send Skipped Service Emails{' '}
+                    <button
+                      type="button"
+                      className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                      onClick={() => setSkippedReasonsModalOpen(true)}
+                    >
+                      (see skipped reasons list)
+                    </button>
+                    {isFreePlan && (
+                      <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>
+                    )}
+                  </span>
+                </label>
+                <span className="text-muted-foreground text-sm font-normal">
+                  Send email notifications when services are skipped
+                </span>
+              </div>
               <div className="col-span-4 flex items-center gap-4">
                 <InputField
                   disabled={isFreePlan}
                   name="sendSkippedServiceEmails"
                   type={FieldType.Switch}
                 />
-              </div>
-            </div>
-
-            {/* Skipped Service Email Reasons Information Box */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="text-sm font-semibold text-blue-900 mb-3">Skipped Service Email Reasons</h4>
-              <p className="text-xs text-blue-800 mb-4">
-                When enabled, clients will receive email notifications when services are skipped for the following reasons:
-              </p>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-600 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-blue-900">Inclement Weather</p>
-                    <p className="text-xs text-blue-700">
-                      Severe rain, lightning, high winds, or other hazardous weather made service impossible or unsafe
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-600 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-blue-900">Gate/Entry Locked</p>
-                    <p className="text-xs text-blue-700">
-                      Main gate, side gate, or pool enclosure was locked, preventing access to the service area
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-600 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-blue-900">Unsecured Animal</p>
-                    <p className="text-xs text-blue-700">
-                      A dog or other large pet was loose in the yard, preventing safe entry to the pool area
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-600 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-blue-900">Client Unresponsive</p>
-                    <p className="text-xs text-blue-700">
-                      Contact was attempted via phone/doorbell to resolve an access issue, but no response was received
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-600 mt-1.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-blue-900">Excess Debris / Post-Storm</p>
-                    <p className="text-xs text-blue-700">
-                      The volume of leaves, branches, or storm-related debris exceeds standard service capacity and requires a separate, specialized cleanup visit
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
             
@@ -697,6 +646,33 @@ function EmailPreferencesContent({
           <DialogFooter>
             <Button type="button" onClick={() => setUpgradeDialogOpen(false)}>
               Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={skippedReasonsModalOpen} onOpenChange={setSkippedReasonsModalOpen}>
+        <DialogContent className="sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Skipped Service Email Reasons</DialogTitle>
+            <DialogDescription className="text-left">
+              When enabled, clients will receive email notifications when services are skipped for the following reasons:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {SKIPPED_SERVICE_EMAIL_REASONS.map((reason) => (
+              <div key={reason.title} className="flex items-start gap-3">
+                <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{reason.title}</p>
+                  <p className="text-sm text-muted-foreground">{reason.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={() => setSkippedReasonsModalOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

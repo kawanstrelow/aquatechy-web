@@ -231,7 +231,7 @@ export function EditServiceTypeDialog({
     >
       <DialogContent
         className={cn(
-          'relative sm:max-w-[800px] max-h-[80vh] overflow-y-auto',
+          'sm:max-w-[800px] max-h-[80vh] overflow-y-auto',
           isLinkingGroups && '[&>button]:pointer-events-none [&>button]:invisible'
         )}
         onPointerDownOutside={(e) => isLinkingGroups && e.preventDefault()}

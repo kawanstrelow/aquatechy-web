@@ -1,8 +1,8 @@
 export interface ServiceTypeEmailPreferences {
   sendAutomaticEmails: boolean;
-  header?: string;
-  body?: string;
-  footer?: string;
+  header?: string | null;
+  body?: string | null;
+  footer?: string | null;
   technicianNotes: boolean;
   sendReadingsGroups: boolean;
   sendConsumablesGroups: boolean;
