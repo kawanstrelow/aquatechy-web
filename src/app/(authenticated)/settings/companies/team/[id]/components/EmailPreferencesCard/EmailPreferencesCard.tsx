@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { z } from 'zod';
 import { useShallow } from 'zustand/react/shallow';
-import { Mail, ChevronDown } from 'lucide-react';
+import { ChevronDown, Mail } from 'lucide-react';
 
 import InputField from '@/components/InputField';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,14 @@ import { ServiceType } from '@/ts/interfaces/ServiceTypes';
 import { ServiceTypeEmailPreferences } from '@/ts/interfaces/ServiceTypeEmailPreferences';
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 import { useUpdateServiceTypeEmailPreferences } from '@/hooks/react-query/service-types/useUpdateServiceTypeEmailPreferences';
+
+const EMAIL_CONTENT_VARIABLES = [
+  { variable: '%client.firstName%', replacedWith: 'Client first name' },
+  { variable: '%client.lastName%', replacedWith: 'Client last name' },
+  { variable: '%poolAddress%', replacedWith: 'Pool address' },
+  { variable: '%company.name%', replacedWith: 'Company name' },
+  { variable: '%serviceDate%', replacedWith: 'Service date' }
+] as const;
 
 const serviceTypeEmailSchema = z.object({
   sendAutomaticEmails: z.boolean(),
@@ -91,6 +99,18 @@ function GrowPlanSwitchLabel({
       </label>
       <span className="text-muted-foreground text-sm font-normal">{description}</span>
     </div>
+  );
+}
+
+function EmailVariablesHelpLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+      onClick={onClick}
+    >
+      (How to use client info on the e-mail)
+    </button>
   );
 }
 
@@ -162,6 +182,7 @@ function EmailPreferencesContent({
   const [activeServiceTypeId, setActiveServiceTypeId] = useState<string | null>(null);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [skippedReasonsModalOpen, setSkippedReasonsModalOpen] = useState(false);
+  const [emailVariablesModalOpen, setEmailVariablesModalOpen] = useState(false);
   const updateEmailPreferences = useUpdateServiceTypeEmailPreferences(activeServiceTypeId || '');
 
   const toggleServiceTypeCollapsed = (serviceTypeId: string) => {
@@ -399,7 +420,7 @@ function EmailPreferencesContent({
                       <div className="col-span-8 row-auto flex flex-col">
                         <label className="flex flex-col space-y-1">
                           <span className="text-sm font-semibold text-gray-800">
-                            Email Header
+                            Email Header <EmailVariablesHelpLink onClick={() => setEmailVariablesModalOpen(true)} />
                             {isFreePlan && (
                               <span className="ml-1.5 text-xs font-medium text-blue-600">
                                 (upgrade to grow plan to be able to edit)
@@ -430,7 +451,7 @@ function EmailPreferencesContent({
                       <div className="col-span-8 row-auto flex flex-col">
                         <label className="flex flex-col space-y-1">
                           <span className="text-sm font-semibold text-gray-800">
-                            Email Body
+                            Email Body <EmailVariablesHelpLink onClick={() => setEmailVariablesModalOpen(true)} />
                             {isFreePlan && (
                               <span className="ml-1.5 text-xs font-medium text-blue-600">
                                 (upgrade to grow plan to be able to edit)
@@ -461,7 +482,7 @@ function EmailPreferencesContent({
                       <div className="col-span-8 row-auto flex flex-col">
                         <label className="flex flex-col space-y-1">
                           <span className="text-sm font-semibold text-gray-800">
-                            Email Footer
+                            Email Footer <EmailVariablesHelpLink onClick={() => setEmailVariablesModalOpen(true)} />
                             {isFreePlan && (
                               <span className="ml-1.5 text-xs font-medium text-blue-600">
                                 (upgrade to grow plan to be able to edit)
@@ -672,6 +693,45 @@ function EmailPreferencesContent({
           </div>
           <DialogFooter>
             <Button type="button" onClick={() => setSkippedReasonsModalOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={emailVariablesModalOpen} onOpenChange={setEmailVariablesModalOpen}>
+        <DialogContent className="sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>How to use client info on the e-mail</DialogTitle>
+            <DialogDescription className="text-left">
+              You can use the following variables in your email header, body, and footer. They will be replaced with real
+              values when the email is sent:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-hidden rounded-md border border-gray-200">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-3 py-2 text-left font-semibold text-gray-900">Variable</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-900">Replaced with</th>
+                </tr>
+              </thead>
+              <tbody>
+                {EMAIL_CONTENT_VARIABLES.map(({ variable, replacedWith }) => (
+                  <tr key={variable} className="border-b border-gray-100 last:border-0">
+                    <td className="px-3 py-2">
+                      <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-900">
+                        {variable}
+                      </code>
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">{replacedWith}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={() => setEmailVariablesModalOpen(false)}>
               Close
             </Button>
           </DialogFooter>

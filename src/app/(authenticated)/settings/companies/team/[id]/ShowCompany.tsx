@@ -53,6 +53,10 @@ function ShowCompanyInner({ company }: Props) {
       } else {
         params.set('tab', nextTab);
       }
+      if (nextTab !== 'preferences') {
+        params.delete('prefsTab');
+        params.delete('invoiceTab');
+      }
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     },

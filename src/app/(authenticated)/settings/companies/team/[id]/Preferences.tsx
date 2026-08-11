@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -28,8 +28,19 @@ import {
   EmailPreferencesCard,
   FilterMaintenanceCard,
   ReadingAndConsumableGroupsCard,
-  ServiceTypesCard
+  ServiceTypesCard,
+  InvoiceSettingsCard
 } from './components';
+
+const VALID_PREFS_TABS = ['email', 'filter', 'service-config', 'service-types', 'invoice-settings'] as const;
+type PrefsTab = (typeof VALID_PREFS_TABS)[number];
+
+function parsePrefsTab(value: string | null): PrefsTab {
+  if (value && VALID_PREFS_TABS.includes(value as PrefsTab)) {
+    return value as PrefsTab;
+  }
+  return 'email';
+}
 
 // Update the schema to include the new fields
 const schema = z.object({
@@ -141,6 +152,31 @@ export default function Page({ company }: { company: Company }) {
   }, [sendEmails, handleEmailsChange]);
 
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [prefsTab, setPrefsTab] = useState<PrefsTab>(() => parsePrefsTab(searchParams.get('prefsTab')));
+
+  useEffect(() => {
+    setPrefsTab(parsePrefsTab(searchParams.get('prefsTab')));
+  }, [searchParams]);
+
+  const handlePrefsTabChange = (value: string) => {
+    const next = parsePrefsTab(value);
+    setPrefsTab(next);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', 'preferences');
+    if (next === 'email') {
+      params.delete('prefsTab');
+      params.delete('invoiceTab');
+    } else {
+      params.set('prefsTab', next);
+      if (next !== 'invoice-settings') {
+        params.delete('invoiceTab');
+      }
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
 
   useEffect(() => {
     if (user.firstName === '') {
@@ -359,42 +395,47 @@ export default function Page({ company }: { company: Company }) {
 
   return (
     <div className="w-full space-y-4 md:space-y-8">
-      <Form {...form}>
-        <form
-          className="w-full"
-          onSubmit={(e) => {
-            e.preventDefault();
-            // Form submission is now handled by individual buttons
-          }}
-        >
-          <Tabs defaultValue="email" className="w-full">
-            <TabsList className="flex h-auto min-h-9 w-full flex-wrap items-stretch justify-stretch gap-1 rounded-lg bg-slate-100 p-1 text-slate-500">
-              <TabsTrigger
-                value="email"
-                className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
-              >
-                Communication
-              </TabsTrigger>
-              <TabsTrigger
-                value="filter"
-                className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
-              >
-                Equipment Maintenance
-              </TabsTrigger>
-              <TabsTrigger
-                value="service-config"
-                className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
-              >
-                App Customization
-              </TabsTrigger>
-              <TabsTrigger
-                value="service-types"
-                className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
-              >
-                Service Types
-              </TabsTrigger>
-            </TabsList>
+      <Tabs value={prefsTab} onValueChange={handlePrefsTabChange} className="w-full">
+        <TabsList className="flex h-auto min-h-9 w-full flex-wrap items-stretch justify-stretch gap-1 rounded-lg bg-slate-100 p-1 text-slate-500">
+          <TabsTrigger
+            value="email"
+            className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+          >
+            Communication
+          </TabsTrigger>
+          <TabsTrigger
+            value="filter"
+            className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+          >
+            Equipment Maintenance
+          </TabsTrigger>
+          <TabsTrigger
+            value="service-config"
+            className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+          >
+            App Customization
+          </TabsTrigger>
+          <TabsTrigger
+            value="service-types"
+            className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+          >
+            Service Types
+          </TabsTrigger>
+          <TabsTrigger
+            value="invoice-settings"
+            className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+          >
+            Invoice Settings
+          </TabsTrigger>
+        </TabsList>
 
+        <Form {...form}>
+          <form
+            className="w-full"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
             <TabsContent value="email" className="mt-6">
               <EmailPreferencesCard
                 company={company}
@@ -422,10 +463,6 @@ export default function Page({ company }: { company: Company }) {
               />
             </TabsContent>
 
-            <TabsContent value="service-config" className="mt-6">
-              <ReadingAndConsumableGroupsCard company={company} />
-            </TabsContent>
-
             <TabsContent value="service-types" className="mt-6">
               <ServiceTypesCard
                 company={company}
@@ -438,9 +475,17 @@ export default function Page({ company }: { company: Company }) {
                 generalFieldsChanged={generalFieldsChanged}
               />
             </TabsContent>
-          </Tabs>
-        </form>
-      </Form>
+          </form>
+        </Form>
+
+        <TabsContent value="service-config" className="mt-6">
+          <ReadingAndConsumableGroupsCard company={company} />
+        </TabsContent>
+
+        <TabsContent value="invoice-settings" className="mt-6">
+          <InvoiceSettingsCard company={company} />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent>

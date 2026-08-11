@@ -17,7 +17,7 @@ interface ReadingAndConsumableGroupsCardProps {
 }
 
 const tabTriggerClassName =
-  'flex-1 min-w-[45%] sm:min-w-0 flex items-center justify-center gap-2 text-sm rounded-md px-2 py-2 transition-colors data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:text-blue-700 data-[state=inactive]:hover:text-blue-800 data-[state=inactive]:hover:bg-blue-200';
+  'flex-1 min-w-[45%] sm:min-w-0 flex items-center justify-center gap-2 rounded-md px-2 py-2 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700';
 
 export function ReadingAndConsumableGroupsCard({ company }: ReadingAndConsumableGroupsCardProps) {
   const [activeTab, setActiveTab] = useState('reading');
@@ -26,7 +26,7 @@ export function ReadingAndConsumableGroupsCard({ company }: ReadingAndConsumable
     <Card className="w-full border-2">
       <CardContent className="px-6 pt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 border border-blue-200 bg-blue-100">
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-lg bg-slate-100 p-1 text-slate-500">
             <TabsTrigger value="reading" className={tabTriggerClassName}>
               <TestTube className="h-4 w-4" />
               Reading
