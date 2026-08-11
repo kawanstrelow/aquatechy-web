@@ -221,6 +221,10 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
         onSubmit={handleCreateServiceType}
         isLoading={isCreating}
         checklistTemplates={checklistTemplates}
+        readingGroups={readingGroups}
+        consumableGroups={consumableGroups}
+        photoGroups={photoGroups}
+        selectorGroups={selectorGroups}
       />
 
       {/* Edit Dialog */}

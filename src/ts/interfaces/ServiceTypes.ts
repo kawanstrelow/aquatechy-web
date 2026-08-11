@@ -40,6 +40,11 @@ export interface CreateServiceTypeRequest {
   description?: string;
   isDefault?: boolean;
   defaultChecklistId?: string | null;
+  readingGroups?: LinkReadingGroupRequest[];
+  consumableGroups?: LinkConsumableGroupRequest[];
+  photoGroups?: LinkPhotoGroupRequest[];
+  selectorGroups?: LinkSelectorGroupRequest[];
+  serviceTypeEmailPreferences?: ServiceTypeEmailPreferences;
 }
 
 export interface UpdateServiceTypeRequest {
