@@ -404,6 +404,12 @@ export default function Page({ company }: { company: Company }) {
             Communication
           </TabsTrigger>
           <TabsTrigger
+            value="invoice-settings"
+            className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
+          >
+            Invoice Settings
+          </TabsTrigger>
+          <TabsTrigger
             value="filter"
             className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
           >
@@ -420,12 +426,6 @@ export default function Page({ company }: { company: Company }) {
             className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
           >
             Service Types
-          </TabsTrigger>
-          <TabsTrigger
-            value="invoice-settings"
-            className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
-          >
-            Invoice Settings
           </TabsTrigger>
         </TabsList>
 

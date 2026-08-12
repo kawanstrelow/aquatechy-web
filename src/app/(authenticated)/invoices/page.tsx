@@ -343,7 +343,7 @@ export default function InvoicesPage() {
                 placeholder="Select payment date"
               />
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:space-x-0">
               <Button variant="outline" onClick={() => handleMarkPaidDialogOpenChange(false)} disabled={isUpdatingStatus}>
                 Cancel
               </Button>
