@@ -84,7 +84,7 @@ export default function ClientPortalInvoiceDetailPage() {
 
   const inv = detailQuery.data;
   const toDollars = (c?: number | null) => (typeof c === 'number' ? c / 100 : 0);
-  const canPayOnline = ['unpaid', 'overdue'].includes(inv.status ?? '');
+  const canPayOnline = inv.acceptsStripePayments === true && ['unpaid', 'overdue'].includes(inv.status ?? '');
 
   return (
     <div className="space-y-8">

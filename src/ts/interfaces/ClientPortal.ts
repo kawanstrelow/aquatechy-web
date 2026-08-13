@@ -62,6 +62,8 @@ export interface ClientPortalInvoiceDetail {
   notes?: string | null;
   paymentInstructions?: string | null;
   lineItems?: ClientPortalInvoiceLineItemLike[];
+  /** True when the company has Stripe Connect with charges enabled (same check as checkout-session). */
+  acceptsStripePayments: boolean;
 }
 
 export interface ClientPortalEstimateListItem {
