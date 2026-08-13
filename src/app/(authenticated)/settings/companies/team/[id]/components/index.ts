@@ -1,4 +1,5 @@
 export { EmailPreferencesCard } from './EmailPreferencesCard';
+export { CompanySmsSettingsCard } from './CompanySmsSettingsCard/CompanySmsSettingsCard';
 export { FilterMaintenanceCard } from './FilterMaintenanceCard';
 export { GeneralPreferencesCard } from './GeneralPreferencesCard';
 export { CustomChecklistCard } from './CustomChecklistCard';

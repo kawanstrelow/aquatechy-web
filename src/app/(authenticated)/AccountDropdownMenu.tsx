@@ -48,7 +48,7 @@ export function AccountDropdownMenu({ handleLogout }: Props) {
           <Link href="/settings/profile">Profile</Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <Link href="/settings/payments">Payments (Stripe)</Link>
+          <Link href="/settings/preferences">Preferences</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

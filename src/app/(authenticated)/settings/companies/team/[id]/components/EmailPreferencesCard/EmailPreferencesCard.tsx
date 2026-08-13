@@ -27,6 +27,8 @@ import { ServiceTypeEmailPreferences } from '@/ts/interfaces/ServiceTypeEmailPre
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 import { useUpdateServiceTypeEmailPreferences } from '@/hooks/react-query/service-types/useUpdateServiceTypeEmailPreferences';
 
+import { CompanySmsSettingsCard } from '../CompanySmsSettingsCard/CompanySmsSettingsCard';
+
 const EMAIL_CONTENT_VARIABLES = [
   { variable: '%client.firstName%', replacedWith: 'Client first name' },
   { variable: '%client.lastName%', replacedWith: 'Client last name' },
@@ -358,6 +360,8 @@ function EmailPreferencesContent({
           </CardContent>
         </Card>
       </div>
+
+      <CompanySmsSettingsCard companyId={company.id} />
 
       <div className="space-y-4">
         {serviceTypes.map((serviceType) => {
