@@ -432,6 +432,7 @@ export default function Page({ company }: { company: Company }) {
         <Form {...form}>
           <form
             className="w-full"
+            method="post"
             onSubmit={(e) => {
               e.preventDefault();
             }}
