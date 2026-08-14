@@ -51,10 +51,12 @@ export default function Page() {
 
   const { mutate: handleSubmit, isPending, error } = useLoginUser();
   const { mutate: resendConfirmation, isPending: isResending } = useResendConfirmation(activationModal.email);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleLogin = (data: z.infer<typeof formSchema>) => {
     handleSubmit(data, {
       onSuccess: () => {
+        setIsRedirecting(true);
         // Full page redirect so the first load sends cookies and renders dashboard (avoids URL change but login content)
         window.location.href = '/dashboard';
       },
@@ -135,8 +137,8 @@ export default function Page() {
                 Forgot Password?
               </Link>
             </div>
-            <Button disabled={isPending} type="submit" className="flex w-full">
-              {isPending ? (
+            <Button disabled={isPending || isRedirecting} type="submit" className="flex w-full">
+              {isPending || isRedirecting ? (
                 <div
                   className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
                   role="status"

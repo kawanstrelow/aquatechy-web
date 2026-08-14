@@ -3,12 +3,11 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { clientAxios } from '@/lib/clientAxios';
 import { useUserStore } from '@/store/user';
-import { SubcontractorStatus } from '@/ts/enums/enums';
 import { User } from '@/ts/interfaces/User';
 import { useMembersStore } from '@/store/members';
 
 type Props = {
-  userId: string;
+  userId?: string;
 };
 
 export default function useGetUser({ userId }: Props) {
@@ -24,11 +23,14 @@ export default function useGetUser({ userId }: Props) {
 
   const { data, isLoading, isSuccess } = useQuery({
     queryKey: ['user', userId],
+    enabled: !!userId,
+    // Dashboard payload (lastServices, snapshots) is large; structural sharing diffs it on the main thread.
+    structuralSharing: false,
     queryFn: async () => {
       const response = (await clientAxios.get(`/users/${userId}/v2`)).data;
       const user = response.data.user as User;
       delete response.data.user;
-      
+
       const dashboard = response.data.dashboard;
 
       setUser(user);

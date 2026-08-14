@@ -15,10 +15,10 @@ import { FieldType } from '@/ts/enums/enums';
 import { useUpdateRecurringInvoiceTemplate } from '@/hooks/react-query/invoices/useUpdateRecurringInvoiceTemplate';
 import {
   RecurringInvoiceDelivery,
-  PaymentTermsDays
+  PaymentTermsDays,
+  RecurringInvoiceFrequency,
+  RecurringInvoiceTemplate
 } from '@/ts/interfaces/RecurringInvoiceTemplate';
-import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
-import { RecurringInvoiceFrequency } from '@/ts/interfaces/RecurringInvoiceTemplate';
 
 interface RecurringInvoiceFormData {
   delivery: RecurringInvoiceDelivery;
@@ -59,85 +59,13 @@ export default function EditRecurringInvoicePage() {
   const templateId = params?.id as string;
   const user = useUserStore((state) => state.user);
   const { data: templateData, isLoading: isLoadingTemplate, error } = useGetRecurringInvoiceTemplateById(templateId);
-  const { data: clients = [] } = useGetAllClients();
-  const { mutate: updateTemplate, isPending: isUpdating } = useUpdateRecurringInvoiceTemplate();
   const template = templateData?.template;
 
-  const form = useForm<RecurringInvoiceFormData>({
-    defaultValues: {
-      delivery: template?.delivery || RecurringInvoiceDelivery.SaveAsDraft,
-      paymentTerms: template !== undefined? template.paymentTerms : PaymentTermsDays.ThirtyDays,
-      discountRate: template?.discountRate || 0,
-      notes: template?.notes || '',
-      paymentInstructions: template?.paymentInstructions || ''
-    }
-  });
-
-  // Initialize form with template data
-  useEffect(() => {
-    if (!isLoadingTemplate && template) {
-      const formData = {
-        delivery: template.delivery,
-        paymentTerms: template.paymentTerms ? template.paymentTerms : PaymentTermsDays.ThirtyDays,
-        discountRate: template.discountRate || 0,
-        notes: template.notes || '',
-        paymentInstructions: template.paymentInstructions || ''
-      };
-      
-      // Use reset with options to ensure proper update
-      form.reset(formData, {
-        keepDefaultValues: false,
-        keepErrors: false,
-        keepDirty: false,
-        keepIsSubmitted: false,
-        keepTouched: false,
-        keepIsValid: false,
-        keepSubmitCount: false
-      });
-    }
-  }, [template, isLoadingTemplate, form]);
-
-  const watchedDiscount = form.watch('discountRate');
-
-  // Auth check
   useEffect(() => {
     if (user.firstName === '') {
       router.push('/onboarding');
     }
   }, [user, router]);
-
-  // Calculate invoice totals (taxAmount from template = sum of item taxAmounts)
-  const invoiceTotals = useMemo(() => {
-    if (!template) return { subtotal: 0, discountAmount: 0, subtotalAfterDiscount: 0, taxAmount: 0, total: 0 };
-    
-    const subtotal = template.subtotal || 0;
-    const taxAmount = template.taxAmount || 0;
-    const discountRate = Number(watchedDiscount) || 0;
-    const discountAmount = Math.round((subtotal * discountRate) / 100 * 100) / 100;
-    const subtotalAfterDiscount = Math.round((subtotal - discountAmount) * 100) / 100;
-    const total = Math.round((subtotalAfterDiscount + taxAmount) * 100) / 100;
-    
-    return { subtotal, discountAmount, subtotalAfterDiscount, taxAmount, total };
-  }, [template, watchedDiscount]);
-
-  const handleSubmit = (data: RecurringInvoiceFormData) => {
-    if (!template) return;
-
-    const updateData = {
-      templateId: template.id,
-      delivery: data.delivery,
-      paymentTerms: data.paymentTerms,
-      discountRate: Number(data.discountRate) || 0,
-      notes: data.notes || undefined,
-      paymentInstructions: data.paymentInstructions || undefined
-    };
-
-    updateTemplate(updateData, {
-      onSuccess: () => {
-        router.push('/invoices/recurring');
-      }
-    });
-  };
 
   if (isLoadingTemplate) {
     return <LoadingSpinner />;
@@ -163,6 +91,54 @@ export default function EditRecurringInvoicePage() {
       </div>
     );
   }
+
+  return <EditRecurringInvoiceForm template={template} />;
+}
+
+function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemplate }) {
+  const router = useRouter();
+  const { mutate: updateTemplate, isPending: isUpdating } = useUpdateRecurringInvoiceTemplate();
+
+  const form = useForm<RecurringInvoiceFormData>({
+    defaultValues: {
+      delivery: template.delivery || RecurringInvoiceDelivery.SaveAsDraft,
+      paymentTerms: template.paymentTerms || PaymentTermsDays.ThirtyDays,
+      discountRate: template.discountRate || 0,
+      notes: template.notes || '',
+      paymentInstructions: template.paymentInstructions || ''
+    }
+  });
+
+  const watchedDiscount = form.watch('discountRate');
+
+  const invoiceTotals = useMemo(() => {
+    const subtotal = template.subtotal || 0;
+    const taxAmount = template.taxAmount || 0;
+    const discountRate = Number(watchedDiscount) || 0;
+    const discountAmount = Math.round(((subtotal * discountRate) / 100) * 100) / 100;
+    const subtotalAfterDiscount = Math.round((subtotal - discountAmount) * 100) / 100;
+    const total = Math.round((subtotalAfterDiscount + taxAmount) * 100) / 100;
+
+    return { subtotal, discountAmount, subtotalAfterDiscount, taxAmount, total };
+  }, [template, watchedDiscount]);
+
+  const handleSubmit = (data: RecurringInvoiceFormData) => {
+    updateTemplate(
+      {
+        templateId: template.id,
+        delivery: data.delivery,
+        paymentTerms: data.paymentTerms,
+        discountRate: Number(data.discountRate) || 0,
+        notes: data.notes || undefined,
+        paymentInstructions: data.paymentInstructions || undefined
+      },
+      {
+        onSuccess: () => {
+          router.push('/invoices/recurring');
+        }
+      }
+    );
+  };
 
   return (
     <FormProvider {...form}>
@@ -264,7 +240,6 @@ export default function EditRecurringInvoicePage() {
               <h2 className="mb-4 text-lg font-semibold">Editable Settings</h2>
               <div className="space-y-4">
                 <SelectField
-                  key={`delivery-${template?.delivery || ''}`}
                   name="delivery"
                   label="Delivery"
                   placeholder="Select delivery option"
@@ -272,7 +247,6 @@ export default function EditRecurringInvoicePage() {
                 />
 
                 <SelectField
-                  key={`payment-terms-${template?.paymentTerms || ''}`}
                   name="paymentTerms"
                   label="Payment Terms"
                   placeholder="Select payment terms"
