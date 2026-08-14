@@ -39,6 +39,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   };
 
   const { isLoading } = useGetUser({ userId });
+  const isUserLoading = !userId || isLoading;
 
   return (
     <>
@@ -63,8 +64,14 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 {/* <AssignmentsProvider>
                   <ServicesProvider>{isLoading ? <LoadingSpinner /> : children}</ServicesProvider>
                 </AssignmentsProvider> */}
-                
-                {isLoading ? <LoadingSpinner /> : children}
+
+                {isUserLoading ? (
+                  <div className="flex min-h-[50vh] items-center justify-center">
+                    <div className="h-12 w-12 animate-spin rounded-full border-8 border-gray-300 border-t-blue-500" />
+                  </div>
+                ) : (
+                  children
+                )}
               </div>
             </Suspense>
             <Suspense fallback={null}>

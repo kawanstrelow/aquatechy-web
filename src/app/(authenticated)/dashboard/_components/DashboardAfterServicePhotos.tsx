@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { ArrowRight, ImageIcon } from 'lucide-react';
@@ -8,8 +9,15 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Service } from '@/ts/interfaces/Service';
-import { ModalViewService } from '@/app/(authenticated)/services/ModalViewService';
 import { formatDurationMmSs, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
+
+const ModalViewService = dynamic(
+  () =>
+    import('@/app/(authenticated)/services/ModalViewService').then((mod) => ({
+      default: mod.ModalViewService
+    })),
+  { ssr: false }
+);
 
 /** One photo per service: first structured photo with a URL, in API order. */
 export function buildFirstServicePhotoItems(services: Service[] | undefined): { service: Service; url: string }[] {
@@ -112,6 +120,7 @@ export function DashboardAfterServicePhotos({ services, compact }: Props) {
                     src={url}
                     alt={`Service photo — ${clientDisplayName(service)}`}
                     fill
+                    unoptimized
                     className="object-cover transition duration-200 group-hover:scale-[1.02]"
                     sizes={compact ? '200px' : '(max-width: 640px) 100vw, 25vw'}
                   />

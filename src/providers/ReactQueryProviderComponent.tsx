@@ -23,7 +23,7 @@ export function ReactQueryProviderComponent({ children }: { children: React.Reac
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools />
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
     </QueryClientProvider>
   );
 }

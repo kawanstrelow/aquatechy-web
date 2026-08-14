@@ -21,7 +21,7 @@ const formatMonthlyPayment = (payment: string | number | undefined) => {
 export default function Page() {
   const [ showConfidential, setShowConfidential ] = useState(false);
   const { dashboard } = useUserStore((state) => state);
-  const { width = 0 } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const user = useUserStore((state) => state.user);
 
   const router = useRouter();
@@ -37,7 +37,8 @@ export default function Page() {
     }
   }, [user, router]);
 
-  if (width < 1024) {
+  // width is undefined until mount — do not default to 0 or we paint the mobile tree first, then remount desktop (double image work).
+  if (width !== undefined && width < 1024) {
     return (
       <div className="p-4 pb-20">
         <div className="flex flex-col gap-4">
