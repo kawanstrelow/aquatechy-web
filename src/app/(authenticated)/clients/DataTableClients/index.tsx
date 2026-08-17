@@ -9,6 +9,7 @@ import {
   getFilteredRowModel,
   useReactTable
 } from '@tanstack/react-table';
+import { Download } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -21,11 +22,12 @@ import { Form } from '@/components/ui/form';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useExportClientsCSV } from '@/hooks/react-query/clients/useExportClientsCSV';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useUserStore } from '@/store/user';
 import { Client } from '@/ts/interfaces/Client';
-import { ModalAddCompany } from '../../settings/companies/team/ModalAddCompany';
-import { PaginationDemo } from '@/components/PaginationDemo';
-import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
+
+import { ExportClientsDialog } from './ExportClientsDialog';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -81,10 +83,10 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
       if (!filterValue || filterValue === '') return true;
-      
+
       const searchTerm = filterValue.toLowerCase();
       const client = row.original;
-      
+
       // Create a combined search string from all relevant fields
       const combinedSearchString = [
         client.firstName || '',
@@ -96,8 +98,10 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
         client.state || '',
         client.zip || '',
         client.customerCode || ''
-      ].join(' ').toLowerCase();
-      
+      ]
+        .join(' ')
+        .toLowerCase();
+
       return combinedSearchString.includes(searchTerm);
     },
     initialState: {
@@ -138,6 +142,13 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
   ];
 
   const { data: companies = [] } = useGetCompanies();
+  const { mutateAsync: exportClientsCSV, isPending: isExporting } = useExportClientsCSV();
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportInitialIds, setExportInitialIds] = useState<string[]>([]);
+
+  const ownerAdminOfficeCompanies = companies.filter(
+    (company) => company.role === 'Owner' || company.role === 'Admin' || company.role === 'Office'
+  );
 
   const companyOptions = [
     { key: 'all', value: 'all', name: 'All companies' },
@@ -148,9 +159,39 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
     }))
   ];
 
+  const getInitialExportCompanyIds = () => {
+    const filteredCompanyId = form.getValues('companyOwnerId');
+    if (filteredCompanyId && filteredCompanyId !== 'all') {
+      const match = ownerAdminOfficeCompanies.find((company) => company.id === filteredCompanyId);
+      if (match) return [match.id];
+    }
+    return ownerAdminOfficeCompanies.map((company) => company.id);
+  };
+
+  const handleExportClick = async () => {
+    if (ownerAdminOfficeCompanies.length === 1) {
+      await exportClientsCSV({ companyIds: [ownerAdminOfficeCompanies[0].id] });
+      return;
+    }
+    setExportInitialIds(getInitialExportCompanyIds());
+    setIsExportDialogOpen(true);
+  };
+
+  const handleConfirmExport = async (companyIds: string[]) => {
+    await exportClientsCSV({ companyIds });
+    setIsExportDialogOpen(false);
+  };
 
   return (
     <>
+      <ExportClientsDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        companies={ownerAdminOfficeCompanies}
+        initialSelectedIds={exportInitialIds}
+        onConfirm={handleConfirmExport}
+        isExporting={isExporting}
+      />
       <div className="flex w-full flex-col items-center justify-between md:flex-row">
         <div className="flex w-full flex-col gap-4 text-nowrap md:flex-row">
           <HoverCard>
@@ -166,6 +207,12 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
               </HoverCardContent>
             )}
           </HoverCard>
+          {ownerAdminOfficeCompanies.length > 0 && (
+            <Button type="button" variant="outline" onClick={handleExportClick} disabled={isExporting}>
+              <Download className="mr-2" />
+              {isExporting ? 'Exporting...' : 'Export'}
+            </Button>
+          )}
           <Button variant="outline">
             <Link href={'/clients/bulk-actions'}>Bulk Actions</Link>
           </Button>
