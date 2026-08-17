@@ -4,30 +4,38 @@ import { AxiosError } from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+export type ExportClientsFormat = 'csv' | 'xlsx';
+
 export interface ExportClientsCSVParams {
   companyIds: string[];
+  format: ExportClientsFormat;
 }
+
+const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 export const useExportClientsCSV = () => {
   const { toast } = useToast();
 
   const { mutate, mutateAsync, isPending } = useMutation({
     mutationFn: async (params: ExportClientsCSVParams): Promise<void> => {
-      const response = await clientAxios.get('/clients/export/csv', {
-        params: { companyIds: params.companyIds },
+      const format = params.format;
+      const mimeType = format === 'xlsx' ? XLSX_MIME : 'text/csv';
+
+      const response = await clientAxios.get('/clients/export', {
+        params: { companyIds: params.companyIds, format },
         paramsSerializer: {
           indexes: null
         },
         responseType: 'blob',
         headers: {
-          Accept: 'text/csv'
+          Accept: mimeType
         }
       });
 
-      const blob = new Blob([response.data], { type: 'text/csv' });
+      const blob = new Blob([response.data], { type: mimeType });
 
       const contentDisposition = response.headers['content-disposition'];
-      let filename = 'clients-export.csv';
+      let filename = format === 'xlsx' ? 'clients-export.xlsx' : 'clients-export.csv';
 
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="(.+)"/);
@@ -56,7 +64,7 @@ export const useExportClientsCSV = () => {
     },
     onError: async (error: AxiosError) => {
       const permissionDeniedMessage = 'You need Owner, Admin, or Office access on every selected company.';
-      let errorMessage = 'Failed to export clients to CSV';
+      let errorMessage = 'Failed to export clients';
 
       if (error.response?.status === 403) {
         errorMessage = permissionDeniedMessage;

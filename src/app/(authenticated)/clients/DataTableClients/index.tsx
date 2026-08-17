@@ -22,7 +22,7 @@ import { Form } from '@/components/ui/form';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useExportClientsCSV } from '@/hooks/react-query/clients/useExportClientsCSV';
+import { ExportClientsFormat, useExportClientsCSV } from '@/hooks/react-query/clients/useExportClientsCSV';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useUserStore } from '@/store/user';
 import { Client } from '@/ts/interfaces/Client';
@@ -168,17 +168,13 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
     return ownerAdminOfficeCompanies.map((company) => company.id);
   };
 
-  const handleExportClick = async () => {
-    if (ownerAdminOfficeCompanies.length === 1) {
-      await exportClientsCSV({ companyIds: [ownerAdminOfficeCompanies[0].id] });
-      return;
-    }
+  const handleExportClick = () => {
     setExportInitialIds(getInitialExportCompanyIds());
     setIsExportDialogOpen(true);
   };
 
-  const handleConfirmExport = async (companyIds: string[]) => {
-    await exportClientsCSV({ companyIds });
+  const handleConfirmExport = async (companyIds: string[], format: ExportClientsFormat) => {
+    await exportClientsCSV({ companyIds, format });
     setIsExportDialogOpen(false);
   };
 
