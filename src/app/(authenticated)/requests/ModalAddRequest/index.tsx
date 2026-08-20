@@ -34,7 +34,7 @@ const schema = z.object({
   photo: z.array(z.any())
 });
 
-export type CreateRequest = z.infer<typeof schema>;
+export type CreateRequest = z.infer<typeof schema> & { createdAt: string };
 
 export function ModalAddRequest() {
   const [open, setOpen] = useState(false);
@@ -61,7 +61,10 @@ export function ModalAddRequest() {
 
   function handleSubmit(data: z.infer<typeof schema>) {
     if (isEmpty(form.formState.errors)) {
-      createRequest(data);
+      createRequest({
+        ...data,
+        createdAt: new Date().toISOString()
+      });
       setOpen(false);
     }
   }
