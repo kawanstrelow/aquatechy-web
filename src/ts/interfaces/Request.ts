@@ -83,6 +83,7 @@ export interface CreateRequest {
   photo: string[];
   pool: Pool;
   clientId: string;
+  createdAt: string;
 }
 
 export interface CreatedByUser {
