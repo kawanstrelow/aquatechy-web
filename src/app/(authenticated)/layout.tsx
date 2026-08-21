@@ -4,15 +4,12 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { Suspense, useEffect, useState } from 'react';
+import { VideoModal } from '@/components/VideoModal';
 import { Colors } from '@/constants/colors';
-import { AssignmentsProvider } from '@/context/assignments';
 import useGetUser from '@/hooks/react-query/user/getUser';
-import { LoadingSpinner } from '../../components/LoadingSpinner';
+import { useUserStore } from '@/store/user';
 import PageHeader from './PageHeader';
 import { SideMenu } from './SideMenuNav';
-import { ServicesProvider } from '@/context/services';
-import { VideoModal } from '@/components/VideoModal';
-import { useUserStore } from '@/store/user';
 import { HelpButton } from './HelpButton';
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
@@ -38,8 +35,8 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
     setShowWelcomeVideo(false);
   };
 
-  const { isLoading } = useGetUser({ userId });
-  const isUserLoading = !userId || isLoading;
+  const { isPending, data } = useGetUser({ userId });
+  const isUserLoading = !userId || isPending || !data || !user.id;
 
   return (
     <>
@@ -59,21 +56,15 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
         <div className="col-span-5 bg-gray-50">
           <PageHeader />
           <main>
-            <Suspense fallback={<LoadingSpinner />}>
-              <div className="mx-2 mt-2 rounded-md border border-gray-200 p-2 shadow-inner lg:mt-0">
-                {/* <AssignmentsProvider>
-                  <ServicesProvider>{isLoading ? <LoadingSpinner /> : children}</ServicesProvider>
-                </AssignmentsProvider> */}
-
-                {isUserLoading ? (
-                  <div className="flex min-h-[50vh] items-center justify-center">
-                    <div className="h-12 w-12 animate-spin rounded-full border-8 border-gray-300 border-t-blue-500" />
-                  </div>
-                ) : (
-                  children
-                )}
-              </div>
-            </Suspense>
+            <div className="mx-2 mt-2 rounded-md border border-gray-200 p-2 shadow-inner lg:mt-0">
+              {isUserLoading ? (
+                <div className="flex min-h-[50vh] items-center justify-center">
+                  <div className="h-12 w-12 animate-spin rounded-full border-8 border-gray-300 border-t-blue-500" />
+                </div>
+              ) : (
+                children
+              )}
+            </div>
             <Suspense fallback={null}>
               <ProgressBar height="6px" color={Colors.blue[500]} options={{ showSpinner: false }} shallowRouting />
             </Suspense>
