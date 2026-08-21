@@ -11,17 +11,14 @@ import { canAccessAiChat } from '@/utils/aiChatAccess';
 import SideMenuNavLink from './SideMenuNavLink';
 
 function useVisibleRoutes() {
-  const { data: companies, isLoading } = useGetCompanies();
+  const { data: companies } = useGetCompanies();
 
   return useMemo(() => {
-    if (isLoading) {
-      return routes.filter((route) => route.href !== '/chat');
-    }
     if (canAccessAiChat(companies)) {
       return routes;
     }
     return routes.filter((route) => route.href !== '/chat');
-  }, [companies, isLoading]);
+  }, [companies]);
 }
 
 // Documentation: https://ui.shadcn.com/docs/components/sheet

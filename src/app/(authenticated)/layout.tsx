@@ -1,9 +1,9 @@
 'use client';
 
 import Cookies from 'js-cookie';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { VideoModal } from '@/components/VideoModal';
 import { Colors } from '@/constants/colors';
 import useGetUser from '@/hooks/react-query/user/getUser';
@@ -11,6 +11,8 @@ import { useUserStore } from '@/store/user';
 import PageHeader from './PageHeader';
 import { SideMenu } from './SideMenuNav';
 import { HelpButton } from './HelpButton';
+
+const ProgressBar = dynamic(() => import('next-nprogress-bar').then((mod) => mod.AppProgressBar), { ssr: false });
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const userId = Cookies.get('userId') as string;
@@ -36,7 +38,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   };
 
   const { isPending, data } = useGetUser({ userId });
-  const isUserLoading = !userId || isPending || !data || !user.id;
+  const isUserLoading = !userId || isPending || !data;
 
   return (
     <>
@@ -65,9 +67,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 children
               )}
             </div>
-            <Suspense fallback={null}>
-              <ProgressBar height="6px" color={Colors.blue[500]} options={{ showSpinner: false }} shallowRouting />
-            </Suspense>
+            <ProgressBar height="6px" color={Colors.blue[500]} options={{ showSpinner: false }} shallowRouting />
           </main>
           <HelpButton />
         </div>

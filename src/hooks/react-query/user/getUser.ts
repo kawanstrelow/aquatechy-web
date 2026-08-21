@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { clientAxios } from '@/lib/clientAxios';
@@ -41,7 +41,7 @@ export default function useGetUser({ userId }: Props) {
     }
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!data) return;
     setUser(data.user);
     setDashboard(data.dashboard);
