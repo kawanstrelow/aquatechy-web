@@ -14,8 +14,9 @@ import { HelpButton } from './HelpButton';
 
 const ProgressBar = dynamic(() => import('next-nprogress-bar').then((mod) => mod.AppProgressBar), { ssr: false });
 
-function isProfileIncomplete(firstName?: string | null) {
-  return !firstName?.trim();
+function needsOnboarding(user?: { id?: string; firstName?: string | null; lastName?: string | null }) {
+  if (!user?.id) return false;
+  return !user.firstName?.trim() && !user.lastName?.trim();
 }
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
@@ -26,7 +27,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
   const { isPending, data } = useGetUser({ userId });
-  const profileIncomplete = Boolean(data?.user) && isProfileIncomplete(data?.user.firstName);
+  const profileIncomplete = needsOnboarding(data?.user);
   const isRedirectingToOnboarding = profileIncomplete && pathname !== '/onboarding';
   const isUserLoading = !isClient || !userId || isPending || !data || isRedirectingToOnboarding;
 
