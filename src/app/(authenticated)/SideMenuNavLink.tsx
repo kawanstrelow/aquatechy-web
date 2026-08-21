@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
-import React, { Suspense } from 'react';
+import { usePathname } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
@@ -18,6 +18,18 @@ type Props = {
   };
 };
 
+/** Next.js `useSearchParams()` suspends the layout (empty menu until click). Read the URL after mount instead. */
+function useClientSearchParams() {
+  const pathname = usePathname();
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    setSearch(window.location.search);
+  }, [pathname]);
+
+  return new URLSearchParams(search);
+}
+
 function isSubItemActive(pathname: string, searchParams: URLSearchParams, subItemHref: string): boolean {
   if (pathname === subItemHref) return true;
 
@@ -32,11 +44,11 @@ function isSubItemActive(pathname: string, searchParams: URLSearchParams, subIte
   return false;
 }
 
-function SideMenuNavLinkInner({ route }: Props) {
+export default function SideMenuNavLink({ route }: Props) {
   const { icon, text, href, submenu } = route;
   const Icon = icon;
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const pathResource = `/${pathname.split('/')[1]}`;
 
   const isActive = href === pathResource;
@@ -84,19 +96,5 @@ function SideMenuNavLinkInner({ route }: Props) {
         )}
       </div>
     </div>
-  );
-}
-
-export default function SideMenuNavLink(props: Props) {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex w-full items-start justify-start px-2 text-gray-300">
-          <div className="flex w-full items-center py-4" />
-        </div>
-      }
-    >
-      <SideMenuNavLinkInner {...props} />
-    </Suspense>
   );
 }
