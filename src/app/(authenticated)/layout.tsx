@@ -43,10 +43,11 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   }, [isClient, userId, isRedirectingToOnboarding, router]);
 
   useLayoutEffect(() => {
+    if (isUserLoading) return;
     if (!userId || !data?.user?.id) return;
     if (localStorage.getItem(`welcome-video-${userId}`)) return;
     setShowWelcomeVideo(true);
-  }, [data?.user?.id, userId]);
+  }, [isUserLoading, data?.user?.id, userId]);
 
   const handleCloseWelcomeVideo = () => {
     if (userId) {
@@ -57,7 +58,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 
   return (
     <>
-      {showWelcomeVideo && (
+      {!isUserLoading && showWelcomeVideo && (
         <VideoModal
           isOpen={showWelcomeVideo}
           onClose={handleCloseWelcomeVideo}
