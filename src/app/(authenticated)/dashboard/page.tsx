@@ -32,7 +32,7 @@ export default function Page() {
 
    // Auth check
    useEffect(() => {
-    if (user.firstName === '') {
+    if (!user.firstName?.trim()) {
       router.push('/onboarding');
     }
   }, [user, router]);

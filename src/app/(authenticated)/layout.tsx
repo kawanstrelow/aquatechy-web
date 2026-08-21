@@ -2,43 +2,57 @@
 
 import Cookies from 'js-cookie';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useLayoutEffect, useState } from 'react';
 import { VideoModal } from '@/components/VideoModal';
 import { Colors } from '@/constants/colors';
 import useGetUser from '@/hooks/react-query/user/getUser';
-import { useUserStore } from '@/store/user';
+import { useIsClient } from '@/hooks/useIsClient';
 import PageHeader from './PageHeader';
 import { SideMenu } from './SideMenuNav';
 import { HelpButton } from './HelpButton';
 
 const ProgressBar = dynamic(() => import('next-nprogress-bar').then((mod) => mod.AppProgressBar), { ssr: false });
 
+function isProfileIncomplete(firstName?: string | null) {
+  return !firstName?.trim();
+}
+
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  const userId = Cookies.get('userId') as string;
+  const isClient = useIsClient();
+  const userId = isClient ? (Cookies.get('userId') as string | undefined) : undefined;
   const router = useRouter();
-  const user = useUserStore((state) => state.user);
+  const pathname = usePathname();
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
-  useEffect(() => {
-    if (!userId) {
-      return router.push('/login');
-    }
+  const { isPending, data } = useGetUser({ userId });
+  const profileIncomplete = Boolean(data?.user) && isProfileIncomplete(data?.user.firstName);
+  const isRedirectingToOnboarding = profileIncomplete && pathname !== '/onboarding';
+  const isUserLoading = !isClient || !userId || isPending || !data || isRedirectingToOnboarding;
 
-    // Check if it's the first visit
-    const hasSeenWelcomeVideo = localStorage.getItem(`welcome-video-${userId}`);
-    if (!hasSeenWelcomeVideo && user.id) {
-      setShowWelcomeVideo(true);
+  useLayoutEffect(() => {
+    if (!isClient) return;
+    if (!userId) {
+      router.replace('/login');
+      return;
     }
-  }, [userId, user.id]);
+    if (isRedirectingToOnboarding) {
+      window.location.replace('/onboarding');
+    }
+  }, [isClient, userId, isRedirectingToOnboarding, router]);
+
+  useLayoutEffect(() => {
+    if (!userId || !data?.user?.id) return;
+    if (localStorage.getItem(`welcome-video-${userId}`)) return;
+    setShowWelcomeVideo(true);
+  }, [data?.user?.id, userId]);
 
   const handleCloseWelcomeVideo = () => {
-    localStorage.setItem(`welcome-video-${userId}`, 'true');
+    if (userId) {
+      localStorage.setItem(`welcome-video-${userId}`, 'true');
+    }
     setShowWelcomeVideo(false);
   };
-
-  const { isPending, data } = useGetUser({ userId });
-  const isUserLoading = !userId || isPending || !data;
 
   return (
     <>
@@ -67,7 +81,9 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 children
               )}
             </div>
-            <ProgressBar height="6px" color={Colors.blue[500]} options={{ showSpinner: false }} shallowRouting />
+            {isClient ? (
+              <ProgressBar height="6px" color={Colors.blue[500]} options={{ showSpinner: false }} shallowRouting />
+            ) : null}
           </main>
           <HelpButton />
         </div>

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useLayoutEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { useIsClient } from '@/hooks/useIsClient';
 import { clientAxios } from '@/lib/clientAxios';
 import { useMembersStore } from '@/store/members';
 import { useUserStore } from '@/store/user';
@@ -27,9 +28,11 @@ export default function useGetUser({ userId }: Props) {
     }))
   );
 
+  const isClient = useIsClient();
+
   const { data, isLoading, isPending, isSuccess } = useQuery({
     queryKey: ['user', userId],
-    enabled: !!userId,
+    enabled: isClient && !!userId,
     // Dashboard payload (lastServices, snapshots) is large; structural sharing diffs it on the main thread.
     structuralSharing: false,
     queryFn: async (): Promise<UserQueryData> => {
