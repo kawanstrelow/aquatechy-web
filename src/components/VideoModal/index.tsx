@@ -26,7 +26,7 @@ export function VideoModal({ isOpen, onClose, videoUrl, title }: VideoModalProps
       }}
     >
       <DialogContent
-        className="sm:max-w-[900px]"
+        className="max-h-[90vh] overflow-y-auto sm:max-w-[900px]"
         onEscapeKeyDown={onClose}
         onInteractOutside={onClose}
         onCloseAutoFocus={(event) => {
