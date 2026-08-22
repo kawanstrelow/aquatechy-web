@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie';
 import { QueryClient } from '@tanstack/react-query';
 
+import { resetUserBootstrap } from '@/hooks/react-query/user/getUser';
 import { useUserStore } from '@/store/user';
 import { useMembersStore } from '@/store/members';
 import { useWeekdayStore } from '@/store/weekday';
@@ -17,6 +18,7 @@ export const performLogout = (queryClient: QueryClient, router: { push: (path: s
   // Remove authentication cookies (path: '/' must match how they were set)
   Cookies.remove('accessToken', { path: '/' });
   Cookies.remove('userId', { path: '/' });
+  resetUserBootstrap();
   
   // Clear React Query cache
   queryClient.resetQueries();
@@ -50,6 +52,7 @@ export const useLogout = () => {
     // Remove authentication cookies (path: '/' must match how they were set)
     Cookies.remove('accessToken', { path: '/' });
     Cookies.remove('userId', { path: '/' });
+    resetUserBootstrap();
     
     // Clear React Query cache
     queryClient.resetQueries();
