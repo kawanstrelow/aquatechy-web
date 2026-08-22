@@ -1,56 +1,93 @@
-import { useQuery } from '@tanstack/react-query';
-import { useLayoutEffect } from 'react';
-import { useShallow } from 'zustand/react/shallow';
+import Cookies from 'js-cookie';
+import { useSyncExternalStore } from 'react';
 
-import { useIsClient } from '@/hooks/useIsClient';
 import { clientAxios } from '@/lib/clientAxios';
 import { useMembersStore } from '@/store/members';
 import { useUserStore } from '@/store/user';
 import { Dashboard } from '@/ts/interfaces/Dashboard';
 import { User } from '@/ts/interfaces/User';
 
-type Props = {
-  userId?: string;
-};
-
 type UserQueryData = {
   user: User;
   dashboard: Dashboard;
 };
 
-export default function useGetUser({ userId }: Props) {
-  const setUser = useUserStore((state) => state.setUser);
-  const setDashboard = useUserStore((state) => state.setDashboard);
-  const { setAssignmentToId, setAssignedToId } = useMembersStore(
-    useShallow((state) => ({
-      setAssignmentToId: state.setAssignmentToId,
-      setAssignedToId: state.setAssignedToid
-    }))
-  );
+type Snapshot = {
+  userId?: string;
+  status: 'idle' | 'success' | 'error';
+  data?: UserQueryData;
+};
 
-  const isClient = useIsClient();
+const listeners = new Set<() => void>();
+const started = new Set<string>();
+let snapshot: Snapshot = { status: 'idle' };
+const serverSnapshot: Snapshot = { status: 'idle' };
 
-  const { data, isLoading, isPending, isSuccess } = useQuery({
-    queryKey: ['user', userId],
-    enabled: isClient && !!userId,
-    // Dashboard payload (lastServices, snapshots) is large; structural sharing diffs it on the main thread.
-    structuralSharing: false,
-    queryFn: async (): Promise<UserQueryData> => {
-      const response = (await clientAxios.get(`/users/${userId}/v2`)).data;
-      return {
-        user: response.data.user as User,
-        dashboard: response.data.dashboard
+function emit() {
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function getSnapshot() {
+  return snapshot;
+}
+
+function getServerSnapshot() {
+  return serverSnapshot;
+}
+
+function applyUserData(data: UserQueryData) {
+  useUserStore.getState().setUser(data.user);
+  useUserStore.getState().setDashboard(data.dashboard);
+  useMembersStore.getState().setAssignmentToId(data.user.id);
+  useMembersStore.getState().setAssignedToid(data.user.id);
+}
+
+function startUserLoad(userId: string) {
+  if (started.has(userId)) return;
+  started.add(userId);
+
+  clientAxios
+    .get(`/users/${userId}/v2`)
+    .then((axiosResponse) => {
+      const body = axiosResponse.data;
+      const data: UserQueryData = {
+        user: body.data.user as User,
+        dashboard: body.data.dashboard
       };
-    }
-  });
+      applyUserData(data);
+      snapshot = { userId, status: 'success', data };
+      emit();
+    })
+    .catch(() => {
+      started.delete(userId);
+      snapshot = { userId, status: 'error' };
+      emit();
+    });
+}
 
-  useLayoutEffect(() => {
-    if (!data) return;
-    setUser(data.user);
-    setDashboard(data.dashboard);
-    setAssignmentToId(data.user.id);
-    setAssignedToId(data.user.id);
-  }, [data, setUser, setDashboard, setAssignmentToId, setAssignedToId]);
+export function resetUserBootstrap() {
+  started.clear();
+  snapshot = { status: 'idle' };
+  emit();
+}
 
-  return { data, isLoading, isPending, isSuccess };
+export default function useGetUser() {
+  const snap = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  if (typeof window !== 'undefined') {
+    const userId = Cookies.get('userId');
+    if (userId) startUserLoad(userId);
+  }
+
+  return {
+    data: snap.data,
+    isLoading: snap.status !== 'success',
+    isPending: snap.status !== 'success',
+    isSuccess: snap.status === 'success'
+  };
 }

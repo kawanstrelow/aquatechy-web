@@ -1,18 +1,13 @@
 'use client';
 
 import Cookies from 'js-cookie';
-import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLayoutEffect, useState } from 'react';
 import { VideoModal } from '@/components/VideoModal';
-import { Colors } from '@/constants/colors';
 import useGetUser from '@/hooks/react-query/user/getUser';
-import { useIsClient } from '@/hooks/useIsClient';
+import { HelpButton } from './HelpButton';
 import PageHeader from './PageHeader';
 import { SideMenu } from './SideMenuNav';
-import { HelpButton } from './HelpButton';
-
-const ProgressBar = dynamic(() => import('next-nprogress-bar').then((mod) => mod.AppProgressBar), { ssr: false });
 
 function needsOnboarding(user?: { id?: string; firstName?: string | null; lastName?: string | null }) {
   if (!user?.id) return false;
@@ -20,34 +15,30 @@ function needsOnboarding(user?: { id?: string; firstName?: string | null; lastNa
 }
 
 export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  const isClient = useIsClient();
-  const userId = isClient ? (Cookies.get('userId') as string | undefined) : undefined;
   const router = useRouter();
   const pathname = usePathname();
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
-
-  const { isPending, data } = useGetUser({ userId });
+  const { isPending, data } = useGetUser();
+  const userId = data?.user?.id;
   const profileIncomplete = needsOnboarding(data?.user);
   const isRedirectingToOnboarding = profileIncomplete && pathname !== '/onboarding';
-  const isUserLoading = !isClient || !userId || isPending || !data || isRedirectingToOnboarding;
+  const isUserLoading = isPending || !data || isRedirectingToOnboarding;
 
   useLayoutEffect(() => {
-    if (!isClient) return;
-    if (!userId) {
+    if (!Cookies.get('userId')) {
       router.replace('/login');
       return;
     }
     if (isRedirectingToOnboarding) {
       window.location.replace('/onboarding');
     }
-  }, [isClient, userId, isRedirectingToOnboarding, router]);
+  }, [isRedirectingToOnboarding, router]);
 
   useLayoutEffect(() => {
-    if (isUserLoading) return;
-    if (!userId || !data?.user?.id) return;
+    if (isUserLoading || !userId) return;
     if (localStorage.getItem(`welcome-video-${userId}`)) return;
     setShowWelcomeVideo(true);
-  }, [isUserLoading, data?.user?.id, userId]);
+  }, [isUserLoading, userId]);
 
   const handleCloseWelcomeVideo = () => {
     if (userId) {
@@ -62,7 +53,6 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
         <VideoModal
           isOpen={showWelcomeVideo}
           onClose={handleCloseWelcomeVideo}
-          // hide title, channel and avatar photo from video player
           videoUrl="https://vimeo.com/1062213838?title=0&byline=0&portrait=0"
           title="Welcome to Aquatechy!"
         />
@@ -83,9 +73,6 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                 children
               )}
             </div>
-            {isClient ? (
-              <ProgressBar height="6px" color={Colors.blue[500]} options={{ showSpinner: false }} shallowRouting />
-            ) : null}
           </main>
           <HelpButton />
         </div>
