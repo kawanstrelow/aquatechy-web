@@ -7,7 +7,7 @@ import { useUserStore } from '@/store/user';
 import { Dashboard } from '@/ts/interfaces/Dashboard';
 import { User } from '@/ts/interfaces/User';
 
-type UserQueryData = {
+export type UserQueryData = {
   user: User;
   dashboard: Dashboard;
 };
@@ -21,7 +21,6 @@ type Snapshot = {
 const listeners = new Set<() => void>();
 const started = new Set<string>();
 let snapshot: Snapshot = { status: 'idle' };
-const serverSnapshot: Snapshot = { status: 'idle' };
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -36,15 +35,18 @@ function getSnapshot() {
   return snapshot;
 }
 
-function getServerSnapshot() {
-  return serverSnapshot;
-}
-
 function applyUserData(data: UserQueryData) {
   useUserStore.getState().setUser(data.user);
   useUserStore.getState().setDashboard(data.dashboard);
   useMembersStore.getState().setAssignmentToId(data.user.id);
   useMembersStore.getState().setAssignedToid(data.user.id);
+}
+
+export function hydrateUserBootstrap(data: UserQueryData) {
+  applyUserData(data);
+  started.add(data.user.id);
+  snapshot = { userId: data.user.id, status: 'success', data };
+  emit();
 }
 
 function startUserLoad(userId: string) {
@@ -76,13 +78,17 @@ export function resetUserBootstrap() {
   emit();
 }
 
-export default function useGetUser() {
-  const snap = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-
-  if (typeof window !== 'undefined') {
-    const userId = Cookies.get('userId');
-    if (userId) startUserLoad(userId);
+if (typeof window !== 'undefined') {
+  const userId = Cookies.get('userId');
+  if (userId) {
+    queueMicrotask(() => {
+      if (snapshot.status === 'idle') startUserLoad(userId);
+    });
   }
+}
+
+export default function useGetUser() {
+  const snap = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   return {
     data: snap.data,
