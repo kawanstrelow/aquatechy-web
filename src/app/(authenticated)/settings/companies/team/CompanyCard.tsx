@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '../../../../../components/ui/separator';
 import { cn } from '@/lib/utils';
+import { isManagementRole } from '@/utils/aiChatAccess';
 import { getInitials } from '@/utils/others';
 
 import { CompanyMembershipAction } from './CompanyMembershipAction';
@@ -23,7 +24,7 @@ type Props = {
 export function CompanyCard({ companyId, name, email, phone, role, status, imageUrl, href }: Props) {
   const router = useRouter();
   const isPendingAcceptance = status !== 'Active';
-  const canOpenCompanyPage = role === 'Owner' || role === 'Admin';
+  const canOpenCompanyPage = isManagementRole(role) || Boolean(href);
 
   const goToCompany = () => {
     if (!canOpenCompanyPage) return;

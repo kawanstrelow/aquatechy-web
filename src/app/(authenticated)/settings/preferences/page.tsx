@@ -8,24 +8,19 @@ import { CompanyCard } from '@/app/(authenticated)/settings/companies/team/Compa
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
-
-function canAccessCompanySettings(role: string | undefined): boolean {
-  return role === 'Owner' || role === 'Admin';
-}
+import { getManagementCompanies } from '@/utils/aiChatAccess';
 
 export default function PreferencesPage() {
   const router = useRouter();
   const { data: companies, isLoading } = useGetCompanies();
 
-  const manageableCompanies = (companies ?? []).filter((company: CompanyWithMyRole) =>
-    canAccessCompanySettings(company.role)
-  );
+  const manageableCompanies = getManagementCompanies(companies ?? []);
 
   useEffect(() => {
     if (isLoading || !companies) return;
-    const ownedOrAdmin = companies.filter((company: CompanyWithMyRole) => canAccessCompanySettings(company.role));
-    if (ownedOrAdmin.length === 1) {
-      router.replace(`/settings/companies/team/${ownedOrAdmin[0].id}?tab=preferences`);
+    const managementCompanies = getManagementCompanies(companies);
+    if (managementCompanies.length === 1) {
+      router.replace(`/settings/companies/team/${managementCompanies[0].id}?tab=preferences`);
     }
   }, [isLoading, companies, router]);
 
@@ -37,7 +32,7 @@ export default function PreferencesPage() {
     return (
       <div className="flex flex-col items-start gap-2 p-4">
         <p className="text-sm text-gray-600">
-          You need to be an Owner or Admin of a company to manage preferences.
+          You need to be an Owner, Admin, or Office member of a company to manage preferences.
         </p>
         <Link href="/settings/companies" className="text-sm font-medium text-blue-600 hover:underline">
           Go to Companies
