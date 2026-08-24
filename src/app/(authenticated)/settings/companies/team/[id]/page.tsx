@@ -8,11 +8,8 @@ import { useUserStore } from '@/store/user';
 
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import useGetCompany from '@/hooks/react-query/companies/getCompany';
+import { isManagementRole } from '@/utils/aiChatAccess';
 import ShowCompany from './ShowCompany';
-
-function canAccessCompanySettings(role: string | undefined): boolean {
-  return role === 'Owner' || role === 'Admin';
-}
 
 function isValidObjectId(id: string): boolean {
   // Verifica se o ID é uma string de 24 caracteres hexadecimais
@@ -47,7 +44,7 @@ export default function Page({ params: { id } }: Props) {
 
   useEffect(() => {
     if (isLoading || isLoadingCompanies || !data) return;
-    if (!canAccessCompanySettings(myRole)) {
+    if (!isManagementRole(myRole)) {
       router.replace('/settings/companies');
     }
   }, [data, id, isLoading, isLoadingCompanies, myRole, router]);
@@ -58,7 +55,7 @@ export default function Page({ params: { id } }: Props) {
     notFound();
   }
 
-  if (!canAccessCompanySettings(myRole)) {
+  if (!isManagementRole(myRole)) {
     return <LoadingSpinner />;
   }
 

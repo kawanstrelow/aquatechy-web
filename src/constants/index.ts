@@ -6,6 +6,7 @@ import {
   FileText,
   Import,
   ListChecks,
+  MessageSquare,
   ShoppingCart,
   Mails,
   Cog,
@@ -121,6 +122,13 @@ export const routes: Menu[] = [
     icon: TabIcon,
     title: 'Dashboard',
     description: 'Overview of your pools as a technician or a manager'
+  },
+  {
+    text: 'Chat',
+    href: '/chat',
+    icon: MessageSquare,
+    title: 'AI Chat',
+    description: 'Ask questions about your company data'
   },
   {
     title: 'Clients',
@@ -339,6 +347,12 @@ export const routes: Menu[] = [
         title: 'Subscription',
         description: 'Manage your subscription and see our plans'
       },
+      preferences: {
+        text: 'Preferences',
+        href: '/settings/preferences',
+        title: 'Preferences',
+        description: 'Manage company preference settings.'
+      },
       companies: {
         text: 'Companies',
         href: '/settings/companies',
@@ -402,7 +416,6 @@ export const RequestStatus = [
 ];
 
 export const Categories = [
-  
   {
     value: 'other',
     name: 'Other',
