@@ -2,7 +2,7 @@
 
 import { addDays } from 'date-fns';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 
@@ -60,6 +60,7 @@ function CreateEstimatePage() {
     }
   });
 
+  const [lineItemsVersion, setLineItemsVersion] = useState(0);
   const watchedClientId = form.watch('clientId');
   const watchedLineItems = form.watch('lineItems');
   const watchedIssuedDate = form.watch('issuedDate');
@@ -105,7 +106,8 @@ function CreateEstimatePage() {
       return (
         item.amount !== (Number(currentItem.amount) || 0) ||
         item.quantity !== (Number(currentItem.quantity) || 0) ||
-        item.unitPrice !== (Number(currentItem.unitPrice) || 0)
+        item.unitPrice !== (Number(currentItem.unitPrice) || 0) ||
+        item.taxRate !== (Number(currentItem.taxRate) ?? 0)
       );
     });
 
@@ -127,8 +129,9 @@ function CreateEstimatePage() {
   );
 
   const estimateTotals = useMemo(() => {
-    const subtotal = watchedLineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-    const taxAmount = watchedLineItems.reduce((sum, item) => {
+    const items = form.getValues('lineItems');
+    const subtotal = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const taxAmount = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
       return sum + Math.round((amount * taxRate) / 100 * 100) / 100;
@@ -137,7 +140,7 @@ function CreateEstimatePage() {
     const discountAmount = Math.round((subtotal * discountRate) / 100 * 100) / 100;
     const total = Math.round((subtotal + taxAmount - discountAmount) * 100) / 100;
     return { subtotal, taxAmount, discountRate, discountAmount, total };
-  }, [watchedLineItems, watchedDiscountRate]);
+  }, [watchedLineItems, watchedDiscountRate, lineItemsVersion, form]);
 
   const previewEstimate = useMemo(() => {
     if (!selectedClient) return null;
@@ -214,6 +217,7 @@ function CreateEstimatePage() {
     watchedIssuedDate,
     watchedValidUntil,
     watchedLineItems,
+    lineItemsVersion,
     watchedNotes,
     watchedTerms
   ]);
@@ -250,6 +254,7 @@ function CreateEstimatePage() {
     }
 
     form.setValue('lineItems', items, { shouldDirty: false });
+    setLineItemsVersion((version) => version + 1);
   };
 
   const prepareEstimateData = (): CreateEstimateRequest | null => {

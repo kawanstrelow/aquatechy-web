@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2, Repeat } from 'lucide-react';
 import { differenceInDays, isSameDay } from 'date-fns';
@@ -104,6 +104,7 @@ function CreateInvoicePage() {
     }
   });
 
+  const [lineItemsVersion, setLineItemsVersion] = useState(0);
   const watchedClientId = form.watch('clientId');
   const watchedLineItems = form.watch('lineItems');
   const watchedIssuedDate = form.watch('issuedDate');
@@ -221,10 +222,12 @@ function CreateInvoicePage() {
       const currentAmount = Number(currentItem?.amount) || 0;
       const currentQuantity = Number(currentItem?.quantity) || 0;
       const currentUnitPrice = Number(currentItem?.unitPrice) || 0;
+      const currentTaxRate = Number(currentItem?.taxRate) ?? 0;
       return (
         item.amount !== currentAmount ||
         item.quantity !== currentQuantity ||
-        item.unitPrice !== currentUnitPrice
+        item.unitPrice !== currentUnitPrice ||
+        item.taxRate !== currentTaxRate
       );
     });
 
@@ -246,11 +249,12 @@ function CreateInvoicePage() {
 
   // Calculate invoice totals (tax per item; invoice taxAmount = sum of item taxAmounts)
   const invoiceTotals = useMemo(() => {
-    const subtotal = watchedLineItems.reduce((sum, item) => {
+    const items = form.getValues('lineItems');
+    const subtotal = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       return sum + amount;
     }, 0);
-    const taxAmount = watchedLineItems.reduce((sum, item) => {
+    const taxAmount = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
       const itemTax = Math.round((amount * taxRate / 100) * 100) / 100;
@@ -258,7 +262,7 @@ function CreateInvoicePage() {
     }, 0);
     const total = Math.round((subtotal + taxAmount) * 100) / 100;
     return { subtotal, taxAmount, total };
-  }, [watchedLineItems]);
+  }, [watchedLineItems, lineItemsVersion, form]);
 
   // Build preview invoice data
   const previewInvoice: DetailedInvoice | null = useMemo(() => {
@@ -327,6 +331,7 @@ function CreateInvoicePage() {
     watchedIssuedDate,
     watchedDueDate,
     watchedLineItems,
+    lineItemsVersion,
     watchedPaymentTerms,
     watchedNotes,
     watchedPaymentInstructions
@@ -372,6 +377,7 @@ function CreateInvoicePage() {
     }
 
     form.setValue('lineItems', updatedItems, { shouldDirty: false });
+    setLineItemsVersion((version) => version + 1);
   };
 
   // Helper function to extract days from payment terms string
