@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 
@@ -96,6 +96,7 @@ export default function CreateRecurringInvoicePage() {
     }
   });
 
+  const [lineItemsVersion, setLineItemsVersion] = useState(0);
   const watchedClientId = form.watch('clientId');
   const watchedLineItems = form.watch('lineItems');
   const watchedDiscount = form.watch('discountRate');
@@ -169,10 +170,12 @@ export default function CreateRecurringInvoicePage() {
       const currentAmount = Number(currentItem?.amount) || 0;
       const currentQuantity = Number(currentItem?.quantity) || 0;
       const currentUnitPrice = Number(currentItem?.unitPrice) || 0;
+      const currentTaxRate = Number(currentItem?.taxRate) ?? 0;
       return (
         item.amount !== currentAmount ||
         item.quantity !== currentQuantity ||
-        item.unitPrice !== currentUnitPrice
+        item.unitPrice !== currentUnitPrice ||
+        item.taxRate !== currentTaxRate
       );
     });
     
@@ -205,7 +208,8 @@ export default function CreateRecurringInvoicePage() {
 
   // Calculate invoice totals (tax per item; template taxAmount = sum of item taxAmounts)
   const invoiceTotals = useMemo(() => {
-    const subtotal = watchedLineItems.reduce((sum, item) => {
+    const items = form.getValues('lineItems');
+    const subtotal = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       return sum + amount;
     }, 0);
@@ -214,7 +218,7 @@ export default function CreateRecurringInvoicePage() {
     const discountAmount = Math.round((subtotal * discountRate) / 100 * 100) / 100;
     const subtotalAfterDiscount = Math.round((subtotal - discountAmount) * 100) / 100;
     
-    const taxAmount = watchedLineItems.reduce((sum, item) => {
+    const taxAmount = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
       const itemTax = Math.round((amount * taxRate / 100) * 100) / 100;
@@ -223,7 +227,7 @@ export default function CreateRecurringInvoicePage() {
     const total = Math.round((subtotalAfterDiscount + taxAmount) * 100) / 100;
     
     return { subtotal, discountAmount, subtotalAfterDiscount, taxAmount, total };
-  }, [watchedLineItems, watchedDiscount]);
+  }, [watchedLineItems, watchedDiscount, lineItemsVersion, form]);
 
   const handleAddLineItem = () => {
     const currentItems = form.getValues('lineItems');
@@ -265,6 +269,7 @@ export default function CreateRecurringInvoicePage() {
     }
 
     form.setValue('lineItems', updatedItems, { shouldDirty: false });
+    setLineItemsVersion((version) => version + 1);
   };
 
   // Helper function to validate and prepare template data

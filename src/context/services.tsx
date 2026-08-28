@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { differenceInWeeks, getDay, isAfter, isSameDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import Cookies from 'js-cookie';
-import { createContext, Dispatch, SetStateAction, useContext, useEffect, useState } from 'react';
+import { createContext, Dispatch, SetStateAction, useContext, useEffect, useMemo, useState } from 'react';
 
 import { useMembersStore } from '@/store/members';
 import { useWeekdayStore } from '@/store/weekday';
@@ -23,11 +23,13 @@ function filterServicesByDay(services: Service[], selectedDay: string): Service[
 
 type ServicesContextType = {
   services: Service[];
+  allServices: Service[];
   setServices: Dispatch<SetStateAction<Service[]>>;
 };
 
 const ServicesContext = createContext<ServicesContextType>({
   services: [],
+  allServices: [],
   setServices: () => {}
 });
 
@@ -54,12 +56,13 @@ export const ServicesProvider = ({ children }: { children: React.ReactNode }) =>
   });
 
   const [services, setServices] = useState([] as Service[]);
+  const allServices: Service[] = useMemo(() => data?.services ?? [], [data]);
 
   useEffect(() => {
     if (!userId) return;
     if (isError || isLoading) return;
 
-    const filteredServices = data.services?.filter((service: Service) => service.assignedTo.id === assignedToId);
+    const filteredServices = allServices.filter((service: Service) => service.assignedTo.id === assignedToId);
 
     const filteredServicesByDay = filterServicesByDay(filteredServices, selectedDay);
     // Order services by assignment order
@@ -70,7 +73,7 @@ export const ServicesProvider = ({ children }: { children: React.ReactNode }) =>
     });
 
     setServices(orderedServices);
-  }, [data, isError, isLoading, assignedToId, userId, selectedDay]);
+  }, [allServices, isError, isLoading, assignedToId, userId, selectedDay, allAssignments]);
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -78,6 +81,7 @@ export const ServicesProvider = ({ children }: { children: React.ReactNode }) =>
     <ServicesContext.Provider
       value={{
         services,
+        allServices,
         setServices
       }}
     >

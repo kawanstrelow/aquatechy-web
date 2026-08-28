@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { differenceInDays, isSameDay } from 'date-fns';
@@ -154,6 +154,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     }
   }, [invoiceData, form]);
 
+  const [lineItemsVersion, setLineItemsVersion] = useState(0);
   const watchedClientId = form.watch('clientId');
   const watchedLineItems = form.watch('lineItems');
   const watchedDiscountRate = form.watch('discountRate');
@@ -217,10 +218,12 @@ export default function EditInvoicePage({ params: { id } }: Props) {
       const currentAmount = Number(currentItem?.amount) || 0;
       const currentQuantity = Number(currentItem?.quantity) || 0;
       const currentUnitPrice = Number(currentItem?.unitPrice) || 0;
+      const currentTaxRate = Number(currentItem?.taxRate) ?? 0;
       return (
         item.amount !== currentAmount ||
         item.quantity !== currentQuantity ||
-        item.unitPrice !== currentUnitPrice
+        item.unitPrice !== currentUnitPrice ||
+        item.taxRate !== currentTaxRate
       );
     });
     
@@ -264,11 +267,12 @@ export default function EditInvoicePage({ params: { id } }: Props) {
 
   // Calculate invoice totals (tax per item; invoice taxAmount = sum of item taxAmounts)
   const invoiceTotals = useMemo(() => {
-    const subtotal = watchedLineItems.reduce((sum, item) => {
+    const items = form.getValues('lineItems');
+    const subtotal = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       return sum + amount;
     }, 0);
-    const taxAmount = watchedLineItems.reduce((sum, item) => {
+    const taxAmount = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
       const itemTax = Math.round((amount * taxRate / 100) * 100) / 100;
@@ -278,7 +282,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     const discountAmount = Math.round((subtotal * discountRate) / 100 * 100) / 100;
     const total = Math.round((subtotal + taxAmount - discountAmount) * 100) / 100;
     return { subtotal, taxAmount, discountAmount, total };
-  }, [watchedLineItems, watchedDiscountRate]);
+  }, [watchedLineItems, watchedDiscountRate, lineItemsVersion, form]);
 
   // Build preview invoice data
   const previewInvoice: DetailedInvoice | null = useMemo(() => {
@@ -340,6 +344,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     watchedIssuedDate,
     watchedDueDate,
     watchedLineItems,
+    lineItemsVersion,
     watchedDiscountRate,
     watchedPaymentTerms,
     watchedNotes,
@@ -408,6 +413,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     }
 
     form.setValue('lineItems', updatedItems, { shouldDirty: false });
+    setLineItemsVersion((version) => version + 1);
   };
 
   // Helper function to validate and prepare invoice data for update
