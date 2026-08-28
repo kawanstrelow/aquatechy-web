@@ -25,9 +25,10 @@ import { isEmpty } from '@/utils';
 
 import { useMembersStore } from '@/store/members';
 import WeekdaySelect from '../assignments/WeekdaySelect';
-import { TransferService } from '@/ts/interfaces/Service';
+import { Service, TransferService } from '@/ts/interfaces/Service';
 import { useTransferService, ServiceTransferResponse } from '@/hooks/react-query/services/transferService';
 import { useServicesContext } from '@/context/services';
+import { cn } from '@/lib/utils';
 
 const batchTransferSchema = z.object({
   assignedToId: z
@@ -48,8 +49,17 @@ const batchTransferSchema = z.object({
 
 type FormValues = z.infer<typeof batchTransferSchema>;
 
-export function DialogTransferMultipleServices() {
-  const { services } = useServicesContext();
+export function DialogTransferMultipleServices({
+  services: servicesOverride,
+  disabled,
+  fullWidth = true
+}: {
+  services?: Service[];
+  disabled?: boolean;
+  fullWidth?: boolean;
+} = {}) {
+  const { services: contextServices } = useServicesContext();
+  const services = servicesOverride ?? contextServices;
   const { members } = useMembersStore(
     useShallow((state) => ({
       members: state.members,
@@ -129,7 +139,7 @@ export function DialogTransferMultipleServices() {
     const isValid = await validateForm();
     if (isValid) {
       const payload = buildPayload();
-      
+
       if (payload.length === 0) {
         return;
       }
@@ -191,182 +201,183 @@ export function DialogTransferMultipleServices() {
 
   return (
     <>
-    <Dialog
-      open={open}
-      onOpenChange={
-        isPending
-          ? undefined
-          : (isOpen) => {
-              setOpen(isOpen);
-              if (!isOpen) {
-                setTimeout(() => {
+      <Dialog
+        open={open}
+        onOpenChange={
+          isPending
+            ? undefined
+            : (isOpen) => {
+                setOpen(isOpen);
+                if (!isOpen) {
+                  setTimeout(() => {
+                    form.reset();
+                    setWeekday(selectedWeekday);
+                    setNext10DatesWithChosenWeekday([]);
+                  }, 0);
+                }
+              }
+        }
+      >
+        <DialogTrigger asChild className={cn(fullWidth && 'w-full')}>
+          <Button
+            className={cn('h-9 shrink-0 whitespace-nowrap px-4 py-2', fullWidth ? 'w-full' : 'w-auto')}
+            variant="outline"
+            type="button"
+            disabled={disabled || servicesCount === 0}
+          >
+            Transfer All Services
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-scroll rounded-md md:w-[580px]">
+          <DialogTitle>Transfer All Services</DialogTitle>
+          {isPending ? (
+            <div className="flex flex-col items-center gap-4 py-8">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+              <p className="text-sm text-gray-600">
+                Transferring {servicesCount} service{servicesCount !== 1 ? 's' : ''}...
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
+                <p className="font-semibold">
+                  You are about to transfer {servicesCount} service{servicesCount !== 1 ? 's' : ''}.
+                </p>
+                <p className="mt-1">
+                  All services will be transferred to the same technician and scheduled for the same date.
+                </p>
+              </div>
+              <Form {...form}>
+                <form className="flex flex-col gap-4">
+                  <div className="flex gap-4">
+                    <div className="basis-full">
+                      <SelectField
+                        name="assignedToId"
+                        placeholder="Technician..."
+                        label="Technician"
+                        options={uniqueMembers.map((m) => ({
+                          key: m.id,
+                          value: m.id,
+                          name: `${m.firstName} ${m.lastName}`
+                        }))}
+                      />
+                    </div>
+
+                    <WeekdaySelect value={weekday} onChange={(weekday: WeekdaysUppercase) => setWeekday(weekday)} />
+                  </div>
+
+                  <div className="mt-1">
+                    <div className="flex flex-col gap-4 md:flex-row">
+                      <SelectField
+                        label="Schedule to"
+                        name="scheduledTo"
+                        placeholder="Schedule to"
+                        options={next10DatesWithChosenWeekday.map((date) => ({
+                          key: date.key,
+                          name: date.name,
+                          value: date.value
+                        }))}
+                      />
+                    </div>
+                  </div>
+                </form>
+              </Form>
+            </>
+          )}
+          {!isPending && (
+            <div className="flex justify-around gap-4 pt-4">
+              <Button className="w-full" onClick={transferServices}>
+                Transfer All
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
                   form.reset();
                   setWeekday(selectedWeekday);
                   setNext10DatesWithChosenWeekday([]);
-                }, 0);
-              }
-            }
-      }
-    >
-      <DialogTrigger asChild className="mt-2 w-full">
-        <Button 
-          className="w-full" 
-          variant="outline"
-          type="button"
-          disabled={servicesCount === 0}
-        >
-          Transfer All Services
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-scroll rounded-md md:w-[580px]">
-        <DialogTitle>Transfer All Services</DialogTitle>
-        {isPending ? (
-          <div className="flex flex-col items-center gap-4 py-8">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-            <p className="text-sm text-gray-600">Transferring {servicesCount} service{servicesCount !== 1 ? 's' : ''}...</p>
-          </div>
-        ) : (
-          <>
-            <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
-              <p className="font-semibold">You are about to transfer {servicesCount} service{servicesCount !== 1 ? 's' : ''}.</p>
-              <p className="mt-1">All services will be transferred to the same technician and scheduled for the same date.</p>
+                  setOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
             </div>
-            <Form {...form}>
-              <form className="flex flex-col gap-4">
-                <div className="flex gap-4">
-                  <div className="basis-full">
-                    <SelectField
-                      name="assignedToId"
-                      placeholder="Technician..."
-                      label="Technician"
-                      options={uniqueMembers.map((m) => ({
-                        key: m.id,
-                        value: m.id,
-                        name: `${m.firstName} ${m.lastName}`
-                      }))}
-                    />
-                  </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
-                  <WeekdaySelect value={weekday} onChange={(weekday: WeekdaysUppercase) => setWeekday(weekday)} />
+      {/* Error Dialog */}
+      <AlertDialog open={!!errorMessage} onOpenChange={(open) => !open && setErrorMessage(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error Transferring Services</AlertDialogTitle>
+            <AlertDialogDescription className="text-red-600">{errorMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>Close</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Transfer Results Dialog */}
+      <AlertDialog open={!!transferResults} onOpenChange={(open) => !open && setTransferResults(null)}>
+        <AlertDialogContent className="flex max-h-[80vh] max-w-2xl flex-col overflow-hidden">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {transferResults?.failureCount === 0 ? (
+                <span className="text-gray-600">✓ All Services Transferred Successfully</span>
+              ) : transferResults?.successCount === 0 ? (
+                <span className="text-gray-600">Transfer Failed</span>
+              ) : (
+                <span className="text-gray-600">Partial Transfer Completed</span>
+              )}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <div className="grid grid-cols-3 gap-4 py-4 text-sm">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-700">{transferResults?.totalProcessed}</div>
+                  <div className="text-gray-500">Total Processed</div>
                 </div>
-
-                <div className="mt-1">
-                  <div className="flex flex-col gap-4 md:flex-row">
-                    <SelectField
-                      label="Schedule to"
-                      name="scheduledTo"
-                      placeholder="Schedule to"
-                      options={next10DatesWithChosenWeekday.map((date) => ({
-                        key: date.key,
-                        name: date.name,
-                        value: date.value
-                      }))}
-                    />
-                  </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{transferResults?.successCount}</div>
+                  <div className="text-gray-500">Successful</div>
                 </div>
-              </form>
-            </Form>
-          </>
-        )}
-        {!isPending && (
-          <div className="flex justify-around gap-4 pt-4">
-            <Button className="w-full" onClick={transferServices}>
-              Transfer All
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                form.reset();
-                setWeekday(selectedWeekday);
-                setNext10DatesWithChosenWeekday([]);
-                setOpen(false);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-
-    {/* Error Dialog */}
-    <AlertDialog open={!!errorMessage} onOpenChange={(open) => !open && setErrorMessage(null)}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Error Transferring Services</AlertDialogTitle>
-          <AlertDialogDescription className="text-red-600">
-            {errorMessage}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction onClick={() => setErrorMessage(null)}>
-            Close
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-
-    {/* Transfer Results Dialog */}
-    <AlertDialog open={!!transferResults} onOpenChange={(open) => !open && setTransferResults(null)}>
-      <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            {transferResults?.failureCount === 0 ? (
-              <span className="text-gray-600">✓ All Services Transferred Successfully</span>
-            ) : transferResults?.successCount === 0 ? (
-              <span className="text-gray-600">Transfer Failed</span>
-            ) : (
-              <span className="text-gray-600">Partial Transfer Completed</span>
-            )}
-          </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
-            <div className="grid grid-cols-3 gap-4 py-4 text-sm">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-700">{transferResults?.totalProcessed}</div>
-                <div className="text-gray-500">Total Processed</div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">{transferResults?.failureCount}</div>
+                  <div className="text-gray-500">Failed</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{transferResults?.successCount}</div>
-                <div className="text-gray-500">Successful</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{transferResults?.failureCount}</div>
-                <div className="text-gray-500">Failed</div>
-              </div>
-            </div>
 
-            {transferResults && transferResults.failureCount > 0 && (
-              <div className="mt-4">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Failed Transfers:</div>
-                
+              {transferResults && transferResults.failureCount > 0 && (
+                <div className="mt-4">
+                  <div className="mb-2 text-sm font-semibold text-gray-700">Failed Transfers:</div>
+
                   {transferResults.results
                     .filter((result) => !result.success)
                     .map((result, index) => (
-                      <div key={result.serviceId || index} className="p-3 bg-white rounded border border-red-200 mb-2 mt-2">
+                      <div
+                        key={result.serviceId || index}
+                        className="mb-2 mt-2 rounded border border-red-200 bg-white p-3"
+                      >
                         <div className="text-sm text-red-700">{result.message}</div>
                       </div>
                     ))}
-                
-              </div>
-            )}
+                </div>
+              )}
 
-            {transferResults && transferResults.successCount > 0 && transferResults.failureCount > 0 && (
-              <div className="mt-3 p-3 bg-blue-50 rounded-md text-sm text-blue-800">
-                <strong>Note:</strong> {transferResults.successCount} service(s) were transferred successfully. 
-                The failed transfers above were skipped and may require manual attention.
-              </div>
-            )}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction onClick={() => setTransferResults(null)}>
-            Close
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  </>
+              {transferResults && transferResults.successCount > 0 && transferResults.failureCount > 0 && (
+                <div className="mt-3 rounded-md bg-blue-50 p-3 text-sm text-blue-800">
+                  <strong>Note:</strong> {transferResults.successCount} service(s) were transferred successfully. The
+                  failed transfers above were skipped and may require manual attention.
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setTransferResults(null)}>Close</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
-

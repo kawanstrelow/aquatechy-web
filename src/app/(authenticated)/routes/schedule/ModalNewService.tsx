@@ -7,6 +7,7 @@ import InputField from '@/components/InputField';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
 import { FieldType } from '@/ts/enums/enums';
 import { useCreateService } from '@/hooks/react-query/services/createService';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
@@ -20,7 +21,7 @@ import { useUserStore } from '@/store/user';
 import { FormSchema } from './page';
 import { useCreateAssignmentForSpecificService } from '@/hooks/react-query/assignments/createAssignmentForSpecificService';
 
-export function DialogNewService() {
+export function DialogNewService({ fullWidth = true }: { fullWidth?: boolean } = {}) {
   const form = useFormContext<FormSchema>();
   const { user } = useUserStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,9 +37,7 @@ export function DialogNewService() {
   const { data: clients = [], isLoading } = useGetAllClients();
   const clientId = form.watch('clientId');
   const selectedClient = clients.find((c: Client) => c.id === clientId);
-  const { data: pools = [], isLoading: isPoolsLoading } = useGetPoolsByClientId(
-    isModalOpen ? clientId : null
-  );
+  const { data: pools = [], isLoading: isPoolsLoading } = useGetPoolsByClientId(isModalOpen ? clientId : null);
   const { data: serviceTypesData, isLoading: isServiceTypesLoading } = useGetServiceTypes(
     selectedClient?.companyOwner?.id || ''
   );
@@ -64,10 +63,10 @@ export function DialogNewService() {
   const serviceTypes = serviceTypesData?.serviceTypes || [];
   const hasClients = clients.length > 0;
   const hasServiceTypes = serviceTypes.length > 0;
-  
+
   // Watch serviceTypeId to check if it's "Pool Cleaning"
   const serviceTypeId = form.watch('serviceTypeId');
-  const selectedServiceType = serviceTypes.find(st => st.id === serviceTypeId);
+  const selectedServiceType = serviceTypes.find((st) => st.id === serviceTypeId);
   const showInstructions = selectedServiceType?.name !== 'Pool Cleaning';
 
   function getNext10Dates() {
@@ -140,8 +139,11 @@ export function DialogNewService() {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={isPending ? undefined : setIsModalOpen}>
-      <DialogTrigger asChild className="mt-2 w-full">
-        <Button className="w-full" type="button">
+      <DialogTrigger asChild className={cn(fullWidth && 'w-full')}>
+        <Button
+          className={cn('h-9 shrink-0 whitespace-nowrap px-4 py-2', fullWidth ? 'w-full' : 'w-auto')}
+          type="button"
+        >
           New service
         </Button>
       </DialogTrigger>
@@ -183,7 +185,9 @@ export function DialogNewService() {
                           value: pool.id
                         }))}
                       label="Location"
-                      placeholder={isPoolsLoading ? 'Loading pools...' : pools.length === 0 ? 'No pools available' : 'Location'}
+                      placeholder={
+                        isPoolsLoading ? 'Loading pools...' : pools.length === 0 ? 'No pools available' : 'Location'
+                      }
                       name="poolId"
                     />
                   )}

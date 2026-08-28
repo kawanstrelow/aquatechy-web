@@ -1,7 +1,5 @@
 import { useShallow } from 'zustand/react/shallow';
 
-import { useMembersStore } from '@/store/members';
-
 import {
   Select,
   SelectContent,
@@ -10,15 +8,18 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../../../components/ui/select';
-import { CompanyMember } from '@/ts/interfaces/Company';
+import { cn } from '@/lib/utils';
+import { useMembersStore } from '@/store/members';
 import { useUserStore } from '@/store/user';
 
 type Props = {
   onChange: (value: string) => void;
-  defaultValue?: string;
+  value?: string;
+  showAllOption?: boolean;
+  className?: string;
 };
 
-export default function MemberSelect({ onChange }: Props) {
+export default function MemberSelect({ onChange, value, showAllOption, className }: Props) {
   const { assignedToId, members } = useMembersStore(
     useShallow((state) => ({
       assignedToId: state.assignedToId,
@@ -33,26 +34,29 @@ export default function MemberSelect({ onChange }: Props) {
   }
 
   return (
-    <div className="mt-2">
-      <Select onValueChange={handleChange} defaultValue={assignedToId}>
+    <div className={cn('mt-2', className)}>
+      <Select onValueChange={handleChange} value={value ?? assignedToId}>
         <SelectTrigger data-testid="select-member">
           <SelectValue placeholder="Member" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
+            {showAllOption && <SelectItem value="all">All technicians</SelectItem>}
             {members
-              .filter((member, index, self) => 
-                // Keep only the first occurrence of each member ID
-                index === self.findIndex(m => m.id === member.id)
+              .filter(
+                (member, index, self) =>
+                  // Keep only the first occurrence of each member ID
+                  index === self.findIndex((m) => m.id === member.id)
               )
-              .map((member) =>
-                member.id !== user.id &&
-                member.firstName !== '' && (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.firstName} {member.lastName}
-                  </SelectItem>
-                )
-            )}
+              .map(
+                (member) =>
+                  member.id !== user.id &&
+                  member.firstName !== '' && (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.firstName} {member.lastName}
+                    </SelectItem>
+                  )
+              )}
             {
               <SelectItem value={user.id}>
                 {user.firstName} {user.lastName}
