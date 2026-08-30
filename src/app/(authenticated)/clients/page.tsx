@@ -17,10 +17,10 @@ export default function Page() {
   const user = useUserStore((state) => state.user);
   const router = useRouter();
 
-  // Set initial filtered clients - FIXED: Only set once when allClients changes from undefined to actual data
+  // Set initial filtered clients to active only
   useEffect(() => {
     if (allClients && allClients.length > 0 && filteredClients.length === 0) {
-      setFilteredClients(allClients);
+      setFilteredClients(allClients.filter((client) => client.isActive));
     }
   }, [allClients, filteredClients.length]);
 
@@ -46,8 +46,12 @@ export default function Page() {
           field?.toLowerCase().includes(filters.search.toLowerCase())
         );
 
-      // Status filter
-      const statusMatch = !filters.status || client.status === filters.status;
+      // Status filter by isActive
+      const statusMatch =
+        !filters.isActive ||
+        filters.isActive === 'all' ||
+        (filters.isActive === 'active' && client.isActive) ||
+        (filters.isActive === 'inactive' && !client.isActive);
 
       // City filter
       const cityMatch = !filters.city || filters.city === 'all' || client.city === filters.city;

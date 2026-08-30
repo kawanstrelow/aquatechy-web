@@ -80,17 +80,17 @@ export const columns: ColumnDef<Client>[] = [
     cell: ({ row }) => <ActionButtons client={row.original} />
   },
   {
-    id: 'deactivatedAt',
-    accessorKey: 'deactivatedAt',
+    id: 'isActive',
+    accessorKey: 'isActive',
     filterFn: (row, _, filter) => {
-      if (filter === 'all') {
+      if (filter === 'all' || filter === '' || !filter) {
         return true;
       }
       if (filter === 'active') {
-        return row.original.isActive;
+        return row.original.isActive === true;
       }
       if (filter === 'inactive') {
-        return !row.original.isActive;
+        return row.original.isActive === false;
       }
       return true;
     }
