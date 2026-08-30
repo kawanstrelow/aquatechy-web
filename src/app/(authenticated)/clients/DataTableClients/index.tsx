@@ -38,7 +38,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTableClients<TValue>({ columns, data, onFiltersChange }: DataTableProps<Client, TValue>) {
   const shouldDisableNewPools = useUserStore((state) => state.shouldDisableNewPools);
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([{ id: 'isActive', value: 'active' }]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [sortColumn, setSortColumn] = useState<keyof Client | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -106,7 +106,7 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
     },
     initialState: {
       columnVisibility: {
-        deactivatedAt: false
+        isActive: false
       }
     }
   });
@@ -122,7 +122,7 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
     defaultValues: {
       type: 'all',
       city: 'all',
-      filter: 'all',
+      isActive: 'active',
       companyOwnerId: 'all'
     }
   });
@@ -232,10 +232,14 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
                 }}
               />
               <SelectField
-                name="filter"
+                name="isActive"
                 options={selectOptions}
                 placeholder="Status"
-                onValueChange={(value) => table.getColumn('deactivatedAt')?.setFilterValue(value)}
+                onValueChange={(value) => {
+                  form.setValue('isActive', value);
+                  table.getColumn('isActive')?.setFilterValue(value);
+                  onFiltersChange(form.getValues());
+                }}
               />
               <SelectField
                 name="city"
