@@ -155,12 +155,12 @@ export const routes: Menu[] = [
         icon: Import,
         description: 'Import clients from a QuickBooks file'
       },
-      importCSV: {
-        text: 'CSV Import',
-        href: '/clients/import-csv',
-        title: 'Import Clients from CSV',
+      importFromFile: {
+        text: 'Excel / CSV Import',
+        href: '/clients/import-from-file',
+        title: 'Import Clients from Excel or CSV',
         icon: Import,
-        description: 'Import clients using our CSV template'
+        description: 'Import clients using our Excel or CSV template'
       },
       importSkimmer: {
         text: 'Skimmer Import',
