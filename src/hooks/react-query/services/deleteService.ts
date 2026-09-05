@@ -16,21 +16,13 @@ export const useDeleteService = (clientId: string) => {
         data: { serviceId, assignmentId }
       }),
     onSuccess: (_data, { serviceId }) => {
-      // Optimistically update the cache by removing the deleted service
-      queryClient.setQueryData(['schedule', userId], (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          services: oldData.services?.filter((service: any) => service.id !== serviceId) || []
-        };
-      });
+      queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
 
       queryClient.setQueryData(['services', userId], (oldData: any) => {
         if (!oldData) return oldData;
         return oldData.filter((service: any) => service.id !== serviceId);
       });
 
-      // Still invalidate assignments and clients to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['assignments', userId] });
       queryClient.invalidateQueries({ queryKey: ['clients', clientId] });
 

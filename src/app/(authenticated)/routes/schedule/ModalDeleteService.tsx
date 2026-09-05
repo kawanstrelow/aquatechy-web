@@ -23,10 +23,11 @@ export function DialogDeleteService({ service, open, setOpen, clientId }: Props)
   const { mutate: deleteAssignment, isPending: isDeletingAssignment } = useDeleteAssignment();
   const [scope, setScope] = useState<DeleteScope>('this_service');
 
+  const assignment = service?.assignment;
   const isOneTimeService = Boolean(
-    service?.assignment?.startOn &&
-      service?.assignment?.endAfter &&
-      differenceInDays(new Date(service.assignment.endAfter), new Date(service.assignment.startOn)) < 7
+    assignment?.startOn &&
+      assignment?.endAfter &&
+      differenceInDays(new Date(assignment.endAfter), new Date(assignment.startOn)) < 7
   );
   const canDeleteRecurring = Boolean(service?.assignmentId) && !isOneTimeService;
   const isPending = isDeletingService || isDeletingAssignment;

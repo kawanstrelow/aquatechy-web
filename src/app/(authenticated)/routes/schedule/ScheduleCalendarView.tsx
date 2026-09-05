@@ -17,16 +17,16 @@ import { useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { Button } from '@/components/ui/button';
-import { useServicesContext } from '@/context/services';
+import { useGetScheduledSummary } from '@/hooks/react-query/services/useGetScheduledSummary';
 import { cn } from '@/lib/utils';
 import { useMembersStore } from '@/store/members';
-import { normalizeToUTC12, useWeekdayStore } from '@/store/weekday';
-import { Service } from '@/ts/interfaces/Service';
+import { useWeekdayStore } from '@/store/weekday';
+import { ScheduledSummaryDay, ScheduledSummaryTechnician } from '@/ts/interfaces/Service';
 
 import MemberSelect from './MemberSelect';
 import { DialogNewService } from './ModalNewService';
-import { DialogTransferMultipleServices } from './ModalTransferMultipleServices';
 import { ScheduleMapModal } from './ScheduleMapModal';
+import { getScheduleMonthWindow, isWithinScheduleMonthWindow, scheduledDayKey } from './scheduleDate';
 import { TechDayTag } from './TechDayTag';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -36,45 +36,36 @@ export type TechDayGroup = {
   firstName: string;
   lastName: string;
   count: number;
+  date: string;
 };
 
 function getDayKey(date: Date) {
   return format(date, 'yyyy-MM-dd');
 }
 
-function groupServicesByDayAndTech(services: Service[], techFilter: string) {
-  const byDay = new Map<string, Map<string, TechDayGroup>>();
+function groupSummaryDays(days: ScheduledSummaryDay[], techFilter: string) {
+  const result = new Map<string, TechDayGroup[]>();
 
-  for (const service of services) {
-    const techId = service.assignedTo?.id;
-    if (!techId) continue;
-    if (techFilter !== 'all' && techId !== techFilter) continue;
+  for (const day of days) {
+    if (!isWithinScheduleMonthWindow(scheduledDayKey(day.date))) continue;
 
-    const dayKey = format(new Date(service.scheduledTo), 'yyyy-MM-dd');
-    if (!byDay.has(dayKey)) {
-      byDay.set(dayKey, new Map());
-    }
-    const techs = byDay.get(dayKey)!;
-    const existing = techs.get(techId);
-    if (existing) {
-      existing.count += 1;
-    } else {
-      techs.set(techId, {
-        techId,
-        firstName: service.assignedTo.firstName,
-        lastName: service.assignedTo.lastName,
-        count: 1
-      });
-    }
+    const technicians =
+      techFilter === 'all' ? day.technicians : day.technicians.filter((technician) => technician.id === techFilter);
+
+    if (technicians.length === 0) continue;
+
+    result.set(
+      scheduledDayKey(day.date),
+      technicians.map((technician: ScheduledSummaryTechnician) => ({
+        techId: technician.id,
+        firstName: technician.firstName,
+        lastName: technician.lastName,
+        count: technician.count,
+        date: day.date
+      }))
+    );
   }
 
-  const result = new Map<string, TechDayGroup[]>();
-  byDay.forEach((techs, dayKey) => {
-    result.set(
-      dayKey,
-      Array.from(techs.values()).sort((a, b) => a.firstName.localeCompare(b.firstName))
-    );
-  });
   return result;
 }
 
@@ -84,7 +75,7 @@ type Props = {
 };
 
 export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
-  const { allServices } = useServicesContext();
+  const { data, isLoading, isError } = useGetScheduledSummary();
   const { assignedToId, setAssignedToid } = useMembersStore(
     useShallow((state) => ({
       assignedToId: state.assignedToId,
@@ -94,13 +85,14 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
   const setSelectedDay = useWeekdayStore((state) => state.setSelectedDay);
   const previousAssignedToIdRef = useRef(assignedToId);
 
+  const { previousMonth, nextMonth } = useMemo(() => getScheduleMonthWindow(), []);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMemberId, setModalMemberId] = useState('');
   const [modalDayIso, setModalDayIso] = useState('');
 
-  const grouped = useMemo(() => groupServicesByDayAndTech(allServices, techFilter), [allServices, techFilter]);
+  const grouped = useMemo(() => groupSummaryDays(data?.days ?? [], techFilter), [data?.days, techFilter]);
 
   const days = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
@@ -112,12 +104,11 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
   }, [currentMonth]);
 
   function handleTagClick(group: TechDayGroup, day: Date) {
-    const dayIso = normalizeToUTC12(day.toISOString()).toISOString();
     previousAssignedToIdRef.current = assignedToId;
     setAssignedToid(group.techId);
-    setSelectedDay(dayIso);
+    setSelectedDay(group.date);
     setModalMemberId(group.techId);
-    setModalDayIso(dayIso);
+    setModalDayIso(group.date);
     setModalTitle(`${group.firstName} ${group.lastName} — ${format(day, 'EEEE, MMMM do')}`);
     setModalOpen(true);
   }
@@ -140,6 +131,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
               variant="outline"
               size="icon"
               aria-label="Previous month"
+              disabled={isSameMonth(currentMonth, previousMonth)}
               onClick={() => setCurrentMonth((month) => subMonths(month, 1))}
             >
               <ChevronLeftIcon className="h-4 w-4" />
@@ -151,6 +143,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
               variant="outline"
               size="icon"
               aria-label="Next month"
+              disabled={isSameMonth(currentMonth, nextMonth)}
               onClick={() => setCurrentMonth((month) => addMonths(month, 1))}
             >
               <ChevronRightIcon className="h-4 w-4" />
@@ -163,61 +156,69 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
             </div>
             <div className="flex h-9 shrink-0 items-center gap-2">
               <DialogNewService fullWidth={false} />
-              {techFilter !== 'all' && <DialogTransferMultipleServices fullWidth={false} />}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-px bg-slate-200">
-          {WEEKDAYS.map((weekday) => (
-            <div
-              key={weekday}
-              className="bg-slate-50 px-1 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500"
-            >
-              {weekday}
-            </div>
-          ))}
-          {days.map((day) => {
-            const dayKey = getDayKey(day);
-            const tags = grouped.get(dayKey) ?? [];
-            const inMonth = isSameMonth(day, currentMonth);
-            const isTodayDate = isSameDay(day, today);
-
-            return (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
+            <p className="text-sm text-slate-500">Loading schedule…</p>
+          </div>
+        ) : isError ? (
+          <div className="px-4 py-16 text-center text-sm text-slate-500">Could not load the schedule. Try again.</div>
+        ) : (
+          <div className="grid grid-cols-7 gap-px bg-slate-200">
+            {WEEKDAYS.map((weekday) => (
               <div
-                key={dayKey}
-                className={cn(
-                  'flex min-h-[108px] flex-col bg-white p-1.5 sm:min-h-[120px] sm:p-2',
-                  !inMonth && 'bg-slate-50/80',
-                  isTodayDate && 'bg-blue-50'
-                )}
+                key={weekday}
+                className="bg-slate-50 px-1 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500"
               >
-                <div className="mb-1.5 flex items-center justify-between">
-                  <span
-                    className={cn(
-                      'inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-medium',
-                      inMonth ? 'text-slate-700' : 'text-slate-400',
-                      isTodayDate && 'bg-blue-600 font-semibold text-white'
-                    )}
-                  >
-                    {format(day, 'd')}
-                  </span>
-                </div>
-                <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
-                  {tags.map((group) => (
-                    <TechDayTag
-                      key={group.techId}
-                      techId={group.techId}
-                      name={group.firstName}
-                      count={group.count}
-                      onClick={() => handleTagClick(group, day)}
-                    />
-                  ))}
-                </div>
+                {weekday}
               </div>
-            );
-          })}
-        </div>
+            ))}
+            {days.map((day) => {
+              const dayKey = getDayKey(day);
+              const tags = grouped.get(dayKey) ?? [];
+              const inMonth = isSameMonth(day, currentMonth);
+              const isTodayDate = isSameDay(day, today);
+
+              return (
+                <div
+                  key={dayKey}
+                  className={cn(
+                    'flex min-h-[108px] flex-col bg-white p-1.5 sm:min-h-[120px] sm:p-2',
+                    !inMonth && 'bg-slate-50/80',
+                    isTodayDate && 'bg-blue-50'
+                  )}
+                >
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span
+                      className={cn(
+                        'inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-medium',
+                        inMonth ? 'text-slate-700' : 'text-slate-400',
+                        isTodayDate && 'bg-blue-600 font-semibold text-white'
+                      )}
+                    >
+                      {format(day, 'd')}
+                    </span>
+                  </div>
+                  <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
+                    {tags.map((group) => (
+                      <TechDayTag
+                        key={group.techId}
+                        techId={group.techId}
+                        name={group.firstName}
+                        count={group.count}
+                        onClick={() => handleTagClick(group, day)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <p className="mt-2 px-1 text-xs text-slate-500">Click a technician tag to open that day's route and map.</p>

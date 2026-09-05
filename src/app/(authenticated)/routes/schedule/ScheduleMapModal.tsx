@@ -2,15 +2,14 @@
 
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { isSameDay } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import { useAssignmentsContext } from '@/context/assignments';
-import { useServicesContext } from '@/context/services';
 import { useUpdateAssignments } from '@/hooks/react-query/assignments/updateAssignments';
+import { useGetScheduledByTechnician } from '@/hooks/react-query/services/useGetScheduledByTechnician';
 import { useMapServicesUtils } from '@/hooks/useMapServicesUtils';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
 import { getDirectionsAndTime, getOptimizedRoute } from '@/services/here-maps';
@@ -41,13 +40,17 @@ type Props = {
 };
 
 export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }: Props) {
-  const { directions, distance, duration, isLoaded, loadError } = useMapServicesUtils();
-  const { allServices } = useServicesContext();
+  const { directions, isLoaded, loadError } = useMapServicesUtils();
   const { allAssignments } = useAssignmentsContext();
   const { user } = useUserStore();
   const { mutate: updateAssignments, isPending: isSaving } = useUpdateAssignments();
   const { width = 0 } = useWindowDimensions();
   const mdScreen = width < 900;
+  const {
+    data,
+    isLoading: isLoadingServices,
+    isError: isServicesError
+  } = useGetScheduledByTechnician(memberId, dayIso, open);
 
   const [orderedServices, setOrderedServices] = useState<Service[]>([]);
   const [localAssignments, setLocalAssignments] = useState<(Assignment | undefined)[]>([]);
@@ -57,18 +60,16 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
   const [isRouting, setIsRouting] = useState(false);
 
   const modalServices = useMemo(() => {
-    if (!memberId || !dayIso) return [];
+    const services = data?.services ?? [];
 
-    return allServices
-      .filter(
-        (service) => service.assignedTo?.id === memberId && isSameDay(new Date(service.scheduledTo), new Date(dayIso))
-      )
-      .sort((a, b) => {
-        const aAssignment = allAssignments.find((assignment) => assignment.id === a.assignmentId);
-        const bAssignment = allAssignments.find((assignment) => assignment.id === b.assignmentId);
-        return (aAssignment?.order ?? 0) - (bAssignment?.order ?? 0);
-      });
-  }, [allServices, allAssignments, memberId, dayIso]);
+    return [...services].sort((a, b) => {
+      const aOrder =
+        a.assignment?.order ?? allAssignments.find((assignment) => assignment.id === a.assignmentId)?.order ?? 0;
+      const bOrder =
+        b.assignment?.order ?? allAssignments.find((assignment) => assignment.id === b.assignmentId)?.order ?? 0;
+      return aOrder - bOrder;
+    });
+  }, [data?.services, allAssignments]);
 
   useEffect(() => {
     if (!open || hasChanges) return;
@@ -78,8 +79,10 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
 
   const { totalDistance, totalDuration } = useMemo(() => getRouteTotals(localAssignments), [localAssignments]);
   const routableAssignments = useMemo(() => getRoutableAssignments(localAssignments), [localAssignments]);
-  const stopLabel = `${orderedServices.length} ${orderedServices.length === 1 ? 'stop' : 'stops'}`;
-  const isBusy = isSaving || isRouting;
+  const stopLabel = isLoadingServices
+    ? 'Loading stops…'
+    : `${orderedServices.length} ${orderedServices.length === 1 ? 'stop' : 'stops'}`;
+  const isBusy = isSaving || isRouting || isLoadingServices;
 
   function resetLocalState() {
     setHasChanges(false);
@@ -89,7 +92,7 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
   }
 
   function handleOpenChange(nextOpen: boolean) {
-    if (isBusy) return;
+    if (isSaving || isRouting) return;
     if (!nextOpen) {
       resetLocalState();
     }
@@ -274,7 +277,11 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
                     Optimize Route
                   </Button>
                 )}
-                <DialogTransferMultipleServices services={orderedServices} fullWidth={false} />
+                <DialogTransferMultipleServices
+                  services={orderedServices}
+                  fullWidth={false}
+                  disabled={isLoadingServices}
+                />
                 {hasChanges && (
                   <Button
                     type="button"
@@ -299,7 +306,13 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
                   {isBusy ? (
                     <div className="flex flex-col items-center gap-4 py-8">
                       <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-                      <p className="text-sm text-gray-600">{isSaving ? 'Saving route...' : 'Calculating route...'}</p>
+                      <p className="text-sm text-gray-600">
+                        {isSaving ? 'Saving route...' : isRouting ? 'Calculating route...' : 'Loading services...'}
+                      </p>
+                    </div>
+                  ) : isServicesError ? (
+                    <div className="px-4 py-8 text-center text-sm text-slate-500">
+                      Could not load this day's services. Try again.
                     </div>
                   ) : (
                     <ServicesList
@@ -315,8 +328,8 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
                 <Map
                   services={orderedServices}
                   directions={directions}
-                  distance={totalDistance || distance}
-                  duration={totalDuration || duration}
+                  distance={totalDistance}
+                  duration={totalDuration}
                   isLoaded={isLoaded}
                   loadError={loadError}
                   height={mdScreen ? '40vh' : '100%'}

@@ -177,12 +177,6 @@ export const routes: Menu[] = [
   {
     text: 'Routes',
     submenu: {
-      routes: {
-        text: 'Assignments',
-        href: '/routes/assignments',
-        title: 'Assignments',
-        description: 'Create assignments, manage your routes and see your schedule'
-      },
       schedule: {
         text: 'Schedule',
         href: '/routes/schedule',
@@ -198,10 +192,10 @@ export const routes: Menu[] = [
         icon: RouteIcon
       }
     },
-    href: '/routes/assignments',
+    href: '/routes/schedule',
     icon: RouteIcon,
-    title: 'Assignments',
-    description: 'Create assignments, manage your routes and see your schedule'
+    title: 'Routes',
+    description: 'See your schedule and find the best route for a new pool location'
   },
   {
     text: 'Requests',
