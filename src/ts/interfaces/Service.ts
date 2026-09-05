@@ -15,7 +15,10 @@ export interface Service {
     id: string;
     startOn: string;
     endAfter: string;
-  };
+    order?: number;
+    timeInMinutesToNextStop?: number | null;
+    distanceInMilesToNextStop?: number | null;
+  } | null;
   createdAt: string | null;
   completedByUserId: string | null;
   assignedToId: string;
@@ -104,6 +107,26 @@ export type TransferService = {
   assignedToId: string;
   scheduledTo: string;
 };
+
+export interface ScheduledSummaryTechnician {
+  id: string;
+  firstName: string;
+  lastName: string;
+  count: number;
+}
+
+export interface ScheduledSummaryDay {
+  date: string;
+  technicians: ScheduledSummaryTechnician[];
+}
+
+export interface ScheduledSummaryResponse {
+  days: ScheduledSummaryDay[];
+}
+
+export interface ScheduledByTechnicianResponse {
+  services: Service[];
+}
 
 // New structured data interfaces
 export interface StructuredPhoto {

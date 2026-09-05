@@ -15,7 +15,7 @@ const types = {
     title: 'Route dashboard',
     color: 'from-emerald-400 to-stone-400',
     icon: RouteIcon,
-    href: '/routes/assignments'
+    href: '/routes/schedule'
   },
   companies: {
     title: 'Companies',
