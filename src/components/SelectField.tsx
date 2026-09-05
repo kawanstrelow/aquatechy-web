@@ -11,6 +11,7 @@ type SelectFieldProps = SelectProps & {
   name: string;
   placeholder: string;
   label?: string;
+  itemClassName?: string;
 };
 
 type Props = {
@@ -19,7 +20,7 @@ type Props = {
 };
 
 const SelectField = forwardRef<HTMLDivElement, Props & SelectFieldProps>(
-  ({ options, name, placeholder, form, field, defaultValue, ...props }, ref) => {
+  ({ options, name, placeholder, form, field, defaultValue, itemClassName, ...props }, ref) => {
     useEffect(() => {
       if (defaultValue) {
         field.onChange(defaultValue);
@@ -45,7 +46,7 @@ const SelectField = forwardRef<HTMLDivElement, Props & SelectFieldProps>(
         <SelectContent ref={ref}>
           <SelectGroup>
             {options.map((d) => (
-              <SelectItem key={d.key} value={d.value}>
+              <SelectItem key={d.key} value={d.value} className={itemClassName}>
                 {d.name}
               </SelectItem>
             ))}

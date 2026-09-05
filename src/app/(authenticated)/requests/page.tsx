@@ -23,7 +23,6 @@ import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 
 import { DataTableRequests } from './DataTableRequests';
 import { columns } from './DataTableRequests/columns';
-import { ModalAddRequest } from './ModalAddRequest';
 import DataTableRequestsSkeleton from './DataTableRequests/skeleton';
 import { PaginationDemo } from '@/components/PaginationDemo';
 
@@ -140,8 +139,6 @@ export default function Page() {
           onSubmit={filtersForm.handleSubmit(onSubmit)}
         >
           <div className="flex flex-col md:flex-row flex-wrap items-start md:items-center gap-2 p-4">
-            <ModalAddRequest />
-
             <Input
               className="w-full md:w-[250px]"
               placeholder="Filter requests..."
@@ -268,6 +265,7 @@ export default function Page() {
                               placeholder="Select category"
                               {...field}
                               options={Categories}
+                              itemClassName="whitespace-normal text-left"
                               onValueChange={(value) => {
                                 field.onChange(value);
                               }}

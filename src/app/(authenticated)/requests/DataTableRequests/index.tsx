@@ -11,7 +11,7 @@ import {
 import React, { useState } from 'react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { RequestCategory } from '@/ts/enums/enums';
+import { formatRequestCategory } from '@/ts/enums/enums';
 import { Request } from '@/ts/interfaces/Request';
 
 import { ModalEditRequest } from '../ModalEditRequest';
@@ -54,8 +54,7 @@ export function DataTableRequests<TData, TValue>({
 
       const searchTerm = filterValue.toLowerCase();
       const request = row.original as Request;
-      const categoryName =
-        RequestCategory[request.category as keyof typeof RequestCategory] || request.category;
+      const categoryName = formatRequestCategory(request.category);
       const statusLabel = statusLabels[request.status] ?? request.status;
 
       const combinedSearchString = [

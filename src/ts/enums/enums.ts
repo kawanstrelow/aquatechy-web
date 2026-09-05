@@ -94,9 +94,26 @@ export enum MaintenanceType {
 }
 
 export enum RequestCategory {
-  other = 'Other',
+  equipmentIsLeaking = 'Equipment is leaking',
+  filterCartridgeNeedsToBeReplaced = 'Filter cartridge needs to be replaced',
   filterCleaning = 'Filter Cleaning',
+  filterNeedsANewORing = 'Filter needs a new O-ring',
   filterReplacement = 'Filter Replacement',
+  heaterIsNotWorking = 'Heater is not working',
+  other = 'Other',
+  poolNeedsANewSkimmerBasket = 'Pool needs a new skimmer basket',
+  pumpHasNoPower = 'Pump has no power',
+  pumpIsNotPriming = 'Pump is not priming',
+  pumpNeedsANewBasket = 'Pump needs a new basket',
+  pumpNeedsANewGasket = 'Pump needs a new gasket',
+  saltSystemStoppedWorking = 'Salt system stopped working',
+  timerHasNoPower = 'Timer has no power',
+  waterLevelIsHigh = 'Water level is high',
+  waterLevelIsLow = 'Water level is low'
+}
+
+export function formatRequestCategory(value: string): string {
+  return RequestCategory[value as keyof typeof RequestCategory] ?? value;
 }
 
 export const STATE_TIMEZONE_MAP: { [key: string]: IanaTimeZones } = {
