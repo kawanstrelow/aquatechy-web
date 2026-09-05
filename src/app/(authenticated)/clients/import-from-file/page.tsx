@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { STATE_TIMEZONE_MAP, IanaTimeZones } from '@/ts/enums/enums';
 import { Typography } from '@/components/Typography';
-import { Loader2Icon, Download } from 'lucide-react';
+import { Loader2Icon, FileSpreadsheet, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { useForm } from 'react-hook-form';
@@ -170,7 +170,7 @@ const convertStateToAbbreviation = (state: string): string => {
   return STATE_MAPPINGS[normalizedState] || state;
 };
 
-export default function ImportFromCSV() {
+export default function ImportFromFile() {
   const { data: companies = [], isLoading: isCompaniesLoading, isSuccess: isCompaniesSuccess } = useGetCompanies();
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string>('');
@@ -290,7 +290,7 @@ export default function ImportFromCSV() {
         toast({
           duration: 5000,
           title: 'Error processing file',
-          description: 'Please make sure you are using the correct CSV template format',
+          description: 'Please make sure you are using the correct Excel or CSV template format',
           variant: 'error'
         });
       }
@@ -348,24 +348,37 @@ export default function ImportFromCSV() {
   return (
     <div className="p-6">
       <Typography element="h1" className="mb-6">
-        Import Clients from CSV
+        Import Clients from Excel or CSV
       </Typography>
 
       <div className="mb-8 rounded-lg border border-slate-200 bg-slate-50 p-6">
         <Typography element="h2" className="mb-4 text-lg font-semibold">
-          How to Import Clients using CSV
+          How to Import Clients
         </Typography>
         <ol className="list-decimal space-y-3 pl-4">
           <li>
-            Download our CSV template file:
+            Import from Excel (.xlsx):
+            <div className="mt-2">
+              <a
+                href="/templates/client_import_template.xlsx"
+                download
+                className={cn(buttonVariants({ variant: 'default' }), 'inline-flex items-center gap-2')}
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Download Excel Template
+              </a>
+            </div>
+          </li>
+          <li>
+            Import from CSV:
             <div className="mt-2">
               <a
                 href="/templates/client_import_template.csv"
                 download
-                className={cn(buttonVariants({ variant: 'default' }), 'inline-flex items-center gap-2')}
+                className={cn(buttonVariants({ variant: 'outline' }), 'inline-flex items-center gap-2')}
               >
-                <Download className="h-4 w-4" />
-                Download Template
+                <FileText className="h-4 w-4" />
+                Download CSV Template
               </a>
             </div>
           </li>
@@ -374,14 +387,14 @@ export default function ImportFromCSV() {
             <ul className="mt-2 list-disc pl-4 text-slate-600">
               <li>Follow the example row provided in the template</li>
               <li>Make sure to keep the column headers exactly as they are</li>
-              <li>Save the file as CSV format</li>
+              <li>Save the file as Excel (.xlsx) or CSV</li>
             </ul>
           </li>
           <li>
             Return to this page and complete these steps:
             <ul className="mt-2 list-disc pl-4 text-slate-600">
               <li>Select your company from the dropdown below</li>
-              <li>Click "Choose File" and select your filled CSV file</li>
+              <li>Click &quot;Choose File&quot; and select your filled Excel or CSV file</li>
             </ul>
           </li>
           <li>
@@ -422,9 +435,15 @@ export default function ImportFromCSV() {
         <div className="mb-6 flex items-center gap-2">
           <label className={cn(buttonVariants({ variant: 'default' }), 'cursor-pointer')}>
             Choose File
-            <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileUpload} className="hidden" />
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </label>
           {selectedFile && <span className="text-sm text-slate-500">{selectedFile}</span>}
+          {isProcessing && <Loader2Icon className="h-4 w-4 animate-spin" />}
         </div>
       </Form>
 

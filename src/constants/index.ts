@@ -18,6 +18,8 @@ import {
   Waves
 } from 'lucide-react';
 
+import { RequestCategory } from '@/ts/enums/enums';
+
 import RouteIcon from '@/components/ui/route-icon';
 import TabIcon from '@/components/ui/tab-icon';
 
@@ -155,12 +157,12 @@ export const routes: Menu[] = [
         icon: Import,
         description: 'Import clients from a QuickBooks file'
       },
-      importCSV: {
-        text: 'CSV Import',
-        href: '/clients/import-csv',
-        title: 'Import Clients from CSV',
+      importFromFile: {
+        text: 'Excel / CSV Import',
+        href: '/clients/import-from-file',
+        title: 'Import Clients from Excel or CSV',
         icon: Import,
-        description: 'Import clients using our CSV template'
+        description: 'Import clients using our Excel or CSV template'
       },
       importSkimmer: {
         text: 'Skimmer Import',
@@ -415,22 +417,12 @@ export const RequestStatus = [
   }
 ];
 
-export const Categories = [
-  {
-    value: 'other',
-    name: 'Other',
-    key: 'other'
-  },
-  {
-    value: 'filterCleaning',
-    name: 'Filter Cleaning',
-    key: 'filterCleaning'
-  },
-  {
-    value: 'filterReplacement',
-    name: 'Filter Replacement',
-    key: 'filterReplacement'
-  }
-];
+export const Categories = Object.entries(RequestCategory)
+  .map(([value, name]) => ({
+    key: value,
+    value,
+    name
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 export const libraries: Libraries = ['places'];

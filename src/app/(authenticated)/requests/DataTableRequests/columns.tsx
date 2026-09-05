@@ -1,11 +1,10 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-
-import { Categories } from '@/constants';
-import { Request } from '@/ts/interfaces/Request';
-import { RequestCategory } from '@/ts/enums/enums';
 import { format } from 'date-fns';
+
+import { formatRequestCategory } from '@/ts/enums/enums';
+import { Request } from '@/ts/interfaces/Request';
 
 const statusOptions: Record<
   Request['status'],
@@ -62,10 +61,10 @@ export const columns: ColumnDef<Request>[] = [
     accessorFn: (row) => row.category,
     header: 'Category',
     cell: ({ row: { original } }) => {
-      const categoryName = RequestCategory[original.category as keyof typeof RequestCategory] || original.category;
+      const categoryName = formatRequestCategory(original.category);
       return (
         <div className="flex items-center">
-          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+          <span className="inline-flex items-center whitespace-normal text-left rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
             {categoryName}
           </span>
         </div>
