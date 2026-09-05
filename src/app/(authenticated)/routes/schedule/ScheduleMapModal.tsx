@@ -41,7 +41,7 @@ type Props = {
 };
 
 export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }: Props) {
-  const { directions, distance, duration, isLoaded, loadError } = useMapServicesUtils();
+  const { directions, isLoaded, loadError } = useMapServicesUtils();
   const { allServices } = useServicesContext();
   const { allAssignments } = useAssignmentsContext();
   const { user } = useUserStore();
@@ -315,8 +315,8 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
                 <Map
                   services={orderedServices}
                   directions={directions}
-                  distance={totalDistance || distance}
-                  duration={totalDuration || duration}
+                  distance={totalDistance}
+                  duration={totalDuration}
                   isLoaded={isLoaded}
                   loadError={loadError}
                   height={mdScreen ? '40vh' : '100%'}

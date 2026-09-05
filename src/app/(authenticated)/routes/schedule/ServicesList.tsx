@@ -123,7 +123,8 @@ type ServiceItemProps = {
 export function ServiceItem({ service, id, currentIndex, routeAssignments, enableReorder = false }: ServiceItemProps) {
   const { width = 0 } = useWindowDimensions();
   const name = `${service?.clientOwner?.firstName} ${service?.clientOwner?.lastName}`;
-  const address = `${service?.clientOwner?.address}, ${service?.clientOwner?.city}, ${service?.clientOwner?.state}, ${service?.clientOwner?.zip}`;
+  const pool = service.pool;
+  const address = [pool?.address, pool?.addressLine2, pool?.city, pool?.state, pool?.zip].filter(Boolean).join(', ');
   const estimatedArrivalTime = getEstimatedArrivalTime(routeAssignments, currentIndex);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id, disabled: !enableReorder });
 

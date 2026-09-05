@@ -43,12 +43,20 @@ export function getRouteTotals(assignments: (Assignment | undefined)[]): {
   totalDistance: string;
   totalDuration: string;
 } {
-  const totalDist = assignments.reduce((sum, assignment) => sum + (assignment?.distanceInMilesToNextStop || 0), 0);
-  const totalDur = assignments.reduce((sum, assignment) => sum + (assignment?.timeInMinutesToNextStop || 0), 0);
+  if (assignments.length <= 1) {
+    return {
+      totalDistance: '',
+      totalDuration: ''
+    };
+  }
+
+  const legs = assignments.slice(0, -1);
+  const totalDist = legs.reduce((sum, assignment) => sum + (assignment?.distanceInMilesToNextStop || 0), 0);
+  const totalDur = legs.reduce((sum, assignment) => sum + (assignment?.timeInMinutesToNextStop || 0), 0);
 
   return {
-    totalDistance: totalDist > 0 ? `${totalDist.toFixed(1)} mi` : '',
-    totalDuration: totalDur > 0 ? `${Math.round(totalDur)} min` : ''
+    totalDistance: `${Math.max(totalDist, 1).toFixed(1)} mi`,
+    totalDuration: `${Math.max(Math.round(totalDur), 1)} min`
   };
 }
 
