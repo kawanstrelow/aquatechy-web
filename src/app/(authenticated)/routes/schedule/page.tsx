@@ -94,7 +94,7 @@ function ScheduleListView({
 }
 
 export default function Page() {
-  const [view, setView] = useState<'list' | 'calendar'>('list');
+  const [view, setView] = useState<'list' | 'calendar'>('calendar');
   const [calendarTechId, setCalendarTechId] = useState('all');
 
   const { selectedDay, setSelectedDay } = useWeekdayStore((state) => state);
@@ -188,18 +188,21 @@ export default function Page() {
   return (
     <FormProvider {...form}>
       <div className="flex h-[100%] w-full flex-col bg-gray-50 p-2">
-        <Tabs value={view} onValueChange={handleViewChange} className="mb-2">
-          <TabsList>
-            <TabsTrigger value="list" className="gap-1.5">
-              <List className="h-4 w-4" />
-              List
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="gap-1.5">
-              <Calendar className="h-4 w-4" />
-              Calendar
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* List/calendar switch — hidden while schedule is calendar-only. Restore this block to bring list view back. */}
+        {false && (
+          <Tabs value={view} onValueChange={handleViewChange} className="mb-2">
+            <TabsList>
+              <TabsTrigger value="list" className="gap-1.5">
+                <List className="h-4 w-4" />
+                List
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="gap-1.5">
+                <Calendar className="h-4 w-4" />
+                Calendar
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
 
         {view === 'calendar' ? (
           <ScheduleCalendarView techFilter={calendarTechId} onTechChange={handleCalendarMemberChange} />

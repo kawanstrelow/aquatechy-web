@@ -45,8 +45,8 @@ async function transferPermanently(data: Partial<Assignment>[]): Promise<Transfe
 }
 
 export const useTransferPermanentlyRoute = (
-  assignmentToTransfer: Assignment | undefined, 
-  onSuccessCallback?: (result: TransferResponse) => void, 
+  assignmentToTransfer?: Assignment | Assignment[],
+  onSuccessCallback?: (result: TransferResponse) => void,
   onErrorCallback?: (errorMessage: string) => void
 ) => {
   const queryClient = useQueryClient();
@@ -54,7 +54,12 @@ export const useTransferPermanentlyRoute = (
   const { assignments } = useAssignmentsContext();
   const userId = Cookies.get('userId');
 
-  const assignmentsToTransfer: Assignment[] = assignmentToTransfer ? [assignmentToTransfer] : assignments.current;
+  const assignmentsToTransfer: Assignment[] = !assignmentToTransfer
+    ? assignments.current
+    : Array.isArray(assignmentToTransfer)
+      ? assignmentToTransfer
+      : [assignmentToTransfer];
+  const firstAssignment = assignmentsToTransfer[0];
 
   const { mutate, isPending } = useMutation({
     mutationFn: (form: TransferAssignment) => {
@@ -79,8 +84,8 @@ export const useTransferPermanentlyRoute = (
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
 
       // Invalidate specific client query if we have the client ID from the assignment
-      if (assignmentToTransfer?.pool?.clientOwnerId) {
-        queryClient.invalidateQueries({ queryKey: ['clients', assignmentToTransfer.pool.clientOwnerId] });
+      if (firstAssignment?.pool?.clientOwnerId) {
+        queryClient.invalidateQueries({ queryKey: ['clients', firstAssignment.pool.clientOwnerId] });
       }
 
       if (onErrorCallback) {
@@ -99,12 +104,12 @@ export const useTransferPermanentlyRoute = (
       queryClient.invalidateQueries({ queryKey: ['assignments', 'by-pool'] });
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
       queryClient.invalidateQueries({ queryKey: ['clients'] });
-      
+
       // Invalidate specific client query if we have the client ID from the assignment
-      if (assignmentToTransfer?.pool?.clientOwnerId) {
-        queryClient.invalidateQueries({ queryKey: ['clients', assignmentToTransfer.pool.clientOwnerId] });
+      if (firstAssignment?.pool?.clientOwnerId) {
+        queryClient.invalidateQueries({ queryKey: ['clients', firstAssignment.pool.clientOwnerId] });
       }
-      
+
       // Show toast based on results
       if (data.failureCount === 0) {
         toast({
@@ -120,7 +125,7 @@ export const useTransferPermanentlyRoute = (
           variant: 'default'
         });
       }
-      
+
       // Call the success callback with the result data
       if (onSuccessCallback) {
         onSuccessCallback(data);
