@@ -11,6 +11,11 @@ export interface Service {
   clientOwnerId: string;
   clientOwner: Client;
   assignmentId: string;
+  assignment?: {
+    id: string;
+    startOn: string;
+    endAfter: string;
+  };
   createdAt: string | null;
   completedByUserId: string | null;
   assignedToId: string;

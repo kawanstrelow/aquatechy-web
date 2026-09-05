@@ -41,6 +41,12 @@ const calculateBounds = (services: Service[]): google.maps.LatLngBounds | null =
   return bounds;
 };
 
+const fitMapToServices = (map: google.maps.Map, services: Service[], padding?: number) => {
+  const bounds = calculateBounds(services);
+  if (!bounds) return;
+  map.fitBounds(bounds, padding);
+};
+
 type Props = {
   services: Service[];
   directions: DirectionsResult | undefined;
@@ -49,16 +55,16 @@ type Props = {
   isLoaded: boolean;
   loadError: Error | undefined;
   height?: string;
+  fitBoundsPadding?: number;
 };
 
-const Map = ({ services, directions, distance, duration, isLoaded, loadError, height }: Props) => {
+const Map = ({ services, directions, distance, duration, isLoaded, loadError, height, fitBoundsPadding }: Props) => {
   const { width } = useWindowDimensions();
   const mapRef = useRef<google.maps.Map | null>(null);
   const hasZoomedRef = useRef(false);
   const mapHeight = height ?? (width && width > 576 ? '100vh' : '50vh');
 
-  // Only hide distance/duration on first render when there are no directions yet
-  const showDistanceDuration = directions !== undefined && distance !== '' && duration !== '';
+  const showDistanceDuration = distance !== '' && duration !== '';
 
   // Track service IDs to detect changes
   const serviceIds = services.map((s) => s.id).join(',');
@@ -71,16 +77,12 @@ const Map = ({ services, directions, distance, duration, isLoaded, loadError, he
   // Zoom to fit all markers on first render or when services change
   useEffect(() => {
     if (mapRef.current && services.length > 0 && !hasZoomedRef.current && isLoaded) {
-      const bounds = calculateBounds(services);
-      if (bounds) {
-        // Use setTimeout to ensure markers are rendered
-        setTimeout(() => {
-          if (mapRef.current && !hasZoomedRef.current) {
-            mapRef.current.fitBounds(bounds);
-            hasZoomedRef.current = true;
-          }
-        }, 100);
-      }
+      setTimeout(() => {
+        if (mapRef.current && !hasZoomedRef.current) {
+          fitMapToServices(mapRef.current, services, fitBoundsPadding);
+          hasZoomedRef.current = true;
+        }
+      }, 100);
     }
     // serviceIds already tracks service changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,11 +95,8 @@ const Map = ({ services, directions, distance, duration, isLoaded, loadError, he
     const timeout = setTimeout(() => {
       if (!mapRef.current) return;
       google.maps.event.trigger(mapRef.current, 'resize');
-      const bounds = calculateBounds(services);
-      if (bounds) {
-        mapRef.current.fitBounds(bounds);
-        hasZoomedRef.current = true;
-      }
+      fitMapToServices(mapRef.current, services, fitBoundsPadding);
+      hasZoomedRef.current = true;
     }, 250);
 
     return () => clearTimeout(timeout);
@@ -117,25 +116,20 @@ const Map = ({ services, directions, distance, duration, isLoaded, loadError, he
   const onLoad = (map: google.maps.Map) => {
     mapRef.current = map;
 
-    // Zoom to fit all markers when map first loads
     if (services.length > 0) {
-      const bounds = calculateBounds(services);
-      if (bounds) {
-        // Use setTimeout to ensure markers are rendered
-        setTimeout(() => {
-          map.fitBounds(bounds);
-        }, 100);
-      }
+      setTimeout(() => {
+        fitMapToServices(map, services, fitBoundsPadding);
+      }, 100);
     }
   };
 
   return width || height ? (
-    <div className="h-full">
+    <div className="relative h-full">
       {showDistanceDuration && (
         <div className="absolute z-10 ml-2.5 mt-16 rounded-sm bg-gray-50 px-2 shadow-lg sm:right-24 sm:mt-2.5">
           <h3 className="py-1">Distance: {distance}</h3>
           <Separator />
-          <h3 className="py-1">Duration: {duration}</h3>
+          <h3 className="py-1">Drive time: {duration}</h3>
         </div>
       )}
 

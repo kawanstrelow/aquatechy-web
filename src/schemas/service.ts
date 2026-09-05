@@ -1,28 +1,88 @@
 import { z } from 'zod';
 
-export const transferServiceSchema = z.object({
-  serviceId: z
-    .string({
-      required_error: 'serviceId is required.',
-      invalid_type_error: 'serviceId must be a string.'
-    })
-    .trim()
-    .min(1, { message: 'serviceId must be at least 1 character.' }),
-  assignedToId: z
-    .string({
-      required_error: 'assignedToId is required.',
-      invalid_type_error: 'assignedToId must be a string.'
-    })
-    .trim()
-    .min(1, { message: 'assignedToId must be at least 1 character.' }),
-  scheduledTo: z
-    .string({
-      required_error: 'scheduledTo is required.',
-      invalid_type_error: 'scheduledTo must be a string.'
-    })
-    .trim()
-    .min(1, { message: 'scheduledTo must be at least 1 character.' })
-});
+import { defaultSchemas } from './defaultSchemas';
+
+export const transferServiceSchema = z
+  .object({
+    scope: z.enum(['this_service', 'all_recurring']),
+    serviceId: z.string().optional(),
+    assignedToId: z
+      .string({
+        required_error: 'assignedToId is required.',
+        invalid_type_error: 'assignedToId must be a string.'
+      })
+      .trim()
+      .min(1, { message: 'assignedToId must be at least 1 character.' }),
+    scheduledTo: z.string().optional(),
+    weekday: defaultSchemas.weekday.optional(),
+    startOn: z.coerce
+      .date({
+        required_error: 'startOn is required',
+        invalid_type_error: 'startOn must be a date'
+      })
+      .optional(),
+    endAfter: z.string().optional()
+  })
+  .superRefine((data, ctx) => {
+    if (data.scope === 'this_service') {
+      if (!data.serviceId || data.serviceId.trim() === '') {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'serviceId is required.', path: ['serviceId'] });
+      }
+      if (!data.scheduledTo || data.scheduledTo.trim() === '') {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'scheduledTo is required.', path: ['scheduledTo'] });
+      }
+      return;
+    }
+
+    if (!data.weekday) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Weekday is required.', path: ['weekday'] });
+    }
+    if (!data.startOn) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Start on is required', path: ['startOn'] });
+    }
+    if (!data.endAfter || String(data.endAfter).trim() === '') {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'End after is required', path: ['endAfter'] });
+    }
+  });
+
+export const batchTransferServiceSchema = z
+  .object({
+    scope: z.enum(['one_time', 'permanent']),
+    assignedToId: z
+      .string({
+        required_error: 'assignedToId is required.',
+        invalid_type_error: 'assignedToId must be a string.'
+      })
+      .trim()
+      .min(1, { message: 'assignedToId must be at least 1 character.' }),
+    scheduledTo: z.string().optional(),
+    weekday: defaultSchemas.weekday.optional(),
+    startOn: z.coerce
+      .date({
+        required_error: 'startOn is required',
+        invalid_type_error: 'startOn must be a date'
+      })
+      .optional(),
+    endAfter: z.string().optional()
+  })
+  .superRefine((data, ctx) => {
+    if (data.scope === 'one_time') {
+      if (!data.scheduledTo || data.scheduledTo.trim() === '') {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'scheduledTo is required.', path: ['scheduledTo'] });
+      }
+      return;
+    }
+
+    if (!data.weekday) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Weekday is required.', path: ['weekday'] });
+    }
+    if (!data.startOn) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Start on is required', path: ['startOn'] });
+    }
+    if (!data.endAfter || String(data.endAfter).trim() === '') {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'End after is required', path: ['endAfter'] });
+    }
+  });
 
 export const newServiceSchema = z.object({
   poolId: z

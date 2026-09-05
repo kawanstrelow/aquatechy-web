@@ -14,6 +14,7 @@ interface Props {
   onOptimize: (origin: string, destination: string) => void;
   assignments: Assignment[];
   userAddress: string;
+  technicianId?: string;
 }
 
 type RouteOption = {
@@ -22,7 +23,7 @@ type RouteOption = {
   address: string;
 };
 
-export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments, userAddress }: Props) {
+export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments, userAddress, technicianId }: Props) {
   const { assignmentToId, members } = useMembersStore(
     useShallow((state) => ({
       assignmentToId: state.assignmentToId,
@@ -33,12 +34,19 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
   const user = useUserStore((state) => state.user);
 
   // Find the selected technician's address
-  const selectedTechnician = members.find((member) => member.id === assignmentToId) || user;
-  const technicianAddress = selectedTechnician.address + ', ' + selectedTechnician.city + ', ' + selectedTechnician.state + ' ' + selectedTechnician.zip;
+  const selectedTechnician = members.find((member) => member.id === (technicianId ?? assignmentToId)) || user;
+  const technicianAddress =
+    selectedTechnician.address +
+    ', ' +
+    selectedTechnician.city +
+    ', ' +
+    selectedTechnician.state +
+    ' ' +
+    selectedTechnician.zip;
 
   // Build options for starting point
   const startingPointOptions: RouteOption[] = [];
-  
+
   // Add technician address as first option
   if (technicianAddress) {
     startingPointOptions.push({
@@ -47,7 +55,7 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
       address: technicianAddress
     });
   }
-  
+
   // Add all assignment addresses
   assignments.forEach((assignment) => {
     startingPointOptions.push({
@@ -59,7 +67,7 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
 
   // Build options for ending point
   const endingPointOptions: RouteOption[] = [];
-  
+
   // Add technician address as first option
   if (technicianAddress) {
     endingPointOptions.push({
@@ -68,7 +76,7 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
       address: technicianAddress
     });
   }
-  
+
   // Add all assignment addresses
   assignments.forEach((assignment) => {
     endingPointOptions.push({
@@ -92,9 +100,10 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
           <DialogTitle>Optimize Route</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> To optimize your route, first set your preferred first and last assignments on the assignments list, then return to this modal to optimize the route.
+              <strong>Note:</strong> To optimize your route, first set your preferred first and last assignments on the
+              assignments list, then return to this modal to optimize the route.
             </p>
           </div>
           <div>
