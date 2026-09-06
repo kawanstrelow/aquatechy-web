@@ -333,7 +333,7 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
               }
         }
       >
-        <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-auto rounded-md md:w-[580px]">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] w-full max-w-[580px] overflow-y-auto rounded-md">
           <DialogTitle className="mb-4">Transfer Service</DialogTitle>
           {isPending ? (
             <div className="flex flex-col items-center gap-4 py-8">

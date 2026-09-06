@@ -36,7 +36,7 @@ export function ServiceActions({ service }: ServiceActionsProps) {
     <>
       <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="ml-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
             <BsThreeDotsVertical className="h-4 w-4 text-gray-500" />
           </Button>
         </DropdownMenuTrigger>

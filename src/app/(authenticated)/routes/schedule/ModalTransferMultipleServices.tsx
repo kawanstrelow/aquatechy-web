@@ -46,11 +46,13 @@ type DateOption = {
 export function DialogTransferMultipleServices({
   services: servicesOverride,
   disabled,
-  fullWidth = true
+  fullWidth = true,
+  className
 }: {
   services?: Service[];
   disabled?: boolean;
   fullWidth?: boolean;
+  className?: string;
 } = {}) {
   const { services: contextServices } = useServicesContext();
   const services = servicesOverride ?? contextServices;
@@ -341,17 +343,18 @@ export function DialogTransferMultipleServices({
               }
         }
       >
-        <DialogTrigger asChild className={cn(fullWidth && 'w-full')}>
+        <DialogTrigger asChild className={cn(fullWidth && 'w-full', className)}>
           <Button
-            className={cn('h-9 shrink-0 whitespace-nowrap px-4 py-2', fullWidth ? 'w-full' : 'w-auto')}
+            className={cn('h-9 shrink-0 px-4 py-2', fullWidth ? 'w-full' : 'w-auto whitespace-nowrap', className)}
             variant="outline"
             type="button"
             disabled={disabled || servicesCount === 0}
           >
-            Transfer All Services
+            <span className="md:hidden">Transfer All</span>
+            <span className="hidden md:inline">Transfer All Services</span>
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-auto rounded-md md:w-[580px]">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] w-full max-w-[580px] overflow-y-auto rounded-md">
           <DialogTitle className="mb-4">Transfer All Services</DialogTitle>
           {isPending ? (
             <div className="flex flex-col items-center gap-4 py-8">

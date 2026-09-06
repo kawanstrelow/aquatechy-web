@@ -37,12 +37,12 @@ export function TechDayTag({ techId, name, count, onClick }: Props) {
       onClick={onClick}
       title={`Open ${name}'s route`}
       className={cn(
-        'flex w-full items-center justify-between gap-1 truncate rounded-md border px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight transition-colors',
+        'flex w-full flex-col items-start rounded-md border px-1 py-0.5 text-left transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-1 sm:px-1.5',
         getTechTagColor(techId)
       )}
     >
-      <span className="truncate">{name}</span>
-      <span className="shrink-0 tabular-nums">{count}</span>
+      <span className="w-full truncate text-[10px] font-semibold leading-tight sm:text-[11px]">{name}</span>
+      <span className="text-[10px] font-semibold tabular-nums sm:text-[11px]">{count}</span>
     </button>
   );
 }

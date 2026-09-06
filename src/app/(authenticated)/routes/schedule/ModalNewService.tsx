@@ -22,7 +22,7 @@ import { formatPoolNameWithBodyOfWater, isEmpty } from '@/utils';
 import WeekdaySelect from '../assignments/WeekdaySelect';
 import { FormSchema } from './page';
 
-export function DialogNewService({ fullWidth = true }: { fullWidth?: boolean } = {}) {
+export function DialogNewService({ fullWidth = true, className }: { fullWidth?: boolean; className?: string } = {}) {
   const form = useFormContext<FormSchema>();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -58,7 +58,8 @@ export function DialogNewService({ fullWidth = true }: { fullWidth?: boolean } =
   );
 
   const { mutate, isPending } = useCreateAssignment();
-  const { mutate: mutateSpecificService, isPending: isPendingSpecificService } = useCreateAssignmentForSpecificService();
+  const { mutate: mutateSpecificService, isPending: isPendingSpecificService } =
+    useCreateAssignmentForSpecificService();
 
   const isOnlyOnce = frequency === Frequency.ONCE;
   const isCreating = isPending || isPendingSpecificService;
@@ -268,15 +269,15 @@ export function DialogNewService({ fullWidth = true }: { fullWidth?: boolean } =
 
   return (
     <Dialog open={isModalOpen} onOpenChange={isCreating ? undefined : setIsModalOpen}>
-      <DialogTrigger asChild className={cn(fullWidth && 'w-full')}>
+      <DialogTrigger asChild className={cn(fullWidth && 'w-full', className)}>
         <Button
-          className={cn('h-9 shrink-0 whitespace-nowrap px-4 py-2', fullWidth ? 'w-full' : 'w-auto')}
+          className={cn('h-9 shrink-0 whitespace-nowrap px-4 py-2', fullWidth ? 'w-full' : 'w-auto', className)}
           type="button"
         >
           New service
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-screen w-96 rounded-md md:w-[680px]">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] w-full max-w-[680px] overflow-y-auto rounded-md">
         <DialogTitle className="mb-4">Create service</DialogTitle>
         {isCreating ? (
           <div className="flex flex-col items-center gap-4 py-8">
@@ -369,7 +370,7 @@ export function DialogNewService({ fullWidth = true }: { fullWidth?: boolean } =
                         onChange={(nextWeekday: WeekdaysUppercase) => form.setValue('weekday', nextWeekday)}
                       />
                     </div>
-                    <div className="mt-2 flex gap-4">
+                    <div className="mt-2 flex flex-col gap-4 sm:flex-row">
                       <SelectField
                         label="Start on"
                         name="startOn"
