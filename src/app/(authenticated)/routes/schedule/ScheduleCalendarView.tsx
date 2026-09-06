@@ -89,6 +89,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
+  const [modalTechName, setModalTechName] = useState('');
   const [modalMemberId, setModalMemberId] = useState('');
   const [modalDayIso, setModalDayIso] = useState('');
 
@@ -109,6 +110,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
     setSelectedDay(group.date);
     setModalMemberId(group.techId);
     setModalDayIso(group.date);
+    setModalTechName(`${group.firstName} ${group.lastName}`);
     setModalTitle(`${group.firstName} ${group.lastName} — ${format(day, 'EEEE, MMMM do')}`);
     setModalOpen(true);
   }
@@ -126,7 +128,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
     <>
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-3 border-b border-slate-100 px-3 py-3 sm:px-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-1">
+          <div className="flex w-full items-center gap-1 lg:w-auto">
             <Button
               variant="outline"
               size="icon"
@@ -136,7 +138,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
             >
               <ChevronLeftIcon className="h-4 w-4" />
             </Button>
-            <h2 className="min-w-[10.5rem] text-center text-base font-semibold sm:text-lg">
+            <h2 className="min-w-0 flex-1 text-center text-base font-semibold sm:text-lg">
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <Button
@@ -150,13 +152,11 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
             </Button>
           </div>
 
-          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="flex h-9 min-w-0 items-center sm:w-56">
+          <div className="flex w-full min-w-0 flex-col gap-2 md:flex-row md:items-center md:justify-end">
+            <div className="flex h-9 w-full min-w-0 items-center md:w-56">
               <MemberSelect onChange={onTechChange} value={techFilter} showAllOption className="mt-0 w-full" />
             </div>
-            <div className="flex h-9 shrink-0 items-center gap-2">
-              <DialogNewService fullWidth={false} />
-            </div>
+            <DialogNewService fullWidth={false} className="w-full md:w-auto" />
           </div>
         </div>
 
@@ -187,7 +187,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
                 <div
                   key={dayKey}
                   className={cn(
-                    'flex min-h-[108px] flex-col bg-white p-1.5 sm:min-h-[120px] sm:p-2',
+                    'flex min-h-[84px] flex-col bg-white p-1 sm:min-h-[120px] sm:p-2',
                     !inMonth && 'bg-slate-50/80',
                     isTodayDate && 'bg-blue-50'
                   )}
@@ -227,6 +227,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
         open={modalOpen}
         onOpenChange={handleModalOpenChange}
         title={modalTitle}
+        techName={modalTechName}
         memberId={modalMemberId}
         dayIso={modalDayIso}
       />

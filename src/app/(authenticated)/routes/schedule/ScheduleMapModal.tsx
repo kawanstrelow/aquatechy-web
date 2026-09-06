@@ -2,6 +2,7 @@
 
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { format } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { useUpdateAssignments } from '@/hooks/react-query/assignments/updateAssi
 import { useGetScheduledByTechnician } from '@/hooks/react-query/services/useGetScheduledByTechnician';
 import { useMapServicesUtils } from '@/hooks/useMapServicesUtils';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
+import { cn } from '@/lib/utils';
 import { getDirectionsAndTime, getOptimizedRoute } from '@/services/here-maps';
 import { useUserStore } from '@/store/user';
 import { Assignment } from '@/ts/interfaces/Assignments';
@@ -21,6 +23,7 @@ import { OptimizeRouteModal } from '../assignments/OptimizeRouteModal';
 import Map from './Map';
 import { DialogNewService } from './ModalNewService';
 import { DialogTransferMultipleServices } from './ModalTransferMultipleServices';
+import { scheduledDayKey } from './scheduleDate';
 import {
   applyHereRouteToAssignments,
   getAssignmentsForServices,
@@ -35,11 +38,19 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
+  techName?: string;
   memberId: string;
   dayIso: string;
 };
 
-export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }: Props) {
+function formatMobileScheduleDate(dayIso: string) {
+  if (!dayIso) return '';
+  const key = scheduledDayKey(dayIso);
+  const [year, month, day] = key.split('-').map(Number);
+  return format(new Date(year, month - 1, day), 'EEE, MMM d');
+}
+
+export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId, dayIso }: Props) {
   const { directions, isLoaded, loadError } = useMapServicesUtils();
   const { allAssignments } = useAssignmentsContext();
   const { user } = useUserStore();
@@ -246,7 +257,12 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent
-          className="flex h-[calc(100vh-5rem)] w-[calc(100vw-4rem)] max-w-6xl flex-col gap-5 overflow-hidden bg-white p-5 sm:p-6"
+          className={cn(
+            'flex max-w-6xl flex-col overflow-hidden bg-white',
+            mdScreen
+              ? 'h-[calc(100dvh-0.75rem)] max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] gap-3 p-3'
+              : 'h-[calc(100vh-5rem)] w-[calc(100vw-4rem)] gap-5 p-5 sm:p-6'
+          )}
           onPointerDownOutside={(event) => {
             const openDialogs = document.querySelectorAll('[role="dialog"][data-state="open"]');
             if (openDialogs.length > 1) {
@@ -260,47 +276,79 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
             }
           }}
         >
-          <DialogHeader className="flex shrink-0 flex-col gap-3 space-y-0 border-b border-slate-100 pb-4 pr-10 sm:flex-row sm:items-center sm:justify-between">
+          <DialogHeader
+            className={cn(
+              'flex shrink-0 flex-col gap-3 space-y-0 border-b border-slate-100',
+              mdScreen ? 'pb-3 pr-8' : 'pb-4 pr-10 sm:flex-row sm:items-center sm:justify-between'
+            )}
+          >
             <div className="min-w-0">
-              <DialogTitle className="truncate">{title}</DialogTitle>
-              <DialogDescription className="mt-1">{stopLabel}</DialogDescription>
+              <DialogTitle className="truncate">{mdScreen ? techName || title : title}</DialogTitle>
+              <DialogDescription className="mt-1">
+                {mdScreen
+                  ? `${formatMobileScheduleDate(dayIso)}${
+                      isLoadingServices
+                        ? ' (…)'
+                        : ` (${orderedServices.length} ${orderedServices.length === 1 ? 'stop' : 'stops'})`
+                    }`
+                  : stopLabel}
+              </DialogDescription>
             </div>
             {open && (
-              <div className="flex h-auto shrink-0 flex-wrap items-center gap-2">
+              <div
+                className={cn('flex h-auto shrink-0 items-center gap-2', mdScreen ? 'w-full flex-col' : 'flex-wrap')}
+              >
                 {orderedServices.length > 1 && (
                   <Button
                     type="button"
-                    className="h-9 bg-blue-500 hover:bg-blue-700"
+                    className={cn('h-9 bg-blue-500 hover:bg-blue-700', mdScreen && 'w-full')}
                     onClick={() => setIsOptimizeModalOpen(true)}
                     disabled={isBusy}
                   >
                     Optimize Route
                   </Button>
                 )}
-                <DialogTransferMultipleServices
-                  services={orderedServices}
-                  fullWidth={false}
-                  disabled={isLoadingServices}
-                />
+                {mdScreen ? (
+                  <div className="flex w-full gap-2">
+                    <div className="min-w-0 flex-1">
+                      <DialogTransferMultipleServices
+                        services={orderedServices}
+                        fullWidth
+                        disabled={isLoadingServices}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <DialogNewService fullWidth />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <DialogTransferMultipleServices
+                      services={orderedServices}
+                      fullWidth={false}
+                      disabled={isLoadingServices}
+                    />
+                    <DialogNewService fullWidth={false} />
+                  </>
+                )}
                 {hasChanges && (
                   <Button
                     type="button"
-                    className="h-9 bg-green-500 hover:bg-green-700"
+                    className={cn('h-9 bg-green-500 hover:bg-green-700', mdScreen && 'w-full')}
                     onClick={handleSave}
                     disabled={isBusy}
                   >
                     Save
                   </Button>
                 )}
-                <DialogNewService fullWidth={false} />
               </div>
             )}
           </DialogHeader>
 
           {open && (
-            <div className={`flex min-h-0 flex-1 ${mdScreen ? 'flex-col overflow-y-auto' : ''}`}>
+            <div className={`flex min-h-0 flex-1 ${mdScreen ? 'flex-col' : ''}`}>
               <div
-                className={`flex min-h-0 min-w-0 flex-col bg-white ${mdScreen ? 'max-h-[42vh] w-full border-b border-slate-100' : 'w-1/2 border-r border-slate-100'}`}
+                className={`flex min-h-0 min-w-0 flex-col bg-white ${mdScreen ? 'w-full flex-1 border-b border-slate-100' : 'w-1/2 border-r border-slate-100'}`}
               >
                 <div className="min-h-0 flex-1 overflow-y-auto">
                   {isBusy ? (
@@ -318,13 +366,18 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
                     <ServicesList
                       services={orderedServices}
                       routeAssignments={localAssignments}
-                      enableReorder
+                      enableReorder={!mdScreen}
                       onReorder={handleDragEnd}
                     />
                   )}
                 </div>
               </div>
-              <div className={`flex h-full min-h-[260px] min-w-0 flex-col ${mdScreen ? 'w-full' : 'w-1/2'} p-3`}>
+              <div
+                className={cn(
+                  'flex min-w-0 flex-col',
+                  mdScreen ? 'h-[200px] w-full shrink-0 pt-2' : 'h-full min-h-[260px] w-1/2 p-3'
+                )}
+              >
                 <Map
                   services={orderedServices}
                   directions={directions}
@@ -332,8 +385,9 @@ export function ScheduleMapModal({ open, onOpenChange, title, memberId, dayIso }
                   duration={totalDuration}
                   isLoaded={isLoaded}
                   loadError={loadError}
-                  height={mdScreen ? '40vh' : '100%'}
-                  fitBoundsPadding={72}
+                  height={mdScreen ? '200px' : '100%'}
+                  fitBoundsPadding={mdScreen ? 28 : 72}
+                  compact={mdScreen}
                 />
               </div>
             </div>

@@ -95,7 +95,7 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Optimize Route</DialogTitle>
         </DialogHeader>
@@ -138,11 +138,12 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
             </Select>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button
+              className="w-full sm:w-auto"
               onClick={() => {
                 onOptimize(origin, destination);
                 onOpenChange(false);

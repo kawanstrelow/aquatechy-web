@@ -24,6 +24,7 @@ import { ServiceTypeLabel } from '@/components/ServiceTypeLabel';
 import { useAssignmentsContext } from '@/context/assignments';
 import { useServicesContext } from '@/context/services';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
+import { cn } from '@/lib/utils';
 import { Assignment } from '@/ts/interfaces/Assignments';
 import { Service } from '@/ts/interfaces/Service';
 
@@ -120,6 +121,23 @@ type ServiceItemProps = {
   enableReorder?: boolean;
 };
 
+function formatServiceStatus(status: Service['status']) {
+  return status === 'InProgress' ? 'In progress' : status;
+}
+
+function serviceStatusClass(status: Service['status']) {
+  switch (status) {
+    case 'Completed':
+      return 'bg-green-100 text-green-800';
+    case 'InProgress':
+      return 'bg-amber-100 text-amber-800';
+    case 'Skipped':
+      return 'bg-slate-100 text-slate-600';
+    default:
+      return 'bg-blue-50 text-blue-700';
+  }
+}
+
 export function ServiceItem({ service, id, currentIndex, routeAssignments, enableReorder = false }: ServiceItemProps) {
   const { width = 0 } = useWindowDimensions();
   const name = `${service?.clientOwner?.firstName} ${service?.clientOwner?.lastName}`;
@@ -135,6 +153,50 @@ export function ServiceItem({ service, id, currentIndex, routeAssignments, enabl
         transition
       }
     : undefined;
+
+  const etaLabel =
+    routeAssignments.length > 1
+      ? estimatedArrivalTime
+        ? `ETA ${estimatedArrivalTime}`
+        : enableReorder
+          ? 'ETA: Save to see'
+          : null
+      : null;
+
+  if (mdScreen) {
+    return (
+      <div
+        ref={enableReorder ? setNodeRef : undefined}
+        style={style}
+        className="flex w-full min-w-0 items-center gap-2.5 border-b border-slate-100 bg-white px-3 py-3"
+      >
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-700">
+          {currentIndex + 1}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <p className="min-w-0 truncate text-sm font-semibold text-slate-900">
+              {name}
+              {estimatedArrivalTime && <span className="font-medium text-gray-500"> ({estimatedArrivalTime})</span>}
+            </p>
+            <ServiceActions service={service} />
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+            <ServiceTypeLabel name={service.serviceType?.name} />
+            <span
+              className={cn(
+                'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                serviceStatusClass(service.status)
+              )}
+            >
+              {formatServiceStatus(service.status)}
+            </span>
+          </div>
+          {address && <p className="mt-1.5 text-xs leading-snug text-gray-500">{address}</p>}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -153,12 +215,10 @@ export function ServiceItem({ service, id, currentIndex, routeAssignments, enabl
           <MdDragIndicator size={18} />
         </button>
       )}
-      {!mdScreen && (
-        <Avatar className="shrink-0 cursor-pointer text-sm">
-          <AvatarImage src={''} />
-          <AvatarFallback>{currentIndex + 1}</AvatarFallback>
-        </Avatar>
-      )}
+      <Avatar className="shrink-0 cursor-pointer text-sm">
+        <AvatarImage src={''} />
+        <AvatarFallback>{currentIndex + 1}</AvatarFallback>
+      </Avatar>
       <div className="flex min-w-0 flex-1 items-start gap-2 py-1">
         <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-1 text-pretty">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-pretty text-sm font-medium">
@@ -169,12 +229,11 @@ export function ServiceItem({ service, id, currentIndex, routeAssignments, enabl
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2 self-center">
-        {routeAssignments.length > 1 &&
-          (estimatedArrivalTime ? (
-            <div className="text-xs font-medium text-gray-600">ETA: {estimatedArrivalTime}</div>
-          ) : enableReorder ? (
-            <div className="text-xs font-medium italic text-gray-400">ETA: Save to see</div>
-          ) : null)}
+        {etaLabel && (
+          <div className={cn('text-xs font-medium', estimatedArrivalTime ? 'text-gray-600' : 'italic text-gray-400')}>
+            {etaLabel}
+          </div>
+        )}
         <div className="flex h-8 min-w-16 items-center justify-center rounded-lg border border-gray-100 px-2">
           <div className="text-center text-sm font-semibold text-gray-800">{service.status}</div>
         </div>

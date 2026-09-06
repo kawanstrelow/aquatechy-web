@@ -284,6 +284,8 @@ function EmailPreferencesContent({
         </div>
       )}
 
+      <CompanySmsSettingsCard companyId={company.id} />
+
       {/* CC Email Section */}
       <div className="mb-8">
         <Card className="border border-gray-200">
@@ -360,8 +362,6 @@ function EmailPreferencesContent({
           </CardContent>
         </Card>
       </div>
-
-      <CompanySmsSettingsCard companyId={company.id} />
 
       <div className="space-y-4">
         {serviceTypes.map((serviceType) => {

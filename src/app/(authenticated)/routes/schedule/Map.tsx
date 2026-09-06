@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Separator } from '@/components/ui/separator';
 import { Colors } from '@/constants/colors';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
-import { Assignment } from '@/ts/interfaces/Assignments';
+import { cn } from '@/lib/utils';
 import { Service } from '@/ts/interfaces/Service';
 import { getInitials } from '@/utils/others';
 
@@ -56,9 +56,20 @@ type Props = {
   loadError: Error | undefined;
   height?: string;
   fitBoundsPadding?: number;
+  compact?: boolean;
 };
 
-const Map = ({ services, directions, distance, duration, isLoaded, loadError, height, fitBoundsPadding }: Props) => {
+const Map = ({
+  services,
+  directions,
+  distance,
+  duration,
+  isLoaded,
+  loadError,
+  height,
+  fitBoundsPadding,
+  compact
+}: Props) => {
   const { width } = useWindowDimensions();
   const mapRef = useRef<google.maps.Map | null>(null);
   const hasZoomedRef = useRef(false);
@@ -126,7 +137,12 @@ const Map = ({ services, directions, distance, duration, isLoaded, loadError, he
   return width || height ? (
     <div className="relative h-full">
       {showDistanceDuration && (
-        <div className="absolute z-10 ml-2.5 mt-16 rounded-sm bg-gray-50 px-2 shadow-lg sm:right-24 sm:mt-2.5">
+        <div
+          className={cn(
+            'absolute z-10 rounded-sm bg-white/95 px-2 shadow-lg',
+            compact ? 'bottom-2 left-2 text-xs' : 'ml-2.5 mt-16 sm:right-24 sm:mt-2.5'
+          )}
+        >
           <h3 className="py-1">Distance: {distance}</h3>
           <Separator />
           <h3 className="py-1">Drive time: {duration}</h3>
@@ -144,6 +160,10 @@ const Map = ({ services, directions, distance, duration, isLoaded, loadError, he
         zoom={services.length === 0 ? 4 : 10}
         center={mapCenter}
         options={{
+          streetViewControl: !compact,
+          mapTypeControl: false,
+          fullscreenControl: !compact,
+          zoomControl: true,
           styles: [
             {
               featureType: 'poi',
