@@ -9,7 +9,6 @@ import { Colors } from '@/constants/colors';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
 import { cn } from '@/lib/utils';
 import { Service } from '@/ts/interfaces/Service';
-import { getInitials } from '@/utils/others';
 
 type DirectionsResult = google.maps.DirectionsResult | null;
 
@@ -191,8 +190,9 @@ const Map = ({
             }}
           />
         )}
-        {services.map((service) => {
-          const name = `${service.clientOwner.firstName} ${service.clientOwner.lastName}`;
+        {services.map((service, index) => {
+          const stopNumber = index + 1;
+          const fontSize = stopNumber >= 10 ? 10 : 12;
           return (
             <Marker
               key={service.id}
@@ -204,7 +204,7 @@ const Map = ({
                 url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
                   <svg width="40" height="50" viewBox="0 0 24 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 0C5.373 0 0 5.373 0 12C0 21 12 40 12 40C12 40 24 21 24 12C24 5.373 18.627 0 12 0Z" fill="${Colors.blue[500]}"/>
-                    <text x="12" y="18" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="white">${getInitials(name)}</text>
+                    <text x="12" y="18" text-anchor="middle" font-family="Arial" font-size="${fontSize}" font-weight="bold" fill="white">${stopNumber}</text>
                   </svg>
                 `)}`,
                 scaledSize: new google.maps.Size(40, 50),

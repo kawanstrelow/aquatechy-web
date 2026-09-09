@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import Cookies from 'js-cookie';
 import { useSyncExternalStore } from 'react';
 
@@ -40,6 +41,11 @@ function applyUserData(data: UserQueryData) {
   useUserStore.getState().setDashboard(data.dashboard);
   useMembersStore.getState().setAssignmentToId(data.user.id);
   useMembersStore.getState().setAssignedToid(data.user.id);
+  Sentry.setUser({
+    id: data.user.id,
+    email: data.user.email,
+    username: [data.user.firstName, data.user.lastName].filter(Boolean).join(' ') || undefined
+  });
 }
 
 export function hydrateUserBootstrap(data: UserQueryData) {
@@ -75,6 +81,7 @@ function startUserLoad(userId: string) {
 export function resetUserBootstrap() {
   started.clear();
   snapshot = { status: 'idle' };
+  Sentry.setUser(null);
   emit();
 }
 

@@ -8,6 +8,9 @@ export type UserBootstrapData = {
   dashboard: Dashboard;
 };
 
+/** Stay well under Vercel's serverless timeout so a slow API cannot 500 the whole app. */
+const BOOTSTRAP_TIMEOUT_MS = 5_000;
+
 export async function getCurrentUser(): Promise<UserBootstrapData | null> {
   const cookieStore = cookies();
   const userId = cookieStore.get('userId')?.value;
@@ -22,7 +25,8 @@ export async function getCurrentUser(): Promise<UserBootstrapData | null> {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       },
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: AbortSignal.timeout(BOOTSTRAP_TIMEOUT_MS)
     });
 
     if (!res.ok) return null;
