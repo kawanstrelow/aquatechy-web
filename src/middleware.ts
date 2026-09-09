@@ -1,7 +1,17 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 
-const whitelist = ['/login', '/signup', '/userconfirmation', '/recover', '/resetpassword', '/server-offline', '/unsubscribe', '/clients/unsubscribe', '/users/unsubscribe', '/geo-blocked'];
+const whitelist = [
+  '/login',
+  '/signup',
+  '/userconfirmation',
+  '/recover',
+  '/resetpassword',
+  '/server-offline',
+  '/unsubscribe',
+  '/clients/unsubscribe',
+  '/users/unsubscribe',
+  '/geo-blocked'
+];
 
 function isPublicRoute(pathname: string) {
   if (whitelist.some((path) => path === pathname)) {
@@ -30,12 +40,23 @@ function isPublicRoute(pathname: string) {
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
+  // Static files in /public must skip auth/geo rewrites. Next.js Image fetches
+  // /images/... server-side without cookies; a rewrite to /login returns HTML
+  // and the optimizer throws "isn't a valid image ... received null".
+  if (/\.(?:png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf)$/i.test(pathname)) {
+    return NextResponse.next();
+  }
+
   // Geo-blocking: Block all non-US users (including public routes)
   // Comment out the lines below if you want to allow login/signup from anywhere
-  const country = req.geo?.country || req.headers.get('x-vercel-ip-country') || req.headers.get('cf-ipcountry') || req.headers.get('x-country-code');
-  
+  const country =
+    req.geo?.country ||
+    req.headers.get('x-vercel-ip-country') ||
+    req.headers.get('cf-ipcountry') ||
+    req.headers.get('x-country-code');
+
   // Only allow US users
-  if (country && (country !== 'US' && country !== 'BR')) {
+  if (country && country !== 'US' && country !== 'BR') {
     return NextResponse.rewrite(new URL('/geo-blocked', req.url));
   }
 
@@ -56,5 +77,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
+  matcher: ['/((?!api|monitoring|_next/static|_next/image|favicon.ico|images|fonts|templates|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)']
 };
