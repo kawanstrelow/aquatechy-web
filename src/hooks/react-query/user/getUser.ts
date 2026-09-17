@@ -55,6 +55,17 @@ export function hydrateUserBootstrap(data: UserQueryData) {
   emit();
 }
 
+export function updateUserBootstrap(user: User) {
+  const data: UserQueryData = {
+    user,
+    dashboard: snapshot.data?.dashboard ?? useUserStore.getState().dashboard
+  };
+  applyUserData(data);
+  started.add(user.id);
+  snapshot = { userId: user.id, status: 'success', data };
+  emit();
+}
+
 function startUserLoad(userId: string) {
   if (started.has(userId)) return;
   started.add(userId);
