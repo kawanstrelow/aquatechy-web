@@ -43,6 +43,11 @@ function getDayKey(date: Date) {
   return format(date, 'yyyy-MM-dd');
 }
 
+function formatTechTagName(firstName: string, lastName: string) {
+  const lastInitial = lastName.trim().charAt(0);
+  return lastInitial ? `${firstName} ${lastInitial.toUpperCase()}.` : firstName;
+}
+
 function groupSummaryDays(days: ScheduledSummaryDay[], techFilter: string) {
   const result = new Map<string, TechDayGroup[]>();
 
@@ -127,8 +132,8 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
   return (
     <>
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-3 py-3 sm:px-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex w-full items-center gap-1 lg:w-auto">
+        <div className="flex flex-col gap-3 border-b border-slate-100 px-3 py-3 sm:px-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex w-full items-center gap-1 md:w-auto">
             <Button
               variant="outline"
               size="icon"
@@ -138,7 +143,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
             >
               <ChevronLeftIcon className="h-4 w-4" />
             </Button>
-            <h2 className="min-w-0 flex-1 text-center text-base font-semibold sm:text-lg">
+            <h2 className="min-w-0 flex-1 text-center text-base font-semibold sm:text-lg md:flex-none md:whitespace-nowrap md:px-2">
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <Button
@@ -208,7 +213,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
                       <TechDayTag
                         key={group.techId}
                         techId={group.techId}
-                        name={group.firstName}
+                        name={formatTechTagName(group.firstName, group.lastName)}
                         count={group.count}
                         onClick={() => handleTagClick(group, day)}
                       />

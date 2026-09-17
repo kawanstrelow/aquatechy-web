@@ -3,23 +3,22 @@ import { AxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 
 import { IUserSchema } from '@/app/(authenticated)/settings/profile/page';
+import { updateUserBootstrap } from '@/hooks/react-query/user/getUser';
 
 import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
-import { useUserStore } from '@/store/user';
 
 export const useUpdateUser = (userId: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const setUser = useUserStore((state) => state.setUser);
 
   const { mutate, isPending, isSuccess } = useMutation({
     mutationFn: async (data: IUserSchema) => await clientAxios.patch('/users', data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['user', userId] });
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      setUser(data.data.user);
+      updateUserBootstrap(data.data.user);
     },
     onError: (
       error: AxiosError<{
