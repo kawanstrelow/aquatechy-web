@@ -56,13 +56,19 @@ export function hydrateUserBootstrap(data: UserQueryData) {
 }
 
 export function updateUserBootstrap(user: User) {
+  const currentUser = snapshot.data?.user ?? useUserStore.getState().user;
+  const mergedUser: User = {
+    ...currentUser,
+    ...user,
+    email: user.email || currentUser.email
+  };
   const data: UserQueryData = {
-    user,
+    user: mergedUser,
     dashboard: snapshot.data?.dashboard ?? useUserStore.getState().dashboard
   };
   applyUserData(data);
-  started.add(user.id);
-  snapshot = { userId: user.id, status: 'success', data };
+  started.add(mergedUser.id);
+  snapshot = { userId: mergedUser.id, status: 'success', data };
   emit();
 }
 

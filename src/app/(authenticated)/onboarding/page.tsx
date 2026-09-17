@@ -205,6 +205,13 @@ export default function OnboardingPage() {
     resolver: zodResolver(personalDataSchema)
   });
 
+  // defaultValues are captured on first render; user.email may arrive after bootstrap.
+  useEffect(() => {
+    if (!user?.email) return;
+    if (personalDataForm.getValues('email') === user.email) return;
+    personalDataForm.setValue('email', user.email, { shouldValidate: true, shouldDirty: false });
+  }, [user?.email, personalDataForm]);
+
   const { mutate: updateUser, isPending: isUpdatingUser, isSuccess: isUserUpdated } = useUpdateUser(user.id);
 
   // Step 2: Company Form
@@ -212,7 +219,7 @@ export default function OnboardingPage() {
     resolver: zodResolver(companySchema),
     defaultValues: {
       name: '',
-      email: '',
+      email: user?.email || '',
       phone: '',
       address: '',
       addressLine2: '',
@@ -308,7 +315,7 @@ export default function OnboardingPage() {
       firstName: 'Test',
       lastName: 'Client',
       phone: user.phone || '',
-      email: user.email || '',
+      email: user.email || personalDataForm.getValues('email') || '',
       timezone,
       clientAddress: address,
       clientCity: city,
@@ -363,7 +370,10 @@ export default function OnboardingPage() {
 
   // Step 1 Handlers
   const handlePersonalDataSubmit = (data: IPersonalDataSchema) => {
-    updateUser(data);
+    updateUser({
+      ...data,
+      email: data.email || user.email
+    });
   };
 
   const handlePersonalDataAddressSelect = (address: {
