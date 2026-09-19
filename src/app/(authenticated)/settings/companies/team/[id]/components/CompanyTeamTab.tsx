@@ -13,9 +13,10 @@ import { Company, CompanyMember } from '@/ts/interfaces/Company';
 
 type Props = {
   company: Company;
+  actorRole?: string;
 };
 
-export function CompanyTeamTab({ company }: Props) {
+export function CompanyTeamTab({ company, actorRole }: Props) {
   const router = useRouter();
   const { data: members, isLoading } = useGetMembersOfACompany(company.id);
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +66,7 @@ export function CompanyTeamTab({ company }: Props) {
                   state={member.state}
                   zip={member.zip}
                   hideCompanyRow
+                  actorRole={actorRole}
                 />
               ))}
             </div>

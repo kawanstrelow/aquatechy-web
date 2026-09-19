@@ -3,12 +3,23 @@ import { BsThreeDotsVertical } from 'react-icons/bs';
 
 import { LoadingSpinner } from '../../../../../components/LoadingSpinner';
 import { Button } from '../../../../../components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '../../../../../components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger
+} from '../../../../../components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '../../../../../components/ui/dropdown-menu';
 
 import { useDeleteCompanyMember } from '@/hooks/react-query/companies/deleteCompanyMember';
 import { ModalEditCompanyMember } from './ModalEditCompanyMember';
 import { CompanyMember } from '@/ts/interfaces/Company';
+import { canMutateCompanyMember } from '@/utils/companyRoles';
+
+type Props = CompanyMember & {
+  actorRole?: string;
+};
 
 export default function DropdownMenuCompanyMember({
   id,
@@ -17,8 +28,9 @@ export default function DropdownMenuCompanyMember({
   lastName,
   email,
   phone,
-  role
-}: CompanyMember) {
+  role,
+  actorRole
+}: Props) {
   const { isPending, mutate } = useDeleteCompanyMember();
 
   const handleDelete = () => {
@@ -27,6 +39,8 @@ export default function DropdownMenuCompanyMember({
       memberId: id
     });
   };
+
+  if (!canMutateCompanyMember(actorRole, role)) return null;
 
   if (isPending) return <LoadingSpinner />;
 
@@ -49,6 +63,7 @@ export default function DropdownMenuCompanyMember({
               email={email}
               phone={phone}
               role={role}
+              actorRole={actorRole}
             >
               <div className="flex w-full cursor-pointer items-center rounded p-1 text-gray-700 hover:bg-blue-50">
                 Edit
