@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/user';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
+import { canManageCompanyTeam } from '@/utils/companyRoles';
 
 interface Step {
   id: number;
@@ -18,7 +19,7 @@ interface Step {
   actionText?: string;
 }
 
-function canAccessCompanySettings(role: string | undefined): boolean {
+function canAccessInvoiceSettings(role: string | undefined): boolean {
   return role === 'Owner' || role === 'Admin';
 }
 
@@ -28,20 +29,23 @@ export default function QuickStartPage() {
   const user = useUserStore((state) => state.user);
   const { data: companies = [] } = useGetCompanies();
 
-  const manageableCompanies = useMemo(
-    () => companies.filter((company: CompanyWithMyRole) => canAccessCompanySettings(company.role)),
+  const teamCompanies = useMemo(
+    () => companies.filter((company: CompanyWithMyRole) => canManageCompanyTeam(company.role)),
     [companies]
   );
 
-  const primaryCompanyId = manageableCompanies.length === 1 ? manageableCompanies[0].id : null;
+  const invoiceCompanies = useMemo(
+    () => companies.filter((company: CompanyWithMyRole) => canAccessInvoiceSettings(company.role)),
+    [companies]
+  );
 
-  const addTeamUrl = primaryCompanyId
-    ? `/settings/companies/team/${primaryCompanyId}/add-member`
-    : '/settings/companies';
+  const addTeamUrl =
+    teamCompanies.length === 1 ? `/settings/companies/team/${teamCompanies[0].id}/add-member` : '/settings/companies';
 
-  const invoiceSettingsUrl = primaryCompanyId
-    ? `/settings/companies/team/${primaryCompanyId}?tab=preferences&prefsTab=invoice-settings`
-    : '/invoices/settings';
+  const invoiceSettingsUrl =
+    invoiceCompanies.length === 1
+      ? `/settings/companies/team/${invoiceCompanies[0].id}?tab=preferences&prefsTab=invoice-settings`
+      : '/invoices/settings';
 
   const [steps, setSteps] = useState<Step[]>([
     {
@@ -71,7 +75,8 @@ export default function QuickStartPage() {
     {
       id: 5,
       title: 'Setup Stripe and invoice settings',
-      description: 'Connect Stripe for online payments and configure your invoice defaults, communication, and company details.',
+      description:
+        'Connect Stripe for online payments and configure your invoice defaults, communication, and company details.',
       completed: false,
       redirectUrl: '/invoices/settings',
       actionText: 'Go to Invoice Settings'
@@ -113,7 +118,7 @@ export default function QuickStartPage() {
   };
 
   return (
-    <div className="ml-4 mr-4 w-90% py-4">
+    <div className="w-90% ml-4 mr-4 py-4">
       <h1 className="mb-6 text-2xl font-bold">Quick Start Guide</h1>
       <div className="space-y-4">
         {steps.map((step) => (

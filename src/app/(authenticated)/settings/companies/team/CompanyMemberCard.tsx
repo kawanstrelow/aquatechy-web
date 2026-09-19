@@ -5,11 +5,13 @@ import { getInitials } from '@/utils/others';
 import { Separator } from '../../../../../components/ui/separator';
 
 import { CompanyMember } from '@/ts/interfaces/Company';
+import { canMutateCompanyMember } from '@/utils/companyRoles';
 
 import DropdownMenuCompanyMember from './DropdownMenuCompanyMember';
 
 type Props = CompanyMember & {
   hideCompanyRow?: boolean;
+  actorRole?: string;
 };
 
 export function CompanyMemberCard({
@@ -25,11 +27,14 @@ export function CompanyMemberCard({
   city,
   state,
   zip,
-  hideCompanyRow = false
+  hideCompanyRow = false,
+  actorRole
 }: Props) {
+  const canMutate = Boolean(id) && canMutateCompanyMember(actorRole, role);
+
   return (
     <div className="relative flex w-full cursor-pointer flex-col items-center justify-start gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:w-80">
-      {id && (
+      {canMutate && (
         <DropdownMenuCompanyMember
           status={status}
           company={company}
@@ -43,17 +48,18 @@ export function CompanyMemberCard({
           city={city}
           state={state}
           zip={zip}
+          actorRole={actorRole}
         />
       )}
 
-      <div className="flex flex-col items-center justify-start gap-4 w-full">
+      <div className="flex w-full flex-col items-center justify-start gap-4">
         <Avatar className="size-24">
           <AvatarImage src={''} />
           <AvatarFallback className="text-2xl">{getInitials(`${firstName} ${lastName}`)}</AvatarFallback>
         </Avatar>
 
-        <div className="flex flex-col items-center justify-center gap-1 w-full">
-          <div className="text-center text-sm font-semibold text-gray-800 truncate w-full">
+        <div className="flex w-full flex-col items-center justify-center gap-1">
+          <div className="w-full truncate text-center text-sm font-semibold text-gray-800">
             {firstName ? `${firstName} ${lastName}` : email}
           </div>
         </div>
@@ -61,7 +67,7 @@ export function CompanyMemberCard({
 
       <Separator />
 
-      <div className="flex flex-col gap-2 w-full">
+      <div className="flex w-full flex-col gap-2">
         {!hideCompanyRow && (
           <div className="flex w-full justify-between text-xs text-gray-500">
             <span>Company</span>
@@ -69,31 +75,30 @@ export function CompanyMemberCard({
           </div>
         )}
 
-        <div className="flex justify-between text-xs text-gray-500 w-full">
+        <div className="flex w-full justify-between text-xs text-gray-500">
           <span>Role</span>
-          <span className="text-gray-400 truncate text-right">{role}</span>
+          <span className="truncate text-right text-gray-400">{role}</span>
         </div>
 
         {firstName && (
-          <div className="flex justify-between text-xs text-gray-500 w-full">
+          <div className="flex w-full justify-between text-xs text-gray-500">
             <span>Name</span>
-            <span className="text-gray-400 truncate text-right">{`${firstName} ${lastName}`}</span>
+            <span className="truncate text-right text-gray-400">{`${firstName} ${lastName}`}</span>
           </div>
         )}
 
-        <div className="flex justify-between text-xs text-gray-500 w-full">
+        <div className="flex w-full justify-between text-xs text-gray-500">
           <span>Status</span>
-          <span className="text-gray-400 truncate text-right">{status}</span>
+          <span className="truncate text-right text-gray-400">{status}</span>
         </div>
 
         {status === 'Active' && (
-          <div className="flex justify-between text-xs text-gray-500 w-full">
+          <div className="flex w-full justify-between text-xs text-gray-500">
             <span>Phone</span>
-            <span className="text-gray-400 truncate text-right">{phone}</span>
+            <span className="truncate text-right text-gray-400">{phone}</span>
           </div>
         )}
       </div>
     </div>
-
   );
 }

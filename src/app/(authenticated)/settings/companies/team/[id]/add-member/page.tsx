@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeftIcon } from 'lucide-react';
 import { notFound, useRouter } from 'next/navigation';
@@ -13,28 +13,34 @@ import { AddressInput } from '@/components/AddressInput';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import useGetCompany from '@/hooks/react-query/companies/getCompany';
 import { useInviteMemberToACompany } from '@/hooks/react-query/companies/inviteMember';
 import { Company } from '@/ts/interfaces/Company';
 import { FieldType, IanaTimeZones } from '@/ts/enums/enums';
+import { canManageCompanyTeam, getMemberRoleSelectOptions, toAssignableRoleEnum } from '@/utils/companyRoles';
 
-const existingUserSchema = z.object({
-  companyId: z.string().min(1, { message: 'Company must be selected.' }),
-  email: z.string().email({ message: 'Invalid email format.' }),
-  role: z.enum(['Admin', 'Office', 'Technician', 'Cleaner'])
-});
+function createExistingUserSchema(actorRole: string) {
+  return z.object({
+    companyId: z.string().min(1, { message: 'Company must be selected.' }),
+    email: z.string().email({ message: 'Invalid email format.' }),
+    role: z.enum(toAssignableRoleEnum(actorRole))
+  });
+}
 
-const newUserSchema = existingUserSchema.extend({
-  firstName: z.string().min(1, { message: 'First name is required.' }),
-  lastName: z.string().min(1, { message: 'Last name is required.' }),
-  company: z.string().min(1, { message: 'Company is required.' }),
-  phone: z.string().min(1, { message: 'Phone is required.' }),
-  address: z.string().min(1, { message: 'Address is required.' }),
-  city: z.string().min(1, { message: 'City is required.' }),
-  state: z.string().min(1, { message: 'State is required.' }),
-  zip: z.string().min(1, { message: 'ZIP code is required.' }),
-  addressLine2: z.optional(z.string().trim())
-});
+function createNewUserSchema(actorRole: string) {
+  return createExistingUserSchema(actorRole).extend({
+    firstName: z.string().min(1, { message: 'First name is required.' }),
+    lastName: z.string().min(1, { message: 'Last name is required.' }),
+    company: z.string().min(1, { message: 'Company is required.' }),
+    phone: z.string().min(1, { message: 'Phone is required.' }),
+    address: z.string().min(1, { message: 'Address is required.' }),
+    city: z.string().min(1, { message: 'City is required.' }),
+    state: z.string().min(1, { message: 'State is required.' }),
+    zip: z.string().min(1, { message: 'ZIP code is required.' }),
+    addressLine2: z.optional(z.string().trim())
+  });
+}
 
 function isValidObjectId(id: string): boolean {
   const objectIdRegex = /^[a-fA-F0-9]{24}$/;
@@ -51,16 +57,42 @@ export default function AddMemberPage({ params: { id } }: Props) {
   }
 
   const router = useRouter();
-  const { mutate: inviteMember, isPending } = useInviteMemberToACompany();
   const { data: company, isLoading: isCompanyLoading } = useGetCompany(id);
+  const { data: companies, isLoading: isLoadingCompanies } = useGetCompanies();
+  const myRole = companies?.find((c) => c.id === id)?.role;
 
+  useEffect(() => {
+    if (isCompanyLoading || isLoadingCompanies) return;
+    if (!canManageCompanyTeam(myRole)) {
+      router.replace('/settings/companies');
+    }
+  }, [isCompanyLoading, isLoadingCompanies, myRole, router]);
+
+  if (isCompanyLoading || isLoadingCompanies) {
+    return <LoadingSpinner />;
+  }
+
+  if (!canManageCompanyTeam(myRole) || !myRole) {
+    return <LoadingSpinner />;
+  }
+
+  return <AddMemberContent id={id} myRole={myRole} company={company as Company | undefined} />;
+}
+
+function AddMemberContent({ id, myRole, company }: { id: string; myRole: string; company?: Company }) {
+  const router = useRouter();
+  const { mutate: inviteMember, isPending } = useInviteMemberToACompany();
+  const roleOptions = getMemberRoleSelectOptions(myRole);
   const [step, setStep] = useState<null | 'existing' | 'new'>(null);
+
+  const existingUserSchema = useMemo(() => createExistingUserSchema(myRole), [myRole]);
+  const newUserSchema = useMemo(() => createNewUserSchema(myRole), [myRole]);
 
   const redirectAfterInvite = () => {
     router.push(`/settings/companies/team/${id}`);
   };
 
-  const existingUserForm = useForm<z.infer<typeof existingUserSchema>>({
+  const existingUserForm = useForm<z.infer<ReturnType<typeof createExistingUserSchema>>>({
     resolver: zodResolver(existingUserSchema),
     defaultValues: {
       companyId: id,
@@ -69,7 +101,7 @@ export default function AddMemberPage({ params: { id } }: Props) {
     }
   });
 
-  const newUserForm = useForm<z.infer<typeof newUserSchema>>({
+  const newUserForm = useForm<z.infer<ReturnType<typeof createNewUserSchema>>>({
     resolver: zodResolver(newUserSchema),
     defaultValues: {
       companyId: id,
@@ -93,9 +125,8 @@ export default function AddMemberPage({ params: { id } }: Props) {
   }, [id, existingUserForm, newUserForm]);
 
   useEffect(() => {
-    const c = company as Company | undefined;
-    if (c?.name && newUserForm.getValues('company') === '') {
-      newUserForm.setValue('company', c.name);
+    if (company?.name && newUserForm.getValues('company') === '') {
+      newUserForm.setValue('company', company.name);
     }
   }, [company, newUserForm]);
 
@@ -114,7 +145,7 @@ export default function AddMemberPage({ params: { id } }: Props) {
     newUserForm.setValue('addressLine2', address.addressLine2);
   };
 
-  function handleExistingUserSubmit(data: z.infer<typeof existingUserSchema>) {
+  function handleExistingUserSubmit(data: z.infer<ReturnType<typeof createExistingUserSchema>>) {
     inviteMember(
       {
         userInvitedEmail: data.email,
@@ -130,7 +161,7 @@ export default function AddMemberPage({ params: { id } }: Props) {
     );
   }
 
-  function handleNewUserSubmit(data: z.infer<typeof newUserSchema>) {
+  function handleNewUserSubmit(data: z.infer<ReturnType<typeof createNewUserSchema>>) {
     inviteMember(
       {
         userInvitedEmail: data.email,
@@ -156,12 +187,7 @@ export default function AddMemberPage({ params: { id } }: Props) {
   }
 
   const handleBack = () => setStep(null);
-
-  const companyName = (company as Company | undefined)?.name ?? '';
-
-  if (isCompanyLoading) {
-    return <LoadingSpinner />;
-  }
+  const companyName = company?.name ?? '';
 
   if (!step) {
     return (
@@ -174,19 +200,14 @@ export default function AddMemberPage({ params: { id } }: Props) {
         </div>
         <h1 className="mb-2 text-center text-2xl font-bold text-gray-900">
           Add New Member
-          {companyName ? (
-            <span className="mt-2 block text-lg font-medium text-gray-600">{companyName}</span>
-          ) : null}
+          {companyName ? <span className="mt-2 block text-lg font-medium text-gray-600">{companyName}</span> : null}
         </h1>
         <div className="mt-6 flex w-full max-w-md flex-col gap-4">
-          <Button
-            className="min-h-[3rem] w-full py-4 text-center md:min-h-auto md:py-2"
-            onClick={() => setStep('new')}
-          >
+          <Button className="md:min-h-auto min-h-[3rem] w-full py-4 text-center md:py-2" onClick={() => setStep('new')}>
             The user is new on Aquatechy
           </Button>
           <Button
-            className="min-h-[3rem] w-full py-4 text-center md:min-h-auto md:py-2"
+            className="md:min-h-auto min-h-[3rem] w-full py-4 text-center md:py-2"
             variant="outline"
             onClick={() => setStep('existing')}
           >
@@ -215,17 +236,7 @@ export default function AddMemberPage({ params: { id } }: Props) {
             <form onSubmit={existingUserForm.handleSubmit(handleExistingUserSubmit)} className="space-y-6">
               <input type="hidden" {...existingUserForm.register('companyId')} />
               <InputField name="email" label="User E-mail" placeholder="Enter user e-mail" />
-              <SelectField
-                name="role"
-                label="Role"
-                placeholder="Select role"
-                options={[
-                  { key: 'Admin', name: 'Admin', value: 'Admin' },
-                  { key: 'Office', name: 'Office', value: 'Office' },
-                  { key: 'Technician', name: 'Technician', value: 'Technician' },
-                  { key: 'Cleaner', name: 'Cleaner', value: 'Cleaner' }
-                ]}
-              />
+              <SelectField name="role" label="Role" placeholder="Select role" options={roleOptions} />
               <div className="flex justify-end space-x-4 pt-6">
                 <Button type="button" variant="outline" onClick={handleBack}>
                   Cancel
@@ -280,17 +291,7 @@ export default function AddMemberPage({ params: { id } }: Props) {
                 <InputField name="zip" label="ZIP Code" placeholder="ZIP code" />
               </div>
             </div>
-            <SelectField
-              name="role"
-              label="Role"
-              placeholder="Select role"
-              options={[
-                { key: 'Admin', name: 'Admin', value: 'Admin' },
-                { key: 'Office', name: 'Office', value: 'Office' },
-                { key: 'Technician', name: 'Technician', value: 'Technician' },
-                { key: 'Cleaner', name: 'Cleaner', value: 'Cleaner' }
-              ]}
-            />
+            <SelectField name="role" label="Role" placeholder="Select role" options={roleOptions} />
             <div className="flex justify-end space-x-4 pt-6">
               <Button type="button" variant="outline" onClick={handleBack}>
                 Cancel

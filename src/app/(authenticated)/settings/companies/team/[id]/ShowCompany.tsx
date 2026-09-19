@@ -368,7 +368,7 @@ function ShowCompanyInner({ company }: Props) {
             ) : tab === 'preferences' ? (
               <Preferences company={company} />
             ) : (
-              <CompanyTeamTab company={company} />
+              <CompanyTeamTab company={company} actorRole={myRole} />
             )}
           </div>
         </div>
