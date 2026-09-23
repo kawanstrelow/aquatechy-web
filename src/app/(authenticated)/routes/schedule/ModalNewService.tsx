@@ -1,6 +1,7 @@
 import { addDays, format, getDay } from 'date-fns';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useShallow } from 'zustand/react/shallow';
 
 import InputField from '@/components/InputField';
 import SelectField from '@/components/SelectField';
@@ -14,6 +15,8 @@ import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import useGetPoolsByClientId from '@/hooks/react-query/pools/getPoolsByClientId';
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 import { cn } from '@/lib/utils';
+import { useMembersStore } from '@/store/members';
+import { useUserStore } from '@/store/user';
 import { FieldType, Frequency } from '@/ts/enums/enums';
 import { Client } from '@/ts/interfaces/Client';
 import { WeekdaysUppercase } from '@/ts/interfaces/Weekday';
@@ -22,9 +25,44 @@ import { formatPoolNameWithBodyOfWater, isEmpty } from '@/utils';
 import WeekdaySelect from '../assignments/WeekdaySelect';
 import { FormSchema } from './page';
 
-export function DialogNewService({ fullWidth = true, className }: { fullWidth?: boolean; className?: string } = {}) {
+export function DialogNewService({
+  fullWidth = true,
+  className,
+  defaultTechnicianId
+}: {
+  fullWidth?: boolean;
+  className?: string;
+  defaultTechnicianId?: string;
+} = {}) {
   const form = useFormContext<FormSchema>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const user = useUserStore((state) => state.user);
+  const { members } = useMembersStore(
+    useShallow((state) => ({
+      members: state.members
+    }))
+  );
+
+  const technicianOptions = useMemo(() => {
+    const uniqueMembers = members.filter(
+      (member, index, self) => index === self.findIndex((item) => item.id === member.id) && member.firstName !== ''
+    );
+    const options = uniqueMembers.map((member) => ({
+      key: member.id,
+      value: member.id,
+      name: `${member.firstName} ${member.lastName}`.trim()
+    }));
+
+    if (user.id && user.firstName && !options.some((option) => option.value === user.id)) {
+      options.push({
+        key: user.id,
+        value: user.id,
+        name: `${user.firstName} ${user.lastName}`.trim()
+      });
+    }
+
+    return options;
+  }, [members, user.firstName, user.id, user.lastName]);
 
   const [startOn, weekday, frequency] = form.watch(['startOn', 'weekday', 'frequency']);
   const [next10WeekdaysStartOn, setNext10WeekdaysStartOn] = useState<
@@ -87,6 +125,38 @@ export function DialogNewService({ fullWidth = true, className }: { fullWidth?: 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnlyOnce]);
+
+  function clearServiceForm(technicianId = '') {
+    form.reset({
+      assignedToId: technicianId,
+      poolId: '',
+      scheduledTo: '',
+      clientId: '',
+      serviceTypeId: '',
+      instructions: '',
+      frequency: Frequency.ONCE,
+      weekday: format(new Date(), 'EEEE').toUpperCase() as WeekdaysUppercase,
+      startOn: undefined,
+      endAfter: undefined
+    });
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (isCreating) return;
+    setIsModalOpen(open);
+    if (!open) {
+      clearServiceForm();
+    }
+  }
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const technicianId = defaultTechnicianId || user.id;
+    if (technicianId) {
+      form.setValue('assignedToId', technicianId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isModalOpen, defaultTechnicianId, user.id]);
 
   // Reset poolId when client changes (but not on initial mount)
   const prevClientIdRef = React.useRef<string | undefined>();
@@ -209,12 +279,8 @@ export function DialogNewService({ fullWidth = true, className }: { fullWidth?: 
     return false;
   };
 
-  function resetFormAfterCreate(assignedToId: string, selectedWeekday?: string) {
-    form.reset();
-    form.setValue('assignedToId', assignedToId);
-    if (selectedWeekday) {
-      form.setValue('weekday', selectedWeekday as WeekdaysUppercase);
-    }
+  function resetFormAfterCreate() {
+    clearServiceForm();
     setIsModalOpen(false);
   }
 
@@ -238,7 +304,7 @@ export function DialogNewService({ fullWidth = true, className }: { fullWidth?: 
           },
           {
             onSuccess: () => {
-              resetFormAfterCreate(assignedToId, selectedWeekday);
+              resetFormAfterCreate();
             }
           }
         );
@@ -256,7 +322,7 @@ export function DialogNewService({ fullWidth = true, className }: { fullWidth?: 
           },
           {
             onSuccess: () => {
-              resetFormAfterCreate(assignedToId, selectedWeekday);
+              resetFormAfterCreate();
             }
           }
         );
@@ -268,7 +334,7 @@ export function DialogNewService({ fullWidth = true, className }: { fullWidth?: 
   }
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={isCreating ? undefined : setIsModalOpen}>
+    <Dialog open={isModalOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild className={cn(fullWidth && 'w-full', className)}>
         <Button
           className={cn('h-9 shrink-0 whitespace-nowrap px-4 py-2', fullWidth ? 'w-full' : 'w-auto', className)}
@@ -293,6 +359,12 @@ export function DialogNewService({ fullWidth = true, className }: { fullWidth?: 
             <form className="flex flex-col">
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-4">
+                  <SelectField
+                    options={technicianOptions}
+                    label="Technician"
+                    placeholder="Technician"
+                    name="assignedToId"
+                  />
                   <SelectField
                     options={clients
                       .filter((c: Client) => c.isActive)
