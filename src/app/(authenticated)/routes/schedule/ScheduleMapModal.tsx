@@ -318,7 +318,7 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <DialogNewService fullWidth />
+                      <DialogNewService fullWidth defaultTechnicianId={memberId} />
                     </div>
                   </div>
                 ) : (
@@ -328,7 +328,7 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
                       fullWidth={false}
                       disabled={isLoadingServices}
                     />
-                    <DialogNewService fullWidth={false} />
+                    <DialogNewService fullWidth={false} defaultTechnicianId={memberId} />
                   </>
                 )}
                 {hasChanges && (
