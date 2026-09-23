@@ -20,7 +20,7 @@ export const useSendEstimate = () => {
 
       toast({
         duration: 2000,
-        title: 'Estimate email queued successfully',
+        title: 'Estimate sent successfully',
         variant: 'success'
       });
     },
@@ -28,12 +28,12 @@ export const useSendEstimate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to send estimate email';
+        : errorMessage || 'Failed to send estimate';
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error sending estimate email',
+        title: 'Error sending estimate',
         description: message
       });
     }

@@ -38,6 +38,8 @@ export interface InvoiceCommunication {
   invoiceMessage?: InvoiceMessage | null;
   thankYouMessage?: ThankYouMessage | null;
   reminderMessage?: ReminderMessage | null;
+  /** Optional client SMS when sending invoice email. Missing means false. */
+  sendSms?: boolean;
 }
 
 export interface InvoiceSettingsPreferences {
@@ -60,6 +62,8 @@ export interface EstimateCommunication {
   estimateMessage?: EstimateMessage | null;
   acceptedNotificationMessage?: EstimateNotificationMessage | null;
   declinedNotificationMessage?: EstimateNotificationMessage | null;
+  /** Optional client SMS when sending estimate email. Missing means false. */
+  sendSms?: boolean;
 }
 
 export interface EstimateSettingsPreferences {

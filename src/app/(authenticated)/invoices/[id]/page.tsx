@@ -23,7 +23,9 @@ import { useInvoiceRefund } from '@/hooks/react-query/invoices/useInvoiceRefund'
 import { useRecordExternalRefund } from '@/hooks/react-query/invoices/useRecordExternalRefund';
 import { useToast } from '@/components/ui/use-toast';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
+import useGetCompany from '@/hooks/react-query/companies/getCompany';
 import { useCompanySetupCheckout } from '@/hooks/react-query/clients/useCompanySetupCheckout';
+import { isInvoiceSmsEnabled } from '@/utils/companyCommunicationSms';
 
 type Props = {
   params: {
@@ -86,6 +88,7 @@ function transformInvoiceToDetailed(apiInvoice: Invoice): DetailedInvoice {
     cardOnFileLast4: apiInvoice.client.cardOnFileLast4 ?? undefined,
     cardOnFileBrand: apiInvoice.client.cardOnFileBrand ?? undefined,
     cardOnFileExp: apiInvoice.client.cardOnFileExp ?? undefined,
+    clientPhone: apiInvoice.client.phone,
     refundStatus: apiInvoice.refundStatus ?? undefined,
     refundedAt: apiInvoice.refundedAt ?? undefined,
     invoiceTotalCents: apiInvoice.total,
@@ -128,6 +131,7 @@ export default function InvoicePage({ params: { id } }: Props) {
   const [paymentRecoverMessage, setPaymentRecoverMessage] = useState<string | null>(null);
 
   const companyId = data?.invoice.companyOwnerId;
+  const { data: company } = useGetCompany(companyId || '');
   const { data: connectStatus, isLoading: isConnectLoading } = useConnectStatus(companyId);
   const checkoutSession = useInvoiceCheckoutSession();
   const chargeCard = useChargeCardOnFile();
@@ -278,6 +282,7 @@ export default function InvoicePage({ params: { id } }: Props) {
         externalRefundMaxCents={remainingExternalRefundMaxCents(invoice)}
         onRecordExternalRefund={handleRecordExternalRefund}
         isExternalRefundLoading={recordExternalRefund.isPending}
+        smsEnabled={isInvoiceSmsEnabled(company)}
       />
       <ConfirmActionDialog
         open={cancelDialogOpen}

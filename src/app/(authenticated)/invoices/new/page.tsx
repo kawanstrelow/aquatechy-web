@@ -22,6 +22,7 @@ import { useCreateInvoice } from '@/hooks/react-query/invoices/useCreateInvoice'
 import { useCreateInvoiceAndSendEmail } from '@/hooks/react-query/invoices/useCreateInvoiceAndSendEmail';
 import { CreateInvoiceAsDraftRequest, InvoiceLineItemInput } from '@/ts/interfaces/Invoice';
 import { PaymentTermsDays } from '@/ts/interfaces/RecurringInvoiceTemplate';
+import { isInvoiceSmsEnabled } from '@/utils/companyCommunicationSms';
 
 interface InvoiceLineItem {
   description: string;
@@ -780,6 +781,11 @@ function CreateInvoicePage() {
                 {isCreatingAndSending ? 'Creating & Sending...' : 'Create & Send'}
               </Button>
             </div>
+            {isInvoiceSmsEnabled(company) && (
+              <p className="text-sm text-gray-500">
+                Create & Send will email the invoice and send an SMS if the client has a phone number.
+              </p>
+            )}
           </div>
 
           {/* Right: Preview (Desktop) / Below (Mobile) */}

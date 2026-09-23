@@ -45,14 +45,16 @@ const createDefaultFormValues = (company?: Company): InvoiceSettingsFormData => 
   communication: {
     invoiceMessage: company?.preferences?.invoiceSettingsPreferences?.communication?.invoiceMessage ?? null,
     thankYouMessage: company?.preferences?.invoiceSettingsPreferences?.communication?.thankYouMessage ?? null,
-    reminderMessage: company?.preferences?.invoiceSettingsPreferences?.communication?.reminderMessage ?? null
+    reminderMessage: company?.preferences?.invoiceSettingsPreferences?.communication?.reminderMessage ?? null,
+    sendSms: company?.preferences?.invoiceSettingsPreferences?.communication?.sendSms === true
   },
   estimateCommunication: {
     estimateMessage: company?.preferences?.estimateSettingsPreferences?.communication?.estimateMessage ?? null,
     acceptedNotificationMessage:
       company?.preferences?.estimateSettingsPreferences?.communication?.acceptedNotificationMessage ?? null,
     declinedNotificationMessage:
-      company?.preferences?.estimateSettingsPreferences?.communication?.declinedNotificationMessage ?? null
+      company?.preferences?.estimateSettingsPreferences?.communication?.declinedNotificationMessage ?? null,
+    sendSms: company?.preferences?.estimateSettingsPreferences?.communication?.sendSms === true
   }
 });
 
@@ -159,7 +161,7 @@ export function InvoiceSettingsCard({ company }: InvoiceSettingsCardProps) {
             </TabsContent>
 
             <TabsContent value="communication" className="mt-6">
-              <CommunicationTab companyId={company.id} />
+              <CommunicationTab companyId={company.id} userRole={selectedCompany.role} />
             </TabsContent>
 
             <TabsContent value="estimates" className="mt-6">

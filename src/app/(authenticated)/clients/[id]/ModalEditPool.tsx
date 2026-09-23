@@ -2,11 +2,9 @@ import { UseFormReturn } from 'react-hook-form';
 import { MdOutlineEdit } from 'react-icons/md';
 
 import InputField from '@/components/InputField';
-import SelectField from '@/components/SelectField';
 import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { PoolTypes } from '@/constants';
 import { FieldType } from '@/ts/enums/enums';
 
 type Props = {
@@ -36,13 +34,6 @@ export function DialogEditPool({ form, handleSubmit, monthlyPaymentChanged }: Pr
             <InputField name="monthlyPayment" placeholder="Monthly payment" type={FieldType.CurrencyValue} />
             <InputField name="lockerCode" placeholder="Gate code" />
             <InputField name="enterSide" placeholder="Enter side" />
-            <SelectField
-              value={form.watch('poolType')}
-              name="poolType"
-              placeholder="Chemical type"
-              options={PoolTypes}
-              label="Chemical type"
-            />
           </div>
 
           <div className="mb-4 h-full w-full">

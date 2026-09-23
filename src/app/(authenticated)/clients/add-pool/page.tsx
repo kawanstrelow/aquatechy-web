@@ -13,7 +13,7 @@ import { AddressInput } from '@/components/AddressInput';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { PoolTypes } from '@/constants';
+import { HasSaltSystemOptions } from '@/constants';
 import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { poolSchema } from '@/schemas/pool';
 import { FieldType, PoolType } from '@/ts/enums/enums';
@@ -101,7 +101,7 @@ function AddPoolPage() {
       lockerCode: '',
       monthlyPayment: undefined,
       notes: undefined,
-      poolType: undefined,
+      hasSaltSystem: 'false',
       state: '',
       zip: '',
       addressLine2: '',
@@ -133,11 +133,13 @@ function AddPoolPage() {
   async function handleSubmit(data: CreatePoolType) {
     const isValid = await validateForm();
     if (isValid) {
-      const { volumeInGallons, bodyOfWater, monthlyPayment, addressLine2, ...rest } = data;
+      const { volumeInGallons, bodyOfWater, monthlyPayment, addressLine2, hasSaltSystem, ...rest } = data;
+      const hasSalt = hasSaltSystem === 'true';
       const poolData: CreatePool = {
         ...rest,
         monthlyPayment: monthlyPayment ?? undefined,
-        poolType: data.poolType as PoolType,
+        hasSaltSystem: hasSalt,
+        poolType: hasSalt ? PoolType.Salt : PoolType.Chlorine,
         bodyOfWater: bodyOfWater?.trim() || undefined,
         estimatesConvertedFrom: data.estimatesConvertedFrom,
         ...(volumeInGallons != null && volumeInGallons > 0 ? { volumeInGallons } : {})
@@ -240,7 +242,12 @@ function AddPoolPage() {
                 type={FieldType.Number}
                 props={{ min: 1, step: 1 }}
               />
-              <SelectField name="poolType" label="Chemical Type" placeholder="Select chemical type" options={PoolTypes} />
+              <SelectField
+                name="hasSaltSystem"
+                label="Salt system"
+                placeholder="Select salt system"
+                options={HasSaltSystemOptions}
+              />
             </div>
 
             <div className="space-y-2">

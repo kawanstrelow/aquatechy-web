@@ -17,6 +17,8 @@ import { useDuplicateEstimate } from '@/hooks/react-query/estimates/useDuplicate
 import { EstimateView } from './EstimateView';
 import { EstimateActivityTimeline, transformEstimateToDetailed } from './EstimateActivityTimeline';
 import { EstimateActions } from './EstimateActions';
+import useGetCompany from '@/hooks/react-query/companies/getCompany';
+import { isEstimateSmsEnabled } from '@/utils/companyCommunicationSms';
 
 type Props = {
   params: { id: string };
@@ -33,6 +35,8 @@ export default function EstimateDetailPage({ params: { id } }: Props) {
   const { mutateAsync: declineEstimate, isPending: isDeclining } = useDeclineEstimate();
   const { mutateAsync: duplicateEstimate, isPending: isDuplicating } = useDuplicateEstimate();
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const companyId = data?.estimate.companyOwnerId || '';
+  const { data: company } = useGetCompany(companyId);
 
   useEffect(() => {
     if (user.firstName === '') router.push('/onboarding');
@@ -95,6 +99,7 @@ export default function EstimateDetailPage({ params: { id } }: Props) {
         isAccepting={isAccepting}
         isDeclining={isDeclining}
         isDuplicating={isDuplicating}
+        smsEnabled={isEstimateSmsEnabled(company)}
       />
 
       <ConfirmActionDialog

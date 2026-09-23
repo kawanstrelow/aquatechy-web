@@ -36,6 +36,7 @@ export function buildEstimateCommunicationPayload(communication: EstimateCommuni
   return {
     estimateMessage: toEstimateMessagePayload(communication.estimateMessage),
     acceptedNotificationMessage: toEstimateMessagePayload(communication.acceptedNotificationMessage),
-    declinedNotificationMessage: toEstimateMessagePayload(communication.declinedNotificationMessage)
+    declinedNotificationMessage: toEstimateMessagePayload(communication.declinedNotificationMessage),
+    sendSms: communication.sendSms === true
   };
 }

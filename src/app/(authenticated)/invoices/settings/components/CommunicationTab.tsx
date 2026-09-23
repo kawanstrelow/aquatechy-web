@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import InputField from '@/components/InputField';
 import { FieldType } from '@/ts/enums/enums';
-import { InvoiceCommunication, Company } from '@/ts/interfaces/Company';
+import { InvoiceCommunication } from '@/ts/interfaces/Company';
 import { useUpdateInvoiceCommunicationSettings } from '@/hooks/react-query/invoices/useUpdateInvoiceSettings';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import useGetCompany from '@/hooks/react-query/companies/getCompany';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useUserStore } from '@/store/user';
+import { DocumentSmsToggle } from './DocumentSmsToggle';
 
 // Sample data for preview
 const sampleData = {
@@ -49,11 +51,14 @@ const replaceTemplateVariables = (text: string | null | undefined): string => {
 
 interface CommunicationTabProps {
   companyId?: string;
+  userRole?: 'Owner' | 'Admin' | 'Office' | 'Technician' | 'Cleaner';
 }
 
-export function CommunicationTab({ companyId }: CommunicationTabProps) {
+export function CommunicationTab({ companyId, userRole }: CommunicationTabProps) {
   const form = useFormContext<{ communication: InvoiceCommunication }>();
   const { mutate: updateSettings, isPending } = useUpdateInvoiceCommunicationSettings(companyId || '');
+  const isFreePlan = useUserStore((state) => state.isFreePlan);
+  const canManageSettings = userRole === 'Owner' || userRole === 'Admin';
   
   // Fetch company data to get communication preferences
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId || '');
@@ -106,6 +111,12 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
       shouldValidate: true,
       shouldTouch: false 
     });
+
+    form.setValue('communication.sendSms', communication?.sendSms === true, {
+      shouldDirty: false,
+      shouldValidate: true,
+      shouldTouch: false
+    });
     
     // Mark this company as loaded to prevent re-running
     lastLoadedCompanyIdRef.current = companyId;
@@ -119,7 +130,7 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!companyId) return;
+    if (!companyId || !canManageSettings) return;
     
     // Get all three message objects - they must be provided together
     const communication = form.getValues('communication');
@@ -132,13 +143,31 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
     updateSettings({
       invoiceMessage,
       thankYouMessage,
-      reminderMessage
+      reminderMessage,
+      sendSms: communication.sendSms === true
     });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-6">
+        <DocumentSmsToggle
+          name="communication.sendSms"
+          title="Send invoice SMS"
+          description="Also send an SMS when this company sends an invoice email. Uses your connected Quo or Twilio number, or Aquatechy’s number if none is connected. The client must have a phone number. SMS text is not customizable, and there is no per-client invoice SMS preference."
+          canManage={canManageSettings}
+          isFreePlan={isFreePlan}
+        />
+
+        {!canManageSettings && (
+          <Alert>
+            <AlertTitle>View only</AlertTitle>
+            <AlertDescription>
+              Only owners and admins can update invoice communication settings for this company.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Variables Info Box */}
         <Alert className="border-blue-200 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600" />
@@ -166,6 +195,7 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
               name="communication.invoiceMessage.emailSubject"
               label="Email Subject"
               placeholder="Enter email subject"
+              disabled={!canManageSettings}
             />
 
             <InputField
@@ -173,6 +203,7 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
               label="Email Body"
               placeholder="Enter email body"
               type={FieldType.TextArea}
+              disabled={!canManageSettings}
             />
 
             <div className="rounded-lg bg-gray-50 p-4">
@@ -198,6 +229,7 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
               name="communication.thankYouMessage.emailSubject"
               label="Email Subject"
               placeholder="Enter email subject"
+              disabled={!canManageSettings}
             />
 
             <InputField
@@ -205,6 +237,7 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
               label="Email Body"
               placeholder="Enter email body"
               type={FieldType.TextArea}
+              disabled={!canManageSettings}
             />
 
             <div className="rounded-lg bg-gray-50 p-4">
@@ -230,6 +263,7 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
               name="communication.reminderMessage.emailSubject"
               label="Email Subject"
               placeholder="Enter email subject"
+              disabled={!canManageSettings}
             />
 
             <InputField
@@ -237,6 +271,7 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
               label="Email Body"
               placeholder="Enter email body"
               type={FieldType.TextArea}
+              disabled={!canManageSettings}
             />
 
             <div className="rounded-lg bg-gray-50 p-4">
@@ -254,11 +289,13 @@ export function CommunicationTab({ companyId }: CommunicationTabProps) {
           </div>
         </div>
 
-        <div className="flex justify-start">
-          <Button type="submit" disabled={isPending}>
-            {isPending ? 'Saving...' : 'Save Communication Settings'}
-          </Button>
-        </div>
+        {canManageSettings && (
+          <div className="flex justify-start">
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Saving...' : 'Save Communication Settings'}
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

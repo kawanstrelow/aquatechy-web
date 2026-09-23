@@ -283,8 +283,8 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
             <div>
               <h3 className="text-sm font-semibold text-gray-800">Service report SMS</h3>
               <p className="text-muted-foreground text-sm font-normal">
-                Choose Aquatechy’s number or your own Quo or Twilio account. Only completed-service (and resend) SMS use
-                this. Signup and verification still use Aquatechy.
+              Choose Aquatechy’s number or your own Quo or Twilio account. Completed-service, invoice, and estimate SMS
+              use this number. Signup and verification still use Aquatechy.
               </p>
             </div>
           </div>

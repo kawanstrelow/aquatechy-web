@@ -66,6 +66,8 @@ interface InvoiceActionsProps {
   externalRefundMaxCents?: number;
   onRecordExternalRefund?: (amountCents: number) => Promise<void>;
   isExternalRefundLoading?: boolean;
+  /** When true, send/reminder copy is channel-agnostic (email + SMS). */
+  smsEnabled?: boolean;
 }
 
 export function InvoiceActions({
@@ -97,7 +99,8 @@ export function InvoiceActions({
   showExternalRefund = false,
   externalRefundMaxCents = 0,
   onRecordExternalRefund,
-  isExternalRefundLoading = false
+  isExternalRefundLoading = false,
+  smsEnabled = false
 }: InvoiceActionsProps) {
   const router = useRouter();
   const [showSendInvoiceDialog, setShowSendInvoiceDialog] = useState(false);
@@ -218,6 +221,20 @@ export function InvoiceActions({
   const showCancelInvoice =
     onCancelInvoice && invoice.status !== 'paid' && invoice.status !== 'cancelled';
   const hasClientCardOnFile = !!invoice.defaultStripePaymentMethodId;
+  const clientHasPhone = Boolean(invoice.clientPhone?.trim());
+  const sendInvoiceLabel = smsEnabled ? 'Send Invoice' : 'Send Invoice Email';
+  const sendInvoiceDescription = smsEnabled
+    ? clientHasPhone
+      ? `Are you sure you want to send invoice #${invoice.invoiceNumber} to ${invoice.clientName}? The invoice will be sent via email and SMS.`
+      : `Are you sure you want to send invoice #${invoice.invoiceNumber} to ${invoice.clientName}? The invoice will be sent via email. SMS is enabled, but this client has no phone number.`
+    : `Are you sure you want to send invoice #${invoice.invoiceNumber} to ${invoice.clientName}? The invoice will be sent via email.`;
+  const sendReminderLabel = smsEnabled ? 'Send reminder' : 'Send reminder email';
+  const sendReminderConfirmLabel = smsEnabled ? 'Send reminder' : 'Send Reminder Email';
+  const sendReminderDescription = smsEnabled
+    ? clientHasPhone
+      ? `Are you sure you want to send a reminder for invoice #${invoice.invoiceNumber} to ${invoice.clientName}? This will remind them about the outstanding payment via email and SMS.`
+      : `Are you sure you want to send a reminder for invoice #${invoice.invoiceNumber} to ${invoice.clientName}? This will remind them about the outstanding payment via email. SMS is enabled, but this client has no phone number.`
+    : `Are you sure you want to send a reminder email for invoice #${invoice.invoiceNumber} to ${invoice.clientName}? This will remind them about the outstanding payment.`;
 
   return (
     <div className="mb-6 flex flex-col gap-4">
@@ -423,14 +440,14 @@ export function InvoiceActions({
           <>
             <Button onClick={() => setShowSendInvoiceDialog(true)} disabled={isSendingInvoice}>
               <Send className="mr-2 h-4 w-4" />
-              {isSendingInvoice ? 'Sending...' : 'Send Invoice Email'}
+              {isSendingInvoice ? 'Sending...' : sendInvoiceLabel}
             </Button>
             <ConfirmActionDialog
               open={showSendInvoiceDialog}
               onOpenChange={setShowSendInvoiceDialog}
-              title="Send Invoice Email"
-              description={`Are you sure you want to send invoice #${invoice.invoiceNumber} to ${invoice.clientName}? The invoice will be sent via email.`}
-              confirmText="Send Invoice Email"
+              title={sendInvoiceLabel}
+              description={sendInvoiceDescription}
+              confirmText={sendInvoiceLabel}
               cancelText="Cancel"
               onConfirm={handleSendInvoice}
               variant="default"
@@ -442,14 +459,14 @@ export function InvoiceActions({
           <>
             <Button variant="outline" onClick={() => setShowSendReminderDialog(true)} disabled={isSendingReminder}>
               <Mail className="mr-2 h-4 w-4" />
-              {isSendingReminder ? 'Sending...' : 'Send reminder email'}
+              {isSendingReminder ? 'Sending...' : sendReminderLabel}
             </Button>
             <ConfirmActionDialog
               open={showSendReminderDialog}
               onOpenChange={setShowSendReminderDialog}
               title="Send Invoice Reminder"
-              description={`Are you sure you want to send a reminder email for invoice #${invoice.invoiceNumber} to ${invoice.clientName}? This will remind them about the outstanding payment.`}
-              confirmText="Send Reminder Email"
+              description={sendReminderDescription}
+              confirmText={sendReminderConfirmLabel}
               cancelText="Cancel"
               onConfirm={handleSendReminder}
               variant="default"

@@ -15,7 +15,7 @@ import { Typography } from '@/components/Typography';
 import { Button } from '@/components/ui/button';
 import { Form, FormDescription, FormItem } from '@/components/ui/form';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Frequencies, PoolTypes, Weekdays } from '@/constants';
+import { Frequencies, HasSaltSystemOptions, Weekdays } from '@/constants';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
 import { clientSchema } from '@/schemas/client';
 import { dateSchema } from '@/schemas/date';
@@ -189,7 +189,7 @@ export default function Page() {
         'monthlyPayment',
         'lockerCode',
         'enterSide',
-        'poolType',
+        'hasSaltSystem',
         'poolNotes',
         'bodyOfWater',
         'volumeInGallons',
@@ -218,6 +218,7 @@ export default function Page() {
       sameBillingAddress: false,
       clientType: 'Residential',
       monthlyPayment: 0,
+      hasSaltSystem: 'false',
       companyOwnerId: ownerAdminOfficeCompanies.length === 1 ? ownerAdminOfficeCompanies[0].id : undefined,
 
     }
@@ -529,7 +530,8 @@ export default function Page() {
         monthlyPayment: data.monthlyPayment || 0,
         lockerCode: data.lockerCode || undefined,
         enterSide: data.enterSide,
-        poolType: data.poolType,
+        hasSaltSystem: data.hasSaltSystem === 'true',
+        poolType: data.hasSaltSystem === 'true' ? 'Salt' : 'Chlorine',
         poolNotes: data.poolNotes,
         bodyOfWater: data.bodyOfWater?.trim() || undefined,
         estimatesConvertedFrom: data.estimatesConvertedFrom,
@@ -778,7 +780,12 @@ export default function Page() {
                   type={FieldType.Number}
                   props={{ min: 1, step: 1 }}
                 />
-                <SelectField name="poolType" label="Chemical type" placeholder="Chemical type" options={PoolTypes} />
+                <SelectField
+                  name="hasSaltSystem"
+                  label="Salt system"
+                  placeholder="Salt system"
+                  options={HasSaltSystemOptions}
+                />
               </div>
 
               <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">

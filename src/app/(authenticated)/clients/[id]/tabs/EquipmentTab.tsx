@@ -6,6 +6,8 @@ import { Equipment } from '@/ts/interfaces/Pool';
 
 import { EquipmentDetailView } from './equipment/EquipmentDetailView';
 import { FilterCard } from './equipment/FilterCard';
+import { SaltSystemCard } from './equipment/SaltSystemCard';
+import { SaltSystemDetailView } from './equipment/SaltSystemDetailView';
 
 interface EquipmentTabProps {
   equipment: Equipment | null;
@@ -14,13 +16,25 @@ interface EquipmentTabProps {
 }
 
 export default function EquipmentTab({ equipment, poolId, clientId }: EquipmentTabProps) {
-  const [selectedEquipment, setSelectedEquipment] = useState<'filter' | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<'filter' | 'saltSystem' | null>(null);
   const filter = equipment?.filter ?? null;
+  const saltSystem = equipment?.saltSystem ?? null;
 
   if (selectedEquipment === 'filter') {
     return (
       <EquipmentDetailView
         filter={filter}
+        poolId={poolId}
+        clientId={clientId}
+        onBack={() => setSelectedEquipment(null)}
+      />
+    );
+  }
+
+  if (selectedEquipment === 'saltSystem') {
+    return (
+      <SaltSystemDetailView
+        saltSystem={saltSystem}
         poolId={poolId}
         clientId={clientId}
         onBack={() => setSelectedEquipment(null)}
@@ -36,6 +50,15 @@ export default function EquipmentTab({ equipment, poolId, clientId }: EquipmentT
         lastCleaningDate={filter?.lastCleaningDate}
         maintenanceCount={filter?.maintenanceHistory?.length ?? 0}
         onClick={() => setSelectedEquipment('filter')}
+      />
+      <SaltSystemCard
+        model={saltSystem?.model}
+        status={saltSystem?.status}
+        hasSaltSystem={saltSystem != null}
+        lastCleaningDate={saltSystem?.lastCleaningDate}
+        maintenanceCount={saltSystem?.maintenanceHistory?.length ?? 0}
+        poolId={poolId}
+        onClick={() => setSelectedEquipment('saltSystem')}
       />
     </div>
   );
