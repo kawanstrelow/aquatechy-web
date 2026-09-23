@@ -68,10 +68,6 @@ type SkimmerRow = {
   ListSortName: string;
 };
 
-// Pool type mapping
-type PoolType = 'Other' | 'Chlorine' | 'Salt';
-
-// State mappings (reusing from CSV import)
 const STATE_MAPPINGS: { [key: string]: string } = {
   // Standard names
   ALABAMA: 'AL',
@@ -291,7 +287,8 @@ export default function ImportFromSkimmer() {
             animalDanger,
             enterSide: 'Not defined',
             lockerCode: row.GateCode || row.LocationCode || '',
-            poolType: 'Other' as PoolType, // Default to Other since Skimmer doesn't specify
+            hasSaltSystem: false,
+            poolType: 'Chlorine',
             poolNotes: row.CustomerNotes || row.LocationNotes || '',
             clientType: clientCompany ? 'Commercial' : 'Residential',
             clientNotes: row.CustomerNotes || row.LocationNotes || '',
@@ -464,7 +461,7 @@ export default function ImportFromSkimmer() {
                   <TableHead>Pool City</TableHead>
                   <TableHead>Pool State</TableHead>
                   <TableHead>Pool Zip</TableHead>
-                  <TableHead>Pool Type</TableHead>
+                  <TableHead>Salt system</TableHead>
                   <TableHead>Animal Danger</TableHead>
                   <TableHead>Gate/Location Code</TableHead>
                   <TableHead>Monthly Payment</TableHead>
@@ -486,7 +483,7 @@ export default function ImportFromSkimmer() {
                     <TableCell>{client.poolCity}</TableCell>
                     <TableCell>{client.poolState}</TableCell>
                     <TableCell>{client.poolZip}</TableCell>
-                    <TableCell>{client.poolType}</TableCell>
+                    <TableCell>{client.hasSaltSystem ? 'Yes' : 'No'}</TableCell>
                     <TableCell>{client.animalDanger ? 'Yes' : 'No'}</TableCell>
                     <TableCell>{client.lockerCode}</TableCell>
                     <TableCell>{formatMonthlyPayment(client.monthlyPayment)}</TableCell>

@@ -4,11 +4,11 @@ import { useMemo } from 'react';
 import { format } from 'date-fns';
 
 import { MaintenanceType } from '@/ts/enums/enums';
-import { Filter } from '@/ts/interfaces/Pool';
+import { MaintenanceHistory } from '@/ts/interfaces/Pool';
 
 import { ViewingPhoto } from './PhotoViewerDialog';
 
-const MAINTENANCE_TITLES: Record<string, string> = {
+const FILTER_MAINTENANCE_TITLES: Record<string, string> = {
   [MaintenanceType.Cleaning]: 'Filter was cleaned',
   [MaintenanceType.Replacement]: 'Filter was replaced',
   [MaintenanceType.Inspection]: 'Filter was inspected',
@@ -17,9 +17,23 @@ const MAINTENANCE_TITLES: Record<string, string> = {
   [MaintenanceType.Other]: 'Filter maintenance'
 };
 
-function getMaintenanceTitle(type?: MaintenanceType | string) {
-  if (!type) return 'Filter maintenance';
-  return MAINTENANCE_TITLES[type] ?? type;
+const SALT_MAINTENANCE_TITLES: Record<string, string> = {
+  [MaintenanceType.Cleaning]: 'Salt cell was cleaned',
+  [MaintenanceType.Replacement]: 'Salt cell was replaced',
+  [MaintenanceType.Inspection]: 'Salt cell was inspected',
+  [MaintenanceType.Installation]: 'Salt cell was installed',
+  [MaintenanceType.Adjustment]: 'Salt cell was adjusted',
+  [MaintenanceType.Other]: 'Salt cell maintenance'
+};
+
+const EMPTY_DESCRIPTIONS = {
+  filter: 'Records appear here after filter cleanings and replacements.',
+  saltSystem: 'Records appear here after salt-cell cleanings.'
+};
+
+function getMaintenanceTitle(titles: Record<string, string>, fallback: string, type?: MaintenanceType | string) {
+  if (!type) return fallback;
+  return titles[type] ?? type;
 }
 
 function isSlugNote(notes?: string) {
@@ -28,22 +42,28 @@ function isSlugNote(notes?: string) {
 }
 
 interface MaintenanceRecordsTabProps {
-  filter: Filter | null | undefined;
+  maintenanceHistory?: MaintenanceHistory[] | null;
+  variant?: 'filter' | 'saltSystem';
   onViewPhoto: (photo: ViewingPhoto) => void;
 }
 
-export function MaintenanceRecordsTab({ filter, onViewPhoto }: MaintenanceRecordsTabProps) {
+export function MaintenanceRecordsTab({
+  maintenanceHistory,
+  variant = 'filter',
+  onViewPhoto
+}: MaintenanceRecordsTabProps) {
+  const titles = variant === 'saltSystem' ? SALT_MAINTENANCE_TITLES : FILTER_MAINTENANCE_TITLES;
+  const fallbackTitle = variant === 'saltSystem' ? 'Salt cell maintenance' : 'Filter maintenance';
+
   const records = useMemo(() => {
-    return [...(filter?.maintenanceHistory ?? [])].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-  }, [filter?.maintenanceHistory]);
+    return [...(maintenanceHistory ?? [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [maintenanceHistory]);
 
   if (records.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-gray-200 px-6 py-10 text-center">
         <p className="text-sm text-gray-500">No maintenance records yet.</p>
-        <p className="mt-1 text-xs text-gray-400">Records appear here after filter cleanings and replacements.</p>
+        <p className="mt-1 text-xs text-gray-400">{EMPTY_DESCRIPTIONS[variant]}</p>
       </div>
     );
   }
@@ -58,7 +78,9 @@ export function MaintenanceRecordsTab({ filter, onViewPhoto }: MaintenanceRecord
           </div>
           <div className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-gray-50/60 p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="font-medium text-gray-900">{getMaintenanceTitle(history.type)}</span>
+              <span className="font-medium text-gray-900">
+                {getMaintenanceTitle(titles, fallbackTitle, history.type)}
+              </span>
               <time className="text-sm text-gray-500" dateTime={new Date(history.date).toISOString()}>
                 {format(new Date(history.date), 'MMM d, yyyy')}
               </time>

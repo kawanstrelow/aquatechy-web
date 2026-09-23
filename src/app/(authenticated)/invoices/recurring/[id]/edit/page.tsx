@@ -13,12 +13,14 @@ import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { FieldType } from '@/ts/enums/enums';
 import { useUpdateRecurringInvoiceTemplate } from '@/hooks/react-query/invoices/useUpdateRecurringInvoiceTemplate';
+import useGetCompany from '@/hooks/react-query/companies/getCompany';
 import {
   RecurringInvoiceDelivery,
   PaymentTermsDays,
   RecurringInvoiceFrequency,
   RecurringInvoiceTemplate
 } from '@/ts/interfaces/RecurringInvoiceTemplate';
+import { getRecurringInvoiceDeliveryOptions, isInvoiceSmsEnabled } from '@/utils/companyCommunicationSms';
 
 interface RecurringInvoiceFormData {
   delivery: RecurringInvoiceDelivery;
@@ -35,12 +37,6 @@ const paymentTermsOptions = [
   { key: PaymentTermsDays.FifteenDays, value: PaymentTermsDays.FifteenDays, name: 'Due on 15 days' },
   { key: PaymentTermsDays.ThirtyDays, value: PaymentTermsDays.ThirtyDays, name: 'Due on 30 days' },
   { key: PaymentTermsDays.SixtyDays, value: PaymentTermsDays.SixtyDays, name: 'Due on 60 days' }
-];
-
-const deliveryOptions = [
-  { key: RecurringInvoiceDelivery.SaveAsDraft, value: RecurringInvoiceDelivery.SaveAsDraft, name: 'Create invoices and save as draft' },
-  { key: RecurringInvoiceDelivery.SendOnCreation, value: RecurringInvoiceDelivery.SendOnCreation, name: 'Create invoices and send e-mail' },
-  { key: RecurringInvoiceDelivery.CreateOnly, value: RecurringInvoiceDelivery.CreateOnly, name: 'Create invoices only and do not send e-mail' }
 ];
 
 const frequencyLabels: Record<RecurringInvoiceFrequency, string> = {
@@ -98,6 +94,8 @@ export default function EditRecurringInvoicePage() {
 function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemplate }) {
   const router = useRouter();
   const { mutate: updateTemplate, isPending: isUpdating } = useUpdateRecurringInvoiceTemplate();
+  const { data: company } = useGetCompany(template.companyOwnerId);
+  const deliveryOptions = getRecurringInvoiceDeliveryOptions(isInvoiceSmsEnabled(company));
 
   const form = useForm<RecurringInvoiceFormData>({
     defaultValues: {

@@ -9,7 +9,7 @@ import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import { Button } from '@/components/ui/button';
 import { DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
-import { PoolTypes } from '@/constants';
+import { HasSaltSystemOptions } from '@/constants';
 import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { poolSchema } from '@/schemas/pool';
 import { FieldType, PoolType } from '@/ts/enums/enums';
@@ -89,7 +89,7 @@ export function ModalAddPool({ handleAddPool, clientOwnerId, open, setOpen }: Pr
       lockerCode: '',
       monthlyPayment: undefined,
       notes: undefined,
-      poolType: undefined,
+      hasSaltSystem: 'false',
       state: '',
       zip: '',
       bodyOfWater: ''
@@ -118,10 +118,13 @@ export function ModalAddPool({ handleAddPool, clientOwnerId, open, setOpen }: Pr
   async function handleSubmit(data: CreatePoolType) {
     const isValid = await validateForm();
     if (isValid) {
+      const { hasSaltSystem, ...rest } = data;
+      const hasSalt = hasSaltSystem === 'true';
       handleAddPool({
-        ...data,
+        ...rest,
         monthlyPayment: data.monthlyPayment ?? undefined,
-        poolType: data.poolType as PoolType,
+        hasSaltSystem: hasSalt,
+        poolType: hasSalt ? PoolType.Salt : PoolType.Chlorine,
         bodyOfWater: data.bodyOfWater?.trim() || undefined,
         estimatesConvertedFrom: data.estimatesConvertedFrom
       });
@@ -163,7 +166,12 @@ export function ModalAddPool({ handleAddPool, clientOwnerId, open, setOpen }: Pr
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <InputField name="enterSide" label="Enter side" placeholder="Enter side" />
               <InputField name="bodyOfWater" label="Body of water" placeholder="e.g. Main pool, spa" />
-              <SelectField name="poolType" label="Chemical type" placeholder="Chemical type" options={PoolTypes} />
+              <SelectField
+                name="hasSaltSystem"
+                label="Salt system"
+                placeholder="Salt system"
+                options={HasSaltSystemOptions}
+              />
             </div>
             <div>
               <InputField

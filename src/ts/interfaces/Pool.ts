@@ -1,4 +1,4 @@
-import { EquipmentCondition, FilterType, MaintenanceType, PoolType } from '@/ts/enums/enums';
+import { EquipmentCondition, FilterType, MaintenanceType, PoolType, SaltSystemStatus } from '@/ts/enums/enums';
 
 import { Service } from './Service';
 import { Client } from './Client';
@@ -55,6 +55,7 @@ export type CreatePool = {
   monthlyPayment?: number;
   notes?: string;
   poolType: PoolType;
+  hasSaltSystem?: boolean;
   state: string;
   zip: string;
   bodyOfWater?: string | null;
@@ -89,8 +90,23 @@ export interface Filter {
   warrantyExpirationDate?: Date;
 }
 
+export interface SaltSystem {
+  model?: string | null;
+  serialNumber?: string | null;
+  photos?: string[];
+  condition?: EquipmentCondition | null;
+  status?: SaltSystemStatus;
+  warrantyExpirationDate?: Date | null;
+  lastCleaningDate?: Date | null;
+  replacementDate?: Date | null;
+  lastCleaningUserId?: string | null;
+  recommendedCleaningIntervalDays?: number;
+  maintenanceHistory?: MaintenanceHistory[];
+}
+
 export interface Equipment {
   filter?: Filter | null;
+  saltSystem?: SaltSystem | null;
 }
 
 // Request interface is now imported from Request.ts

@@ -84,6 +84,11 @@ export enum EquipmentCondition {
   NeedsReplacement = 'NeedsReplacement'
 }
 
+export enum SaltSystemStatus {
+  Active = 'Active',
+  Inactive = 'Inactive'
+}
+
 export enum MaintenanceType {
   Cleaning = 'Cleaning',
   Inspection = 'Inspection',

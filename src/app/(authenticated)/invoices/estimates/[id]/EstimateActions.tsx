@@ -47,6 +47,7 @@ interface EstimateActionsProps {
   isAccepting?: boolean;
   isDeclining?: boolean;
   isDuplicating?: boolean;
+  smsEnabled?: boolean;
 }
 
 export function EstimateActions({
@@ -64,7 +65,8 @@ export function EstimateActions({
   isCancelling = false,
   isAccepting = false,
   isDeclining = false,
-  isDuplicating = false
+  isDuplicating = false,
+  smsEnabled = false
 }: EstimateActionsProps) {
   const router = useRouter();
   const [showSendDialog, setShowSendDialog] = useState(false);
@@ -79,6 +81,19 @@ export function EstimateActions({
   const showAcceptDecline = estimate.status === 'sent';
   const showCancel = estimate.status !== 'accepted' && estimate.status !== 'cancelled';
   const showViewInvoice = estimate.status === 'accepted' && !!estimate.convertedInvoiceId;
+  const sendButtonLabel =
+    estimate.status === 'sent' ? (smsEnabled ? 'Re-send estimate' : 'Re-send Email') : 'Send to Client';
+  const sendDialogTitle = smsEnabled
+    ? estimate.status === 'sent'
+      ? 'Re-send estimate'
+      : 'Send estimate'
+    : estimate.status === 'sent'
+      ? 'Re-send estimate email'
+      : 'Send estimate email';
+  const sendDialogDescription = smsEnabled
+    ? `Send estimate #${estimate.estimateNumber} to ${estimate.clientName} via email and SMS? SMS is sent only if the client has a phone number.`
+    : `Send estimate #${estimate.estimateNumber} to ${estimate.clientName}?`;
+  const sendConfirmText = smsEnabled ? 'Send estimate' : 'Send Email';
 
   const handleBack = () => router.push('/invoices/estimates');
 
@@ -101,14 +116,14 @@ export function EstimateActions({
           <>
             <Button onClick={() => setShowSendDialog(true)} disabled={isSending}>
               <Send className="mr-2 h-4 w-4" />
-              {isSending ? 'Sending...' : estimate.status === 'sent' ? 'Re-send Email' : 'Send to Client'}
+              {isSending ? 'Sending...' : sendButtonLabel}
             </Button>
             <ConfirmActionDialog
               open={showSendDialog}
               onOpenChange={setShowSendDialog}
-              title={estimate.status === 'sent' ? 'Re-send estimate email' : 'Send estimate email'}
-              description={`Send estimate #${estimate.estimateNumber} to ${estimate.clientName}?`}
-              confirmText="Send Email"
+              title={sendDialogTitle}
+              description={sendDialogDescription}
+              confirmText={sendConfirmText}
               cancelText="Cancel"
               onConfirm={async () => {
                 await onSend();

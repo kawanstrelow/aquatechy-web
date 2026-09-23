@@ -72,6 +72,7 @@ export interface DetailedInvoice extends Invoice {
   cardOnFileLast4?: string | null;
   cardOnFileBrand?: string | null;
   cardOnFileExp?: string | null;
+  clientPhone?: string;
 }
 
 const clientNames = [

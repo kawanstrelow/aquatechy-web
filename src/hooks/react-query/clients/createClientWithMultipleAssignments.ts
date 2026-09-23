@@ -53,6 +53,7 @@ export interface CreateClientWithAssignmentsData {
   lockerCode?: string;
   enterSide?: string;
   poolType?: string;
+  hasSaltSystem?: boolean;
   poolNotes?: string;
   bodyOfWater?: string | null;
   volumeInGallons?: number;

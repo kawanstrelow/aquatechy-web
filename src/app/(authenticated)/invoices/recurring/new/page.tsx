@@ -22,6 +22,7 @@ import {
   PaymentTermsDays,
   CreateRecurringInvoiceTemplateRequest
 } from '@/ts/interfaces/RecurringInvoiceTemplate';
+import { getRecurringInvoiceDeliveryOptions, isInvoiceSmsEnabled } from '@/utils/companyCommunicationSms';
 
 interface InvoiceLineItem {
   description: string;
@@ -57,12 +58,6 @@ const frequencyOptions = [
   { key: RecurringInvoiceFrequency.Weekly, value: RecurringInvoiceFrequency.Weekly, name: 'Weekly' },
   { key: RecurringInvoiceFrequency.Monthly, value: RecurringInvoiceFrequency.Monthly, name: 'Monthly' },
   { key: RecurringInvoiceFrequency.Yearly, value: RecurringInvoiceFrequency.Yearly, name: 'Yearly' }
-];
-
-const deliveryOptions = [
-  { key: RecurringInvoiceDelivery.SaveAsDraft, value: RecurringInvoiceDelivery.SaveAsDraft, name: 'Create invoices and save as draft' },
-  { key: RecurringInvoiceDelivery.SendOnCreation, value: RecurringInvoiceDelivery.SendOnCreation, name: 'Create invoices and send e-mail' },
-  { key: RecurringInvoiceDelivery.CreateOnly, value: RecurringInvoiceDelivery.CreateOnly, name: 'Create invoices only and do not send e-mail' }
 ];
 
 const defaultPaymentInstructions = 'Please make payment via check or bank transfer. Contact us for bank details.';
@@ -118,6 +113,11 @@ export default function CreateRecurringInvoicePage() {
 
   // Get company using selected client's companyOwnerId
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId);
+
+  const deliveryOptions = useMemo(
+    () => getRecurringInvoiceDeliveryOptions(isInvoiceSmsEnabled(company)),
+    [company]
+  );
 
   // Get default values from company settings
   const companyDefaults = useMemo(() => {

@@ -92,6 +92,19 @@ export const Weekdays = [
   }
 ];
 
+export const HasSaltSystemOptions = [
+  {
+    value: 'true',
+    name: 'Yes',
+    key: 'true'
+  },
+  {
+    value: 'false',
+    name: 'No',
+    key: 'false'
+  }
+];
+
 export const PoolTypes = [
   {
     value: 'Chlorine',

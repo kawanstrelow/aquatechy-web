@@ -43,7 +43,7 @@ type CSVRow = {
   enterSide: string;
   lockerCode: string;
   poolNotes: string;
-  poolType: string;
+  hasSaltSystem: string;
   poolState: string;
   poolZip: string;
   customerCode: string;
@@ -56,10 +56,6 @@ type CSVRow = {
   estimatesConvertedFrom?: string;
 };
 
-// Add this type
-type PoolType = 'Other' | 'Chlorine' | 'Salt';
-
-// Add this right after the PoolType type definition and before the component
 const STATE_MAPPINGS: { [key: string]: string } = {
   // Standard names
   ALABAMA: 'AL',
@@ -229,6 +225,7 @@ export default function ImportFromFile() {
 
           // Convert animalDanger from string to boolean
           const animalDanger = String(row.animalDanger || '').toLowerCase() === 'true';
+          const hasSaltSystem = String(row.hasSaltSystem || '').toLowerCase() === 'true';
 
           const cleanedPhone = String(row.phone || '').replace(/\D/g, '');
           const formattedPhone =
@@ -258,7 +255,8 @@ export default function ImportFromFile() {
             animalDanger: animalDanger ? true : false,
             enterSide: row.enterSide || 'Not defined',
             lockerCode: String(row.lockerCode || ''),
-            poolType: (row.poolType || 'Other') as PoolType,
+            hasSaltSystem,
+            poolType: hasSaltSystem ? 'Salt' : 'Chlorine',
             poolNotes: row.poolNotes || '',
             clientType: row.clientType as 'Residential' | 'Commercial',
             clientNotes: row.clientNotes || '',
@@ -468,7 +466,7 @@ export default function ImportFromFile() {
                   <TableHead>Pool City</TableHead>
                   <TableHead>Pool State</TableHead>
                   <TableHead>Pool Zip</TableHead>
-                  <TableHead>Pool Type</TableHead>
+                  <TableHead>Salt system</TableHead>
                   <TableHead>Animal Danger</TableHead>
                   <TableHead>Enter Side</TableHead>
                   <TableHead>Locker Code</TableHead>
@@ -494,7 +492,7 @@ export default function ImportFromFile() {
                     <TableCell>{client.poolCity}</TableCell>
                     <TableCell>{client.poolState}</TableCell>
                     <TableCell>{client.poolZip}</TableCell>
-                    <TableCell>{client.poolType}</TableCell>
+                    <TableCell>{client.hasSaltSystem ? 'Yes' : 'No'}</TableCell>
                     <TableCell>{client.animalDanger ? 'Yes' : 'No'}</TableCell>
                     <TableCell>{client.enterSide}</TableCell>
                     <TableCell>{client.lockerCode}</TableCell>

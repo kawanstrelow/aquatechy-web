@@ -2,7 +2,7 @@ import * as z from 'zod';
 
 import { defaultSchemas } from './defaultSchemas';
 
-const { address, city, notes, state, zipCode, poolType, volumeInGallons } = defaultSchemas;
+const { address, city, notes, state, zipCode, volumeInGallons } = defaultSchemas;
 
 export const poolSchema = z.object({
   poolAddress: address,
@@ -28,9 +28,9 @@ export const poolSchema = z.object({
     .optional(),
 
   poolNotes: notes,
-  poolType: z.enum(['Chlorine', 'Salt', 'Other'], {
-    required_error: 'poolType is required.',
-    invalid_type_error: "Pool type must be 'Chlorine', 'Salt' or 'Other'."
+  hasSaltSystem: z.enum(['true', 'false'], {
+    required_error: 'Salt system is required.',
+    invalid_type_error: 'Salt system must be yes or no.'
   }),
   poolState: state,
   poolZip: zipCode,
@@ -72,7 +72,6 @@ export const editPoolSchema = z.object({
   notes: notes.optional(),
   monthlyPayment: defaultSchemas.monthlyPayment.optional(),
   paymentUnit: defaultSchemas.paymentUnit.optional(),
-  poolType: poolType.optional(),
   zip: defaultSchemas.zipCode.optional(),
   animalDanger: z.boolean().optional(),
   isActive: z.boolean().optional(),

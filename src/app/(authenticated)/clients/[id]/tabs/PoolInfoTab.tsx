@@ -6,14 +6,12 @@ import { Clock, Info, Timer } from 'lucide-react';
 
 import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import SelectField from '@/components/SelectField';
 import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import { Typography } from '@/components/Typography';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { AddressInput } from '@/components/AddressInput';
-import { PoolTypes } from '@/constants';
 import { useUpdatePool } from '@/hooks/react-query/pools/updatePool';
 import { editPoolSchema } from '@/schemas/pool';
 import { FieldType } from '@/ts/enums/enums';
@@ -45,7 +43,6 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
       paymentUnit: pool.paymentUnit || undefined,
       lockerCode: pool.lockerCode || '',
       enterSide: pool.enterSide || '',
-      poolType: pool.poolType,
       notes: pool.notes || '',
       zip: pool.zip || '',
       animalDanger: pool.animalDanger || false,
@@ -283,13 +280,6 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
             placeholder="e.g. 15000"
             type={FieldType.Number}
             props={{ min: 1, step: 1 }}
-          />
-          <SelectField
-            value={form.watch('poolType')}
-            name="poolType"
-            placeholder="Chemical type"
-            options={PoolTypes}
-            label="Chemical type"
           />
         </div>
 

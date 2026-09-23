@@ -24,7 +24,7 @@ export const useSendInvoice = () => {
 
       toast({
         duration: 2000,
-        title: 'Invoice email sent successfully',
+        title: 'Invoice sent successfully',
         variant: 'success'
       });
     },
@@ -36,12 +36,12 @@ export const useSendInvoice = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to send invoice email';
+        : errorMessage || 'Failed to send invoice';
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error sending invoice email',
+        title: 'Error sending invoice',
         description: message
       });
     }

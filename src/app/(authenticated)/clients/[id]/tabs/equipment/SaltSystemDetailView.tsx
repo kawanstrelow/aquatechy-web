@@ -1,32 +1,38 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CircleOff, Droplets } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Filter } from '@/ts/interfaces/Pool';
+import { SaltSystemStatus } from '@/ts/enums/enums';
+import { SaltSystem } from '@/ts/interfaces/Pool';
 
-import { EquipmentDetailTab } from './EquipmentDetailTab';
 import { MaintenanceRecordsTab } from './MaintenanceRecordsTab';
 import { PhotoViewerDialog, ViewingPhoto } from './PhotoViewerDialog';
-import { PoolFilterIcon } from './PoolFilterIcon';
+import { SaltSystemDetailTab } from './SaltSystemDetailTab';
 
 type DetailTab = 'detail' | 'maintenance';
 
 const tabStyles = 'px-4 py-2 text-sm transition-colors duration-200 hover:cursor-pointer hover:text-gray-700';
 const activeTabStyles = 'border-b-2 border-sky-600 font-medium text-gray-800';
 
-interface EquipmentDetailViewProps {
-  filter: Filter | null | undefined;
+interface SaltSystemDetailViewProps {
+  saltSystem: SaltSystem | null | undefined;
   poolId: string;
   clientId: string;
   onBack: () => void;
 }
 
-export function EquipmentDetailView({ filter, poolId, clientId, onBack }: EquipmentDetailViewProps) {
+function getSubtitle(saltSystem: SaltSystem | null | undefined) {
+  if (!saltSystem) return 'No salt system';
+  return saltSystem.model || undefined;
+}
+
+export function SaltSystemDetailView({ saltSystem, poolId, clientId, onBack }: SaltSystemDetailViewProps) {
   const [viewingPhoto, setViewingPhoto] = useState<ViewingPhoto | null>(null);
   const [tab, setTab] = useState<DetailTab>('detail');
-  const subtitle = filter?.model || filter?.type;
+  const subtitle = getSubtitle(saltSystem);
+  const isInactive = Boolean(saltSystem) && saltSystem?.status === SaltSystemStatus.Inactive;
 
   return (
     <>
@@ -42,11 +48,22 @@ export function EquipmentDetailView({ filter, poolId, clientId, onBack }: Equipm
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-sky-100 bg-sky-50">
-            <PoolFilterIcon className="h-9 w-9" />
+          <div
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border ${
+              isInactive ? 'border-gray-200 bg-gray-50' : 'border-sky-100 bg-sky-50'
+            }`}
+          >
+            {isInactive ? (
+              <CircleOff className="h-7 w-7 text-gray-400" aria-hidden />
+            ) : (
+              <Droplets className="h-7 w-7 text-sky-600" aria-hidden />
+            )}
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Filter</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-900">Salt system</h3>
+              {isInactive && <span className="text-xs font-medium text-gray-500">Inactive</span>}
+            </div>
             {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
           </div>
         </div>
@@ -71,10 +88,19 @@ export function EquipmentDetailView({ filter, poolId, clientId, onBack }: Equipm
         </div>
 
         {tab === 'detail' && (
-          <EquipmentDetailTab filter={filter} poolId={poolId} clientId={clientId} onViewPhoto={setViewingPhoto} />
+          <SaltSystemDetailTab
+            saltSystem={saltSystem}
+            poolId={poolId}
+            clientId={clientId}
+            onViewPhoto={setViewingPhoto}
+          />
         )}
         {tab === 'maintenance' && (
-          <MaintenanceRecordsTab maintenanceHistory={filter?.maintenanceHistory} onViewPhoto={setViewingPhoto} />
+          <MaintenanceRecordsTab
+            maintenanceHistory={saltSystem?.maintenanceHistory}
+            variant="saltSystem"
+            onViewPhoto={setViewingPhoto}
+          />
         )}
       </div>
       <PhotoViewerDialog photo={viewingPhoto} onClose={() => setViewingPhoto(null)} />

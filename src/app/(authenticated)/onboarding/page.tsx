@@ -15,7 +15,7 @@ import CompanyStateAndCitySelect from '@/components/CompanyStateAndCitySelect';
 import { Typography } from '@/components/Typography';
 import { Button } from '@/components/ui/button';
 import { Form, FormDescription, FormItem } from '@/components/ui/form';
-import { Frequencies, PoolTypes, Weekdays } from '@/constants';
+import { Frequencies, HasSaltSystemOptions, Weekdays } from '@/constants';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
 import { clientSchema } from '@/schemas/client';
 import { poolSchema } from '@/schemas/pool';
@@ -250,7 +250,7 @@ export default function OnboardingPage() {
       volumeInGallons: 15000,
       lockerCode: '123',
       enterSide: 'Left',
-      poolType: 'Salt',
+      hasSaltSystem: 'false',
       poolNotes: 'Pool has a screen around it.',
     }
   });
@@ -334,7 +334,7 @@ export default function OnboardingPage() {
       lockerCode: '123',
       monthlyPayment: 12000,
       enterSide: 'Left',
-      poolType: 'Salt',
+      hasSaltSystem: 'false',
       poolNotes: 'Pool has a screen around it',
       clientType: 'Residential'
     });
@@ -778,7 +778,8 @@ export default function OnboardingPage() {
         monthlyPayment: data.monthlyPayment || 0,
         lockerCode: data.lockerCode || undefined,
         enterSide: data.enterSide,
-        poolType: data.poolType,
+        hasSaltSystem: data.hasSaltSystem === 'true',
+        poolType: data.hasSaltSystem === 'true' ? 'Salt' : 'Chlorine',
         poolNotes: data.poolNotes,
         bodyOfWater: data.bodyOfWater?.trim() || undefined,
         estimatesConvertedFrom: data.estimatesConvertedFrom,
@@ -835,7 +836,7 @@ export default function OnboardingPage() {
         'monthlyPayment',
         'lockerCode',
         'enterSide',
-        'poolType',
+        'hasSaltSystem',
         'poolNotes',
         'bodyOfWater',
         'volumeInGallons',
@@ -1182,7 +1183,12 @@ export default function OnboardingPage() {
                         type={FieldType.Number}
                         props={{ min: 1, step: 1 }}
                       />
-                      <SelectField name="poolType" label="Chemical type" placeholder="Chemical type" options={PoolTypes} />
+                      <SelectField
+                        name="hasSaltSystem"
+                        label="Salt system"
+                        placeholder="Salt system"
+                        options={HasSaltSystemOptions}
+                      />
                     </div>
 
                     <InputField

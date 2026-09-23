@@ -13,12 +13,14 @@ import { useUpdateEstimateCommunicationSettings } from '@/hooks/react-query/esti
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import useGetCompany from '@/hooks/react-query/companies/getCompany';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useUserStore } from '@/store/user';
 import {
   DEFAULT_ACCEPTED_NOTIFICATION_MESSAGE,
   DEFAULT_DECLINED_NOTIFICATION_MESSAGE,
   DEFAULT_ESTIMATE_MESSAGE,
   resolveEstimateMessageForDisplay
 } from '../estimateCommunicationDefaults';
+import { DocumentSmsToggle } from './DocumentSmsToggle';
 
 const baseEstimateVariables = [
   '%estimate_number%',
@@ -58,6 +60,7 @@ export function EstimateCommunicationTab({ companyId, userRole }: EstimateCommun
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId || '');
   const lastLoadedCompanyIdRef = useRef<string | undefined>(undefined);
   const canManageSettings = userRole === 'Owner' || userRole === 'Admin';
+  const isFreePlan = useUserStore((state) => state.isFreePlan);
 
   useEffect(() => {
     if (lastLoadedCompanyIdRef.current !== companyId) {
@@ -91,6 +94,11 @@ export function EstimateCommunicationTab({ companyId, userRole }: EstimateCommun
       ),
       { shouldDirty: false, shouldValidate: true, shouldTouch: false }
     );
+    form.setValue('estimateCommunication.sendSms', communication?.sendSms === true, {
+      shouldDirty: false,
+      shouldValidate: true,
+      shouldTouch: false
+    });
 
     lastLoadedCompanyIdRef.current = companyId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,6 +116,14 @@ export function EstimateCommunicationTab({ companyId, userRole }: EstimateCommun
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-6">
+        <DocumentSmsToggle
+          name="estimateCommunication.sendSms"
+          title="Send estimate SMS"
+          description="Also send an SMS when this company sends an estimate email. Uses your connected Quo or Twilio number, or Aquatechy’s number if none is connected. The client must have a phone number. SMS text is not customizable, and there is no per-client estimate SMS preference."
+          canManage={canManageSettings}
+          isFreePlan={isFreePlan}
+        />
+
         <Alert className="border-blue-200 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertTitle className="font-semibold text-blue-900">Estimate email templates</AlertTitle>

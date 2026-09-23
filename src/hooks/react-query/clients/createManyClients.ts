@@ -49,6 +49,7 @@ export type CreateManyClientsInput = {
   monthlyPayment?: number;
   poolNotes?: string;
   poolType: 'Chlorine' | 'Salt' | 'Other';
+  hasSaltSystem?: boolean;
   poolState: string;
   poolZip: string;
   poolAddressLine2?: string;
