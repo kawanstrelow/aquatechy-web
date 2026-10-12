@@ -10,17 +10,15 @@ export type SubscriptionStripeStatus =
   | 'incomplete_expired'
   | 'paused';
 
-export type PortalSessionFlow =
-  | 'default'
-  | 'payment_method_update'
-  | 'subscription_cancel'
-  | 'subscription_update';
+export type PortalSessionFlow = 'default' | 'payment_method_update' | 'subscription_cancel' | 'subscription_update';
 
 export type SubscriptionStripeDetails = {
   customerId: string;
   subscriptionId: string;
   status: SubscriptionStripeStatus;
   cancelAtPeriodEnd: boolean;
+  cancelAt: string | null;
+  canceledAt: string | null;
   currentPeriodStart: string;
   currentPeriodEnd: string;
   priceId: string;
@@ -28,6 +26,7 @@ export type SubscriptionStripeDetails = {
   amount: number;
   currency: string;
   interval: 'month' | 'year';
+  intervalCount: number;
 };
 
 export type SubscriptionPaymentMethod = {
@@ -54,6 +53,8 @@ export type SubscriptionAvailableActions = {
 export type SubscriptionStatusResponse = {
   plan: UserSubscription;
   hasStripeSubscription: boolean;
+  isPendingCancellation: boolean;
+  accessEndsAt: string | null;
   stripe: SubscriptionStripeDetails | null;
   paymentMethod: SubscriptionPaymentMethod | null;
   latestInvoice: SubscriptionLatestInvoice | null;

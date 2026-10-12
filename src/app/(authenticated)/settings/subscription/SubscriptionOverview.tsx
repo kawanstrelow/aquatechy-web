@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { SubscriptionStatusResponse } from '@/ts/interfaces/Subscription';
 import { UserSubscription } from '@/ts/enums/enums';
 
-import { formatMoney, getPlanLabel, getStatusBadge } from './subscriptionUtils';
+import { formatBillingCadence, formatMoney, getPlanLabel, getStatusBadge } from './subscriptionUtils';
 
 type Props = {
   status: SubscriptionStatusResponse;
@@ -22,6 +22,8 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
   const stripe = status.stripe;
   const isGrow = status.plan === UserSubscription.GROW;
   const renewalDate = stripe?.currentPeriodEnd ? format(new Date(stripe.currentPeriodEnd), 'MMM d, yyyy') : null;
+  const accessEndsAt = status.accessEndsAt ? format(new Date(status.accessEndsAt), 'MMM d, yyyy') : null;
+  const canceledAt = stripe?.canceledAt ? format(new Date(stripe.canceledAt), 'MMM d, yyyy') : null;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[#DCE1F5] bg-gradient-to-br from-[#364D9D] via-[#3d56a8] to-[#647AC7] p-6 text-white shadow-lg sm:p-8">
@@ -48,20 +50,23 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
             {stripe ? (
               <p className="mt-2 text-lg text-white/90">
                 {formatMoney(stripe.amount, stripe.currency)}
-                <span className="text-white/70"> / {stripe.interval}</span>
+                <span className="text-white/70"> / {formatBillingCadence(stripe.interval, stripe.intervalCount)}</span>
               </p>
             ) : (
               <p className="mt-2 text-white/80">Free forever — no credit card required</p>
             )}
           </div>
 
-          {stripe?.cancelAtPeriodEnd && renewalDate && (
+          {status.isPendingCancellation && (
             <p className="max-w-xl rounded-lg border border-amber-300/30 bg-amber-400/15 px-4 py-2.5 text-sm text-amber-50">
-              Scheduled to cancel on {renewalDate}. You keep full Grow access until then.
+              {accessEndsAt
+                ? `Cancels on ${accessEndsAt}. You keep full Grow access until then.`
+                : 'Your subscription is scheduled to cancel. You keep full Grow access until then.'}
+              {canceledAt ? ` Requested on ${canceledAt}.` : ''}
             </p>
           )}
 
-          {!stripe?.cancelAtPeriodEnd && renewalDate && (
+          {!status.isPendingCancellation && renewalDate && (
             <p className="inline-flex items-center gap-2 text-sm text-white/80">
               <CalendarDays className="size-4" />
               Renews on {renewalDate}
