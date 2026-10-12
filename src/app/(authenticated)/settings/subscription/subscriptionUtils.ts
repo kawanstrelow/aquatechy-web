@@ -1,4 +1,4 @@
-import { SubscriptionStatusResponse } from '@/ts/interfaces/Subscription';
+import { SubscriptionStatusResponse, SubscriptionStripeDetails } from '@/ts/interfaces/Subscription';
 import { UserSubscription } from '@/ts/enums/enums';
 
 export function formatMoney(cents: number, currency: string) {
@@ -17,6 +17,15 @@ export function getPlanLabel(plan: UserSubscription) {
   return 'Starter';
 }
 
+export function formatBillingCadence(interval: SubscriptionStripeDetails['interval'], intervalCount: number) {
+  if (interval === 'month' && intervalCount === 1) return 'month';
+  if (interval === 'month' && intervalCount === 3) return 'quarter';
+  if (interval === 'year' && intervalCount === 1) return 'year';
+
+  const unit = intervalCount === 1 ? interval : `${interval}s`;
+  return intervalCount === 1 ? unit : `every ${intervalCount} ${unit}`;
+}
+
 export function getStatusBadge(status: SubscriptionStatusResponse) {
   const stripe = status.stripe;
 
@@ -28,7 +37,7 @@ export function getStatusBadge(status: SubscriptionStatusResponse) {
     return { label: 'Past due', variant: 'destructive' as const };
   }
 
-  if (stripe.cancelAtPeriodEnd) {
+  if (status.isPendingCancellation) {
     return { label: 'Canceling', variant: 'outline' as const };
   }
 
