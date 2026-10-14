@@ -45,44 +45,73 @@ export const poolSchema = z.object({
   estimatesConvertedFrom: z.number().int().optional()
 });
 
-export const editPoolSchema = z.object({
-  poolId: z
-    .string({
-      required_error: 'poolId is required.',
-      invalid_type_error: 'poolId must be a string.'
-    })
-    .trim()
-    .min(1, { message: 'poolId must be at least 1 character.' }),
-  address: address.optional(),
-  city: city.optional(),
-  enterSide: z
-    .string({
-      required_error: 'enterSide is required.',
-      invalid_type_error: 'enterSide must be a string.'
-    })
-    .trim()
-    .optional(),
-  lockerCode: z
-    .string({
-      required_error: "lockerCode field is required, even if it's null.",
-      invalid_type_error: 'lockerCode must be a string.'
-    })
-    .optional(),
-  state: defaultSchemas.state.optional(),
-  notes: notes.optional(),
-  monthlyPayment: defaultSchemas.monthlyPayment.optional(),
-  paymentUnit: defaultSchemas.paymentUnit.optional(),
-  zip: defaultSchemas.zipCode.optional(),
-  animalDanger: z.boolean().optional(),
-  isActive: z.boolean().optional(),
-  addressLine2: z.optional(z.string().trim()),
-  bodyOfWater: z
-    .string({
-      invalid_type_error: 'Body of water must be a string.'
-    })
-    .trim()
-    .nullable()
-    .optional(),
-  volumeInGallons: volumeInGallons.optional(),
-  estimatesConvertedFrom: z.number().int().optional()
-});
+const latitude = z
+  .number({
+    invalid_type_error: 'Latitude must be a number.'
+  })
+  .min(-90, { message: 'Latitude must be between -90 and 90.' })
+  .max(90, { message: 'Latitude must be between -90 and 90.' });
+
+const longitude = z
+  .number({
+    invalid_type_error: 'Longitude must be a number.'
+  })
+  .min(-180, { message: 'Longitude must be between -180 and 180.' })
+  .max(180, { message: 'Longitude must be between -180 and 180.' });
+
+export const editPoolSchema = z
+  .object({
+    poolId: z
+      .string({
+        required_error: 'poolId is required.',
+        invalid_type_error: 'poolId must be a string.'
+      })
+      .trim()
+      .min(1, { message: 'poolId must be at least 1 character.' }),
+    address: address.optional(),
+    city: city.optional(),
+    enterSide: z
+      .string({
+        required_error: 'enterSide is required.',
+        invalid_type_error: 'enterSide must be a string.'
+      })
+      .trim()
+      .optional(),
+    lockerCode: z
+      .string({
+        required_error: "lockerCode field is required, even if it's null.",
+        invalid_type_error: 'lockerCode must be a string.'
+      })
+      .optional(),
+    state: defaultSchemas.state.optional(),
+    notes: notes.optional(),
+    monthlyPayment: defaultSchemas.monthlyPayment.optional(),
+    paymentUnit: defaultSchemas.paymentUnit.optional(),
+    zip: defaultSchemas.zipCode.optional(),
+    animalDanger: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+    addressLine2: z.optional(z.string().trim()),
+    bodyOfWater: z
+      .string({
+        invalid_type_error: 'Body of water must be a string.'
+      })
+      .trim()
+      .nullable()
+      .optional(),
+    volumeInGallons: volumeInGallons.optional(),
+    estimatesConvertedFrom: z.number().int().optional(),
+    lat: latitude.optional(),
+    lng: longitude.optional()
+  })
+  .superRefine((data, ctx) => {
+    const hasLat = data.lat !== undefined;
+    const hasLng = data.lng !== undefined;
+
+    if (hasLat === hasLng) return;
+
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Latitude and longitude must both be set.',
+      path: [hasLat ? 'lng' : 'lat']
+    });
+  });
