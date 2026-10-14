@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Clock, Info, Timer } from 'lucide-react';
@@ -18,39 +18,122 @@ import { FieldType } from '@/ts/enums/enums';
 import { Pool } from '@/ts/interfaces/Pool';
 import { isEmpty } from '@/utils';
 import { findDifferenceBetweenTwoObjects } from '@/utils/others';
-import {
-  formatDurationHumanShort,
-  getServiceDurationTotalSeconds
-} from '@/utils/serviceDuration';
+import { formatDurationHumanShort, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
 
 interface PoolInfoTabProps {
   pool: Pool;
   clientId: string;
 }
 
+function toEditPoolFormValues(values: {
+  id: string;
+  address: string;
+  city: string;
+  state: string;
+  monthlyPayment?: number;
+  paymentUnit?: number;
+  lockerCode?: string;
+  enterSide: string;
+  notes?: string;
+  zip: string;
+  animalDanger: boolean;
+  addressLine2?: string;
+  bodyOfWater?: string | null;
+  volumeInGallons: number | null;
+  lat?: number;
+  lng?: number;
+}): z.infer<typeof editPoolSchema> {
+  return {
+    poolId: values.id,
+    address: values.address || '',
+    city: values.city || '',
+    state: values.state || '',
+    monthlyPayment: values.monthlyPayment || undefined,
+    paymentUnit: values.paymentUnit || undefined,
+    lockerCode: values.lockerCode || '',
+    enterSide: values.enterSide || '',
+    notes: values.notes || '',
+    zip: values.zip || '',
+    animalDanger: values.animalDanger || false,
+    addressLine2: values.addressLine2 || '',
+    bodyOfWater: values.bodyOfWater ?? '',
+    volumeInGallons: values.volumeInGallons ?? undefined,
+    lat: values.lat,
+    lng: values.lng
+  };
+}
+
 export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
   const { mutate, isPending: isPendingUpdatePool } = useUpdatePool();
   const isPending = isPendingUpdatePool;
+  const {
+    id,
+    address,
+    city,
+    state,
+    monthlyPayment,
+    paymentUnit,
+    lockerCode,
+    enterSide,
+    notes,
+    zip,
+    animalDanger,
+    addressLine2,
+    bodyOfWater,
+    volumeInGallons,
+    coords
+  } = pool;
+  const lat = coords?.lat;
+  const lng = coords?.lng;
+
+  const defaultValues = useMemo(
+    () =>
+      toEditPoolFormValues({
+        id,
+        address,
+        city,
+        state,
+        monthlyPayment,
+        paymentUnit,
+        lockerCode,
+        enterSide,
+        notes,
+        zip,
+        animalDanger,
+        addressLine2,
+        bodyOfWater,
+        volumeInGallons,
+        lat,
+        lng
+      }),
+    [
+      id,
+      address,
+      city,
+      state,
+      monthlyPayment,
+      paymentUnit,
+      lockerCode,
+      enterSide,
+      notes,
+      zip,
+      animalDanger,
+      addressLine2,
+      bodyOfWater,
+      volumeInGallons,
+      lat,
+      lng
+    ]
+  );
 
   const form = useForm<z.infer<typeof editPoolSchema>>({
     resolver: zodResolver(editPoolSchema),
-    defaultValues: {
-      poolId: pool.id,
-      address: pool.address || '',
-      city: pool.city || '',
-      state: pool.state || '',
-      monthlyPayment: pool.monthlyPayment || undefined,
-      paymentUnit: pool.paymentUnit || undefined,
-      lockerCode: pool.lockerCode || '',
-      enterSide: pool.enterSide || '',
-      notes: pool.notes || '',
-      zip: pool.zip || '',
-      animalDanger: pool.animalDanger || false,
-      addressLine2: pool.addressLine2 || '',
-      bodyOfWater: pool.bodyOfWater ?? '',
-      volumeInGallons: pool.volumeInGallons ?? undefined
-    }
+    defaultValues
   });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
 
   const changedFields = findDifferenceBetweenTwoObjects(form.formState.defaultValues!, form.watch());
 
@@ -67,9 +150,7 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
         const completedDate = new Date(service.completedAt);
         if (Number.isFinite(completedDate.getTime())) {
           totalSecondsOfDay +=
-            completedDate.getHours() * 3600 +
-            completedDate.getMinutes() * 60 +
-            completedDate.getSeconds();
+            completedDate.getHours() * 3600 + completedDate.getMinutes() * 60 + completedDate.getSeconds();
           completedCount += 1;
         }
       }
@@ -85,12 +166,7 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
     if (completedCount > 0) {
       const avgSecondsOfDay = Math.round(totalSecondsOfDay / completedCount);
       const refDate = new Date();
-      refDate.setHours(
-        Math.floor(avgSecondsOfDay / 3600),
-        Math.floor((avgSecondsOfDay % 3600) / 60),
-        0,
-        0
-      );
+      refDate.setHours(Math.floor(avgSecondsOfDay / 3600), Math.floor((avgSecondsOfDay % 3600) / 60), 0, 0);
       averageCompletionTimeOfDay = refDate.toLocaleTimeString(undefined, {
         hour: 'numeric',
         minute: '2-digit',
@@ -99,9 +175,7 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
     }
 
     const averageDurationLabel =
-      durationCount > 0
-        ? formatDurationHumanShort(Math.round(totalDurationSecs / durationCount))
-        : null;
+      durationCount > 0 ? formatDurationHumanShort(Math.round(totalDurationSecs / durationCount)) : null;
 
     return {
       averageCompletionTimeOfDay,
@@ -112,15 +186,13 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
   }, [pool.services]);
 
   const handleSubmit = form.handleSubmit((values) => {
-    const data = findDifferenceBetweenTwoObjects(
-      form.formState.defaultValues!,
-      values
-    ) as z.infer<typeof editPoolSchema>;
+    const data = findDifferenceBetweenTwoObjects(form.formState.defaultValues!, values) as z.infer<
+      typeof editPoolSchema
+    >;
     data.poolId = pool.id;
 
     if (Object.prototype.hasOwnProperty.call(data, 'bodyOfWater') && data.bodyOfWater !== undefined) {
-      const trimmed =
-        typeof data.bodyOfWater === 'string' ? data.bodyOfWater.trim() : data.bodyOfWater;
+      const trimmed = typeof data.bodyOfWater === 'string' ? data.bodyOfWater.trim() : data.bodyOfWater;
       data.bodyOfWater = trimmed === '' || trimmed === null ? null : trimmed;
     }
 
@@ -133,6 +205,18 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
         delete data.volumeInGallons;
       } else {
         data.volumeInGallons = volume;
+      }
+    }
+
+    const coordinatesChanged =
+      Object.prototype.hasOwnProperty.call(data, 'lat') || Object.prototype.hasOwnProperty.call(data, 'lng');
+    if (coordinatesChanged) {
+      if (typeof values.lat === 'number' && typeof values.lng === 'number') {
+        data.lat = values.lat;
+        data.lng = values.lng;
+      } else {
+        delete data.lat;
+        delete data.lng;
       }
     }
 
@@ -160,9 +244,7 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
                     <Clock className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-gray-600">
-                      Avg. completion time of day
-                    </p>
+                    <p className="text-xs font-medium text-gray-600">Avg. completion time of day</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {serviceStats.averageCompletionTimeOfDay ?? '—'}
                     </p>
@@ -178,12 +260,8 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
                     <Timer className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-gray-600">
-                      Avg. time spent on site
-                    </p>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {serviceStats.averageDurationLabel ?? '—'}
-                    </p>
+                    <p className="text-xs font-medium text-gray-600">Avg. time spent on site</p>
+                    <p className="text-lg font-semibold text-gray-900">{serviceStats.averageDurationLabel ?? '—'}</p>
                     <p className="text-xs text-gray-500">
                       Based on {serviceStats.durationCount} service
                       {serviceStats.durationCount === 1 ? '' : 's'} with start &amp; end times
@@ -204,9 +282,7 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
         </div>
 
         {pool.estimatesConvertedFrom != null && (
-          <p className="text-sm text-gray-600">
-            Created from estimate #{pool.estimatesConvertedFrom}
-          </p>
+          <p className="text-sm text-gray-600">Created from estimate #{pool.estimatesConvertedFrom}</p>
         )}
 
         <AddressInput
@@ -219,15 +295,31 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
             form.setValue('zip', zipCode, { shouldValidate: true });
           }}
         />
-        <InputField
-          name="addressLine2"
-          label="Address Line 2"
-          placeholder="Apt, suite, unit"
-        />
-        <div className="Form inline-flex flex-wrap items-start justify-start self-stretch md:flex-nowrap gap-4">
+        <InputField name="addressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+        <div className="Form inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
           <StateAndCitySelect cityName="city" stateName="state" />
           <InputField name="zip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
         </div>
+        <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-2">
+          <InputField
+            label="Latitude"
+            name="lat"
+            placeholder="e.g. 26.1224"
+            type={FieldType.Number}
+            props={{ min: -90, max: 90, step: 'any' }}
+          />
+          <InputField
+            label="Longitude"
+            name="lng"
+            placeholder="e.g. -80.1373"
+            type={FieldType.Number}
+            props={{ min: -180, max: 180, step: 'any' }}
+          />
+        </div>
+        <p className="text-xs text-gray-500">
+          Save latitude and longitude together when Google places the pin in the wrong spot. If you change the address
+          and leave these unchanged, Google sets the pin again.
+        </p>
         <div className="Form inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
           <InputField
             label="Monthly Payment"
@@ -248,11 +340,11 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
             <div className="pt-6">
               <HoverCard>
                 <HoverCardTrigger asChild>
-                  <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                  <Info className="h-4 w-4 cursor-help text-gray-400 hover:text-gray-600" />
                 </HoverCardTrigger>
                 <HoverCardContent className="w-80">
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Payment Unit</h4>
+                    <h4 className="text-sm font-semibold">Payment Unit</h4>
                     <p className="text-sm text-gray-600">
                       This variable multiplies the fixed amount when generating payment reports.
                     </p>
@@ -283,7 +375,7 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
           />
         </div>
 
-        <div className="flex flex-col gap-2 mt-2">
+        <div className="mt-2 flex flex-col gap-2">
           <div className="inline-flex items-start justify-start gap-2">
             <InputField
               name="animalDanger"
