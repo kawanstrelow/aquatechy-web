@@ -2,7 +2,7 @@
 
 Light interface for the company app. New screens should use these tokens and components instead of one-off cards, bars, and tables.
 
-This pass styles the authenticated shell (sidebar, header, page canvas) and the dashboard. Login, the client portal, and inner pages keep their current layouts. The font is set on `body`, so every page inherits it.
+This pass styles the authenticated shell (sidebar, header, page canvas), the dashboard, and the unauthenticated screens (login, signup, password recovery, confirmation, unsubscribe, and invitations). The client portal keeps its own layout. The font is set on `body`, so every page inherits it.
 
 ## Principles
 
@@ -132,3 +132,12 @@ Authenticated pages render inside `AuthenticatedShell`.
 - The old inner bordered wrapper is gone. The shell paints `bg-canvas` and the padding above.
 
 Do not wrap a page in a second full-page card. Put content in `Surface` blocks.
+
+## Unauthenticated screens
+
+Login, signup, recover, reset password, email confirmation, unsubscribe, and company invitations share `src/app/(unauthorized)/layout.tsx`.
+
+- Left half is `bg-canvas`, the same gray as the authenticated pages. The form sits in a white `AuthPanel` (`src/app/(unauthorized)/AuthPanel.tsx`): wordmark, title, supporting line, then fields.
+- Fields inside `AuthPanel` are white (`bg-surface`) with `border-line` so they read against the canvas.
+- Primary actions use the accent button. Links use `text-accent`.
+- On large screens the right half is `src/assets/images/background-2.jpg`. Below `lg`, `src/assets/images/background-mobile-3.jpg` fills the screen behind the white form card.
