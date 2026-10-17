@@ -151,11 +151,6 @@ function SubscriptionPage() {
   const plansContent = useMemo(
     () => (
       <div className="space-y-8">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Choose a plan</h2>
-          <p className="mt-1 text-sm text-slate-600">Pick the tier that matches your pool service operation</p>
-        </div>
-
         <div className="grid gap-6 lg:grid-cols-2">
           {SUBSCRIPTION_PLANS.map((plan) => (
             <SubscriptionCard
@@ -177,13 +172,6 @@ function SubscriptionPage() {
 
   return (
     <div className="flex w-full flex-col gap-6 pb-12">
-      <header>
-        <h1 className="text-2xl font-bold text-slate-900">Subscription</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Manage your Aquatechy plan, billing details, and payment methods
-        </p>
-      </header>
-
       {alertData && (
         <Alert className={alertData.customClassName} variant={alertData.variant}>
           <alertData.CustomAlertIcon className={alertData.iconClassName} color={alertData.iconColor} />

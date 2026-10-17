@@ -29,22 +29,24 @@ export default function Page() {
   }, [user, router]);
 
   return (
-    <div className="p-2">
-      <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center">
-        <Button onClick={() => router.push('/settings/companies/team/add-company')}>
-          <PlusIcon className="mr-2" />
-          Add company
-        </Button>
+    <div>
+      <div className="mb-3 overflow-hidden rounded-xl border border-line bg-surface px-5 py-4 shadow-lift">
+        <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center">
+          <Button onClick={() => router.push('/settings/companies/team/add-company')}>
+            <PlusIcon className="mr-2" />
+            Add company
+          </Button>
 
-        <Input
-          placeholder="Filter by name..."
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-          className="w-full min-w-0 md:flex-1"
-        />
+          <Input
+            placeholder="Filter by name..."
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            className="w-full min-w-0 md:flex-1"
+          />
+        </div>
       </div>
 
-      <div className="mt-3">
+      <div>
         <div className="flex flex-wrap justify-center gap-2 self-stretch md:justify-normal">
           {filteredCompanies && (
             <div className="flex w-full flex-col gap-2 md:flex-row md:flex-wrap md:justify-start">

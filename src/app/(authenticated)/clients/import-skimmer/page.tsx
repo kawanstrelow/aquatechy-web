@@ -220,7 +220,6 @@ export default function ImportFromSkimmer() {
 
   // Helper function to get the best email from Skimmer data
   const getBestEmail = (row: SkimmerRow): string => {
-
     return row.Email1;
   };
 
@@ -258,7 +257,7 @@ export default function ImportFromSkimmer() {
           // Get names
           const firstName = row.FirstName || '';
           const lastName = row.LastName || '';
-          
+
           // Use DisplayAsCompany or CompanyName for company field
           const clientCompany = row.CompanyName || '';
 
@@ -360,147 +359,160 @@ export default function ImportFromSkimmer() {
   }, [companies, user, isCompaniesSuccess]);
 
   return (
-    <div className="p-6">
-      <Typography element="h1" className="mb-6">
-        Import Clients from Skimmer
-      </Typography>
+    <>
+      <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+        <div className="border-b border-line px-5 py-5 lg:px-8">
+          <Typography element="h1">Import Clients from Skimmer</Typography>
+        </div>
 
-      <div className="mb-8 rounded-lg border border-slate-200 bg-slate-50 p-6">
-        <Typography element="h2" className="mb-4 text-lg font-semibold">
-          How to Import Clients from Skimmer
-        </Typography>
-        <ol className="list-decimal space-y-3 pl-4">
-          <li>
-            Export your customer data from Skimmer:
-            <ul className="mt-2 list-disc pl-4 text-slate-600">
-              <li>Open your Skimmer application</li>
-              <li>Go to your settings and click on "Export"</li>
-              <li>The first option is "Export Customers". Click on "Export to Excel" and export the data as an Excel file (.xlsx format)</li>
-              <li>Make sure the export includes all customer and location fields</li>
-            </ul>
-          </li>
-          <li>
-            Prepare your Skimmer Excel file:
-            <ul className="mt-2 list-disc pl-4 text-slate-600">
-              <li>Ensure the file contains the standard Skimmer columns (FullName, Email1, BillingAddress, etc.)</li>
-              <li>Keep the original column headers from Skimmer</li>
-              <li>Keep the file in Excel (.xlsx) format</li>
-            </ul>
-          </li>
-          <li>
-            Complete the import process:
-            <ul className="mt-2 list-disc pl-4 text-slate-600">
-              <li>Select your company from the dropdown below</li>
-              <li>Click "Choose File" and select your Skimmer Excel file</li>
-              <li>Review the imported data in the preview table</li>
-            </ul>
-          </li>
-          <li>
-            Click <span className="font-medium">Import Clients</span> when ready
-          </li>
-        </ol>
-        <div className="mt-6 rounded-md bg-blue-50 p-4">
-          <Typography element="p" className="text-sm text-blue-800">
-            <strong>Note:</strong> The import process will automatically:
-            <ul className="mt-2 list-disc pl-4">
-              <li>Create a pool for each client using location data</li>
-              <li>Map Skimmer fields to Aquatechy format</li>
-              <li>Set animal danger based on DogsName field</li>
-              <li>Convert phone numbers to the correct format</li>
-              <li>It will create a client for each service location from Skimmer, so you'll have to check each client if they are not duplicates.</li>
-              <li>You'll have to create assignments for each client after the import, as Skimmer doesn't bring it on the import.</li>
-            </ul>
+        <div className="border-b border-line px-5 py-5 lg:px-8">
+          <Typography element="h2" className="mb-4 text-lg font-semibold">
+            How to Import Clients from Skimmer
           </Typography>
+          <ol className="list-decimal space-y-3 pl-4">
+            <li>
+              Export your customer data from Skimmer:
+              <ul className="mt-2 list-disc pl-4 text-slate-600">
+                <li>Open your Skimmer application</li>
+                <li>Go to your settings and click on "Export"</li>
+                <li>
+                  The first option is "Export Customers". Click on "Export to Excel" and export the data as an Excel
+                  file (.xlsx format)
+                </li>
+                <li>Make sure the export includes all customer and location fields</li>
+              </ul>
+            </li>
+            <li>
+              Prepare your Skimmer Excel file:
+              <ul className="mt-2 list-disc pl-4 text-slate-600">
+                <li>Ensure the file contains the standard Skimmer columns (FullName, Email1, BillingAddress, etc.)</li>
+                <li>Keep the original column headers from Skimmer</li>
+                <li>Keep the file in Excel (.xlsx) format</li>
+              </ul>
+            </li>
+            <li>
+              Complete the import process:
+              <ul className="mt-2 list-disc pl-4 text-slate-600">
+                <li>Select your company from the dropdown below</li>
+                <li>Click "Choose File" and select your Skimmer Excel file</li>
+                <li>Review the imported data in the preview table</li>
+              </ul>
+            </li>
+            <li>
+              Click <span className="font-medium">Import Clients</span> when ready
+            </li>
+          </ol>
+          <div className="mt-6 rounded-md bg-blue-50 p-4">
+            <Typography element="p" className="text-sm text-blue-800">
+              <strong>Note:</strong> The import process will automatically:
+              <ul className="mt-2 list-disc pl-4">
+                <li>Create a pool for each client using location data</li>
+                <li>Map Skimmer fields to Aquatechy format</li>
+                <li>Set animal danger based on DogsName field</li>
+                <li>Convert phone numbers to the correct format</li>
+                <li>
+                  It will create a client for each service location from Skimmer, so you'll have to check each client if
+                  they are not duplicates.
+                </li>
+                <li>
+                  You'll have to create assignments for each client after the import, as Skimmer doesn't bring it on the
+                  import.
+                </li>
+              </ul>
+            </Typography>
+          </div>
+        </div>
+
+        <div className="px-5 py-5 lg:px-8 lg:py-6">
+          <Form {...form}>
+            <div className="mb-6">
+              <SelectField
+                placeholder="Company owner"
+                name="companyOwnerId"
+                label="Company owner"
+                options={
+                  companies
+                    .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
+                    .map((c) => ({
+                      key: c.id,
+                      name: c.name,
+                      value: c.id
+                    })) || []
+                }
+              />
+            </div>
+
+            <div className="mb-6 flex items-center gap-2">
+              <label className={cn(buttonVariants({ variant: 'default' }), 'cursor-pointer')}>
+                Choose File
+                <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} className="hidden" />
+              </label>
+              {selectedFile && <span className="text-sm text-slate-500">{selectedFile}</span>}
+              {isProcessing && <Loader2Icon className="h-4 w-4 animate-spin" />}
+            </div>
+          </Form>
+
+          {parsedData.length > 0 && (
+            <>
+              <div className="overflow-x-auto rounded-lg border border-line">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Client Address</TableHead>
+                      <TableHead>Client City</TableHead>
+                      <TableHead>Client State</TableHead>
+                      <TableHead>Client Zip</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Pool Address</TableHead>
+                      <TableHead>Pool City</TableHead>
+                      <TableHead>Pool State</TableHead>
+                      <TableHead>Pool Zip</TableHead>
+                      <TableHead>Salt system</TableHead>
+                      <TableHead>Animal Danger</TableHead>
+                      <TableHead>Gate/Location Code</TableHead>
+                      <TableHead>Monthly Payment</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parsedData.map((client, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{`${client.firstName} ${client.lastName}`}</TableCell>
+                        <TableCell>{client.clientCompany || '-'}</TableCell>
+                        <TableCell>{client.clientAddress}</TableCell>
+                        <TableCell>{client.clientCity}</TableCell>
+                        <TableCell>{client.clientState}</TableCell>
+                        <TableCell>{client.clientZip}</TableCell>
+                        <TableCell>{formatPhoneNumber(client.phone)}</TableCell>
+                        <TableCell>{formatEmail(client.email)}</TableCell>
+                        <TableCell>{client.clientType}</TableCell>
+                        <TableCell>{client.poolAddress}</TableCell>
+                        <TableCell>{client.poolCity}</TableCell>
+                        <TableCell>{client.poolState}</TableCell>
+                        <TableCell>{client.poolZip}</TableCell>
+                        <TableCell>{client.hasSaltSystem ? 'Yes' : 'No'}</TableCell>
+                        <TableCell>{client.animalDanger ? 'Yes' : 'No'}</TableCell>
+                        <TableCell>{client.lockerCode}</TableCell>
+                        <TableCell>{formatMonthlyPayment(client.monthlyPayment)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="mt-6">
+                <Button onClick={handleImport} type="button" disabled={isPending || !areAllPhonesValid(parsedData)}>
+                  {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+                  Import {parsedData.length} Clients
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
-
-      <Form {...form}>
-        <div className="mb-6">
-          <SelectField
-            placeholder="Company owner"
-            name="companyOwnerId"
-            label="Company owner"
-            options={
-              companies
-                .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
-                .map((c) => ({
-                  key: c.id,
-                  name: c.name,
-                  value: c.id
-                })) || []
-            }
-          />
-        </div>
-
-        <div className="mb-6 flex items-center gap-2">
-          <label className={cn(buttonVariants({ variant: 'default' }), 'cursor-pointer')}>
-            Choose File
-            <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} className="hidden" />
-          </label>
-          {selectedFile && <span className="text-sm text-slate-500">{selectedFile}</span>}
-          {isProcessing && <Loader2Icon className="h-4 w-4 animate-spin" />}
-        </div>
-      </Form>
-
-      {parsedData.length > 0 && (
-        <>
-          <div className="overflow-x-auto rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Client Address</TableHead>
-                  <TableHead>Client City</TableHead>
-                  <TableHead>Client State</TableHead>
-                  <TableHead>Client Zip</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Pool Address</TableHead>
-                  <TableHead>Pool City</TableHead>
-                  <TableHead>Pool State</TableHead>
-                  <TableHead>Pool Zip</TableHead>
-                  <TableHead>Salt system</TableHead>
-                  <TableHead>Animal Danger</TableHead>
-                  <TableHead>Gate/Location Code</TableHead>
-                  <TableHead>Monthly Payment</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {parsedData.map((client, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{`${client.firstName} ${client.lastName}`}</TableCell>
-                    <TableCell>{client.clientCompany || '-'}</TableCell>
-                    <TableCell>{client.clientAddress}</TableCell>
-                    <TableCell>{client.clientCity}</TableCell>
-                    <TableCell>{client.clientState}</TableCell>
-                    <TableCell>{client.clientZip}</TableCell>
-                    <TableCell>{formatPhoneNumber(client.phone)}</TableCell>
-                    <TableCell>{formatEmail(client.email)}</TableCell>
-                    <TableCell>{client.clientType}</TableCell>
-                    <TableCell>{client.poolAddress}</TableCell>
-                    <TableCell>{client.poolCity}</TableCell>
-                    <TableCell>{client.poolState}</TableCell>
-                    <TableCell>{client.poolZip}</TableCell>
-                    <TableCell>{client.hasSaltSystem ? 'Yes' : 'No'}</TableCell>
-                    <TableCell>{client.animalDanger ? 'Yes' : 'No'}</TableCell>
-                    <TableCell>{client.lockerCode}</TableCell>
-                    <TableCell>{formatMonthlyPayment(client.monthlyPayment)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className="mt-6">
-            <Button onClick={handleImport} type="button" disabled={isPending || !areAllPhonesValid(parsedData)}>
-              {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-              Import {parsedData.length} Clients
-            </Button>
-          </div>
-        </>
-      )}
 
       <Dialog
         open={!isCompaniesLoading && isCompaniesSuccess && showNoCompaniesDialog}
@@ -516,6 +528,6 @@ export default function ImportFromSkimmer() {
           </Button>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
