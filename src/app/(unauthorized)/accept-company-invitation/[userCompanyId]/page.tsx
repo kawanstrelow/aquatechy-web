@@ -4,7 +4,7 @@ import { AxiosError } from 'axios';
 import { notFound } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AuthPanel } from '../../AuthPanel';
 import { useAcceptInvitationByToken } from '@/hooks/react-query/companies/acceptInvitationByToken';
 
 type Props = {
@@ -45,30 +45,25 @@ export default function AcceptCompanyInvitationPage({ params: { userCompanyId } 
   }, [mutate, invitationTokenId]);
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Accepting invitation</CardTitle>
-        <CardDescription>Please wait while we confirm your company membership.</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center">
+    <AuthPanel title="Accepting invitation" description="Please wait while we confirm your company membership.">
+      <div className="flex flex-col items-start gap-3">
         {isPending && (
           <div
-            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+            className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-line border-t-accent"
             role="status"
             aria-label="Loading"
           />
         )}
         {showError && !isPending && (
-          <div className="flex flex-col gap-2 text-center text-sm text-muted-foreground">
-            {errorDetail && <p className="text-destructive">{errorDetail}</p>}
+          <div className="flex flex-col gap-2 text-sm text-ink-muted">
+            {errorDetail && <p className="text-danger">{errorDetail}</p>}
             <p>
               {!errorDetail && 'Something went wrong. '}
-              Please try again or contact{' '}
-              <span className="font-semibold text-primary">contact@aquatechyapp.com</span>
+              Please try again or contact <span className="font-semibold text-accent">contact@aquatechyapp.com</span>
             </p>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </AuthPanel>
   );
 }

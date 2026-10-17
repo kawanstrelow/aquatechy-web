@@ -175,7 +175,7 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
       </div>
 
       <div className="mt-6">
-        <Card>
+        <Card className="bg-surface">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-[#364D9D]" />
@@ -193,14 +193,14 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left p-3 font-medium text-gray-600">Client</th>
-                      <th className="text-left p-3 font-medium text-gray-600">Address</th>
-                      <th className="text-left p-3 font-medium text-gray-600">Last Cleaning</th>
-                      <th className="text-left p-3 font-medium text-gray-600">Next Cleaning</th>
-                      <th className="text-left p-3 font-medium text-gray-600">Days Until</th>
-                      <th className="text-left p-3 font-medium text-gray-600">Status</th>
+                  <thead className="bg-surface">
+                    <tr className="border-b border-line bg-surface">
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Client</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Address</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Last Cleaning</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Next Cleaning</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Days Until</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Status</th>
                     </tr>
                   </thead>
                   <tbody>

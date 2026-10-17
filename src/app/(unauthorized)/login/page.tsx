@@ -2,12 +2,11 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import imageIcon from '/public/images/logoHor.png';
+import { AuthPanel, authButtonClassName } from '../AuthPanel';
 import { useLoginUser, useResendConfirmation } from '@/hooks/react-query/user/loginUser';
 import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { FieldType } from '@/ts/enums/enums';
@@ -115,32 +114,24 @@ export default function Page() {
 
   return (
     <>
-      <div className="inline-flex w-96 flex-col items-start justify-start gap-[18px] rounded-lg bg-gray-50 px-6 py-8 md:w-[680px]">
-        <div className="inline-flex h-5 items-center justify-center gap-3 self-stretch">
-          <Image priority width="0" height="0" sizes="100vw" className="h-auto w-80" src={imageIcon} alt="Logo" />
-        </div>
-        <div className="relative mt-4 h-[50px] w-full">
-          <div className="left-0 top-0 h-[30px] w-full text-xl font-semibold leading-[30px] text-gray-900">Login</div>
-          <div className="left-0 top-[30px] h-5 w-full">
-            <span className="text-sm font-medium text-gray-500">Don't you have an account? </span>
-            <Link href="/signup" className="text-sm font-semibold text-blue-500">
-              Sign Up
-            </Link>
-          </div>
-        </div>
+      <AuthPanel>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleLogin)} className="w-full">
-            <div className="mb-8 flex w-full flex-col gap-[18px]">
-              <InputField label="E-mail" name="email" placeholder="E-mail address" />
-              <InputField label="Password" name="password" placeholder="Password" type={FieldType.Password} />
-              <Link href="/recover" className="text-sm font-semibold text-blue-500">
-                Forgot Password?
+          <form onSubmit={form.handleSubmit(handleLogin)} className="flex flex-col gap-5">
+            <InputField label="E-mail" name="email" placeholder="E-mail address" />
+            <InputField label="Password" name="password" placeholder="Password" type={FieldType.Password} />
+            <Link href="/recover" className="-mt-1 text-sm font-semibold text-accent">
+              Forgot password?
+            </Link>
+            <p className="-mt-2 text-sm text-ink-muted">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="font-semibold text-accent">
+                Sign up
               </Link>
-            </div>
-            <Button disabled={isPending || isRedirecting} type="submit" className="flex w-full">
+            </p>
+            <Button disabled={isPending || isRedirecting} type="submit" className={authButtonClassName}>
               {isPending || isRedirecting ? (
                 <div
-                  className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+                  className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
                   role="status"
                 />
               ) : (
@@ -149,7 +140,7 @@ export default function Page() {
             </Button>
           </form>
         </Form>
-      </div>
+      </AuthPanel>
 
       <Dialog
         open={activationModal.isOpen}
@@ -174,10 +165,10 @@ export default function Page() {
           </DialogDescription>
           <DialogFooter className="mt-6 flex items-center justify-center">
             {!activationModal.emailSent ? (
-              <Button onClick={handleResendConfirmation} disabled={isResending}>
+              <Button onClick={handleResendConfirmation} disabled={isResending} className={authButtonClassName}>
                 {isResending ? (
                   <div
-                    className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+                    className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
                     role="status"
                   />
                 ) : (
@@ -185,7 +176,12 @@ export default function Page() {
                 )}
               </Button>
             ) : (
-              <Button onClick={() => setActivationModal((prev) => ({ ...prev, isOpen: false }))}>Close</Button>
+              <Button
+                onClick={() => setActivationModal((prev) => ({ ...prev, isOpen: false }))}
+                className={authButtonClassName}
+              >
+                Close
+              </Button>
             )}
           </DialogFooter>
         </DialogContent>

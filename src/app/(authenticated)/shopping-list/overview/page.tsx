@@ -220,7 +220,8 @@ export default function ShoppingOverviewPage() {
           <ShoppingSummaryCards items={summaryQuery.data ?? []} />
         )}
 
-        <div className="flex w-full flex-wrap items-center gap-2">
+        <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+        <div className="flex w-full flex-wrap items-center gap-2 border-b border-line bg-surface px-5 py-4">
           <Button type="button" className="shrink-0" onClick={() => setAddDialogOpen(true)} disabled={!companyId}>
             <PlusIcon className="mr-2" />
             Add shopping item
@@ -264,6 +265,7 @@ export default function ShoppingOverviewPage() {
         ) : (
           <DataTableShoppingItems columns={columns} data={itemsQuery.data ?? []} />
         )}
+        </div>
 
         <AddShoppingItemDialog
           open={addDialogOpen}
