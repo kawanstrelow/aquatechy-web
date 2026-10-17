@@ -30,7 +30,11 @@ import { Stepper, useSteps } from '@/components/stepper';
 import { ArrowLeftIcon, Loader2Icon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddressInput } from '@/components/AddressInput';
-import { useCreateClientWithMultipleAssignments, Assignment, CreateClientWithAssignmentsData } from '@/hooks/react-query/clients/createClientWithMultipleAssignments';
+import {
+  useCreateClientWithMultipleAssignments,
+  Assignment,
+  CreateClientWithAssignmentsData
+} from '@/hooks/react-query/clients/createClientWithMultipleAssignments';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 // Update the schema to remove the old assignment fields
@@ -219,8 +223,7 @@ export default function Page() {
       clientType: 'Residential',
       monthlyPayment: 0,
       hasSaltSystem: 'false',
-      companyOwnerId: ownerAdminOfficeCompanies.length === 1 ? ownerAdminOfficeCompanies[0].id : undefined,
-
+      companyOwnerId: ownerAdminOfficeCompanies.length === 1 ? ownerAdminOfficeCompanies[0].id : undefined
     }
   });
 
@@ -411,7 +414,7 @@ export default function Page() {
           ...assignment,
           frequency: value as Frequency,
           scheduledTo: undefined,
-          weekday: assignment.weekday || 'SUNDAY' as const,
+          weekday: assignment.weekday || ('SUNDAY' as const),
           startOn: assignment.startOn || '',
           endAfter: assignment.endAfter || ''
         };
@@ -427,7 +430,7 @@ export default function Page() {
     if (field === 'weekday' || (field === 'frequency' && updatedAssignment.frequency !== Frequency.ONCE)) {
       if (updatedAssignment.weekday && updatedAssignment.frequency !== Frequency.ONCE) {
         const startOnDates = getNext10DatesForStartOnBasedOnWeekday(updatedAssignment.weekday);
-        setAssignmentDateOptions(prev => ({
+        setAssignmentDateOptions((prev) => ({
           ...prev,
           [index]: {
             ...prev[index],
@@ -439,10 +442,18 @@ export default function Page() {
 
     // Update end after options when start on changes
     if (field === 'startOn') {
-      if (updatedAssignment.startOn && updatedAssignment.frequency && updatedAssignment.frequency !== Frequency.ONCE && updatedAssignment.startOn !== '') {
+      if (
+        updatedAssignment.startOn &&
+        updatedAssignment.frequency &&
+        updatedAssignment.frequency !== Frequency.ONCE &&
+        updatedAssignment.startOn !== ''
+      ) {
         try {
-          const endAfterDates = getNext10DatesForEndAfterBasedOnWeekday(new Date(updatedAssignment.startOn), updatedAssignment.frequency);
-          setAssignmentDateOptions(prev => ({
+          const endAfterDates = getNext10DatesForEndAfterBasedOnWeekday(
+            new Date(updatedAssignment.startOn),
+            updatedAssignment.frequency
+          );
+          setAssignmentDateOptions((prev) => ({
             ...prev,
             [index]: {
               ...prev[index],
@@ -475,7 +486,7 @@ export default function Page() {
     }
 
     // Check if all assignments have required fields
-    const invalidAssignments = assignments.filter(assignment => {
+    const invalidAssignments = assignments.filter((assignment) => {
       if (!assignment.assignmentToId || !assignment.serviceTypeId || !assignment.frequency) {
         return true;
       }
@@ -535,9 +546,7 @@ export default function Page() {
         poolNotes: data.poolNotes,
         bodyOfWater: data.bodyOfWater?.trim() || undefined,
         estimatesConvertedFrom: data.estimatesConvertedFrom,
-        ...(data.volumeInGallons != null && data.volumeInGallons > 0
-          ? { volumeInGallons: data.volumeInGallons }
-          : {}),
+        ...(data.volumeInGallons != null && data.volumeInGallons > 0 ? { volumeInGallons: data.volumeInGallons } : {}),
         // Assignments
         assignments: assignments
       };
@@ -545,14 +554,16 @@ export default function Page() {
       await mutateAsync(submissionData);
       steps.goToStep(0);
       form.reset();
-      setAssignments([{
-        assignmentToId: '',
-        serviceTypeId: '',
-        weekday: 'SUNDAY' as const,
-        frequency: Frequency.WEEKLY,
-        startOn: '',
-        endAfter: ''
-      }]);
+      setAssignments([
+        {
+          assignmentToId: '',
+          serviceTypeId: '',
+          weekday: 'SUNDAY' as const,
+          frequency: Frequency.WEEKLY,
+          startOn: '',
+          endAfter: ''
+        }
+      ]);
       setAssignmentDateOptions({});
       return;
     } catch (error) {
@@ -560,7 +571,7 @@ export default function Page() {
     }
   }
 
-  const [sameBillingAddress, clientAddress, clientCity, clientState, clientZip,clientAddressLine2] = form.watch([
+  const [sameBillingAddress, clientAddress, clientCity, clientState, clientZip, clientAddressLine2] = form.watch([
     'sameBillingAddress',
     'clientAddress',
     'clientCity',
@@ -598,388 +609,395 @@ export default function Page() {
 
   return (
     <Form {...form}>
-      <div className="p-5 lg:p-8">
-        <Stepper steps={steps.stepsData} goToStep={steps.goToStep} />
-      </div>
+      <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+        <div className="border-b border-line px-5 py-5 lg:px-8">
+          <Stepper steps={steps.stepsData} goToStep={steps.goToStep} />
+        </div>
 
-      <form onSubmit={(e) => {
-        form.handleSubmit((data) => handleCreateClientPoolAndAssignments(data))(e);
-      }}>
-        <div className="inline-flex w-full flex-col items-start justify-start gap-4 p-2 lg:px-8">
-          {/* Steps 0 and 1 remain the same */}
-          {steps.currentStepIndex === 0 && (
-            <>
-              <Typography element="h2" className="pb-0 text-base">
-                Basic information
-              </Typography>
-              <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                <SelectField
-                  placeholder="Company owner"
-                  name="companyOwnerId"
-                  label="Company owner"
-                  options={
-                    companies
-                      .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
-                      .map((c) => ({
-                        key: c.id,
-                        name: c.name,
-                        value: c.id
-                      })) || []
-                  }
-                />
-              </div>
-              <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                <InputField name="firstName" placeholder="First name" label="First name" />
-                <InputField name="lastName" placeholder="Last name" label="Last name" />
-                <InputField name="clientCompany" placeholder="Company" label="Company" />
-                <InputField name="customerCode" placeholder="Customer code" label="Customer code" />
-              </div>
-              <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                <AddressInput
-                  name="clientAddress"
-                  label="Billing address"
-                  placeholder="Enter address"
-                  onAddressSelect={({ state, city, zipCode, timezone }) => {
-                    form.setValue('clientState', state, { shouldValidate: true });
-                    setTimeout(() => {
-                      form.setValue('clientCity', city, { shouldValidate: true });
-                      form.setValue('clientZip', zipCode, { shouldValidate: true });
-                      form.setValue('timezone', timezone, { shouldValidate: true });
-                    }, 500);
-                  }}
-                />
-              </div>
-              <InputField
-                name="clientAddressLine2"
-                label="Address Line 2"
-                placeholder="Apt, suite, unit"
-              />
-              <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                <StateAndCitySelect />
-                <InputField name="clientZip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
-              </div>
-              <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                <SelectField
-                  placeholder="Client Type"
-                  name="clientType"
-                  label="Client Type"
-                  options={[
-                    {
-                      key: 'Residential',
-                      name: 'Residential',
-                      value: 'Residential'
-                    },
-                    {
-                      key: 'Commercial',
-                      name: 'Commercial',
-                      value: 'Commercial'
-                    }
-                  ]}
-                />
-                <SelectField
-                  placeholder="Select Time Zone"
-                  name="timezone"
-                  label="Client Time zone"
-                  options={Object.values(IanaTimeZones).map((tz) => ({
-                    key: tz,
-                    name: tz,
-                    value: tz
-                  }))}
-                />
-              </div>
-              <Typography element="h2" className="mt-2 text-base">
-                Contact information
-              </Typography>
-
-              <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                <InputField type={FieldType.Phone} name="phone" placeholder="Mobile phone" label="Mobile phone" />
-                <InputField name="email" placeholder="E-mail" label="E-mail" />
-                <InputField name="invoiceEmail" placeholder="Invoice e-mail" label="Invoice e-mail" />
-              </div>
-              <div className="flex w-full items-center gap-4">
-                <div className="w-[100%]">
-                  <InputField
-                    label={isMobile ? 'Notes about client' : "Notes about client (customer won't see that)"}
-                    name="clientNotes"
-                    placeholder="Type clients notes here..."
-                    type={FieldType.TextArea}
-                  />
-                </div>
-              </div>
-              <Button
-                disabled={form.formState.isValidating}
-                type="button"
-                className="self-end"
-                onClick={handleValidateClientStep}
-              >
-                {form.formState.isValidating && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-                Next
-              </Button>
-            </>
-          )}
-          {steps.currentStepIndex === 1 && (
-            <>
-              <Typography element="h2" className="mt-2 text-base">
-                Service Information
-              </Typography>
-              <div className="flex flex-col gap-2">
-                <div className="inline-flex items-start justify-start gap-2">
-                  <InputField
-                    name="sameBillingAddress"
-                    type={FieldType.Checkbox}
-                    placeholder="Billing address is the same than service address"
-                  />
-                </div>
-                <div className="inline-flex items-start justify-start gap-2">
-                  <InputField
-                    name="animalDanger"
-                    type={FieldType.Checkbox}
-                    placeholder="It must take care with animals?"
-                  />
-                </div>
-              </div>
-              {!form.watch('sameBillingAddress') && (
+        <form
+          onSubmit={(e) => {
+            form.handleSubmit((data) => handleCreateClientPoolAndAssignments(data))(e);
+          }}
+        >
+          <div className="inline-flex w-full flex-col items-start justify-start gap-4 px-5 py-5 lg:px-8 lg:py-6">
+            {/* Steps 0 and 1 remain the same */}
+            {steps.currentStepIndex === 0 && (
+              <>
+                <Typography element="h2" className="pb-0 text-base">
+                  Basic information
+                </Typography>
                 <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                  <InputField name="poolAddress" placeholder="Pool address" label="Pool address" />
-                  <InputField
-                    name="clientAddressLine2"
-                    label="Pool Address Line 2"
-                    placeholder="Apt, suite, unit"
-                  />
-                  <StateAndCitySelect stateName="poolState" cityName="poolCity" />
-                  <InputField
-                    className="min-w-fit"
-                    name="poolZip"
-                    label="Zip code"
-                    placeholder="Zip code"
-                    type={FieldType.Zip}
-                  />
-                </div>
-              )}
-
-              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                <InputField
-                  name="monthlyPayment"
-                  placeholder="Monthly payment by client"
-                  type={FieldType.CurrencyValue}
-                  label="Monthly payment by client"
-                />
-                <InputField name="lockerCode" placeholder="Gate code" label="Gate code" />
-              </div>
-
-              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                <InputField name="enterSide" placeholder="Enter side" label="Enter side" />
-                <InputField name="bodyOfWater" placeholder="e.g. Main pool, spa" label="Body of water" />
-              </div>
-
-              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                <InputField
-                  name="volumeInGallons"
-                  label="Volume (gallons)"
-                  placeholder="e.g. 15000"
-                  type={FieldType.Number}
-                  props={{ min: 1, step: 1 }}
-                />
-                <SelectField
-                  name="hasSaltSystem"
-                  label="Salt system"
-                  placeholder="Salt system"
-                  options={HasSaltSystemOptions}
-                />
-              </div>
-
-              <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                <div className="inline-flex shrink grow basis-0 flex-col items-start justify-start gap-1 self-stretch">
-                  <InputField
-                    className="h-32"
-                    name="poolNotes"
-                    placeholder="Location notes..."
-                    label={isMobile ? 'Notes about location' : "Notes about location (customer won't see that)"}
-                    type={FieldType.TextArea}
+                  <SelectField
+                    placeholder="Company owner"
+                    name="companyOwnerId"
+                    label="Company owner"
+                    options={
+                      companies
+                        .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
+                        .map((c) => ({
+                          key: c.id,
+                          name: c.name,
+                          value: c.id
+                        })) || []
+                    }
                   />
                 </div>
-              </div>
-              <div className="flex w-full flex-1 flex-row items-center justify-between">
-                <Button type="button" className="" onClick={steps.prevStep}>
-                  <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                  Previous
-                </Button>
+                <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                  <InputField name="firstName" placeholder="First name" label="First name" />
+                  <InputField name="lastName" placeholder="Last name" label="Last name" />
+                  <InputField name="clientCompany" placeholder="Company" label="Company" />
+                  <InputField name="customerCode" placeholder="Customer code" label="Customer code" />
+                </div>
+                <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                  <AddressInput
+                    name="clientAddress"
+                    label="Billing address"
+                    placeholder="Enter address"
+                    onAddressSelect={({ state, city, zipCode, timezone }) => {
+                      form.setValue('clientState', state, { shouldValidate: true });
+                      setTimeout(() => {
+                        form.setValue('clientCity', city, { shouldValidate: true });
+                        form.setValue('clientZip', zipCode, { shouldValidate: true });
+                        form.setValue('timezone', timezone, { shouldValidate: true });
+                      }, 500);
+                    }}
+                  />
+                </div>
+                <InputField name="clientAddressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+                <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                  <StateAndCitySelect />
+                  <InputField name="clientZip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
+                </div>
+                <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                  <SelectField
+                    placeholder="Client Type"
+                    name="clientType"
+                    label="Client Type"
+                    options={[
+                      {
+                        key: 'Residential',
+                        name: 'Residential',
+                        value: 'Residential'
+                      },
+                      {
+                        key: 'Commercial',
+                        name: 'Commercial',
+                        value: 'Commercial'
+                      }
+                    ]}
+                  />
+                  <SelectField
+                    placeholder="Select Time Zone"
+                    name="timezone"
+                    label="Client Time zone"
+                    options={Object.values(IanaTimeZones).map((tz) => ({
+                      key: tz,
+                      name: tz,
+                      value: tz
+                    }))}
+                  />
+                </div>
+                <Typography element="h2" className="mt-2 text-base">
+                  Contact information
+                </Typography>
+
+                <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                  <InputField type={FieldType.Phone} name="phone" placeholder="Mobile phone" label="Mobile phone" />
+                  <InputField name="email" placeholder="E-mail" label="E-mail" />
+                  <InputField name="invoiceEmail" placeholder="Invoice e-mail" label="Invoice e-mail" />
+                </div>
+                <div className="flex w-full items-center gap-4">
+                  <div className="w-[100%]">
+                    <InputField
+                      label={isMobile ? 'Notes about client' : "Notes about client (customer won't see that)"}
+                      name="clientNotes"
+                      placeholder="Type clients notes here..."
+                      type={FieldType.TextArea}
+                    />
+                  </div>
+                </div>
                 <Button
                   disabled={form.formState.isValidating}
                   type="button"
                   className="self-end"
-                  onClick={handleValidatePoolStep}
+                  onClick={handleValidateClientStep}
                 >
                   {form.formState.isValidating && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
                   Next
                 </Button>
-              </div>
-            </>
-          )}
-          {steps.currentStepIndex === 2 && (
-            <>
-              <Typography element="h2" className="text-base">
-                Assignment Information
-              </Typography>
-
-              {assignments.map((assignment, index) => (
-                <div key={index} className="w-full space-y-4 rounded-lg border p-4">
-                  <div className="flex items-center justify-between">
-                    <Typography element="h3" className="text-sm font-medium">
-                      Assignment {index + 1}
-                    </Typography>
-                    {assignments.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeAssignment(index)}
-                        className="h-8 w-8 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2Icon className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                    <FormItem className="w-full">
-                      <SelectField
-                        name={`assignmentToId-${index}`} // Make name unique
-                        disabled={members.length === 0}
-                        placeholder="Technician"
-                        label="Technician"
-                        options={uniqueMembers.map((m) => ({
-                          key: m.id,
-                          name: `${m.firstName} ${m.lastName}`,
-                          value: m.id
-                        }))}
-                        value={assignment.assignmentToId}
-                        onValueChange={(value) => updateAssignment(index, 'assignmentToId', value)}
-                      />
-                      {members.length === 0 && <FormDescription>No technicians available</FormDescription>}
-                    </FormItem>
-                    <FormItem className="w-full">
-                      <SelectField
-                        name={`serviceTypeId-${index}`} // Make name unique
-                        disabled={!selectedCompanyId || isServiceTypesLoading}
-                        placeholder={serviceTypesData?.serviceTypes?.length ? "Service Type" : "No service types available"}
-                        label="Service Type"
-                        options={serviceTypesData?.serviceTypes
-                          ?.filter((serviceType) => serviceType.isActive)
-                          .map((serviceType) => ({
-                            key: serviceType.id,
-                            name: serviceType.name,
-                            value: serviceType.id
-                          })) || []}
-                        value={assignment.serviceTypeId}
-                        onValueChange={(value) => updateAssignment(index, 'serviceTypeId', value)}
-                      />
-                      {!selectedCompanyId && <FormDescription>Please select a company first</FormDescription>}
-                      {selectedCompanyId && !serviceTypesData?.serviceTypes?.length && <FormDescription>No service types available for this company</FormDescription>}
-                    </FormItem>
-                  </div>
-
-                  <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                    <SelectField
-                      name={`frequency-${index}`} // Make name unique
-                      label="Frequency"
-                      placeholder="Frequency"
-                      options={Frequencies}
-                      value={assignment.frequency}
-                      onValueChange={(value) => updateAssignment(index, 'frequency', value)}
+              </>
+            )}
+            {steps.currentStepIndex === 1 && (
+              <>
+                <Typography element="h2" className="mt-2 text-base">
+                  Service Information
+                </Typography>
+                <div className="flex flex-col gap-2">
+                  <div className="inline-flex items-start justify-start gap-2">
+                    <InputField
+                      name="sameBillingAddress"
+                      type={FieldType.Checkbox}
+                      placeholder="Billing address is the same than service address"
                     />
-                    {assignment.frequency !== Frequency.ONCE && (
-                      <SelectField
-                        name={`weekday-${index}`} // Make name unique
-                        label="Weekday"
-                        placeholder="Weekday"
-                        options={Weekdays}
-                        value={assignment.weekday || ''}
-                        onValueChange={(value) => updateAssignment(index, 'weekday', value)}
-                      />
-                    )}
                   </div>
+                  <div className="inline-flex items-start justify-start gap-2">
+                    <InputField
+                      name="animalDanger"
+                      type={FieldType.Checkbox}
+                      placeholder="It must take care with animals?"
+                    />
+                  </div>
+                </div>
+                {!form.watch('sameBillingAddress') && (
+                  <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                    <InputField name="poolAddress" placeholder="Pool address" label="Pool address" />
+                    <InputField name="clientAddressLine2" label="Pool Address Line 2" placeholder="Apt, suite, unit" />
+                    <StateAndCitySelect stateName="poolState" cityName="poolCity" />
+                    <InputField
+                      className="min-w-fit"
+                      name="poolZip"
+                      label="Zip code"
+                      placeholder="Zip code"
+                      type={FieldType.Zip}
+                    />
+                  </div>
+                )}
 
-                  {assignment.frequency === Frequency.ONCE ? (
-                    // Show scheduledTo selector for ONCE frequency
-                    <div className="inline-flex w-full items-start justify-start gap-4">
-                      <FormItem className="w-full">
-                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
-                          Scheduled Date
-                        </label>
-                        <Select
-                          value={assignment.scheduledTo || ''}
-                          onValueChange={(value) => updateAssignment(index, 'scheduledTo', value)}
+                <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                  <InputField
+                    name="monthlyPayment"
+                    placeholder="Monthly payment by client"
+                    type={FieldType.CurrencyValue}
+                    label="Monthly payment by client"
+                  />
+                  <InputField name="lockerCode" placeholder="Gate code" label="Gate code" />
+                </div>
+
+                <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                  <InputField name="enterSide" placeholder="Enter side" label="Enter side" />
+                  <InputField name="bodyOfWater" placeholder="e.g. Main pool, spa" label="Body of water" />
+                </div>
+
+                <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                  <InputField
+                    name="volumeInGallons"
+                    label="Volume (gallons)"
+                    placeholder="e.g. 15000"
+                    type={FieldType.Number}
+                    props={{ min: 1, step: 1 }}
+                  />
+                  <SelectField
+                    name="hasSaltSystem"
+                    label="Salt system"
+                    placeholder="Salt system"
+                    options={HasSaltSystemOptions}
+                  />
+                </div>
+
+                <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                  <div className="inline-flex shrink grow basis-0 flex-col items-start justify-start gap-1 self-stretch">
+                    <InputField
+                      className="h-32"
+                      name="poolNotes"
+                      placeholder="Location notes..."
+                      label={isMobile ? 'Notes about location' : "Notes about location (customer won't see that)"}
+                      type={FieldType.TextArea}
+                    />
+                  </div>
+                </div>
+                <div className="flex w-full flex-1 flex-row items-center justify-between">
+                  <Button type="button" className="" onClick={steps.prevStep}>
+                    <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    disabled={form.formState.isValidating}
+                    type="button"
+                    className="self-end"
+                    onClick={handleValidatePoolStep}
+                  >
+                    {form.formState.isValidating && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+                    Next
+                  </Button>
+                </div>
+              </>
+            )}
+            {steps.currentStepIndex === 2 && (
+              <>
+                <Typography element="h2" className="text-base">
+                  Assignment Information
+                </Typography>
+
+                {assignments.map((assignment, index) => (
+                  <div key={index} className="w-full space-y-4 rounded-lg border p-4">
+                    <div className="flex items-center justify-between">
+                      <Typography element="h3" className="text-sm font-medium">
+                        Assignment {index + 1}
+                      </Typography>
+                      {assignments.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeAssignment(index)}
+                          className="h-8 w-8 text-red-500 hover:text-red-700"
                         >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select date" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              {scheduledToDates.map((option) => (
-                                <SelectItem key={option.key} value={option.value}>
-                                  {option.name}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
+                          <Trash2Icon className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                      <FormItem className="w-full">
+                        <SelectField
+                          name={`assignmentToId-${index}`} // Make name unique
+                          disabled={members.length === 0}
+                          placeholder="Technician"
+                          label="Technician"
+                          options={uniqueMembers.map((m) => ({
+                            key: m.id,
+                            name: `${m.firstName} ${m.lastName}`,
+                            value: m.id
+                          }))}
+                          value={assignment.assignmentToId}
+                          onValueChange={(value) => updateAssignment(index, 'assignmentToId', value)}
+                        />
+                        {members.length === 0 && <FormDescription>No technicians available</FormDescription>}
+                      </FormItem>
+                      <FormItem className="w-full">
+                        <SelectField
+                          name={`serviceTypeId-${index}`} // Make name unique
+                          disabled={!selectedCompanyId || isServiceTypesLoading}
+                          placeholder={
+                            serviceTypesData?.serviceTypes?.length ? 'Service Type' : 'No service types available'
+                          }
+                          label="Service Type"
+                          options={
+                            serviceTypesData?.serviceTypes
+                              ?.filter((serviceType) => serviceType.isActive)
+                              .map((serviceType) => ({
+                                key: serviceType.id,
+                                name: serviceType.name,
+                                value: serviceType.id
+                              })) || []
+                          }
+                          value={assignment.serviceTypeId}
+                          onValueChange={(value) => updateAssignment(index, 'serviceTypeId', value)}
+                        />
+                        {!selectedCompanyId && <FormDescription>Please select a company first</FormDescription>}
+                        {selectedCompanyId && !serviceTypesData?.serviceTypes?.length && (
+                          <FormDescription>No service types available for this company</FormDescription>
+                        )}
                       </FormItem>
                     </div>
-                  ) : (
-                    // Show startOn and endAfter for recurring frequencies
-                    assignment.weekday && assignment.frequency && (
+
+                    <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
+                      <SelectField
+                        name={`frequency-${index}`} // Make name unique
+                        label="Frequency"
+                        placeholder="Frequency"
+                        options={Frequencies}
+                        value={assignment.frequency}
+                        onValueChange={(value) => updateAssignment(index, 'frequency', value)}
+                      />
+                      {assignment.frequency !== Frequency.ONCE && (
+                        <SelectField
+                          name={`weekday-${index}`} // Make name unique
+                          label="Weekday"
+                          placeholder="Weekday"
+                          options={Weekdays}
+                          value={assignment.weekday || ''}
+                          onValueChange={(value) => updateAssignment(index, 'weekday', value)}
+                        />
+                      )}
+                    </div>
+
+                    {assignment.frequency === Frequency.ONCE ? (
+                      // Show scheduledTo selector for ONCE frequency
                       <div className="inline-flex w-full items-start justify-start gap-4">
-                        <SelectField
-                          name={`startOn-${index}`} // Make name unique
-                          label="Start on"
-                          placeholder="Start on"
-                          options={assignmentDateOptions[index]?.startOn || getNext10DatesForStartOnBasedOnWeekday(assignment.weekday) || []}
-                          value={assignment.startOn || ''}
-                          onValueChange={(value) => updateAssignment(index, 'startOn', value)}
-                        />
-                        <SelectField
-                          name={`endAfter-${index}`} // Make name unique
-                          label="End after"
-                          placeholder="End after"
-                          options={assignmentDateOptions[index]?.endAfter || (assignment.startOn && assignment.startOn !== '' ? getNext10DatesForEndAfterBasedOnWeekday(new Date(assignment.startOn), assignment.frequency) : []) || []}
-                          value={assignment.endAfter || ''}
-                          onValueChange={(value) => updateAssignment(index, 'endAfter', value)}
-                        />
+                        <FormItem className="w-full">
+                          <label className="mb-2 block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            Scheduled Date
+                          </label>
+                          <Select
+                            value={assignment.scheduledTo || ''}
+                            onValueChange={(value) => updateAssignment(index, 'scheduledTo', value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select date" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {scheduledToDates.map((option) => (
+                                  <SelectItem key={option.key} value={option.value}>
+                                    {option.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
                       </div>
-                    )
-                  )}
+                    ) : (
+                      // Show startOn and endAfter for recurring frequencies
+                      assignment.weekday &&
+                      assignment.frequency && (
+                        <div className="inline-flex w-full items-start justify-start gap-4">
+                          <SelectField
+                            name={`startOn-${index}`} // Make name unique
+                            label="Start on"
+                            placeholder="Start on"
+                            options={
+                              assignmentDateOptions[index]?.startOn ||
+                              getNext10DatesForStartOnBasedOnWeekday(assignment.weekday) ||
+                              []
+                            }
+                            value={assignment.startOn || ''}
+                            onValueChange={(value) => updateAssignment(index, 'startOn', value)}
+                          />
+                          <SelectField
+                            name={`endAfter-${index}`} // Make name unique
+                            label="End after"
+                            placeholder="End after"
+                            options={
+                              assignmentDateOptions[index]?.endAfter ||
+                              (assignment.startOn && assignment.startOn !== ''
+                                ? getNext10DatesForEndAfterBasedOnWeekday(
+                                    new Date(assignment.startOn),
+                                    assignment.frequency
+                                  )
+                                : []) ||
+                              []
+                            }
+                            value={assignment.endAfter || ''}
+                            onValueChange={(value) => updateAssignment(index, 'endAfter', value)}
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
+                ))}
+
+                <Button type="button" variant="outline" onClick={addAssignment} className="w-full">
+                  <PlusIcon className="mr-2 h-4 w-4" />
+                  Add Another Assignment
+                </Button>
+
+                <div className="flex w-full flex-1 flex-row items-center justify-between">
+                  <Button type="button" className="" onClick={steps.prevStep}>
+                    <ArrowLeftIcon className="mr-2 h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button disabled={isPending} type="submit">
+                    {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+                    Add client
+                  </Button>
                 </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addAssignment}
-                className="w-full"
-              >
-                <PlusIcon className="mr-2 h-4 w-4" />
-                Add Another Assignment
-              </Button>
-
-              <div className="flex w-full flex-1 flex-row items-center justify-between">
-                <Button type="button" className="" onClick={steps.prevStep}>
-                  <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                  Previous
-                </Button>
-                <Button
-                  disabled={isPending}
-                  type="submit"
-
-                >
-                  {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-                  Add client
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      </form>
+              </>
+            )}
+          </div>
+        </form>
+      </div>
       <Dialog
         open={!isCompaniesLoading && isCompaniesSuccess && showNoCompaniesDialog}
         onOpenChange={setShowNoCompaniesDialog}

@@ -139,7 +139,7 @@ export default function ChangePasswordDialog() {
     <>
       <AlertDialog open={open} defaultOpen={open} onOpenChange={handleOpenChange}>
         <AlertDialogTrigger asChild>
-          <Button variant="default" className="h-10 w-full">
+          <Button variant="default" className="h-10">
             Change password
           </Button>
         </AlertDialogTrigger>

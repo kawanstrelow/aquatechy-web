@@ -102,43 +102,41 @@ export default function Page() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className="inline-flex w-full flex-col items-start justify-start gap-4 p-2">
-          <Typography element="h3">Basic Information</Typography>
-          <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
-            <InputField name="firstName" label="First Name" placeholder="First Name" />
-            <InputField name="lastName" label="Last Name" placeholder="Last Name" />
-            <InputField name="company" label="Company" placeholder="Company" />
+      <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <div className="inline-flex w-full flex-col items-start justify-start gap-4 px-5 py-5 lg:px-8 lg:py-6">
+            <Typography element="h3">Basic Information</Typography>
+            <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
+              <InputField name="firstName" label="First Name" placeholder="First Name" />
+              <InputField name="lastName" label="Last Name" placeholder="Last Name" />
+              <InputField name="company" label="Company" placeholder="Company" />
+            </div>
+            <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
+              <AddressInput
+                name="address"
+                label="Address"
+                placeholder="Enter your address"
+                onAddressSelect={handleAddressSelect}
+              />
+              <InputField name="addressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+              <InputField name="state" label="State" placeholder="State" />
+              <InputField name="city" label="City" placeholder="City" />
+              <InputField name="zip" label="Zip Code" placeholder="Zip Code" />
+            </div>
+            <Typography element="h3">Contact Information</Typography>
+            <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
+              <InputField name="phone" placeholder="Phone" label="Phone" type={FieldType.Phone} />
+              <InputField disabled name="email" placeholder="E-mail" label="E-mail" />
+            </div>
+            <Button type="submit" className="h-10">
+              Update account
+            </Button>
           </div>
-          <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
-            <AddressInput
-              name="address"
-              label="Address"
-              placeholder="Enter your address"
-              onAddressSelect={handleAddressSelect}
-            />
-            <InputField
-              name="addressLine2"
-              label="Address Line 2"
-              placeholder="Apt, suite, unit"
-            />
-            <InputField name="state" label="State" placeholder="State" />
-            <InputField name="city" label="City" placeholder="City" />
-            <InputField name="zip" label="Zip Code" placeholder="Zip Code" />
-          </div>
-          <Typography element="h3">Contact Information</Typography>
-          <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
-            <InputField name="phone" placeholder="Phone" label="Phone" type={FieldType.Phone} />
-            <InputField disabled name="email" placeholder="E-mail" label="E-mail" />
-          </div>
-          <Button type="submit" className="h-10 w-full">
-            Update account
-          </Button>
+        </form>
+        <div className="flex flex-col gap-4 border-t border-line px-5 py-5 md:flex-row lg:px-8">
+          <ChangePasswordDialog />
+          <ModalDeleteAccount />
         </div>
-      </form>
-      <div className="flex flex-col gap-4 p-2 md:flex-row">
-        <ChangePasswordDialog />
-        <ModalDeleteAccount />
       </div>
 
       <Dialog open={showModal} onOpenChange={setShowModal}>

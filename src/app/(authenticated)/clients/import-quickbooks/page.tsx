@@ -304,126 +304,130 @@ export default function ImportFromQuickbooks() {
   };
 
   return (
-    <div className="p-6">
-      <Typography element="h1" className="mb-6">
-        Import Clients from Quickbooks
-      </Typography>
+    <>
+      <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+        <div className="border-b border-line px-5 py-5 lg:px-8">
+          <Typography element="h1">Import Clients from Quickbooks</Typography>
+        </div>
 
-      <div className="mb-8 rounded-lg border border-slate-200 bg-slate-50 p-6">
-        <Typography element="h2" className="mb-4 text-lg font-semibold">
-          How to Import Clients from QuickBooks
-        </Typography>
-        <ol className="list-decimal space-y-3 pl-4">
-          <li>Access your QuickBooks Online account</li>
-          <li>
-            Navigate to <span className="font-medium">Sales</span> and select{' '}
-            <span className="font-medium">Customers</span> from the left sidebar
-          </li>
-          <li>
-            Look for the <span className="font-medium">Export</span> button in the top-right corner of the customers
-            list and click it to download the Excel file
-          </li>
-          <li>
-            Return to this page and complete these steps:
-            <ul className="mt-2 list-disc pl-4 text-slate-600">
-              <li>Select your company from the dropdown below</li>
-              <li>Click "Choose File" and select the Excel file you just downloaded</li>
-            </ul>
-          </li>
-          <li>
-            Review the imported data in the preview table and click <span className="font-medium">Import Clients</span>{' '}
-            when ready
-          </li>
-        </ol>
-        <div className="mt-6 rounded-md bg-blue-50 p-4">
-          <Typography element="p" className="text-sm text-blue-800">
-            <strong>Note:</strong> The import process will automatically create a pool for each client. After importing,
-            please remember to:
-            <ul className="mt-2 list-disc pl-4">
-              <li>Update each client's pool information</li>
-              <li>Set up service schedules in the Routes section</li>
-            </ul>
+        <div className="border-b border-line px-5 py-5 lg:px-8">
+          <Typography element="h2" className="mb-4 text-lg font-semibold">
+            How to Import Clients from QuickBooks
           </Typography>
+          <ol className="list-decimal space-y-3 pl-4">
+            <li>Access your QuickBooks Online account</li>
+            <li>
+              Navigate to <span className="font-medium">Sales</span> and select{' '}
+              <span className="font-medium">Customers</span> from the left sidebar
+            </li>
+            <li>
+              Look for the <span className="font-medium">Export</span> button in the top-right corner of the customers
+              list and click it to download the Excel file
+            </li>
+            <li>
+              Return to this page and complete these steps:
+              <ul className="mt-2 list-disc pl-4 text-slate-600">
+                <li>Select your company from the dropdown below</li>
+                <li>Click "Choose File" and select the Excel file you just downloaded</li>
+              </ul>
+            </li>
+            <li>
+              Review the imported data in the preview table and click{' '}
+              <span className="font-medium">Import Clients</span> when ready
+            </li>
+          </ol>
+          <div className="mt-6 rounded-md bg-blue-50 p-4">
+            <Typography element="p" className="text-sm text-blue-800">
+              <strong>Note:</strong> The import process will automatically create a pool for each client. After
+              importing, please remember to:
+              <ul className="mt-2 list-disc pl-4">
+                <li>Update each client's pool information</li>
+                <li>Set up service schedules in the Routes section</li>
+              </ul>
+            </Typography>
+          </div>
+        </div>
+
+        <div className="px-5 py-5 lg:px-8 lg:py-6">
+          <Form {...form}>
+            <div className="mb-6">
+              <SelectField
+                placeholder="Company owner"
+                name="companyOwnerId"
+                label="Company owner"
+                options={
+                  companies
+                    .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
+                    .map((c) => ({
+                      key: c.id,
+                      name: c.name,
+                      value: c.id
+                    })) || []
+                }
+              />
+            </div>
+
+            <div className="mb-6 flex items-center gap-2">
+              <label className={cn(buttonVariants({ variant: 'default' }), 'cursor-pointer')}>
+                Choose File
+                <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} className="hidden" />
+              </label>
+              {selectedFile && <span className="text-sm text-slate-500">{selectedFile}</span>}
+            </div>
+
+            {isProcessing && (
+              <div className="flex items-center gap-2">
+                <Loader2Icon className="h-4 w-4 animate-spin" />
+                Processing file...
+              </div>
+            )}
+
+            {parsedData.length > 0 && (
+              <>
+                <div className="overflow-x-auto rounded-lg border border-line">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>City</TableHead>
+                        <TableHead>State</TableHead>
+                        <TableHead>Zip</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Type</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {parsedData.map((client, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{`${client.firstName} ${client.lastName}`}</TableCell>
+                          <TableCell>{client.clientCompany || '-'}</TableCell>
+                          <TableCell>{client.clientAddress}</TableCell>
+                          <TableCell>{client.clientCity}</TableCell>
+                          <TableCell>{client.clientState}</TableCell>
+                          <TableCell>{client.clientZip}</TableCell>
+                          <TableCell>{client.phone}</TableCell>
+                          <TableCell>{client.email}</TableCell>
+                          <TableCell>{client.clientType}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className="mt-6">
+                  <Button onClick={handleImport} type="button" disabled={isPending}>
+                    {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+                    Import {parsedData.length} Clients
+                  </Button>
+                </div>
+              </>
+            )}
+          </Form>
         </div>
       </div>
-
-      <Form {...form}>
-        <div className="mb-6">
-          <SelectField
-            placeholder="Company owner"
-            name="companyOwnerId"
-            label="Company owner"
-            options={
-              companies
-                .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
-                .map((c) => ({
-                  key: c.id,
-                  name: c.name,
-                  value: c.id
-                })) || []
-            }
-          />
-        </div>
-
-        <div className="mb-6 flex items-center gap-2">
-          <label className={cn(buttonVariants({ variant: 'default' }), 'cursor-pointer')}>
-            Choose File
-            <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} className="hidden" />
-          </label>
-          {selectedFile && <span className="text-sm text-slate-500">{selectedFile}</span>}
-        </div>
-
-        {isProcessing && (
-          <div className="flex items-center gap-2">
-            <Loader2Icon className="h-4 w-4 animate-spin" />
-            Processing file...
-          </div>
-        )}
-
-        {parsedData.length > 0 && (
-          <>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>State</TableHead>
-                    <TableHead>Zip</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Type</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {parsedData.map((client, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{`${client.firstName} ${client.lastName}`}</TableCell>
-                      <TableCell>{client.clientCompany || '-'}</TableCell>
-                      <TableCell>{client.clientAddress}</TableCell>
-                      <TableCell>{client.clientCity}</TableCell>
-                      <TableCell>{client.clientState}</TableCell>
-                      <TableCell>{client.clientZip}</TableCell>
-                      <TableCell>{client.phone}</TableCell>
-                      <TableCell>{client.email}</TableCell>
-                      <TableCell>{client.clientType}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            <div className="mt-6">
-              <Button onClick={handleImport} type="button" disabled={isPending}>
-                {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-                Import {parsedData.length} Clients
-              </Button>
-            </div>
-          </>
-        )}
-      </Form>
 
       <Dialog
         open={!isCompaniesLoading && isCompaniesSuccess && showNoCompaniesDialog}
@@ -439,6 +443,6 @@ export default function ImportFromQuickbooks() {
           </Button>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
