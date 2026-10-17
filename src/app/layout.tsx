@@ -2,28 +2,17 @@ import './globals.css';
 
 import { Analytics } from '@vercel/analytics/react';
 import type { Metadata } from 'next';
-import localFont from 'next/font/local';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 
 import { ReactQueryProviderComponent } from '@/providers/ReactQueryProviderComponent';
 
 import { Toaster } from '../components/ui/toaster';
 import Script from 'next/script';
 
-const poppins = localFont({
-  src: [
-    {
-      path: '../../public/fonts/Poppins-Bold.ttf',
-      weight: '700'
-    },
-    {
-      path: '../../public/fonts/Poppins-SemiBold.ttf',
-      weight: '600'
-    },
-    {
-      path: '../../public/fonts/Poppins-Regular.ttf',
-      weight: '300'
-    }
-  ]
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap'
 });
 
 export const metadata: Metadata = {
@@ -98,7 +87,7 @@ export default function RootLayout({
           </noscript>
         </>
       ) : null}
-      <body className={poppins.className}>
+      <body className={plusJakarta.className}>
         <Analytics />
         <ReactQueryProviderComponent>{children}</ReactQueryProviderComponent>
         <Toaster />

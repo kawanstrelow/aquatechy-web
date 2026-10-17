@@ -94,7 +94,7 @@ export default function ClientInfo({ client }: { client: Client }) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
-          className="flex flex-col items-start justify-start gap-2 self-stretch bg-gray-50"
+          className="flex flex-col items-start justify-start gap-2 self-stretch"
         >
           <div className="flex w-full flex-wrap gap-4 md:flex-nowrap [&>*]:flex-1">
             <InputField name="firstName" label="First Name" placeholder="First Name" />

@@ -184,7 +184,8 @@ export default function ProductsPage() {
   return (
     <FormProvider {...filtersForm}>
       <div className="flex flex-col gap-6 p-2">
-        <div className="flex w-full flex-wrap items-center gap-2">
+        <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+        <div className="flex w-full flex-wrap items-center gap-2 border-b border-line bg-surface px-5 py-4">
           <Button type="button" className="shrink-0" onClick={handleOpenCreateProduct} disabled={!companyId}>
             <PlusIcon className="mr-2" />
             Add product
@@ -205,7 +206,7 @@ export default function ProductsPage() {
               placeholder="Search by name or SKU"
               value={search}
               onChange={(event) => filtersForm.setValue('search', event.target.value)}
-              className="h-10 w-full"
+              className="h-10 w-full bg-surface"
             />
           </div>
           {companies.length > 1 && (
@@ -235,6 +236,7 @@ export default function ProductsPage() {
         ) : (
           <DataTableProducts columns={columns} data={productsQuery.data ?? []} />
         )}
+        </div>
 
         <ProductFormDialog
           open={productDialogOpen}

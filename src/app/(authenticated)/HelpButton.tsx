@@ -3,13 +3,7 @@
 import { HelpCircle, Calendar, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function HelpButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +22,7 @@ export function HelpButton() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 md:flex"
+        className="fixed bottom-6 right-6 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-lift transition-colors hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 md:flex"
         aria-label="Get help"
       >
         <HelpCircle className="h-7 w-7" />
@@ -38,14 +32,12 @@ export function HelpButton() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>How can we help you?</DialogTitle>
-            <DialogDescription>
-              Choose an option below to get assistance
-            </DialogDescription>
+            <DialogDescription>Choose an option below to get assistance</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-4">
             <Button
               onClick={handleScheduleOnboarding}
-              className="w-full justify-start gap-3 h-auto py-4"
+              className="h-auto w-full justify-start gap-3 py-4"
               variant="outline"
             >
               <Calendar className="h-5 w-5" />
@@ -54,11 +46,7 @@ export function HelpButton() {
                 <span className="text-xs text-gray-500">Book a time that works for you</span>
               </div>
             </Button>
-            <Button
-              onClick={handleTextCompany}
-              className="w-full justify-start gap-3 h-auto py-4"
-              variant="outline"
-            >
+            <Button onClick={handleTextCompany} className="h-auto w-full justify-start gap-3 py-4" variant="outline">
               <MessageCircle className="h-5 w-5" />
               <div className="flex flex-col items-start">
                 <span className="font-semibold">Text us at (561) 571-4474</span>
@@ -71,4 +59,3 @@ export function HelpButton() {
     </>
   );
 }
-

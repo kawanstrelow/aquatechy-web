@@ -1,15 +1,14 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
+import { useLogout } from '@/utils/logout';
 
 import { AccountDropdownMenu } from './AccountDropdownMenu';
 import { PageTitle } from './PageTitle';
 import { MobileSideMenu } from './SideMenuNav';
-import { useLogout } from '@/utils/logout';
 
 export default function PageHeader() {
   const router = useRouter();
@@ -21,19 +20,19 @@ export default function PageHeader() {
   };
 
   return (
-    <div className="inline-flex max-h-20 w-full items-center bg-gray-800 px-4 py-2 shadow-inner lg:bg-gray-50 lg:py-4">
+    <div className="sticky top-0 z-20 flex w-full items-center gap-3 border-b border-line bg-surface px-4 py-3 lg:px-6">
       <div className="lg:hidden">
         <MobileSideMenu />
       </div>
-      <div className="hidden justify-start lg:inline">
+      <div className="hidden min-w-0 lg:block">
         <PageTitle />
       </div>
       <div className="ml-auto flex items-center justify-end gap-2">
         <Button
           variant="outline"
-          size="lg"
+          size="sm"
           asChild
-          className="border-white/30 bg-transparent text-gray-50 shadow-none hover:bg-gray-700 hover:text-white lg:border-slate-200 lg:bg-gray-50 lg:text-slate-900 lg:shadow-sm lg:hover:bg-slate-100 lg:hover:text-slate-900"
+          className="border-line bg-surface text-ink shadow-none hover:bg-canvas hover:text-ink"
         >
           <a href="https://www.aquatechyapp.com/tutorials" target="_blank" rel="noopener noreferrer">
             Tutorials

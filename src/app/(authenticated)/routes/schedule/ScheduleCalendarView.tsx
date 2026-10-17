@@ -226,8 +226,6 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
         )}
       </div>
 
-      <p className="mt-2 px-1 text-xs text-slate-500">Click a technician tag to open that day's route and map.</p>
-
       <ScheduleMapModal
         open={modalOpen}
         onOpenChange={handleModalOpenChange}

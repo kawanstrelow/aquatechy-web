@@ -156,8 +156,8 @@ export default function RouteEfficiencyReportPage() {
         </p>
       </div>
 
-      <Card className="mb-6 overflow-hidden">
-        <div className="border-b bg-slate-50 px-6 py-4">
+      <Card className="mb-6 overflow-hidden bg-surface">
+        <div className="border-b border-line bg-surface px-6 py-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-start gap-3">
               <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
@@ -267,7 +267,7 @@ export default function RouteEfficiencyReportPage() {
       ) : (
         <div className="space-y-6">
           {technicianGroups.map((group) => (
-            <Card key={group.id}>
+            <Card key={group.id} className="bg-surface">
               <CardHeader>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
@@ -293,14 +293,14 @@ export default function RouteEfficiencyReportPage() {
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left p-3 font-medium text-gray-600">Weekday</th>
-                        <th className="text-left p-3 font-medium text-gray-600">Stops</th>
-                        <th className="text-left p-3 font-medium text-gray-600">Distance</th>
-                        <th className="text-left p-3 font-medium text-gray-600">Drive Time</th>
-                        <th className="text-left p-3 font-medium text-gray-600">Service time (20m per stop)</th>
-                        <th className="text-left p-3 font-medium text-gray-600">Total route time (driving + stops)</th>
+                    <thead className="bg-surface">
+                      <tr className="border-b border-line bg-surface">
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Weekday</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Stops</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Distance</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Drive Time</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Service time (20m per stop)</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Total route time (driving + stops)</th>
                       </tr>
                     </thead>
                     <tbody>
