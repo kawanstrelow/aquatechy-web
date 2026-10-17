@@ -3,16 +3,14 @@
 import { cn } from '@/lib/utils';
 
 const TECH_TAG_COLORS = [
-  'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
-  'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200',
-  'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200',
-  'bg-violet-100 text-violet-800 border-violet-200 hover:bg-violet-200',
-  'bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-200',
-  'bg-cyan-100 text-cyan-800 border-cyan-200 hover:bg-cyan-200',
-  'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200',
-  'bg-teal-100 text-teal-800 border-teal-200 hover:bg-teal-200',
-  'bg-indigo-100 text-indigo-800 border-indigo-200 hover:bg-indigo-200',
-  'bg-pink-100 text-pink-800 border-pink-200 hover:bg-pink-200'
+  'bg-blue-100 text-[#364D9D] border-[#C5CEE8] hover:bg-[#CDD5EF]',
+  'bg-sky-100 text-sky-900 border-sky-200 hover:bg-sky-200',
+  'bg-indigo-100 text-indigo-900 border-indigo-200 hover:bg-indigo-200',
+  'bg-[#E7F0FA] text-[#1D4E89] border-[#C5D9EF] hover:bg-[#D4E5F6]',
+  'bg-blue-50 text-[#2C3E86] border-[#C5CEE8] hover:bg-blue-100',
+  'bg-sky-50 text-sky-800 border-sky-200 hover:bg-sky-100',
+  'bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100',
+  'bg-[#F0F3FB] text-[#364D9D] border-[#D5DCF0] hover:bg-blue-100'
 ];
 
 export function getTechTagColor(id: string) {

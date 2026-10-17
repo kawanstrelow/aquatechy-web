@@ -18,16 +18,13 @@ export function DataTableProducts<TValue>({ columns, data }: DataTableProductsPr
   });
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+    <>
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-surface">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="border-b border-gray-200 hover:bg-transparent">
+            <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
               {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="h-12 bg-gray-50/50 font-semibold text-gray-700 first:rounded-tl-lg last:rounded-tr-lg"
-                >
+                <TableHead key={header.id} className="h-12 bg-surface font-semibold text-ink-muted">
                   {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
               ))}
@@ -61,6 +58,6 @@ export function DataTableProducts<TValue>({ columns, data }: DataTableProductsPr
           )}
         </TableBody>
       </Table>
-    </div>
+    </>
   );
 }

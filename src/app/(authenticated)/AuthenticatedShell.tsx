@@ -71,17 +71,17 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
           title="Welcome to Aquatechy!"
         />
       )}
-      <div className="h-screen w-full lg:grid lg:grid-cols-6">
-        <div className="hidden h-full lg:inline">
+      <div className="min-h-screen bg-canvas lg:flex">
+        <div className="sticky top-0 z-30 hidden h-screen shrink-0 lg:block">
           <SideMenu />
         </div>
-        <div className="col-span-5 bg-gray-50">
+        <div className="min-w-0 flex-1">
           <PageHeader />
           <main>
-            <div className="mx-2 mt-2 rounded-md border border-gray-200 p-2 shadow-inner lg:mt-0">
+            <div className="px-4 py-5 lg:px-8 lg:py-6">
               {isUserLoading ? (
                 <div className="flex min-h-[50vh] items-center justify-center">
-                  <div className="h-12 w-12 animate-spin rounded-full border-8 border-gray-300 border-t-blue-500" />
+                  <div className="h-12 w-12 animate-spin rounded-full border-8 border-line border-t-accent" />
                 </div>
               ) : (
                 children

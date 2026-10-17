@@ -41,11 +41,11 @@ export function DataTableWorkOrders<TData, TValue>({ columns, data }: DataTableP
   });
 
   return (
-    <div className="flex flex-col gap-6 p-2">
+    <>
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-surface">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
               {headerGroup.headers.map((header) => (
                 <TableHead key={header.id}>
                   {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -83,6 +83,6 @@ export function DataTableWorkOrders<TData, TValue>({ columns, data }: DataTableP
       {selectedService && (
         <ModalViewWorkOrder service={selectedService} open={!!selectedService} setOpen={() => setSelectedService(null)} />
       )}
-    </div>
+    </>
   );
 }

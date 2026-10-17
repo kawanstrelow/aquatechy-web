@@ -42,11 +42,11 @@ export function DataTableServices<TData, TValue>({ columns, data }: DataTablePro
   });
 
   return (
-    <div className="flex flex-col gap-6 p-2">
+    <>
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-surface">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
               {headerGroup.headers.map((header) => (
                 <TableHead key={header.id}>
                   {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -84,6 +84,6 @@ export function DataTableServices<TData, TValue>({ columns, data }: DataTablePro
       {selectedService && (
         <ModalViewService service={selectedService} open={!!selectedService} setOpen={() => setSelectedService(null)} />
       )}
-    </div>
+    </>
   );
 }

@@ -101,7 +101,8 @@ export function DataTableRecurringInvoices<TValue>({
 
   return (
     <FormProvider {...form}>
-      <div className="mb-4 flex w-full flex-col gap-4 md:flex-row md:items-center">
+      <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+      <div className="flex w-full flex-col gap-4 border-b border-line bg-surface px-5 py-4 md:flex-row md:items-center">
         {/* Create Button - First */}
         {onCreateTemplate && (
           <Button type="button" onClick={onCreateTemplate} className="w-full md:max-w-96 py-4">
@@ -115,7 +116,7 @@ export function DataTableRecurringInvoices<TValue>({
           placeholder="Search templates..."
           value={globalFilter ?? ''}
           onChange={(event) => setGlobalFilter(event.target.value)}
-          className="w-full md:max-w-xs"
+          className="w-full bg-surface md:max-w-xs"
         />
         
         {/* Filters - Last */}
@@ -165,15 +166,14 @@ export function DataTableRecurringInvoices<TValue>({
           />
         </div>
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-b border-gray-200 hover:bg-transparent">
+              <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
                 {headerGroup.headers.map((header) => (
-                  <TableHead 
+                  <TableHead
                     key={header.id}
-                    className="h-12 bg-gray-50/50 font-semibold text-gray-700 first:rounded-tl-lg last:rounded-tr-lg"
+                    className="h-12 bg-surface font-semibold text-ink-muted"
                   >
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>

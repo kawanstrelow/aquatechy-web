@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation';
 import React from 'react';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { cn } from '@/lib/utils';
 
 type Props = {
   route: {
@@ -19,54 +20,50 @@ type Props = {
 };
 
 export default function SideMenuNavLink({ route }: Props) {
-  const { icon, text, href, submenu } = route;
-  const Icon = icon;
+  const { icon: Icon, text, href, submenu } = route;
   const pathname = usePathname();
   const pathResource = `/${pathname.split('/')[1]}`;
-
   const isActive = href === pathResource;
+
+  const rowClass = cn(
+    'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-canvas hover:no-underline',
+    isActive && 'bg-accent-soft text-accent hover:bg-accent-soft'
+  );
+
+  if (!submenu) {
+    return (
+      <Link href={href} className={rowClass}>
+        <Icon className="h-5 w-5 shrink-0" height={20} width={20} size={20} />
+        <span className="leading-none">{text}</span>
+      </Link>
+    );
+  }
+
   return (
-    <div
-      className={`flex w-full items-start justify-start px-2 text-gray-300 hover:bg-gray-800 ${isActive && 'border-r-4 border-blue-500 bg-gray-800'} `}
-    >
-      <div className="flex w-full items-center">
-        {!submenu ? (
-          <Link href={submenu ? '' : href} passHref className="flex w-full items-center">
-            <div className="mr-4 py-4">
-              <Icon height={24} width={24} size={22} className={`${isActive && 'text-blue-500'}`} />
-            </div>
-            <div className="w-full text-base font-medium leading-none text-slate-50">{text}</div>
-          </Link>
-        ) : (
-          <Accordion collapsible type="single" className="w-[100%]">
-            <AccordionItem value="item-1" style={{ borderBottom: 'none' }}>
-              <AccordionTrigger
-                style={{ textDecoration: 'none' }}
-                className={`w-full text-base font-medium leading-none text-slate-50 ${isActive && 'text-blue-500'}`}
+    <Accordion collapsible type="single" className="w-full">
+        <AccordionItem value={href} className="border-b-0">
+        <AccordionTrigger className={cn(rowClass, 'hover:no-underline')}>
+          <span className="flex items-center gap-3">
+            <Icon className="h-5 w-5 shrink-0" height={20} width={20} size={20} />
+            <span className="leading-none">{text}</span>
+          </span>
+        </AccordionTrigger>
+        {Object.entries(submenu).map(([key, subItem]) => {
+          const subActive = pathname === subItem.href;
+          return (
+            <Link href={subItem.href} key={key + subItem.href + subItem.text}>
+              <AccordionContent
+                className={cn(
+                  'pb-0 pt-0 text-sm font-medium leading-none text-ink-muted hover:text-accent',
+                  subActive && 'font-semibold text-accent'
+                )}
               >
-                <div className="flex items-start justify-start">
-                  <Icon height={24} width={24} className={`mr-4`} />
-                </div>
-                <div className="flex w-[100%] items-start justify-start text-slate-50">{text}</div>
-              </AccordionTrigger>
-              {Object.entries(submenu).map(([key, subItem]) => {
-                return (
-                  <Link href={subItem.href} key={key + subItem.href + subItem.text}>
-                    <AccordionContent
-                      className={
-                        'text-ls font-medium leading-none text-gray-500 hover:font-semibold hover:text-blue-500' +
-                        (pathname === subItem.href ? ' font-semibold text-blue-500' : '')
-                      }
-                    >
-                      <div className="ml-10 flex w-[50%] items-start justify-start text-nowrap">{subItem.text}</div>
-                    </AccordionContent>
-                  </Link>
-                );
-              })}
-            </AccordionItem>
-          </Accordion>
-        )}
-      </div>
-    </div>
+                <div className="ml-9 py-2">{subItem.text}</div>
+              </AccordionContent>
+            </Link>
+          );
+        })}
+      </AccordionItem>
+    </Accordion>
   );
 }

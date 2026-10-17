@@ -103,10 +103,11 @@ export default function Page() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
+      <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
       <Form {...filtersForm}>
-        <form className="flex w-full flex-col gap-4" onSubmit={filtersForm.handleSubmit(onSubmit)}>
-          <div className="flex flex-col justify-start gap-2 p-4 lg:flex-row lg:items-center">
+        <form className="flex w-full flex-col" onSubmit={filtersForm.handleSubmit(onSubmit)}>
+          <div className="flex flex-col justify-start gap-2 border-b border-line bg-surface px-5 py-4 lg:flex-row lg:items-center">
             <div className="flex flex-col gap-5 lg:flex-row">
               <FormItem className="flex w-full flex-col gap-2 lg:flex-row lg:items-center">
                 <FormLabel>From</FormLabel>
@@ -335,18 +336,20 @@ export default function Page() {
       {workOrdersServicesQuery.isPending || workOrdersServicesQuery.isLoading ? (
         <DataTableServicesSkeleton />
       ) : (
-        <>
-          <DataTableWorkOrders columns={columns} data={workOrdersServicesQuery.data?.services || []} />
-          {workOrdersServicesQuery.data && workOrdersServicesQuery.data.totalCount > 0 && (
-            <PaginationDemo
-              currentPage={workOrdersServicesQuery.data.currentPage || filtersForm.watch('page') || 1}
-              totalItems={workOrdersServicesQuery.data.totalCount}
-              itemsPerPage={workOrdersServicesQuery.data.itemsPerPage || 20}
-              onPageChange={handlePageChange}
-            />
-          )}
-        </>
+        <DataTableWorkOrders columns={columns} data={workOrdersServicesQuery.data?.services || []} />
       )}
+      </div>
+      {workOrdersServicesQuery.data &&
+        workOrdersServicesQuery.data.totalCount > 0 &&
+        !workOrdersServicesQuery.isPending &&
+        !workOrdersServicesQuery.isLoading && (
+          <PaginationDemo
+            currentPage={workOrdersServicesQuery.data.currentPage || filtersForm.watch('page') || 1}
+            totalItems={workOrdersServicesQuery.data.totalCount}
+            itemsPerPage={workOrdersServicesQuery.data.itemsPerPage || 20}
+            onPageChange={handlePageChange}
+          />
+        )}
     </div>
   );
 }

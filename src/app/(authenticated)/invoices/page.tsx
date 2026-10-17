@@ -355,7 +355,7 @@ export default function InvoicesPage() {
           </DialogContent>
         </Dialog>
         {/* Action Buttons and Date Filters */}
-        <form className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <form className="flex w-full flex-col gap-2 rounded-xl border border-line bg-surface px-5 py-4 shadow-lift sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button type="button" onClick={handleCreateInvoice}>
               <PlusIcon className="mr-2" />

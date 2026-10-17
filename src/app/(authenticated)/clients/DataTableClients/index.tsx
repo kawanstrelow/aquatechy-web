@@ -188,7 +188,8 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
         onConfirm={handleConfirmExport}
         isExporting={isExporting}
       />
-      <div className="flex w-full flex-col items-center justify-between md:flex-row">
+      <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+      <div className="flex w-full flex-col items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4 md:flex-row">
         <div className="flex w-full flex-col gap-4 text-nowrap md:flex-row">
           <HoverCard>
             <HoverCardTrigger asChild>
@@ -216,12 +217,12 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
             placeholder="Filter clients..."
             value={globalFilter ?? ''}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="mb-2 mr-2 md:mb-0 md:max-w-xs"
+            className="md:max-w-xs"
           />
         </div>
         <div className="flex w-full">
           <Form {...form}>
-            <form className="mb-2 flex w-full flex-col gap-4 md:mb-0 md:flex-row">
+            <form className="flex w-full flex-col gap-4 md:flex-row">
               <SelectField
                 name="companyOwnerId"
                 options={companyOptions}
@@ -258,9 +259,9 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
         </div>
       </div>
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-surface">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
               {headerGroup.headers.map((header) => {
                 const isSortable = header.column.columnDef.header;
                 return (
@@ -311,6 +312,7 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
           )}
         </TableBody>
       </Table>
+      </div>
     </>
   );
 }

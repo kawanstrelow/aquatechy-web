@@ -109,14 +109,14 @@ export function DataTableEstimates<TValue>({
   ];
 
   return (
-    <>
-      <div className="mb-4 flex w-full flex-col items-center justify-between gap-4 md:flex-row">
+    <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+      <div className="flex w-full flex-col items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4 md:flex-row">
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <Input
             placeholder="Search"
             value={globalFilter ?? ''}
             onChange={(event) => setGlobalFilter(event.target.value)}
-            className="mb-2 md:mb-0 md:max-w-xs"
+            className="bg-surface md:max-w-xs"
           />
         </div>
         <div className="flex w-full flex-col gap-4 md:flex-row">
@@ -161,15 +161,14 @@ export function DataTableEstimates<TValue>({
           )}
         </div>
       </div>
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-b border-gray-200 hover:bg-transparent">
+              <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="h-12 bg-gray-50/50 font-semibold text-gray-700 first:rounded-tl-lg last:rounded-tr-lg"
+                    className="h-12 bg-surface font-semibold text-ink-muted"
                   >
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
@@ -217,7 +216,6 @@ export function DataTableEstimates<TValue>({
             )}
           </TableBody>
         </Table>
-      </div>
-    </>
+    </div>
   );
 }

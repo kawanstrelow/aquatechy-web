@@ -273,6 +273,7 @@ function RouteFinderContent() {
                 name="address"
                 label="Pool Address"
                 placeholder="Enter pool address"
+                className="bg-surface"
                 onAddressSelect={handleAddressSelect}
               />
             </form>

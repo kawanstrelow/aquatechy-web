@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --canvas: 243 246 248;
+  --surface: 255 255 255;
+  --ink: 18 32 51;
+  --ink-muted: 94 112 132;
+  --line: 228 235 239;
+  --accent: 54 77 157;
+  --accent-soft: 220 225 245;
+  --success: 21 128 61;
+  --success-soft: 220 252 231;
+  --warning: 161 98 7;
+  --warning-soft: 254 249 195;
+  --danger: 185 28 28;
+  --danger-soft: 254 226 226;
+}
+
+@layer base {
+  body {
+    font-feature-settings: 'tnum' 1;
+    background-color: rgb(var(--canvas));
+    color: rgb(var(--ink));
+  }
+}
+
 @layer utilities {
   .debug {
     @apply border-[1px] border-red-500;

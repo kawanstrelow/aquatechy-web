@@ -132,15 +132,16 @@ export default function Page() {
   if (requestsQuery.isLoading) return <LoadingSpinner />;
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
+      <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
       <Form {...filtersForm}>
         <form
-          className="flex w-full flex-col gap-4"
+          className="flex w-full flex-col"
           onSubmit={filtersForm.handleSubmit(onSubmit)}
         >
-          <div className="flex flex-col md:flex-row flex-wrap items-start md:items-center gap-2 p-4">
+          <div className="flex flex-col flex-wrap items-start gap-2 border-b border-line bg-surface px-5 py-4 md:flex-row md:items-center">
             <Input
-              className="w-full md:w-[250px]"
+              className="w-full bg-surface md:w-[250px]"
               placeholder="Filter requests..."
               value={globalFilter}
               onChange={(event) => setGlobalFilter(event.target.value)}
@@ -355,23 +356,24 @@ export default function Page() {
       {requestsQuery.isPending || requestsQuery.isLoading ? (
         <DataTableRequestsSkeleton />
       ) : (
-        <div className="flex flex-col gap-4">
-          <DataTableRequests
-            columns={columns}
-            data={requestsQuery.data?.requests || []}
-            globalFilter={globalFilter}
-          />
+        <DataTableRequests
+          columns={columns}
+          data={requestsQuery.data?.requests || []}
+          globalFilter={globalFilter}
+        />
+      )}
+      </div>
 
-          <div className="flex justify-center py-4">
-            {requestsQuery.data && requestsQuery.data.totalCount > 0 && (
-              <PaginationDemo
-                currentPage={Number(requestsQuery.data.currentPage) || currentPage}
-                totalItems={requestsQuery.data.totalCount}
-                itemsPerPage={requestsQuery.data.itemsPerPage || itemsPerPage}
-                onPageChange={handlePageChange}
-              />
-            )}
-          </div>
+      {!requestsQuery.isPending && !requestsQuery.isLoading && (
+        <div className="flex justify-center py-4">
+          {requestsQuery.data && requestsQuery.data.totalCount > 0 && (
+            <PaginationDemo
+              currentPage={Number(requestsQuery.data.currentPage) || currentPage}
+              totalItems={requestsQuery.data.totalCount}
+              itemsPerPage={requestsQuery.data.itemsPerPage || itemsPerPage}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       )}
     </div>
