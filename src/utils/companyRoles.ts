@@ -27,6 +27,13 @@ export function toAssignableRoleEnum(actorRole?: string | null): [AssignableMemb
   return roles as [AssignableMemberRole, ...AssignableMemberRole[]];
 }
 
+export const MEMBER_ROLE_DESCRIPTIONS: Record<AssignableMemberRole, string> = {
+  Admin: 'Same access as the owner, except they cannot delete the company.',
+  Office: 'Can see all clients, routes, invoices, and estimates, add clients, and move routes.',
+  Technician: 'Sees only their own clients and routes. Can clean pools and do repairs.',
+  Cleaner: 'Sees only their own clients and routes. Cleans pools.'
+};
+
 export function getMemberRoleSelectOptions(actorRole?: string | null) {
   return getAssignableMemberRoles(actorRole).map((role) => ({
     key: role,

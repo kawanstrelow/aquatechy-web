@@ -21,7 +21,7 @@ export function ModalDeleteAccount() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-red h-10 w-full bg-red-500">
+        <Button className="h-10 bg-red-500 hover:bg-red-500/90">
           <TrashIcon className="mr-2 h-6 w-6" />
           Delete account
         </Button>
