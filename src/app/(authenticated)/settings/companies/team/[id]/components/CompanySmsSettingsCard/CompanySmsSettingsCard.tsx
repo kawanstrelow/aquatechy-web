@@ -5,7 +5,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { MessageSquare } from 'lucide-react';
+import { ChevronDown, MessageSquare } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
 import InputField from '@/components/InputField';
@@ -198,6 +200,7 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
   const { data, isLoading, isError } = useGetCompanySmsSettings(companyId);
   const { mutate, mutateAsync, isPending } = useUpdateCompanySmsSettings(companyId);
   const [wipeConfirmOpen, setWipeConfirmOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -275,180 +278,195 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
   return (
     <div className="mb-8">
       <Card className="border border-gray-200">
-        <CardContent className="p-6">
-          <div className="mb-6 flex items-start gap-3">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-3 p-6 text-left"
+          onClick={() => setOpen((value) => !value)}
+        >
+          <div className="flex items-start gap-3">
             <div className="rounded-lg bg-gray-100 p-2">
               <MessageSquare className="h-5 w-5 text-gray-600" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-800">Service report SMS</h3>
               <p className="text-muted-foreground text-sm font-normal">
-              Choose Aquatechy’s number or your own Quo or Twilio account. Completed-service, invoice, and estimate SMS
-              use this number. Signup and verification still use Aquatechy.
+                Choose Aquatechy’s number or your own Quo or Twilio account. Completed-service, invoice, and estimate
+                SMS use this number. Signup and verification still use Aquatechy.
               </p>
             </div>
           </div>
+          <ChevronDown
+            className={cn(
+              'h-5 w-5 shrink-0 text-gray-600 transition-transform duration-200',
+              open ? 'rotate-0' : 'rotate-180'
+            )}
+          />
+        </button>
 
-          {isLoading ? (
-            <div className="flex justify-center py-6">
-              <div className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
-            </div>
-          ) : isError ? (
-            <p className="text-sm text-red-600">Could not load SMS settings. Please try again.</p>
-          ) : (
-            <Form {...form}>
-              <div>
-                <fieldset disabled={isPending} className="space-y-6">
-                  {data ? <ConnectedStatus settings={data} /> : null}
-
-                  <FormField
-                    control={form.control}
-                    name="provider"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <RadioGroup
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            className="gap-3"
-                            disabled={isPending}
-                          >
-                            <div className="flex items-start gap-3">
-                              <RadioGroupItem value="aquatechy" id="sms-provider-aquatechy" className="mt-1" />
-                              <div className="grid gap-1">
-                                <Label htmlFor="sms-provider-aquatechy" className="font-medium">
-                                  Aquatechy
-                                </Label>
-                                <span className="text-muted-foreground text-sm">
-                                  Send service-report SMS from Aquatechy’s number.
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <RadioGroupItem value="quo" id="sms-provider-quo" className="mt-1" />
-                              <div className="grid gap-1">
-                                <Label htmlFor="sms-provider-quo" className="font-medium">
-                                  Company’s Quo account
-                                </Label>
-                                <span className="text-muted-foreground text-sm">
-                                  Use your Quo workspace API key and From number. You pay Quo for these messages.
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <RadioGroupItem value="twilio" id="sms-provider-twilio" className="mt-1" />
-                              <div className="grid gap-1">
-                                <Label htmlFor="sms-provider-twilio" className="font-medium">
-                                  Company’s Twilio account
-                                </Label>
-                                <span className="text-muted-foreground text-sm">
-                                  Use your Twilio Account SID, auth token, and From number.
-                                </span>
-                              </div>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {provider === 'quo' ? (
-                    <div className="space-y-4">
-                      <InputField
-                        name="apiKey"
-                        label="Quo API key"
-                        placeholder={
-                          data?.provider === 'quo' && data.apiKeyLast4
-                            ? `••••${data.apiKeyLast4}`
-                            : 'Quo workspace API key'
-                        }
-                        type={FieldType.Password}
-                      />
-                      <InputField
-                        name="phoneNumber"
-                        label="From number"
-                        placeholder="+15551234567 or PN…"
-                        type={FieldType.Default}
-                      />
-                      <InputField
-                        name="userId"
-                        label="Quo member id (optional)"
-                        placeholder="US123abc"
-                        type={FieldType.Default}
-                      />
-                      <InputField
-                        name="testPhoneNumber"
-                        label="Test phone number"
-                        placeholder="Where to send the connection test SMS"
-                        type={FieldType.Phone}
-                      />
-                      <p className="text-muted-foreground text-sm">
-                        Complete US carrier registration in your Quo workspace. Aquatechy will send a test SMS when you
-                        save. If this provider fails later, clients will not receive reports from Aquatechy’s number.
-                      </p>
-                    </div>
-                  ) : null}
-
-                  {provider === 'twilio' ? (
-                    <div className="space-y-4">
-                      <InputField
-                        name="accountSid"
-                        label="Account SID"
-                        placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                        type={FieldType.Default}
-                      />
-                      <InputField
-                        name="authToken"
-                        label="Auth token"
-                        placeholder={
-                          data?.provider === 'twilio' && data.authTokenLast4
-                            ? `••••${data.authTokenLast4}`
-                            : 'Twilio auth token'
-                        }
-                        type={FieldType.Password}
-                      />
-                      <InputField name="fromNumber" label="From number" type={FieldType.Phone} />
-                      <InputField
-                        name="testPhoneNumber"
-                        label="Test phone number"
-                        placeholder="Where to send the connection test SMS"
-                        type={FieldType.Phone}
-                      />
-                      <p className="text-muted-foreground text-sm">
-                        US A2P 10DLC (brand, campaign, and number) must be completed on your Twilio account. Aquatechy
-                        will send a test SMS when you save. If this provider fails later, clients will not receive
-                        reports from Aquatechy’s number.
-                      </p>
-                    </div>
-                  ) : null}
-                </fieldset>
-
-                <div className="mt-6 flex justify-center">
-                  <Button
-                    type="button"
-                    disabled={isPending}
-                    className="w-full max-w-xs"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      void form.handleSubmit(onSubmit)();
-                    }}
-                  >
-                    {isPending ? (
-                      <span className="inline-flex items-center gap-2">
-                        <span className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
-                        {saveLabel}
-                      </span>
-                    ) : (
-                      saveLabel
-                    )}
-                  </Button>
-                </div>
+        {open ? (
+          <CardContent className="border-t border-gray-200 p-6">
+            {isLoading ? (
+              <div className="flex justify-center py-6">
+                <div className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
               </div>
-            </Form>
-          )}
-        </CardContent>
+            ) : isError ? (
+              <p className="text-sm text-red-600">Could not load SMS settings. Please try again.</p>
+            ) : (
+              <Form {...form}>
+                <div>
+                  <fieldset disabled={isPending} className="space-y-6">
+                    {data ? <ConnectedStatus settings={data} /> : null}
+
+                    <FormField
+                      control={form.control}
+                      name="provider"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <RadioGroup
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              className="gap-3"
+                              disabled={isPending}
+                            >
+                              <div className="flex items-start gap-3">
+                                <RadioGroupItem value="aquatechy" id="sms-provider-aquatechy" className="mt-1" />
+                                <div className="grid gap-1">
+                                  <Label htmlFor="sms-provider-aquatechy" className="font-medium">
+                                    Aquatechy
+                                  </Label>
+                                  <span className="text-muted-foreground text-sm">
+                                    Send service-report SMS from Aquatechy’s number.
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <RadioGroupItem value="quo" id="sms-provider-quo" className="mt-1" />
+                                <div className="grid gap-1">
+                                  <Label htmlFor="sms-provider-quo" className="font-medium">
+                                    Company’s Quo account
+                                  </Label>
+                                  <span className="text-muted-foreground text-sm">
+                                    Use your Quo workspace API key and From number. You pay Quo for these messages.
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <RadioGroupItem value="twilio" id="sms-provider-twilio" className="mt-1" />
+                                <div className="grid gap-1">
+                                  <Label htmlFor="sms-provider-twilio" className="font-medium">
+                                    Company’s Twilio account
+                                  </Label>
+                                  <span className="text-muted-foreground text-sm">
+                                    Use your Twilio Account SID, auth token, and From number.
+                                  </span>
+                                </div>
+                              </div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {provider === 'quo' ? (
+                      <div className="space-y-4">
+                        <InputField
+                          name="apiKey"
+                          label="Quo API key"
+                          placeholder={
+                            data?.provider === 'quo' && data.apiKeyLast4
+                              ? `••••${data.apiKeyLast4}`
+                              : 'Quo workspace API key'
+                          }
+                          type={FieldType.Password}
+                        />
+                        <InputField
+                          name="phoneNumber"
+                          label="From number"
+                          placeholder="+15551234567 or PN…"
+                          type={FieldType.Default}
+                        />
+                        <InputField
+                          name="userId"
+                          label="Quo member id (optional)"
+                          placeholder="US123abc"
+                          type={FieldType.Default}
+                        />
+                        <InputField
+                          name="testPhoneNumber"
+                          label="Test phone number"
+                          placeholder="Where to send the connection test SMS"
+                          type={FieldType.Phone}
+                        />
+                        <p className="text-muted-foreground text-sm">
+                          Complete US carrier registration in your Quo workspace. Aquatechy will send a test SMS when
+                          you save. If this provider fails later, clients will not receive reports from Aquatechy’s
+                          number.
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {provider === 'twilio' ? (
+                      <div className="space-y-4">
+                        <InputField
+                          name="accountSid"
+                          label="Account SID"
+                          placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                          type={FieldType.Default}
+                        />
+                        <InputField
+                          name="authToken"
+                          label="Auth token"
+                          placeholder={
+                            data?.provider === 'twilio' && data.authTokenLast4
+                              ? `••••${data.authTokenLast4}`
+                              : 'Twilio auth token'
+                          }
+                          type={FieldType.Password}
+                        />
+                        <InputField name="fromNumber" label="From number" type={FieldType.Phone} />
+                        <InputField
+                          name="testPhoneNumber"
+                          label="Test phone number"
+                          placeholder="Where to send the connection test SMS"
+                          type={FieldType.Phone}
+                        />
+                        <p className="text-muted-foreground text-sm">
+                          US A2P 10DLC (brand, campaign, and number) must be completed on your Twilio account. Aquatechy
+                          will send a test SMS when you save. If this provider fails later, clients will not receive
+                          reports from Aquatechy’s number.
+                        </p>
+                      </div>
+                    ) : null}
+                  </fieldset>
+
+                  <div className="mt-6 flex justify-center">
+                    <Button
+                      type="button"
+                      disabled={isPending}
+                      className="w-full max-w-xs"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        void form.handleSubmit(onSubmit)();
+                      }}
+                    >
+                      {isPending ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
+                          {saveLabel}
+                        </span>
+                      ) : (
+                        saveLabel
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </Form>
+            )}
+          </CardContent>
+        ) : null}
       </Card>
 
       <ConfirmActionDialog
