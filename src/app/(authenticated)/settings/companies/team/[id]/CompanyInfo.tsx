@@ -61,7 +61,7 @@ export default function CompanyInfo({ company }: { company: Company }) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="flex flex-col items-start justify-start gap-2 self-stretch bg-gray-50"
+        className="flex w-full flex-col items-start justify-start gap-4 self-stretch"
       >
         <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
           <InputField name="name" placeholder="Name" label="Name" />

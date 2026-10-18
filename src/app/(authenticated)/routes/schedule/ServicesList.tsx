@@ -181,7 +181,7 @@ export function ServiceItem({
   const address = [pool?.address, pool?.addressLine2, pool?.city, pool?.state, pool?.zip].filter(Boolean).join(', ');
   const finished = isFinishedStatus(service.status);
   const estimatedArrivalTime = finished ? null : getEstimatedArrivalTime(routeAssignments, currentIndex);
-  const statusLabel = finished
+  const statusLabel = isFinishedStatus(service.status)
     ? formatFinishedStatus(service.status, service.completedAt, timeZone)
     : formatServiceStatus(service.status);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id, disabled: !enableReorder });

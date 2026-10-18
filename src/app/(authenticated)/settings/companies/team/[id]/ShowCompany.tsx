@@ -132,7 +132,7 @@ function ShowCompanyInner({ company }: Props) {
     <div>
       <div className="flex flex-col items-start gap-6 self-stretch pt-2 lg:flex-row lg:pt-0">
         <div className="w-full lg:max-w-sm">
-          <div className="relative flex w-full flex-col items-center justify-start gap-6 text-nowrap rounded-lg border px-6 pb-6 pt-16">
+          <div className="relative flex w-full flex-col items-center justify-start gap-6 text-nowrap rounded-xl border border-line bg-surface px-6 pb-6 pt-16 shadow-lift">
             <div className="w-[100% - 16px] absolute left-2 right-2 top-2 h-[148px] rounded bg-gradient-to-b from-sky-400 to-teal-400" />
 
             <div className="PhotoName flex min-h-[206px] flex-col items-center justify-start gap-2 self-stretch">
@@ -300,34 +300,8 @@ function ShowCompanyInner({ company }: Props) {
             )}
           </div>
         </div>
-        <div className="flex w-full flex-col items-start">
-          <div className="inline-flex h-full w-full flex-col items-start justify-start gap-6">
-            <div className="inline-flex flex-wrap items-start justify-start gap-6 self-stretch text-nowrap md:flex-nowrap">
-              {/* <div className="inline-flex shrink grow basis-0 flex-col items-start justify-start gap-4 rounded-lg border border-gray-200 bg-gray-50 p-5">
-                <div className="inline-flex items-start justify-start gap-4 self-stretch">
-                  <div className="inline-flex shrink grow basis-0 flex-col items-start justify-start gap-2">
-                    <div className="self-stretch text-base font-medium leading-normal text-gray-500">
-                      Monthly revenue
-                    </div>
-                    <div className="self-stretch text-[28px] font-semibold text-gray-800">$3670</div>
-                  </div>
-                  <div className="CircleIconBagde flex h-10 w-10 items-center justify-center gap-2 rounded-[100px] bg-gradient-to-b from-orange-500 to-yellow-400 p-2">
-                    <div className="AttachMoney relative h-[18px] w-[18px]" />
-                  </div>
-                </div>
-              </div> */}
-              {/* <div className="RightBadgeStatisticCard inline-flex shrink grow basis-0 flex-col items-start justify-start gap-4 rounded-lg border border-gray-200 bg-gray-50 p-5">
-                <div className="TitleNumbers inline-flex items-start justify-start gap-4 self-stretch">
-                  <div className="TitleNumbers inline-flex shrink grow basis-0 flex-col items-start justify-start gap-2">
-                    <div className="self-stretch text-base font-medium leading-normal text-gray-500">Title</div>
-                    <div className="self-stretch text-[28px] font-semibold text-gray-800">Description</div>
-                  </div>
-                  <div className="CircleIconBagde flex h-10 w-10 items-center justify-center gap-2 rounded-[100px] bg-gradient-to-b from-blue-600 to-sky-400 p-2">
-                    <div className="FiSrTimeAdd relative h-[18px] w-[18px]" />
-                  </div>
-                </div>
-              </div> */}
-            </div>
+        <div className="flex w-full min-w-0 flex-col items-start">
+          <div className="inline-flex h-full w-full flex-col items-start justify-start gap-6 rounded-xl border border-line bg-surface p-5 shadow-lift">
             <div className="inline-flex items-start justify-start gap-4 self-stretch border-b border-gray-200">
               <div
                 onClick={() => selectTab('company_info')}
