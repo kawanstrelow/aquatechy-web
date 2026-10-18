@@ -77,7 +77,7 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
         <VideoModal
           isOpen={showWelcomeVideo}
           onClose={handleCloseWelcomeVideo}
-          videoUrl="https://vimeo.com/1062213838?title=0&byline=0&portrait=0"
+          videoUrl="https://vimeo.com/1237020080?title=0&byline=0&portrait=0"
           title="Welcome to Aquatechy!"
         />
       )}
