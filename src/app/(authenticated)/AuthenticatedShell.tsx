@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useLayoutEffect, useState } from 'react';
 
 import { VideoModal } from '@/components/VideoModal';
-import useGetUser, { hydrateUserBootstrap } from '@/hooks/react-query/user/getUser';
+import useGetUser, { ensureClientUserLoad, hydrateUserBootstrap } from '@/hooks/react-query/user/getUser';
 import type { UserQueryData } from '@/hooks/react-query/user/getUser';
 
 import { HelpButton } from './HelpButton';
@@ -31,12 +31,22 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
+  // Zustand's server snapshot is the empty store, so the first paint has no dashboard.
+  // A layout-effect render reads the client store before the browser paints. Without it,
+  // that correction waits on a passive effect that can sit unflushed after login until a click.
+  const [storeReady, setStoreReady] = useState(false);
   const { data } = useGetUser();
   const user = data?.user ?? initialData?.user;
   const userId = user?.id;
   const profileIncomplete = needsOnboarding(user);
   const isRedirectingToOnboarding = profileIncomplete && pathname !== '/onboarding';
   const isUserLoading = (!data && !initialData) || isRedirectingToOnboarding;
+
+  useLayoutEffect(() => {
+    if (initialData) hydrateUserBootstrap(initialData);
+    else ensureClientUserLoad();
+    setStoreReady(true);
+  }, [initialData]);
 
   useLayoutEffect(() => {
     if (!Cookies.get('userId')) {
@@ -77,7 +87,7 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
         </div>
         <div className="min-w-0 flex-1">
           <PageHeader />
-          <main>
+          <main data-store-ready={storeReady ? 'true' : 'false'}>
             <div className="px-4 py-5 lg:px-8 lg:py-6">
               {isUserLoading ? (
                 <div className="flex min-h-[50vh] items-center justify-center">
