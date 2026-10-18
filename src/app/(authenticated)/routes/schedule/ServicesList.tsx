@@ -16,15 +16,18 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { formatInTimeZone } from 'date-fns-tz';
 import { useState } from 'react';
 import { MdDragIndicator } from 'react-icons/md';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ServiceTypeLabel } from '@/components/ServiceTypeLabel';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAssignmentsContext } from '@/context/assignments';
 import { useServicesContext } from '@/context/services';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
 import { cn } from '@/lib/utils';
+import { useUserStore } from '@/store/user';
+import { STATE_TIMEZONE_MAP } from '@/ts/enums/enums';
 import { Assignment } from '@/ts/interfaces/Assignments';
 import { Service } from '@/ts/interfaces/Service';
 
@@ -46,6 +49,8 @@ export function ServicesList({
 }: ServicesListProps) {
   const { services: contextServices } = useServicesContext();
   const { allAssignments } = useAssignmentsContext();
+  const userState = useUserStore((state) => state.user?.state);
+  const timeZone = resolveUserTimeZone(userState);
   const services = servicesOverride ?? contextServices;
   const routeAssignments = routeAssignmentsOverride ?? getAssignmentsForServices(services, allAssignments);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -92,6 +97,7 @@ export function ServicesList({
               currentIndex={index}
               routeAssignments={routeAssignments}
               enableReorder={enableReorder}
+              timeZone={timeZone}
             />
           </div>
         ))}
@@ -105,6 +111,7 @@ export function ServicesList({
               currentIndex={activeIndex}
               routeAssignments={routeAssignments}
               enableReorder={enableReorder}
+              timeZone={timeZone}
             />
           </div>
         ) : null}
@@ -119,7 +126,29 @@ type ServiceItemProps = {
   currentIndex: number;
   routeAssignments: (Assignment | undefined)[];
   enableReorder?: boolean;
+  timeZone: string;
 };
+
+function resolveUserTimeZone(state?: string | null) {
+  const mapped = state ? STATE_TIMEZONE_MAP[state.toUpperCase()] : undefined;
+  if (mapped) return mapped;
+
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+}
+
+function isFinishedStatus(status: Service['status']): status is 'Completed' | 'Skipped' {
+  return status === 'Completed' || status === 'Skipped';
+}
+
+function formatFinishedStatus(status: 'Completed' | 'Skipped', completedAt: string | null, timeZone: string) {
+  if (!completedAt) return status;
+
+  const finishedAt = new Date(completedAt);
+  if (Number.isNaN(finishedAt.getTime())) return status;
+
+  const when = formatInTimeZone(finishedAt, timeZone, 'EEEE, h:mmaaa');
+  return `${status} on ${when}`;
+}
 
 function formatServiceStatus(status: Service['status']) {
   return status === 'InProgress' ? 'In progress' : status;
@@ -138,12 +167,23 @@ function serviceStatusClass(status: Service['status']) {
   }
 }
 
-export function ServiceItem({ service, id, currentIndex, routeAssignments, enableReorder = false }: ServiceItemProps) {
+export function ServiceItem({
+  service,
+  id,
+  currentIndex,
+  routeAssignments,
+  enableReorder = false,
+  timeZone
+}: ServiceItemProps) {
   const { width = 0 } = useWindowDimensions();
   const name = `${service?.clientOwner?.firstName} ${service?.clientOwner?.lastName}`;
   const pool = service.pool;
   const address = [pool?.address, pool?.addressLine2, pool?.city, pool?.state, pool?.zip].filter(Boolean).join(', ');
-  const estimatedArrivalTime = getEstimatedArrivalTime(routeAssignments, currentIndex);
+  const finished = isFinishedStatus(service.status);
+  const estimatedArrivalTime = finished ? null : getEstimatedArrivalTime(routeAssignments, currentIndex);
+  const statusLabel = finished
+    ? formatFinishedStatus(service.status, service.completedAt, timeZone)
+    : formatServiceStatus(service.status);
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id, disabled: !enableReorder });
 
   const mdScreen = width < 900;
@@ -154,8 +194,9 @@ export function ServiceItem({ service, id, currentIndex, routeAssignments, enabl
       }
     : undefined;
 
-  const etaLabel =
-    routeAssignments.length > 1
+  const etaLabel = finished
+    ? null
+    : routeAssignments.length > 1
       ? estimatedArrivalTime
         ? `ETA ${estimatedArrivalTime}`
         : enableReorder
@@ -189,7 +230,7 @@ export function ServiceItem({ service, id, currentIndex, routeAssignments, enabl
                 serviceStatusClass(service.status)
               )}
             >
-              {formatServiceStatus(service.status)}
+              {statusLabel}
             </span>
           </div>
           {address && <p className="mt-1.5 text-xs leading-snug text-gray-500">{address}</p>}
@@ -235,7 +276,9 @@ export function ServiceItem({ service, id, currentIndex, routeAssignments, enabl
           </div>
         )}
         <div className="flex h-8 min-w-16 items-center justify-center rounded-lg border border-gray-100 px-2">
-          <div className="text-center text-sm font-semibold text-gray-800">{service.status}</div>
+          <div className="whitespace-nowrap text-center text-sm font-semibold text-gray-800">
+            {finished ? statusLabel : service.status}
+          </div>
         </div>
         <ServiceActions service={service} />
       </div>
