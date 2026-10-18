@@ -26,34 +26,69 @@ import { useUserStore } from '@/store/user';
 import { useShallow } from 'zustand/react/shallow';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-// Add this type to match your CSV structure
+// SheetJS returns numbers and booleans for typed Excel cells, and strings for CSV / text cells.
+type CellValue = string | number | boolean;
+
 type CSVRow = {
-  clientAddress: string;
-  clientCity: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  clientNotes: string;
-  phone: string;
-  clientState: string;
-  clientZip: string;
-  poolAddress: string;
-  animalDanger: string;
-  poolCity: string;
-  enterSide: string;
-  lockerCode: string;
-  poolNotes: string;
-  hasSaltSystem: string;
-  poolState: string;
-  poolZip: string;
-  customerCode: string;
-  clientCompany: string;
-  clientType: string;
-  monthlyPayment: string;
-  poolAddressLine2?: string;
-  bodyOfWater?: string;
-  volumeInGallons?: string;
-  estimatesConvertedFrom?: string;
+  clientAddress?: CellValue;
+  clientCity?: CellValue;
+  email?: CellValue;
+  firstName?: CellValue;
+  lastName?: CellValue;
+  clientNotes?: CellValue;
+  phone?: CellValue;
+  clientState?: CellValue;
+  clientZip?: CellValue;
+  poolAddress?: CellValue;
+  animalDanger?: CellValue;
+  poolCity?: CellValue;
+  enterSide?: CellValue;
+  lockerCode?: CellValue;
+  poolNotes?: CellValue;
+  hasSaltSystem?: CellValue;
+  poolState?: CellValue;
+  poolZip?: CellValue;
+  customerCode?: CellValue;
+  clientCompany?: CellValue;
+  clientType?: CellValue;
+  monthlyPayment?: CellValue;
+  poolAddressLine2?: CellValue;
+  bodyOfWater?: CellValue;
+  volumeInGallons?: CellValue;
+  estimatesConvertedFrom?: CellValue;
+};
+
+const cellText = (value: CellValue | null | undefined): string => {
+  if (value == null) return '';
+  return String(value).trim();
+};
+
+const parseFlag = (value: CellValue | null | undefined): boolean => {
+  if (typeof value === 'boolean') return value;
+  return cellText(value).toLowerCase() === 'true';
+};
+
+const parseMonthlyPayment = (value: CellValue | null | undefined): number => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  const digits = cellText(value).replace(/\D/g, '');
+  if (!digits) return 0;
+  const parsed = parseFloat(digits);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const parseVolumeInGallons = (value: CellValue | null | undefined): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return Math.trunc(value);
+  const digits = cellText(value).replace(/\D/g, '');
+  if (!digits) return undefined;
+  const parsed = parseInt(digits, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+};
+
+const parseEstimatesConvertedFrom = (value: CellValue | null | undefined): number | undefined => {
+  if (value == null || value === '') return undefined;
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
+  const parsed = Number.parseInt(cellText(value), 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
 };
 
 const STATE_MAPPINGS: { [key: string]: string } = {
@@ -154,16 +189,17 @@ const STATE_MAPPINGS: { [key: string]: string } = {
   'DISTRICT OF COLUMBIA': 'DC'
 };
 
-const convertStateToAbbreviation = (state: string): string => {
-  if (!state) return '';
+const convertStateToAbbreviation = (state: CellValue | null | undefined): string => {
+  const value = cellText(state);
+  if (!value) return '';
 
   // If it's already a 2-letter code, return it uppercase
-  if (state.length === 2) return state.toUpperCase();
+  if (value.length === 2) return value.toUpperCase();
 
   // Remove extra spaces, periods, and normalize
-  const normalizedState = state.toUpperCase().trim().replace(/\s+/g, ' ').replace(/\.$/, '');
+  const normalizedState = value.toUpperCase().replace(/\s+/g, ' ').replace(/\.$/, '');
 
-  return STATE_MAPPINGS[normalizedState] || state;
+  return STATE_MAPPINGS[normalizedState] || value;
 };
 
 export default function ImportFromFile() {
@@ -215,68 +251,55 @@ export default function ImportFromFile() {
         const jsonData = XLSX.utils.sheet_to_json<CSVRow>(worksheet);
 
         const processedData: CreateManyClientsInput = jsonData.map((row) => {
-          // Convert monthlyPayment from string (e.g., "$123,00") to number
-          const monthlyPayment =
-            typeof row.monthlyPayment === 'string'
-              ? parseFloat(row.monthlyPayment.replace(/\D/g, ''))
-              : typeof row.monthlyPayment === 'number'
-                ? row.monthlyPayment
-                : 0;
+          const monthlyPayment = parseMonthlyPayment(row.monthlyPayment);
+          const animalDanger = parseFlag(row.animalDanger);
+          const hasSaltSystem = parseFlag(row.hasSaltSystem);
 
-          // Convert animalDanger from string to boolean
-          const animalDanger = String(row.animalDanger || '').toLowerCase() === 'true';
-          const hasSaltSystem = String(row.hasSaltSystem || '').toLowerCase() === 'true';
-
-          const cleanedPhone = String(row.phone || '').replace(/\D/g, '');
+          const cleanedPhone = cellText(row.phone).replace(/\D/g, '');
           const formattedPhone =
             cleanedPhone.length === 10
               ? `+1 (${cleanedPhone.slice(0, 3)}) ${cleanedPhone.slice(3, 6)}-${cleanedPhone.slice(6)}`
               : cleanedPhone;
 
-          const state = convertStateToAbbreviation(row.clientState || '');
-          const poolState = convertStateToAbbreviation(row.poolState || '');
+          const state = convertStateToAbbreviation(row.clientState);
+          const poolState = convertStateToAbbreviation(row.poolState);
+          const bodyOfWater = cellText(row.bodyOfWater);
+          const volumeInGallons = parseVolumeInGallons(row.volumeInGallons);
+          const estimatesConvertedFrom = parseEstimatesConvertedFrom(row.estimatesConvertedFrom);
+          const clientCompany = cellText(row.clientCompany);
+          const email = cellText(row.email);
 
           return {
-            firstName: row.firstName,
-            lastName: row.lastName,
-            clientCompany: row.clientCompany || undefined,
-            clientAddress: row.clientAddress,
-            poolAddress: row.poolAddress,
-            poolAddressLine2: row.poolAddressLine2 || '',
-            clientCity: row.clientCity,
-            poolCity: row.poolCity,
+            firstName: cellText(row.firstName),
+            lastName: cellText(row.lastName),
+            clientCompany: clientCompany || undefined,
+            clientAddress: cellText(row.clientAddress),
+            poolAddress: cellText(row.poolAddress),
+            poolAddressLine2: cellText(row.poolAddressLine2),
+            clientCity: cellText(row.clientCity),
+            poolCity: cellText(row.poolCity),
             clientState: state,
             poolState: poolState,
-            clientZip: String(row.clientZip || ''),
-            poolZip: String(row.poolZip || ''),
+            clientZip: cellText(row.clientZip),
+            poolZip: cellText(row.poolZip),
             phone: formattedPhone,
-            email: row.email,
-            invoiceEmail: row.email,
-            animalDanger: animalDanger ? true : false,
-            enterSide: row.enterSide || 'Not defined',
-            lockerCode: String(row.lockerCode || ''),
+            email,
+            invoiceEmail: email,
+            animalDanger,
+            enterSide: cellText(row.enterSide) || 'Not defined',
+            lockerCode: cellText(row.lockerCode),
             hasSaltSystem,
             poolType: hasSaltSystem ? 'Salt' : 'Chlorine',
-            poolNotes: row.poolNotes || '',
-            clientType: row.clientType as 'Residential' | 'Commercial',
-            clientNotes: row.clientNotes || '',
-            customerCode: String(row.customerCode || ''),
+            poolNotes: cellText(row.poolNotes),
+            clientType: cellText(row.clientType) as 'Residential' | 'Commercial',
+            clientNotes: cellText(row.clientNotes),
+            customerCode: cellText(row.customerCode),
             timezone: STATE_TIMEZONE_MAP[state.toUpperCase()] || IanaTimeZones.NY,
             monthlyPayment,
             companyOwnerId: '', // Will be set before import
-            ...(row.bodyOfWater?.trim() ? { bodyOfWater: row.bodyOfWater.trim() } : {}),
-            ...(() => {
-              const raw = row.volumeInGallons?.trim();
-              if (!raw) return {};
-              const parsed = parseInt(raw.replace(/\D/g, ''), 10);
-              return Number.isInteger(parsed) && parsed > 0 ? { volumeInGallons: parsed } : {};
-            })(),
-            ...(() => {
-              const raw = row.estimatesConvertedFrom?.trim();
-              if (!raw) return {};
-              const parsed = Number.parseInt(raw, 10);
-              return Number.isFinite(parsed) ? { estimatesConvertedFrom: parsed } : {};
-            })()
+            ...(bodyOfWater ? { bodyOfWater } : {}),
+            ...(volumeInGallons != null ? { volumeInGallons } : {}),
+            ...(estimatesConvertedFrom != null ? { estimatesConvertedFrom } : {})
           };
         });
 

@@ -102,13 +102,12 @@ export function resetUserBootstrap() {
   emit();
 }
 
-if (typeof window !== 'undefined') {
+/** Start the client fetch only after hydration. A module-level microtask can resolve while React is still hydrating, and that update is dropped until the next click. */
+export function ensureClientUserLoad() {
+  if (typeof window === 'undefined') return;
   const userId = Cookies.get('userId');
-  if (userId) {
-    queueMicrotask(() => {
-      if (snapshot.status === 'idle') startUserLoad(userId);
-    });
-  }
+  if (!userId || snapshot.status !== 'idle') return;
+  startUserLoad(userId);
 }
 
 export default function useGetUser() {
