@@ -22,6 +22,7 @@ import EstimatesTab from './tabs/EstimatesTab';
 import InvoicesTab from './tabs/InvoicesTab';
 import PaymentsTab from './tabs/PaymentsTab';
 import { Separator } from '@/components/ui/separator';
+import { useUserStore } from '@/store/user';
 import { ModalDeleteClient } from '../DataTableClients/ModalDeleteClient';
 import { useDeleteClient } from '@/hooks/react-query/clients/deleteClient';
 
@@ -44,6 +45,7 @@ export default function ShowClient({ client }: Props) {
     membership?.role === 'Owner' || membership?.role === 'Admin' || membership?.role === 'Office';
 
   const [tab, setTab] = useState<ClientTab>('client_info');
+  const shouldDisableNewPools = useUserStore((state) => state.shouldDisableNewPools);
 
   if (isPending || isDeleting) return <LoadingSpinner />;
 
@@ -155,9 +157,17 @@ export default function ShowClient({ client }: Props) {
                     E-mail
                   </Button>
                 </a>
-                <Button onClick={handleAddPool} className="w-full" variant={'default'}>
+                <Button
+                  onClick={handleAddPool}
+                  className="w-full"
+                  variant={'default'}
+                  disabled={shouldDisableNewPools}
+                >
                   Add pool
                 </Button>
+                {shouldDisableNewPools && (
+                  <p className="text-center text-xs font-normal text-slate-500">Upgrade your plan to add more pools.</p>
+                )}
                 <Separator className="w-full bg-gray-200 opacity-50" />
               <div className="flex w-full justify-center gap-2">
                   <Button

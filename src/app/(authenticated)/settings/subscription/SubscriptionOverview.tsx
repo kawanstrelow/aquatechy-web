@@ -20,7 +20,8 @@ type Props = {
 export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isPortalPending }: Props) {
   const badge = getStatusBadge(status);
   const stripe = status.stripe;
-  const isGrow = status.plan === UserSubscription.GROW;
+  const planLabel = getPlanLabel(status.plan);
+  const isTopPlan = status.plan === UserSubscription.GROW || status.plan === UserSubscription.PRO;
   const renewalDate = stripe?.currentPeriodEnd ? format(new Date(stripe.currentPeriodEnd), 'MMM d, yyyy') : null;
   const accessEndsAt = status.accessEndsAt ? format(new Date(status.accessEndsAt), 'MMM d, yyyy') : null;
   const canceledAt = stripe?.canceledAt ? format(new Date(stripe.canceledAt), 'MMM d, yyyy') : null;
@@ -36,7 +37,7 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
             <Badge variant={badge.variant} className="border-white/20 bg-white/15 text-white hover:bg-white/15">
               {badge.label}
             </Badge>
-            {!isGrow && (
+            {!isTopPlan && (
               <span className="inline-flex items-center gap-1.5 text-sm text-white/80">
                 <Sparkles className="size-4" />
                 Upgrade to unlock advanced features
@@ -46,7 +47,7 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
 
           <div>
             <p className="text-sm font-medium uppercase tracking-wider text-white/70">Current plan</p>
-            <h2 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">{getPlanLabel(status.plan)}</h2>
+            <h2 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">{planLabel}</h2>
             {stripe ? (
               <p className="mt-2 text-lg text-white/90">
                 {formatMoney(stripe.amount, stripe.currency)}
@@ -60,8 +61,8 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
           {status.isPendingCancellation && (
             <p className="max-w-xl rounded-lg border border-amber-300/30 bg-amber-400/15 px-4 py-2.5 text-sm text-amber-50">
               {accessEndsAt
-                ? `Cancels on ${accessEndsAt}. You keep full Grow access until then.`
-                : 'Your subscription is scheduled to cancel. You keep full Grow access until then.'}
+                ? `Cancels on ${accessEndsAt}. You keep access to your ${planLabel} plan until then.`
+                : 'Your subscription is scheduled to cancel. You keep access until then.'}
               {canceledAt ? ` Requested on ${canceledAt}.` : ''}
             </p>
           )}

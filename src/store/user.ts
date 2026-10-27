@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { UserSubscription } from '@/ts/enums/enums';
+import { isAtPoolLimit } from '@/utils/planAccess';
 
 import { User } from '../ts/interfaces/User';
 import { Dashboard } from '../ts/interfaces/Dashboard';
@@ -20,20 +21,16 @@ type Actions = {
   resetUser: () => void;
 };
 
-const poolsLimitBySubscription = {
-  [UserSubscription.FREE]: 30,
-  [UserSubscription.GROW]: 1000
-};
-
 export const useUserStore = create<Store & Actions>()(
   devtools((set) => ({
     user: {} as User,
     setUser: (user: User) => {
+      const atPoolLimit = isAtPoolLimit(user.subscription, user.poolsCount);
       set({
         user,
         isFreePlan: user.subscription === UserSubscription.FREE,
-        reachedPoolLimit: user.poolsCount >= poolsLimitBySubscription[user.subscription],
-        shouldDisableNewPools: user.poolsCount >= poolsLimitBySubscription[user.subscription]
+        reachedPoolLimit: atPoolLimit,
+        shouldDisableNewPools: atPoolLimit
       });
     },
     dashboard: {} as Dashboard,
@@ -46,7 +43,7 @@ export const useUserStore = create<Store & Actions>()(
         dashboard: {} as Dashboard,
         isFreePlan: false,
         reachedPoolLimit: false,
-        shouldDisableNewPools: false,
+        shouldDisableNewPools: false
       });
     },
     isFreePlan: false,

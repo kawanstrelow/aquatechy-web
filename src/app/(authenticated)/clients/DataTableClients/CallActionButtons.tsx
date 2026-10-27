@@ -16,6 +16,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Client } from '@/ts/interfaces/Client';
 import { ModalDeleteClient } from './ModalDeleteClient';
 import { useDeleteClient } from '@/hooks/react-query/clients/deleteClient';
+import { useUserStore } from '@/store/user';
 
 interface ActionButtonsProps {
   client: Client;
@@ -28,6 +29,7 @@ export function ActionButtons({ client }: ActionButtonsProps) {
   const [isNavigating, setIsNavigating] = useState(false);
 
   const { mutate: mutateDeleteClient } = useDeleteClient();
+  const shouldDisableNewPools = useUserStore((state) => state.shouldDisableNewPools);
 
   const handleActionSelect = (action: 'view' | 'addPool' | 'delete') => {
     setIsDropdownOpen(false);
@@ -68,10 +70,7 @@ export function ActionButtons({ client }: ActionButtonsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem 
-            onSelect={() => handleActionSelect('view')}
-            disabled={isNavigating}
-          >
+          <DropdownMenuItem onSelect={() => handleActionSelect('view')} disabled={isNavigating}>
             {isNavigating ? (
               <div className="flex items-center gap-2">
                 <Loader2Icon className="h-4 w-4 animate-spin" />
@@ -81,14 +80,14 @@ export function ActionButtons({ client }: ActionButtonsProps) {
               'View'
             )}
           </DropdownMenuItem>
-          <DropdownMenuItem 
+          <DropdownMenuItem
             onSelect={() => handleActionSelect('addPool')}
-            disabled={isNavigating}
+            disabled={isNavigating || shouldDisableNewPools}
           >
             Add Pool
           </DropdownMenuItem>
-          <DropdownMenuItem 
-            onSelect={() => handleActionSelect('delete')} 
+          <DropdownMenuItem
+            onSelect={() => handleActionSelect('delete')}
             className="text-red-500"
             disabled={isNavigating}
           >

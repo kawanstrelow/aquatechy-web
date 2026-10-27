@@ -48,7 +48,9 @@ export enum ClientType {
 
 export enum UserSubscription {
   FREE = 'FREE',
-  GROW = 'GROW'
+  ROUTE = 'ROUTE',
+  GROW = 'GROW',
+  PRO = 'PRO'
 }
 
 export enum IanaTimeZones {
