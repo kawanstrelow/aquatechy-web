@@ -37,7 +37,7 @@ function SwitchRow({ name, label, description, className, disabled, growOnly }: 
         <p className="text-sm font-medium text-gray-900">
           {label}
           {growOnly && disabled && (
-            <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>
+            <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
           )}
         </p>
         <p className="text-sm text-gray-500">{description}</p>
@@ -184,12 +184,12 @@ export function CompanyCreatePreferencesForm({
               Set your defaults
             </Typography>
             <Typography element="p" className="mt-1 text-sm text-gray-600">
-              We pre-filled recommended settings for most pool companies. Review them below — you can always change these
-              later in company settings.
+              We pre-filled recommended settings for most pool companies. Review them below — you can always change
+              these later in company settings.
             </Typography>
             {isFreePlan && (
               <Typography element="p" className="mt-2 text-sm text-blue-800">
-                Some email and filter options are available only on the Grow plan and stay disabled here.
+                Some email and filter options stay disabled until you upgrade your plan.
               </Typography>
             )}
           </div>
@@ -201,11 +201,7 @@ export function CompanyCreatePreferencesForm({
           >
             <div className="space-y-4 py-3">
               <div>
-                <InputField
-                  name="ccEmail"
-                  label="Office CC email"
-                  placeholder="office@example.com"
-                />
+                <InputField name="ccEmail" label="Office CC email" placeholder="office@example.com" />
                 <p className="mt-1.5 text-xs text-gray-500">
                   Receives a copy of service-related emails so your team stays in the loop.
                 </p>
@@ -237,8 +233,8 @@ export function CompanyCreatePreferencesForm({
                 <div className="mb-2">
                   <p className="text-sm font-semibold text-gray-900">What to include in the service report email</p>
                   <p className="text-sm text-gray-500">
-                    On the Free plan only photos can be attached. Upgrade to Grow to include readings, chemicals, notes,
-                    and checklist.
+                    On the Free plan only photos can be attached. Upgrade your plan to include readings, chemicals,
+                    notes, and checklist.
                   </p>
                 </div>
                 <div className="divide-y divide-gray-100 rounded-lg border border-gray-200 px-4">
@@ -339,7 +335,7 @@ export function CompanyCreatePreferencesForm({
             title="Scheduling"
             description="Control whether services can be completed ahead of schedule."
           >
-            <div className="rounded-lg border border-gray-200 px-4 my-3">
+            <div className="my-3 rounded-lg border border-gray-200 px-4">
               <SwitchRow
                 name="allowAnticipatedServices"
                 label="Allow anticipated services"

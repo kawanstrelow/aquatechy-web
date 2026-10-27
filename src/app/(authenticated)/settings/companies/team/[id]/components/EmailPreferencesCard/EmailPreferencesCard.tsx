@@ -157,7 +157,7 @@ function GrowPlanSwitchLabel({
       <label className="flex flex-col space-y-1">
         <span className="text-sm font-semibold text-gray-800">
           {label}
-          {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>}
+          {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>}
         </span>
       </label>
       <span className="text-muted-foreground text-sm font-normal">{description}</span>
@@ -362,7 +362,7 @@ function EmailPreferencesContent({
         <div className="mb-8 space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
           <p className="text-center text-sm text-amber-900">
             You are on the Free plan. You can set CC email, turn automatic service emails on or off, and choose whether
-            to include photo groups. Other email customization requires Grow.
+            to include photo groups. Upgrade your plan to customize the rest.
           </p>
           <div className="flex justify-center">
             <Button
@@ -450,7 +450,9 @@ function EmailPreferencesContent({
                     >
                       (see skipped reasons list)
                     </button>
-                    {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>}
+                    {isFreePlan && (
+                      <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
+                    )}
                   </span>
                 </label>
                 <span className="text-muted-foreground text-sm font-normal">
@@ -534,9 +536,7 @@ function EmailPreferencesContent({
                       <label className="text-sm font-semibold text-gray-800">
                         {field.label} <EmailVariablesHelpLink onClick={() => setEmailVariablesModalOpen(true)} />
                         {isFreePlan ? (
-                          <span className="ml-1.5 text-xs font-medium text-blue-600">
-                            (upgrade to grow plan to be able to edit)
-                          </span>
+                          <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
                         ) : null}
                       </label>
                       <p className="text-muted-foreground text-sm">{field.description}</p>
@@ -624,7 +624,7 @@ function EmailPreferencesContent({
             <DialogTitle>Unlock full email customization</DialogTitle>
             <DialogDescription className="text-foreground text-left text-base">
               To customize skipped-service notifications, email header, body, footer, and all inclusion options in
-              service emails, upgrade to the Grow plan.
+              service emails, upgrade your plan.
             </DialogDescription>
           </DialogHeader>
           <p className="text-muted-foreground text-sm">

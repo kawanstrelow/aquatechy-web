@@ -100,7 +100,7 @@ export function FilterMaintenanceCard({
                   <span className="text-sm font-semibold text-gray-800">
                     {field.label}
                     {isFreePlan && isGrowOnlySection ? (
-                      <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>
+                      <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
                     ) : null}
                   </span>
                 </label>
