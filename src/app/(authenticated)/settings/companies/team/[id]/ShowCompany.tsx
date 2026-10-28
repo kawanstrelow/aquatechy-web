@@ -19,6 +19,7 @@ import { useEditCompanyLogo } from '@/hooks/react-query/companies/updateCompanyL
 
 import { Company } from '@/ts/interfaces/Company';
 import { getInitials } from '@/utils/others';
+import { CompanyMessagesTab } from './components/CompanyMessagesTab';
 import { CompanyTeamTab } from './components/CompanyTeamTab';
 import CompanyInfo from './CompanyInfo';
 import Preferences from './Preferences';
@@ -29,10 +30,10 @@ type Props = {
 
 const DELETE_CONFIRMATION = 'DELETE';
 
-type CompanyTab = 'company_info' | 'preferences' | 'team';
+type CompanyTab = 'company_info' | 'preferences' | 'team' | 'messages';
 
 function parseTab(value: string | null): CompanyTab {
-  if (value === 'preferences' || value === 'team' || value === 'company_info') {
+  if (value === 'preferences' || value === 'team' || value === 'messages' || value === 'company_info') {
     return value;
   }
   return 'company_info';
@@ -164,8 +165,8 @@ function ShowCompanyInner({ company }: Props) {
                 </div>
                 <div className="text-wrap text-center text-sm font-medium text-gray-500">
                   {company.address}
-                  {company.addressLine2 ? ` ${company.addressLine2}` : ''}, {company.city},{' '}
-                  {company.state} {company.zip}
+                  {company.addressLine2 ? ` ${company.addressLine2}` : ''}, {company.city}, {company.state}{' '}
+                  {company.zip}
                 </div>
               </div>
             </div>
@@ -193,7 +194,13 @@ function ShowCompanyInner({ company }: Props) {
                         </div>
                         <div className="w-full px-4">
                           <p className="mb-2 text-sm text-gray-500">Zoom</p>
-                          <Slider value={[zoom]} onValueChange={(value) => setZoom(value[0])} min={1} max={3} step={0.1} />
+                          <Slider
+                            value={[zoom]}
+                            onValueChange={(value) => setZoom(value[0])}
+                            min={1}
+                            max={3}
+                            step={0.1}
+                          />
                         </div>
                       </>
                     )}
@@ -302,7 +309,7 @@ function ShowCompanyInner({ company }: Props) {
         </div>
         <div className="flex w-full min-w-0 flex-col items-start">
           <div className="inline-flex h-full w-full flex-col items-start justify-start gap-6 rounded-xl border border-line bg-surface p-5 shadow-lift">
-            <div className="inline-flex items-start justify-start gap-4 self-stretch border-b border-gray-200">
+            <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch border-b border-gray-200">
               <div
                 onClick={() => selectTab('company_info')}
                 className="inline-flex flex-col items-start justify-start gap-2.5"
@@ -325,24 +332,32 @@ function ShowCompanyInner({ company }: Props) {
                 </div>
                 {tab === 'preferences' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
-              <div
-                onClick={() => selectTab('team')}
-                className="inline-flex flex-col items-start justify-start gap-2.5"
-              >
-                <div
-                  className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'team' && selectedTabStyles}`}
-                >
+              <div onClick={() => selectTab('team')} className="inline-flex flex-col items-start justify-start gap-2.5">
+                <div className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'team' && selectedTabStyles}`}>
                   Team
                 </div>
                 {tab === 'team' && <div className="h-0.5 self-stretch bg-gray-800" />}
+              </div>
+              <div
+                onClick={() => selectTab('messages')}
+                className="inline-flex flex-col items-start justify-start gap-2.5"
+              >
+                <div
+                  className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'messages' && selectedTabStyles}`}
+                >
+                  Messages
+                </div>
+                {tab === 'messages' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
             </div>
             {tab === 'company_info' ? (
               <CompanyInfo company={company} />
             ) : tab === 'preferences' ? (
               <Preferences company={company} />
-            ) : (
+            ) : tab === 'team' ? (
               <CompanyTeamTab company={company} actorRole={myRole} />
+            ) : (
+              <CompanyMessagesTab companyId={company.id} />
             )}
           </div>
         </div>

@@ -6,6 +6,13 @@ import { cn } from '@/lib/utils';
 
 import { FEATURE_COMPARISON } from './subscriptionPlans';
 
+const COLUMNS = [
+  { key: 'starter', label: 'Starter', accent: false },
+  { key: 'route', label: 'Route', accent: true },
+  { key: 'grow', label: 'Grow', accent: false },
+  { key: 'enterprise', label: 'Enterprise', accent: false }
+] as const;
+
 function CellValue({ value }: { value: boolean | string }) {
   if (typeof value === 'string') {
     return <span className="text-sm text-slate-700">{value}</span>;
@@ -34,48 +41,58 @@ export function PlanComparison() {
         <p className="mt-1 text-sm text-slate-600">Side-by-side look at what each plan includes</p>
       </div>
 
-      <div className="hidden md:block">
-        <div className="grid grid-cols-[1.4fr_1fr_1fr] border-b border-slate-100 bg-slate-50/80 px-6 py-3 text-sm font-medium text-slate-600">
-          <span>Feature</span>
-          <span className="text-center">Starter</span>
-          <span className="text-center text-[#364D9D]">Grow</span>
-        </div>
-        {FEATURE_COMPARISON.map((row, index) => (
-          <div
-            key={row.feature}
-            className={cn(
-              'grid grid-cols-[1.4fr_1fr_1fr] items-center px-6 py-4',
-              index !== FEATURE_COMPARISON.length - 1 && 'border-b border-slate-100'
-            )}
-          >
-            <span className="text-sm font-medium text-slate-900">{row.feature}</span>
-            <div className="flex justify-center">
-              <CellValue value={row.starter} />
-            </div>
-            <div className="flex justify-center">
-              <CellValue value={row.grow} />
-            </div>
+      <div className="hidden overflow-x-auto lg:block">
+        <div className="min-w-[880px]">
+          <div className="grid grid-cols-[1.5fr_repeat(4,1fr)] border-b border-slate-100 bg-slate-50/80 px-6 py-3 text-sm font-medium text-slate-600">
+            <span>Feature</span>
+            {COLUMNS.map((column) => (
+              <span key={column.key} className={cn('text-center', column.accent && 'text-[#364D9D]')}>
+                {column.label}
+              </span>
+            ))}
           </div>
-        ))}
+          {FEATURE_COMPARISON.map((row, index) => (
+            <div
+              key={row.feature}
+              className={cn(
+                'grid grid-cols-[1.5fr_repeat(4,1fr)] items-center px-6 py-4',
+                index !== FEATURE_COMPARISON.length - 1 && 'border-b border-slate-100'
+              )}
+            >
+              <span className="pr-4 text-sm font-medium text-slate-900">{row.feature}</span>
+              {COLUMNS.map((column) => (
+                <div key={column.key} className="flex justify-center px-2 text-center">
+                  <CellValue value={row[column.key]} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="divide-y divide-slate-100 md:hidden">
+      <div className="divide-y divide-slate-100 lg:hidden">
         {FEATURE_COMPARISON.map((row) => (
           <div key={row.feature} className="px-4 py-4">
             <p className="mb-3 text-sm font-medium text-slate-900">{row.feature}</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg bg-slate-50 p-3 text-center">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Starter</p>
-                <div className="flex justify-center">
-                  <CellValue value={row.starter} />
+            <div className="grid grid-cols-2 gap-3">
+              {COLUMNS.map((column) => (
+                <div
+                  key={column.key}
+                  className={cn('rounded-lg p-3 text-center', column.accent ? 'bg-[#DCE1F5]/40' : 'bg-slate-50')}
+                >
+                  <p
+                    className={cn(
+                      'mb-2 text-xs font-medium uppercase tracking-wide',
+                      column.accent ? 'text-[#364D9D]' : 'text-slate-500'
+                    )}
+                  >
+                    {column.label}
+                  </p>
+                  <div className="flex justify-center">
+                    <CellValue value={row[column.key]} />
+                  </div>
                 </div>
-              </div>
-              <div className="rounded-lg bg-[#DCE1F5]/40 p-3 text-center">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#364D9D]">Grow</p>
-                <div className="flex justify-center">
-                  <CellValue value={row.grow} />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         ))}

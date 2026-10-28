@@ -39,7 +39,7 @@ const schema = z.object({
   attachPhotoGroups: z.boolean(),
   attachSelectorsGroups: z.boolean(),
   attachCustomChecklist: z.boolean(),
-  attachTechnicianNotes: z.boolean(),
+  attachTechnicianNotes: z.boolean()
 });
 
 const GROW_ONLY_FIELDS = [
@@ -99,7 +99,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
         : client.preferences?.serviceEmailPreferences?.attachCustomChecklist || false,
       attachTechnicianNotes: isFreePlan
         ? false
-        : client.preferences?.serviceEmailPreferences?.attachTechnicianNotes || false,
+        : client.preferences?.serviceEmailPreferences?.attachTechnicianNotes || false
     }
   });
 
@@ -174,9 +174,9 @@ export default function EmailPreferences({ client }: { client: Client }) {
           {isFreePlan && (
             <div className="mb-6 space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
               <p className="text-sm text-amber-900">
-                On the Free plan you can turn on service emails for this client. Only <strong>photos</strong> will be sent in
-                those emails—readings, consumables, selectors, checklist, technician notes, SMS, and filter cleaning
-                notifications require Grow.
+                On the Free plan you can turn on service emails for this client. Only <strong>photos</strong> will be
+                sent in those emails—readings, consumables, selectors, checklist, technician notes, SMS, and filter
+                cleaning notifications require you to upgrade your plan.
               </p>
               <p className="text-sm text-amber-900">
                 Service emails must also be enabled and configured in your{' '}
@@ -200,7 +200,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
                     <span className="text-sm font-semibold text-gray-800">
                       {field.label}
                       {isFreePlan && field.growOnly && (
-                        <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>
+                        <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
                       )}
                     </span>
                   </label>
@@ -231,7 +231,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
                               <span className="text-sm font-semibold text-gray-800">
                                 {item.label}
                                 {isFreePlan && growOnly && !field.growOnly && (
-                                  <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>
+                                  <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
                                 )}
                               </span>
                             </div>
@@ -253,12 +253,14 @@ export default function EmailPreferences({ client }: { client: Client }) {
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent>
           <DialogHeader className="text-left">
-            <DialogTitle className="text-xl mb-4">Update Notification Preferences</DialogTitle>
+            <DialogTitle className="mb-4 text-xl">Update Notification Preferences</DialogTitle>
             <DialogDescription className="mt-4 text-left">
               <>
                 This action will update the service notification preferences for this specific client.
-                <br /><br />
-                <strong>Note:</strong> In order to send service emails, SMS messages, or filter cleaning emails, both the client preferences AND company preferences must be enabled.
+                <br />
+                <br />
+                <strong>Note:</strong> In order to send service emails, SMS messages, or filter cleaning emails, both
+                the client preferences AND company preferences must be enabled.
               </>
             </DialogDescription>
           </DialogHeader>

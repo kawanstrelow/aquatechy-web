@@ -25,7 +25,7 @@ export function DocumentSmsToggle({ name, title, description, canManage, isFreeP
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-semibold">
             {title}
-            {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>}
+            {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>}
           </h2>
           <p className="mt-1 text-sm text-gray-500">{description}</p>
         </div>

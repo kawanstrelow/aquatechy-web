@@ -195,7 +195,7 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
             <HoverCardTrigger asChild>
               <Button disabled={shouldDisableNewPools}>
                 <PlusIcon className="mr-2" />
-                <Link href={'/clients/new'}>New Client</Link>
+                {shouldDisableNewPools ? 'New Client' : <Link href={'/clients/new'}>New Client</Link>}
               </Button>
             </HoverCardTrigger>
             {shouldDisableNewPools && (

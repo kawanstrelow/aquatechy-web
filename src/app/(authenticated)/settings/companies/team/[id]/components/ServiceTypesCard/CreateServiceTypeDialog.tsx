@@ -84,7 +84,7 @@ function GrowPlanSwitchLabel({
     <div className="flex flex-col space-y-1">
       <span className="text-sm font-semibold text-gray-800">
         {label}
-        {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(upgrade to grow)</span>}
+        {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>}
       </span>
       <span className="text-muted-foreground text-sm font-normal">{description}</span>
     </div>

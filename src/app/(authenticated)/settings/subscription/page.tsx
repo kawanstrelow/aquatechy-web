@@ -8,22 +8,23 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
 import { Colors } from '@/constants/colors';
 import useCreatePortalSession from '@/hooks/react-query/subscriptions/useCreatePortalSession';
 import useGetSubscriptionStatus from '@/hooks/react-query/subscriptions/useGetSubscriptionStatus';
 import { clientAxios } from '@/lib/clientAxios';
 import { useUserStore } from '@/store/user';
-import { UserSubscription } from '@/ts/enums/enums';
 
 import { PlanComparison } from './PlanComparison';
 import { SubscriptionCard } from './SubscriptionCard';
 import { SubscriptionFaq } from './SubscriptionFaq';
 import { SubscriptionManagement } from './SubscriptionManagement';
 import { SubscriptionOverview } from './SubscriptionOverview';
+import { SubscriptionSectionTabs } from './SubscriptionSectionTabs';
 import { SUBSCRIPTION_PLANS } from './subscriptionPlans';
-import { hasBillingManagement } from './subscriptionUtils';
+import { getPlanLabel, hasBillingManagement, isPaidSubscription } from './subscriptionUtils';
 
 type AlertKey = 'success' | 'cancelled' | 'pending';
 
@@ -78,17 +79,23 @@ function SubscriptionPage() {
     }))
   );
 
-  const { data: subscriptionStatus, isLoading: isStatusLoading } = useGetSubscriptionStatus(user.firstName !== '');
+  const {
+    data: subscriptionStatus,
+    isLoading: isStatusLoading,
+    isError: isStatusError
+  } = useGetSubscriptionStatus(user.firstName !== '');
   const { mutate: openPortal, isPending: isPortalPending } = useCreatePortalSession();
 
-  const showBilling = subscriptionStatus ? hasBillingManagement(subscriptionStatus) : false;
+  const showBilling = subscriptionStatus
+    ? hasBillingManagement(subscriptionStatus, user.subscription)
+    : isPaidSubscription(user.subscription);
   const defaultTab = showBilling ? 'billing' : 'plans';
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   useEffect(() => {
-    if (!subscriptionStatus) return;
-    setActiveTab(hasBillingManagement(subscriptionStatus) ? 'billing' : 'plans');
-  }, [subscriptionStatus]);
+    if (isStatusLoading) return;
+    setActiveTab(showBilling ? 'billing' : 'plans');
+  }, [isStatusLoading, showBilling]);
 
   let alertData;
 
@@ -146,20 +153,13 @@ function SubscriptionPage() {
   }, [user, push]);
 
   const currentUserPlan = subscriptionStatus?.plan ?? user.subscription;
-  const canSubscribe = subscriptionStatus?.availableActions.canSubscribe ?? currentUserPlan === UserSubscription.FREE;
 
   const plansContent = useMemo(
     () => (
       <div className="space-y-8">
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid items-stretch gap-6 md:grid-cols-2 xl:grid-cols-4">
           {SUBSCRIPTION_PLANS.map((plan) => (
-            <SubscriptionCard
-              key={plan.title}
-              plan={plan}
-              currentUserPlan={currentUserPlan}
-              canSubscribe={canSubscribe}
-              highlighted={plan.name === UserSubscription.GROW}
-            />
+            <SubscriptionCard key={plan.id} plan={plan} currentUserPlan={currentUserPlan} />
           ))}
         </div>
 
@@ -167,7 +167,7 @@ function SubscriptionPage() {
         <SubscriptionFaq />
       </div>
     ),
-    [canSubscribe, currentUserPlan]
+    [currentUserPlan]
   );
 
   return (
@@ -186,10 +186,7 @@ function SubscriptionPage() {
         </div>
       ) : showBilling && subscriptionStatus ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6 grid h-auto w-full grid-cols-2 p-1 sm:w-auto">
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="plans">Plans & pricing</TabsTrigger>
-          </TabsList>
+          <SubscriptionSectionTabs />
 
           <TabsContent value="billing" className="mt-0 space-y-6">
             <SubscriptionOverview
@@ -203,6 +200,33 @@ function SubscriptionPage() {
 
           <TabsContent value="plans" className="mt-0 space-y-6">
             <SubscriptionOverview status={subscriptionStatus} />
+            {plansContent}
+          </TabsContent>
+        </Tabs>
+      ) : showBilling ? (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <SubscriptionSectionTabs />
+
+          <TabsContent value="billing" className="mt-0">
+            <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-900">{getPlanLabel(user.subscription)} billing</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {isStatusError
+                  ? 'We could not load your billing details. You can still open the billing portal to update your card or view invoices.'
+                  : 'Open the billing portal to update your card or view invoices.'}
+              </p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <Button onClick={() => openPortal('payment_method_update')} disabled={isPortalPending}>
+                  Update card
+                </Button>
+                <Button variant="outline" onClick={() => openPortal('default')} disabled={isPortalPending}>
+                  View invoices
+                </Button>
+              </div>
+            </section>
+          </TabsContent>
+
+          <TabsContent value="plans" className="mt-0">
             {plansContent}
           </TabsContent>
         </Tabs>

@@ -12,8 +12,14 @@ export function formatCardBrand(brand: string) {
   return brand.charAt(0).toUpperCase() + brand.slice(1);
 }
 
+export function isPaidSubscription(plan: string | null | undefined) {
+  return plan === UserSubscription.ROUTE || plan === UserSubscription.GROW || plan === UserSubscription.PRO;
+}
+
 export function getPlanLabel(plan: UserSubscription) {
   if (plan === UserSubscription.GROW) return 'Grow';
+  if (plan === UserSubscription.PRO) return 'Pro';
+  if (plan === UserSubscription.ROUTE) return 'Route';
   return 'Starter';
 }
 
@@ -30,7 +36,7 @@ export function getStatusBadge(status: SubscriptionStatusResponse) {
   const stripe = status.stripe;
 
   if (!status.hasStripeSubscription || !stripe) {
-    return { label: 'Free', variant: 'secondary' as const };
+    return { label: 'Starter', variant: 'secondary' as const };
   }
 
   if (stripe.status === 'past_due') {
@@ -48,6 +54,11 @@ export function getStatusBadge(status: SubscriptionStatusResponse) {
   return { label: stripe.status.replace(/_/g, ' '), variant: 'secondary' as const };
 }
 
-export function hasBillingManagement(status: SubscriptionStatusResponse) {
-  return status.hasStripeSubscription || status.plan === UserSubscription.GROW;
+export function hasBillingManagement(status: SubscriptionStatusResponse, userPlan?: string | null) {
+  return (
+    Boolean(status.hasStripeSubscription) ||
+    Boolean(status.stripe) ||
+    isPaidSubscription(status.plan) ||
+    isPaidSubscription(userPlan)
+  );
 }

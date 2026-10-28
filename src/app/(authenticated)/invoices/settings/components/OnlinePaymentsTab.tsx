@@ -1,24 +1,21 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { isAxiosError } from 'axios';
-import {
-  AlertCircle,
-  CreditCard,
-  ExternalLink,
-  Loader2,
-  RefreshCw,
-  ShieldCheck
-} from 'lucide-react';
+import { AlertCircle, CreditCard, ExternalLink, Loader2, RefreshCw, ShieldCheck } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import useConnectStatus from '@/hooks/react-query/payments/useConnectStatus';
 import { useConnectOnboard } from '@/hooks/react-query/payments/useConnectOnboard';
 import { useConnectDashboardLink } from '@/hooks/react-query/payments/useConnectDashboardLink';
+import { useUserStore } from '@/store/user';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import type { StripeAccountStatus } from '@/ts/interfaces/StripeConnect';
+import { UserSubscription } from '@/ts/enums/enums';
+import { hasPlanAccess } from '@/utils/planAccess';
 
 interface OnlinePaymentsTabProps {
   selectedCompany: CompanyWithMyRole;
@@ -40,8 +37,17 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
   const companyId = selectedCompany.id;
   const role = selectedCompany.role;
   const canManageConnect = role === 'Owner' || role === 'Admin';
+  const subscription = useUserStore((state) => state.user.subscription);
+  const canSetupStripe = hasPlanAccess(subscription, UserSubscription.ROUTE);
 
-  const { data: status, isLoading, refetch, isFetching, error, isError } = useConnectStatus(companyId);
+  const {
+    data: status,
+    isLoading,
+    refetch,
+    isFetching,
+    error,
+    isError
+  } = useConnectStatus(canSetupStripe ? companyId : undefined);
   const onboard = useConnectOnboard();
   const dashboardLink = useConnectDashboardLink();
 
@@ -65,10 +71,30 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
   };
 
   const showRequirements =
-    status?.requirements &&
-    (status.requirements.currentlyDue.length > 0 || status.requirements.pastDue.length > 0);
+    status?.requirements && (status.requirements.currentlyDue.length > 0 || status.requirements.pastDue.length > 0);
 
   const is403 = !!error && isAxiosError(error) && error.response?.status === 403;
+
+  if (!canSetupStripe) {
+    return (
+      <div className="rounded-lg border bg-white p-6 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-slate-100 p-3">
+            <CreditCard className="h-6 w-6 text-slate-700" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Stripe payouts & online invoices</h2>
+            <p className="mt-1 max-w-xl text-sm text-gray-600">
+              Card and ACH payments in the client portal are included on the Route and Grow plans.
+            </p>
+            <Button asChild className="mt-4">
+              <Link href="/settings/subscription">Upgrade your plan</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border bg-white p-6 shadow-sm">
@@ -85,13 +111,7 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
             </p>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isLoading || isFetching}
-        >
+        <Button type="button" variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading || isFetching}>
           {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
           Refresh status
         </Button>
@@ -101,9 +121,7 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Access denied</AlertTitle>
-          <AlertDescription>
-            Your role cannot view Stripe Connect settings for this company.
-          </AlertDescription>
+          <AlertDescription>Your role cannot view Stripe Connect settings for this company.</AlertDescription>
         </Alert>
       )}
 
@@ -127,15 +145,17 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
                   <ShieldCheck className="h-5 w-5 text-emerald-600" aria-hidden />
                 )}
               </div>
-              {!status.stripeAccountId && (
-                <p className="mt-2 text-sm text-slate-600">No connected account yet.</p>
-              )}
+              {!status.stripeAccountId && <p className="mt-2 text-sm text-slate-600">No connected account yet.</p>}
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Capabilities</div>
               <ul className="mt-2 space-y-1 text-sm text-slate-800">
-                <li>Charges enabled: <strong>{status.chargesEnabled ? 'Yes' : 'No'}</strong></li>
-                <li>Payouts enabled: <strong>{status.payoutsEnabled ? 'Yes' : 'No'}</strong></li>
+                <li>
+                  Charges enabled: <strong>{status.chargesEnabled ? 'Yes' : 'No'}</strong>
+                </li>
+                <li>
+                  Payouts enabled: <strong>{status.payoutsEnabled ? 'Yes' : 'No'}</strong>
+                </li>
               </ul>
             </div>
           </div>
@@ -192,9 +212,7 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
                   variant="outline"
                   onClick={handleOpenStripeDashboard}
                   disabled={
-                    dashboardLink.isPending ||
-                    !status.stripeAccountId ||
-                    status.stripeAccountStatus === 'not_started'
+                    dashboardLink.isPending || !status.stripeAccountId || status.stripeAccountStatus === 'not_started'
                   }
                 >
                   {dashboardLink.isPending ? (

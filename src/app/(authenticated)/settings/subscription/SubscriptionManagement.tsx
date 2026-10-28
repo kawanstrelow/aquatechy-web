@@ -20,7 +20,7 @@ import useCancelWithRefund from '@/hooks/react-query/subscriptions/useCancelWith
 import useCreatePortalSession from '@/hooks/react-query/subscriptions/useCreatePortalSession';
 import { SubscriptionStatusResponse } from '@/ts/interfaces/Subscription';
 
-import { formatCardBrand, formatMoney } from './subscriptionUtils';
+import { formatCardBrand, formatMoney, getPlanLabel } from './subscriptionUtils';
 
 type Props = {
   status: SubscriptionStatusResponse;
@@ -32,6 +32,7 @@ export function SubscriptionManagement({ status }: Props) {
 
   const stripe = status.stripe;
   const actions = status.availableActions;
+  const planLabel = getPlanLabel(status.plan);
 
   const isPortalLoading = (flow?: string) => isPortalPending && portalFlow === flow;
 
@@ -141,7 +142,7 @@ export function SubscriptionManagement({ status }: Props) {
               <div className="rounded-lg border border-slate-200 p-4">
                 <p className="font-medium text-slate-900">Cancel at end of billing period</p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Keep Grow until{' '}
+                  Keep {planLabel} until{' '}
                   {stripe?.currentPeriodEnd
                     ? format(new Date(stripe.currentPeriodEnd), 'MMMM d, yyyy')
                     : 'your renewal date'}
@@ -179,8 +180,8 @@ export function SubscriptionManagement({ status }: Props) {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Request immediate cancellation?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Your Grow access will end as soon as the request is processed. We will calculate unused time and
-                        process a refund to your card after review. Contact support if you need help.
+                        Your {planLabel} access will end as soon as the request is processed. We will calculate unused
+                        time and process a refund to your card after review. Contact support if you need help.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

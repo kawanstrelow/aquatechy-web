@@ -1,12 +1,14 @@
 import { UserSubscription } from '@/ts/enums/enums';
 
 export type Plan = {
-  name: UserSubscription;
+  id: 'starter' | 'route' | 'grow' | 'enterprise';
   title: string;
-  price: number;
-  features: {
-    text: string;
-    include: boolean;
-  }[];
-  extra?: string;
+  subtitle: string;
+  priceLabel: string;
+  perMonth: boolean;
+  poolLines: string[];
+  features: string[];
+  buttonLabel: string;
+  subscriptionPlan?: UserSubscription;
+  highlighted?: boolean;
 };
