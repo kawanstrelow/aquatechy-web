@@ -1,9 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { UserSubscription } from '@/ts/enums/enums';
-import { isAtPoolLimit } from '@/utils/planAccess';
-
 import { User } from '../ts/interfaces/User';
 import { Dashboard } from '../ts/interfaces/Dashboard';
 
@@ -25,12 +22,12 @@ export const useUserStore = create<Store & Actions>()(
   devtools((set) => ({
     user: {} as User,
     setUser: (user: User) => {
-      const atPoolLimit = isAtPoolLimit(user.subscription, user.poolsCount);
+      // The API allows or denies paid actions from the company owner's plan.
       set({
         user,
-        isFreePlan: user.subscription === UserSubscription.FREE,
-        reachedPoolLimit: atPoolLimit,
-        shouldDisableNewPools: atPoolLimit
+        isFreePlan: false,
+        reachedPoolLimit: false,
+        shouldDisableNewPools: false
       });
     },
     dashboard: {} as Dashboard,

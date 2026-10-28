@@ -1,6 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 
+import { applyCompanyPlanDeniedMessage } from '@/utils/subscriptionDenied';
+
 const baseUrl = process.env.API_URL;
 
 export const clientAxios = axios.create({
@@ -60,6 +62,8 @@ clientAxios.interceptors.response.use(
       console.log('Server Error');
       // window.location.href = window.location.protocol + '//' + window.location.host + '/server-error';
     }
+
+    applyCompanyPlanDeniedMessage(error);
     return Promise.reject(error);
   }
 );

@@ -3,6 +3,7 @@ import { AxiosError } from 'axios';
 
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
+import { COMPANY_PLAN_DENIED_DESCRIPTION, isCompanyPlanDeniedMessage } from '@/utils/subscriptionDenied';
 
 interface ResendServiceSmsRequest {
   serviceId: string;
@@ -32,12 +33,12 @@ export const useResendServiceSms = () => {
       const status = error.response?.status;
       const message = error.response?.data?.message;
 
-      if (status === 403 && message === 'Subscription not allowed.') {
+      if (status === 403 && isCompanyPlanDeniedMessage(message)) {
         toast({
           duration: 5000,
-          title: 'Subscription not allowed',
+          title: 'Plan required',
           variant: 'error',
-          description: 'Please upgrade your subscription to resend SMS.'
+          description: COMPANY_PLAN_DENIED_DESCRIPTION
         });
         return;
       }
