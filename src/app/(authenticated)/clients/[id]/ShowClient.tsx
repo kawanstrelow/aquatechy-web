@@ -20,9 +20,11 @@ import { ModalDeactivateClient } from '../DataTableClients/ModalDeactivateClient
 import EmailPreferences from './EmailPreferences';
 import EstimatesTab from './tabs/EstimatesTab';
 import InvoicesTab from './tabs/InvoicesTab';
+import MessagesTab from './tabs/MessagesTab';
 import PaymentsTab from './tabs/PaymentsTab';
 import { Separator } from '@/components/ui/separator';
 import { useUserStore } from '@/store/user';
+import { isManagementRole } from '@/utils/aiChatAccess';
 import { ModalDeleteClient } from '../DataTableClients/ModalDeleteClient';
 import { useDeleteClient } from '@/hooks/react-query/clients/deleteClient';
 
@@ -30,7 +32,7 @@ type Props = {
   client: Client;
 };
 
-type ClientTab = 'client_info' | 'pools' | 'invoices' | 'estimates' | 'payments' | 'email_preferences';
+type ClientTab = 'client_info' | 'pools' | 'invoices' | 'estimates' | 'payments' | 'messages' | 'email_preferences';
 
 export default function ShowClient({ client }: Props) {
   const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
@@ -41,8 +43,8 @@ export default function ShowClient({ client }: Props) {
   const { data: companies = [] } = useGetCompanies();
   const membership = companies.find((c) => c.id === client.companyOwnerId);
   const canViewBilling = membership?.role === 'Owner' || membership?.role === 'Admin';
-  const canViewPayments =
-    membership?.role === 'Owner' || membership?.role === 'Admin' || membership?.role === 'Office';
+  const canViewPayments = membership?.role === 'Owner' || membership?.role === 'Admin' || membership?.role === 'Office';
+  const canViewMessages = isManagementRole(membership?.role);
 
   const [tab, setTab] = useState<ClientTab>('client_info');
   const shouldDisableNewPools = useUserStore((state) => state.shouldDisableNewPools);
@@ -50,8 +52,6 @@ export default function ShowClient({ client }: Props) {
   if (isPending || isDeleting) return <LoadingSpinner />;
 
   const selectedTabStyles = 'text-gray-800 font-semibold';
-
-
 
   const handleDeactivateClient = () => {
     updateClient({ isActive: false });
@@ -152,34 +152,29 @@ export default function ShowClient({ client }: Props) {
               </div>
             </div>
             <div className="flex w-full flex-col items-center gap-2">
-                <a href={`mailto:${client.email}`} className='w-full'>
-                  <Button variant={'outline'} className='w-full'>
-                    E-mail
-                  </Button>
-                </a>
-                <Button
-                  onClick={handleAddPool}
-                  className="w-full"
-                  variant={'default'}
-                  disabled={shouldDisableNewPools}
-                >
-                  Add pool
+              <a href={`mailto:${client.email}`} className="w-full">
+                <Button variant={'outline'} className="w-full">
+                  E-mail
                 </Button>
-                {shouldDisableNewPools && (
-                  <p className="text-center text-xs font-normal text-slate-500">Upgrade your plan to add more pools.</p>
-                )}
-                <Separator className="w-full bg-gray-200 opacity-50" />
+              </a>
+              <Button onClick={handleAddPool} className="w-full" variant={'default'} disabled={shouldDisableNewPools}>
+                Add pool
+              </Button>
+              {shouldDisableNewPools && (
+                <p className="text-center text-xs font-normal text-slate-500">Upgrade your plan to add more pools.</p>
+              )}
+              <Separator className="w-full bg-gray-200 opacity-50" />
               <div className="flex w-full justify-center gap-2">
-                  <Button
-                    onClick={() => setDeactivateModalOpen(true)}
-                    className="w-full"
-                    variant={client.isActive ? 'destructive' : 'default'}
-                  >
-                    {client.isActive ? 'Deactivate' : 'Activate'}
-                  </Button>
-                  <Button onClick={() => setDeleteModalOpen(true)} variant={'destructive'} className='w-full'>
-                    Delete
-                  </Button>
+                <Button
+                  onClick={() => setDeactivateModalOpen(true)}
+                  className="w-full"
+                  variant={client.isActive ? 'destructive' : 'default'}
+                >
+                  {client.isActive ? 'Deactivate' : 'Activate'}
+                </Button>
+                <Button onClick={() => setDeleteModalOpen(true)} variant={'destructive'} className="w-full">
+                  Delete
+                </Button>
               </div>
             </div>
           </div>
@@ -216,7 +211,7 @@ export default function ShowClient({ client }: Props) {
                 </div>
               </div>
             </div>
-            <div className="inline-flex items-start justify-start gap-4 self-stretch border-b border-gray-200">
+            <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch border-b border-gray-200">
               <div
                 onClick={() => setTab('client_info')}
                 className="inline-flex flex-col items-start justify-start gap-2.5"
@@ -235,7 +230,10 @@ export default function ShowClient({ client }: Props) {
                 {tab === 'pools' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
               {canViewBilling ? (
-                <div onClick={() => setTab('invoices')} className="inline-flex flex-col items-start justify-start gap-2.5">
+                <div
+                  onClick={() => setTab('invoices')}
+                  className="inline-flex flex-col items-start justify-start gap-2.5"
+                >
                   <div
                     className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'invoices' && selectedTabStyles}`}
                   >
@@ -245,7 +243,10 @@ export default function ShowClient({ client }: Props) {
                 </div>
               ) : null}
               {canViewBilling ? (
-                <div onClick={() => setTab('estimates')} className="inline-flex flex-col items-start justify-start gap-2.5">
+                <div
+                  onClick={() => setTab('estimates')}
+                  className="inline-flex flex-col items-start justify-start gap-2.5"
+                >
                   <div
                     className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'estimates' && selectedTabStyles}`}
                   >
@@ -255,13 +256,29 @@ export default function ShowClient({ client }: Props) {
                 </div>
               ) : null}
               {canViewPayments ? (
-                <div onClick={() => setTab('payments')} className="inline-flex flex-col items-start justify-start gap-2.5">
+                <div
+                  onClick={() => setTab('payments')}
+                  className="inline-flex flex-col items-start justify-start gap-2.5"
+                >
                   <div
                     className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'payments' && selectedTabStyles}`}
                   >
                     Payments
                   </div>
                   {tab === 'payments' && <div className="h-0.5 self-stretch bg-gray-800" />}
+                </div>
+              ) : null}
+              {canViewMessages ? (
+                <div
+                  onClick={() => setTab('messages')}
+                  className="inline-flex flex-col items-start justify-start gap-2.5"
+                >
+                  <div
+                    className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'messages' && selectedTabStyles}`}
+                  >
+                    Messages
+                  </div>
+                  {tab === 'messages' && <div className="h-0.5 self-stretch bg-gray-800" />}
                 </div>
               ) : null}
               <div
@@ -284,10 +301,10 @@ export default function ShowClient({ client }: Props) {
               client.pools.length > 0 ? (
                 <PoolHeader pools={client.pools} clientId={client.id} />
               ) : (
-                <div className="flex flex-col items-center w-full justify-center gap-4 py-12">
+                <div className="flex w-full flex-col items-center justify-center gap-4 py-12">
                   <div className="text-center">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Pools Found</h3>
-                    <p className="text-gray-500 mb-4">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-900">No Pools Found</h3>
+                    <p className="mb-4 text-gray-500">
                       This client doesn't have any pools yet. Add a pool to get started with services.
                     </p>
                   </div>
@@ -302,6 +319,8 @@ export default function ShowClient({ client }: Props) {
               <EstimatesTab clientId={client.id} />
             ) : tab === 'payments' ? (
               <PaymentsTab client={client} />
+            ) : tab === 'messages' && canViewMessages ? (
+              <MessagesTab clientId={client.id} />
             ) : (
               <EmailPreferences client={client} />
             )}
@@ -321,13 +340,8 @@ export default function ShowClient({ client }: Props) {
 
       {/* Delete Client Modal */}
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-        <ModalDeleteClient
-          open={deleteModalOpen}
-          setOpen={setDeleteModalOpen}
-          handleSubmit={handleDeleteClient}
-        />
+        <ModalDeleteClient open={deleteModalOpen} setOpen={setDeleteModalOpen} handleSubmit={handleDeleteClient} />
       </Dialog>
     </div>
   );
 }
-
