@@ -1,7 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
-import { clientAxios } from '@/lib/clientAxios';
-import { useToast } from '@/components/ui/use-toast';
 import { AxiosError } from 'axios';
+
+import { useToast } from '@/components/ui/use-toast';
+import { clientAxios } from '@/lib/clientAxios';
+import { COMPANY_PLAN_DENIED_DESCRIPTION, isCompanyPlanDeniedMessage } from '@/utils/subscriptionDenied';
 
 interface ResendServiceEmailRequest {
   serviceId: string;
@@ -32,13 +34,12 @@ export const useResendServiceEmail = () => {
     onError: (error: AxiosError<{
       message: string;
     }>) => {
-      // Check if the error is a 403 and the message is "Subscription not allowed."
-      if (error.response?.status === 403 && error.response?.data?.message === 'Subscription not allowed.') {
+      if (error.response?.status === 403 && isCompanyPlanDeniedMessage(error.response?.data?.message)) {
         toast({
           duration: 5000,
-          title: 'Subscription not allowed',
+          title: 'Plan required',
           variant: 'error',
-          description: 'Please upgrade your subscription to resend emails.'
+          description: COMPANY_PLAN_DENIED_DESCRIPTION
         });
       } else {
         toast({

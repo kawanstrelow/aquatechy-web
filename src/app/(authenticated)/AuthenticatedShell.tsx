@@ -7,11 +7,9 @@ import { useLayoutEffect, useState } from 'react';
 import { VideoModal } from '@/components/VideoModal';
 import useGetUser, { ensureClientUserLoad, hydrateUserBootstrap } from '@/hooks/react-query/user/getUser';
 import type { UserQueryData } from '@/hooks/react-query/user/getUser';
-import { hasPlanAccess, isAtPoolLimit, isPoolCreatePath, requiredPlanForPath } from '@/utils/planAccess';
 
 import { HelpButton } from './HelpButton';
 import PageHeader from './PageHeader';
-import { PlanUpgradePrompt } from './PlanUpgradePrompt';
 import { SideMenu } from './SideMenuNav';
 
 function needsOnboarding(user?: { id?: string; firstName?: string | null; lastName?: string | null }) {
@@ -73,12 +71,6 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
     setShowWelcomeVideo(false);
   };
 
-  const requiredPlan = requiredPlanForPath(pathname);
-  const blockedByPlan = Boolean(user && requiredPlan && !hasPlanAccess(user.subscription, requiredPlan));
-  const blockedByPools = Boolean(
-    user && isPoolCreatePath(pathname) && isAtPoolLimit(user.subscription, user.poolsCount)
-  );
-
   return (
     <>
       {!isUserLoading && showWelcomeVideo && (
@@ -101,10 +93,6 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
                 <div className="flex min-h-[50vh] items-center justify-center">
                   <div className="h-12 w-12 animate-spin rounded-full border-8 border-line border-t-accent" />
                 </div>
-              ) : blockedByPlan && requiredPlan ? (
-                <PlanUpgradePrompt reason="feature" requiredPlan={requiredPlan} />
-              ) : blockedByPools ? (
-                <PlanUpgradePrompt reason="pools" />
               ) : (
                 children
               )}

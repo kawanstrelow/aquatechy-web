@@ -11,11 +11,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import useConnectStatus from '@/hooks/react-query/payments/useConnectStatus';
 import { useConnectOnboard } from '@/hooks/react-query/payments/useConnectOnboard';
 import { useConnectDashboardLink } from '@/hooks/react-query/payments/useConnectDashboardLink';
-import { useUserStore } from '@/store/user';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import type { StripeAccountStatus } from '@/ts/interfaces/StripeConnect';
-import { UserSubscription } from '@/ts/enums/enums';
-import { hasPlanAccess } from '@/utils/planAccess';
+import { COMPANY_PLAN_DENIED_DESCRIPTION, isCompanyPlanDeniedMessage } from '@/utils/subscriptionDenied';
 
 interface OnlinePaymentsTabProps {
   selectedCompany: CompanyWithMyRole;
@@ -37,17 +35,15 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
   const companyId = selectedCompany.id;
   const role = selectedCompany.role;
   const canManageConnect = role === 'Owner' || role === 'Admin';
-  const subscription = useUserStore((state) => state.user.subscription);
-  const canSetupStripe = hasPlanAccess(subscription, UserSubscription.ROUTE);
+  const canUpgradePlan = role === 'Owner';
 
   const {
     data: status,
     isLoading,
     refetch,
     isFetching,
-    error,
-    isError
-  } = useConnectStatus(canSetupStripe ? companyId : undefined);
+    error
+  } = useConnectStatus(companyId);
   const onboard = useConnectOnboard();
   const dashboardLink = useConnectDashboardLink();
 
@@ -74,27 +70,8 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
     status?.requirements && (status.requirements.currentlyDue.length > 0 || status.requirements.pastDue.length > 0);
 
   const is403 = !!error && isAxiosError(error) && error.response?.status === 403;
-
-  if (!canSetupStripe) {
-    return (
-      <div className="rounded-lg border bg-white p-6 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="rounded-lg bg-slate-100 p-3">
-            <CreditCard className="h-6 w-6 text-slate-700" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Stripe payouts & online invoices</h2>
-            <p className="mt-1 max-w-xl text-sm text-gray-600">
-              Card and ACH payments in the client portal are included on the Route and Grow plans.
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/settings/subscription">Upgrade your plan</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const deniedByPlan =
+    is403 && isCompanyPlanDeniedMessage((error.response?.data as { message?: string } | undefined)?.message);
 
   return (
     <div className="rounded-lg border bg-white p-6 shadow-sm">
@@ -117,7 +94,24 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
         </Button>
       </div>
 
-      {is403 && (
+      {deniedByPlan && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Plan required</AlertTitle>
+          <AlertDescription>
+            <p>{COMPANY_PLAN_DENIED_DESCRIPTION}</p>
+            {canUpgradePlan ? (
+              <Button asChild className="mt-3" size="sm">
+                <Link href="/settings/subscription">View plans</Link>
+              </Button>
+            ) : (
+              <p className="mt-2">The company owner needs to upgrade.</p>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {is403 && !deniedByPlan && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Access denied</AlertTitle>
