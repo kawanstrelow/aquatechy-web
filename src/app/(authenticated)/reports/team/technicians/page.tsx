@@ -1,128 +1,79 @@
 'use client';
 
-import { UserPlus, ArrowLeft, Calendar, MapPin, Clock, ArrowRight, Table } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, Table } from 'lucide-react';
 import Link from 'next/link';
-import { useGetTechnicianSummary } from '@/hooks/react-query/reports/useGetTechnicianSummary';
+
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { useGetTechnicianSummary } from '@/hooks/react-query/reports/useGetTechnicianSummary';
+import { cn } from '@/lib/utils';
+
+import { borderedButtonClass, ReportHeader } from '../../_components/ReportChrome';
 
 export default function TechniciansPage() {
   const { data: technicians, isLoading, error } = useGetTechnicianSummary();
 
   if (isLoading) {
-    return (
-      <div className="p-6">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="text-center">
-          <p className="text-red-600">Error loading technician data</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!technicians || technicians.length === 0) {
-    return (
-      <div className="p-6">
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Link href="/reports/team">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Team Reports
-              </Button>
-          </Link>
-          </div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <UserPlus className="h-6 w-6 text-[#364D9D]" />
-            Individual Technician Performance
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Detailed filter cleaning performance for each technician
-          </p>
-        </div>
-        <div className="text-center py-8">
-          <p className="text-gray-500">No technician data available</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Link href="/reports/team">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Team Reports
-            </Button>
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <UserPlus className="h-6 w-6 text-[#364D9D]" />
-          Individual Technician Performance
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Detailed filter cleaning performance for each technician
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <ReportHeader
+        title="Individual technician performance"
+        description="Filter cleaning performance for each technician"
+        backHref="/reports/team"
+        backLabel="Back to team reports"
+      />
 
-      <div className="space-y-6">
-        {technicians.map((tech) => (
-          <Card key={tech.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    {tech.name}
-                  </CardTitle>
-                </div>
+      {error ? (
+        <div className="rounded-xl border border-line bg-surface px-5 py-8 text-center text-sm text-danger shadow-lift">
+          Error loading technician data
+        </div>
+      ) : !technicians || technicians.length === 0 ? (
+        <div className="rounded-xl border border-line bg-surface px-5 py-8 text-center text-sm text-ink-muted shadow-lift">
+          No technician data available
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {technicians.map((tech) => (
+            <div key={tech.id} className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+              <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+                <h2 className="text-base font-semibold text-ink">{tech.name}</h2>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-[#364D9D]">{tech.onTimePercentage}%</div>
-                  <div className="text-sm text-gray-600">On-time rate</div>
+                  <div className="text-2xl font-bold text-accent">{tech.onTimePercentage}%</div>
+                  <div className="text-sm text-ink-muted">On-time rate</div>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 justify-between">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-[#364D9D]">{tech.pools}</div>
-                  <div className="text-sm text-gray-600">Pools Assigned</div>
+              <div className="grid grid-cols-1 gap-3 px-5 py-5 md:grid-cols-3">
+                <div className="rounded-lg border border-line bg-canvas p-4 text-center">
+                  <div className="text-2xl font-bold text-accent">{tech.pools}</div>
+                  <div className="text-sm text-ink-muted">Pools assigned</div>
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
+                <div className="rounded-lg border border-success/20 bg-success-soft p-4 text-center">
+                  <div className="text-2xl font-bold text-success">
                     {Math.round((tech.onTimePercentage / 100) * tech.pools)}
                   </div>
-                  <div className="text-sm text-gray-600">On-Time Cleanings</div>
+                  <div className="text-sm text-ink-muted">On-time cleanings</div>
                 </div>
-                <div className="text-center p-4 bg-red-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">{tech.overdueCount}</div>
-                  <div className="text-sm text-gray-600">Overdue Cleanings</div>
+                <div className="rounded-lg border border-danger/20 bg-danger-soft p-4 text-center">
+                  <div className="text-2xl font-bold text-danger">{tech.overdueCount}</div>
+                  <div className="text-sm text-ink-muted">Overdue cleanings</div>
                 </div>
               </div>
-
-              <div className="mt-6 pt-4 border-t">
-                <Link href={`/reports/team/technicians/${tech.id}/details`}>
-                  <Button variant="outline" className="w-full">
-                    <Table className="h-4 w-4 mr-2" />
-                    View Filter Cleaning Details
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </Link>
+              <div className="border-t border-line px-5 py-4">
+                <Button variant="outline" className={cn(borderedButtonClass, 'w-full')} asChild>
+                  <Link href={`/reports/team/technicians/${tech.id}/details`}>
+                    <Table className="mr-2 h-4 w-4" />
+                    View filter cleaning details
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-} 
+}

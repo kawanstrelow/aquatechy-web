@@ -1,27 +1,20 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ArrowLeft,
-  Building2,
-  Clock,
-  Loader2,
-  MapPin,
-  Route,
-  Timer,
-  User
-} from 'lucide-react';
-import Link from 'next/link';
+import { Building2, Clock, Loader2, MapPin, Route, Timer, User } from 'lucide-react';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Weekdays } from '@/constants';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useGetRouteEfficiencyReport } from '@/hooks/react-query/reports/useGetRouteEfficiencyReport';
 import { RouteEfficiencyReportEntry } from '@/ts/interfaces/RouteEfficiencyReport';
+
+import { ReportHeader } from '../../_components/ReportChrome';
+
+const fieldControlClass = 'w-full min-w-[240px] max-w-sm border border-slate-200 bg-white';
 
 function formatDriveTime(minutes: number | null): string {
   if (minutes == null) return '—';
@@ -82,9 +75,7 @@ function groupReportByTechnician(report: RouteEfficiencyReportEntry[]): Technici
     existing.totals.totalRouteTimeInMinutes += entry.summary.totalRouteTimeInMinutes;
   }
 
-  return Array.from(byTech.values()).sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-  );
+  return Array.from(byTech.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 }
 
 export default function RouteEfficiencyReportPage() {
@@ -129,39 +120,24 @@ export default function RouteEfficiencyReportPage() {
   const selectedCompanyName = companies.find((company) => company.id === selectedCompany)?.name;
 
   if (isLoadingCompanies) {
-    return (
-      <div className="p-6">
-        <LoadingSpinner />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Link href="/reports/services">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Service Reports
-            </Button>
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Route className="h-6 w-6 text-orange-600" />
-          Route Efficiency Report
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Overview of planned route distance and time by technician and weekday
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <ReportHeader
+        title="Route Efficiency Report"
+        description="Planned route distance and time by technician and weekday"
+        backHref="/reports/services"
+        backLabel="Back to service reports"
+      />
 
-      <Card className="mb-6 overflow-hidden bg-surface">
+      <Card className="overflow-hidden border-line bg-surface shadow-lift">
         <div className="border-b border-line bg-surface px-6 py-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-start gap-3">
-              <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
-                <Building2 className="h-4 w-4 text-orange-600" />
+              <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-white">
+                <Building2 className="h-4 w-4 text-accent" />
               </div>
               <div className="min-w-0 space-y-2">
                 <div>
@@ -169,7 +145,7 @@ export default function RouteEfficiencyReportPage() {
                   <p className="text-sm text-gray-500">Select the company whose routes to analyze</p>
                 </div>
                 <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                  <SelectTrigger id="company" className="w-full min-w-[240px] max-w-sm bg-white">
+                  <SelectTrigger id="company" className={fieldControlClass}>
                     <SelectValue placeholder="Select a company" />
                   </SelectTrigger>
                   <SelectContent>
@@ -184,7 +160,7 @@ export default function RouteEfficiencyReportPage() {
             </div>
 
             {selectedCompany && selectedCompanyName && (
-              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 lg:min-w-[240px]">
+              <div className="rounded-lg border border-line bg-canvas px-4 py-3 lg:min-w-[240px]">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Viewing</p>
                 <p className="mt-1 truncate text-sm font-semibold text-gray-900">{selectedCompanyName}</p>
               </div>
@@ -201,48 +177,46 @@ export default function RouteEfficiencyReportPage() {
               </div>
             ) : error ? null : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <Route className="h-4 w-4 text-orange-600" />
+                    <Route className="h-4 w-4 text-accent" />
                     <span className="text-sm font-medium text-gray-600">Routes</span>
                   </div>
-                  <p className="text-3xl font-bold text-orange-600">{companyTotals.routes}</p>
+                  <p className="text-3xl font-bold text-accent">{companyTotals.routes}</p>
                 </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-orange-600" />
+                    <MapPin className="h-4 w-4 text-accent" />
                     <span className="text-sm font-medium text-gray-600">Total Stops</span>
                   </div>
-                  <p className="text-3xl font-bold text-orange-600">{companyTotals.stopCount}</p>
+                  <p className="text-3xl font-bold text-accent">{companyTotals.stopCount}</p>
                 </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-orange-600" />
+                    <MapPin className="h-4 w-4 text-accent" />
                     <span className="text-sm font-medium text-gray-600">Total Distance</span>
                   </div>
-                  <p className="text-3xl font-bold text-orange-600">
-                    {formatDistance(companyTotals.totalDistanceInMiles)}
-                  </p>
+                  <p className="text-3xl font-bold text-accent">{formatDistance(companyTotals.totalDistanceInMiles)}</p>
                 </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <Timer className="h-4 w-4 text-orange-600" />
+                    <Timer className="h-4 w-4 text-accent" />
                     <span className="text-sm font-medium text-gray-600">Drive Time</span>
                   </div>
-                  <p className="text-3xl font-bold text-orange-600">
+                  <p className="text-3xl font-bold text-accent">
                     {formatDriveTime(companyTotals.totalDriveTimeInMinutes)}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-orange-600" />
+                    <Clock className="h-4 w-4 text-accent" />
                     <span className="text-sm font-medium text-gray-600">Total route time (driving + stops)</span>
                   </div>
-                  <p className="text-3xl font-bold text-orange-600">
+                  <p className="text-3xl font-bold text-accent">
                     {formatDriveTime(companyTotals.totalRouteTimeInMinutes)}
                   </p>
                 </div>
@@ -253,38 +227,38 @@ export default function RouteEfficiencyReportPage() {
       </Card>
 
       {!selectedCompany || isLoadingReportData ? null : error ? (
-        <Card>
+        <Card className="border-line bg-surface shadow-lift">
           <CardContent className="py-8 text-center">
-            <p className="text-red-600">Error loading route efficiency report</p>
+            <p className="text-danger">Error loading route efficiency report</p>
           </CardContent>
         </Card>
       ) : technicianGroups.length === 0 ? (
-        <Card>
+        <Card className="border-line bg-surface shadow-lift">
           <CardContent className="py-8 text-center">
-            <p className="text-gray-500">No active routes for this company</p>
+            <p className="text-ink-muted">No active routes for this company</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-6">
           {technicianGroups.map((group) => (
-            <Card key={group.id} className="bg-surface">
+            <Card key={group.id} className="overflow-hidden border-line bg-surface shadow-lift">
               <CardHeader>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2">
-                      <User className="h-5 w-5 text-orange-600" />
+                      <User className="h-5 w-5 text-accent" />
                       {group.name}
                     </CardTitle>
                     <CardDescription>
-                      {group.routes.length} route{group.routes.length === 1 ? '' : 's'} ·{' '}
-                      {group.totals.stopCount} stop{group.totals.stopCount === 1 ? '' : 's'}
+                      {group.routes.length} route{group.routes.length === 1 ? '' : 's'} · {group.totals.stopCount} stop
+                      {group.totals.stopCount === 1 ? '' : 's'}
                     </CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="bg-orange-50 text-orange-800">
+                    <Badge variant="secondary" className="border border-line bg-canvas text-ink">
                       {formatDistance(group.totals.totalDistanceInMiles)} total
                     </Badge>
-                    <Badge variant="secondary" className="bg-orange-50 text-orange-800">
+                    <Badge variant="secondary" className="border border-line bg-canvas text-ink">
                       {formatDriveTime(group.totals.totalRouteTimeInMinutes)} route time
                     </Badge>
                   </div>
@@ -299,15 +273,19 @@ export default function RouteEfficiencyReportPage() {
                         <th className="bg-surface p-3 text-left font-medium text-ink-muted">Stops</th>
                         <th className="bg-surface p-3 text-left font-medium text-ink-muted">Distance</th>
                         <th className="bg-surface p-3 text-left font-medium text-ink-muted">Drive Time</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Service time (20m per stop)</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Total route time (driving + stops)</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">
+                          Service time (20m per stop)
+                        </th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">
+                          Total route time (driving + stops)
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {group.routes.map((entry) => (
                         <tr
                           key={`${entry.technician.id}-${entry.weekday}`}
-                          className="border-b border-gray-100 hover:bg-gray-50"
+                          className="border-b border-line hover:bg-canvas"
                         >
                           <td className="p-3 font-medium">{formatWeekday(entry.weekday)}</td>
                           <td className="p-3">{entry.summary.stopCount}</td>
