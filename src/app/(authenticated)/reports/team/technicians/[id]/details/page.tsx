@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGetTechnicianPerformance } from '@/hooks/react-query/reports/useGetTechnicianPerformance';
 
-import { ReportHeader } from '../../../_components/ReportChrome';
+import { ReportHeader } from '../../../../_components/ReportChrome';
 
 export default function TechnicianDetailsPage({ params }: { params: { id: string } }) {
   const { data: performanceData, isLoading, error } = useGetTechnicianPerformance();

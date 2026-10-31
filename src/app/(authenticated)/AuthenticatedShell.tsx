@@ -7,6 +7,7 @@ import { useLayoutEffect, useState } from 'react';
 import { VideoModal } from '@/components/VideoModal';
 import useGetUser, { ensureClientUserLoad, hydrateUserBootstrap } from '@/hooks/react-query/user/getUser';
 import type { UserQueryData } from '@/hooks/react-query/user/getUser';
+import { UserBootstrapProvider } from '@/store/user';
 
 import { HelpButton } from './HelpButton';
 import PageHeader from './PageHeader';
@@ -31,10 +32,6 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
-  // Zustand's server snapshot is the empty store, so the first paint has no dashboard.
-  // A layout-effect render reads the client store before the browser paints. Without it,
-  // that correction waits on a passive effect that can sit unflushed after login until a click.
-  const [storeReady, setStoreReady] = useState(false);
   const { data } = useGetUser();
   const user = data?.user ?? initialData?.user;
   const userId = user?.id;
@@ -45,7 +42,6 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
   useLayoutEffect(() => {
     if (initialData) hydrateUserBootstrap(initialData);
     else ensureClientUserLoad();
-    setStoreReady(true);
   }, [initialData]);
 
   useLayoutEffect(() => {
@@ -72,7 +68,7 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
   };
 
   return (
-    <>
+    <UserBootstrapProvider initialData={initialData}>
       {!isUserLoading && showWelcomeVideo && (
         <VideoModal
           isOpen={showWelcomeVideo}
@@ -87,7 +83,7 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
         </div>
         <div className="min-w-0 flex-1">
           <PageHeader />
-          <main data-store-ready={storeReady ? 'true' : 'false'}>
+          <main>
             <div className="px-4 py-5 lg:px-8 lg:py-6">
               {isUserLoading ? (
                 <div className="flex min-h-[50vh] items-center justify-center">
@@ -101,6 +97,6 @@ export default function AuthenticatedShell({ children, initialData }: Props) {
           <HelpButton />
         </div>
       </div>
-    </>
+    </UserBootstrapProvider>
   );
 }
