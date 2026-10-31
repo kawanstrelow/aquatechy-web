@@ -1,25 +1,25 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Download, Loader2, Building2, Users, Calendar } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertCircle, Building2, Calendar, Download, Loader2, Users } from 'lucide-react';
+
 import { MultiSelect, OptionType } from '@/components/MultiSelect';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useGenerateChemicalCostsReport } from '@/hooks/react-query/reports/useGenerateChemicalCostsReport';
 
+import { ReportHeader } from '../../_components/ReportChrome';
+
+const fieldControlClass = 'w-full border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50';
+
 export default function ChemicalCostsReportPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const { data: companies = [], isLoading: isLoadingCompanies } = useGetCompanies();
   const { data: allClients = [], isLoading: isLoadingClients } = useGetAllClients();
@@ -41,21 +41,20 @@ export default function ChemicalCostsReportPage() {
   // Filter clients by selected company - only show clients that belong to the selected company
   const filteredClients = useMemo(() => {
     if (!selectedCompany || !allClients || allClients.length === 0) return [];
-    
+
     const filtered = allClients.filter((client) => {
       // Match by companyOwnerId
       return client.companyOwner?.id === selectedCompany;
     });
-    
+
     return filtered;
   }, [allClients, selectedCompany]);
-
 
   // Client options for MultiSelect
   const clientOptions: OptionType[] = useMemo(() => {
     return filteredClients.map((client) => ({
       label: `${client.firstName} ${client.lastName}${client.customerCode ? ` (${client.customerCode})` : ''}`,
-      value: client.id,
+      value: client.id
     }));
   }, [filteredClients]);
 
@@ -84,7 +83,7 @@ export default function ChemicalCostsReportPage() {
       toast({
         variant: 'destructive',
         title: 'Company Required',
-        description: 'Please select a company.',
+        description: 'Please select a company.'
       });
       return;
     }
@@ -93,7 +92,7 @@ export default function ChemicalCostsReportPage() {
       toast({
         variant: 'destructive',
         title: 'Clients Required',
-        description: 'Please select at least one client.',
+        description: 'Please select at least one client.'
       });
       return;
     }
@@ -102,7 +101,7 @@ export default function ChemicalCostsReportPage() {
       toast({
         variant: 'destructive',
         title: 'Date Range Required',
-        description: 'Please select both from and to dates.',
+        description: 'Please select both from and to dates.'
       });
       return;
     }
@@ -111,7 +110,7 @@ export default function ChemicalCostsReportPage() {
       toast({
         variant: 'destructive',
         title: 'Invalid Date Range',
-        description: 'From date must be before or equal to to date.',
+        description: 'From date must be before or equal to to date.'
       });
       return;
     }
@@ -121,20 +120,20 @@ export default function ChemicalCostsReportPage() {
         from: fromDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
         to: toDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
         companyId: selectedCompany,
-        clientIds: selectedClientIds,
+        clientIds: selectedClientIds
       });
 
       toast({
         variant: 'success',
         title: 'Report Generated',
         description: 'Chemical costs report has been downloaded successfully.',
-        duration: 3000,
+        duration: 3000
       });
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error Generating Report',
-        description: error?.message || 'Failed to generate report. Please try again.',
+        description: error?.message || 'Failed to generate report. Please try again.'
       });
     }
   };
@@ -143,42 +142,28 @@ export default function ChemicalCostsReportPage() {
   const isFormValid = selectedCompany && selectedClientIds.length > 0 && fromDate && toDate;
 
   return (
-    <div className="container mx-auto p-6 max-w-full">
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Chemical Costs Report</h1>
-        <p className="text-slate-600">
-          Generate a detailed PDF report showing all chemical costs by client and pool for a specified date interval.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <ReportHeader
+        title="Chemical Costs Report"
+        description="PDF of chemical costs by client and pool for a date range."
+        backHref="/reports/clients"
+        backLabel="Back to client reports"
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Report Configuration</CardTitle>
-          <CardDescription>
-            Select company, clients, and date range to generate the chemical costs report
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="rounded-xl border border-line bg-surface p-5 shadow-lift sm:p-6">
+        <div className="mb-6 space-y-1">
+          <h2 className="text-base font-semibold text-ink">Report configuration</h2>
+          <p className="text-sm text-ink-muted">Select a company, clients, and date range</p>
+        </div>
+        <div className="space-y-6">
           {/* Company Selection */}
           <div className="space-y-2">
             <Label htmlFor="company" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Company <span className="text-red-500">*</span>
             </Label>
-            <Select
-              value={selectedCompany}
-              onValueChange={setSelectedCompany}
-              disabled={isLoadingCompanies}
-            >
-              <SelectTrigger id="company" className="w-full">
+            <Select value={selectedCompany} onValueChange={setSelectedCompany} disabled={isLoadingCompanies}>
+              <SelectTrigger id="company" className={fieldControlClass}>
                 <SelectValue placeholder="Select a company" />
               </SelectTrigger>
               <SelectContent>
@@ -206,22 +191,19 @@ export default function ChemicalCostsReportPage() {
                       checked={allClientsSelected}
                       onCheckedChange={handleSelectAllClients}
                     />
-                    <Label
-                      htmlFor="select-all-clients"
-                      className="text-sm font-normal cursor-pointer"
-                    >
+                    <Label htmlFor="select-all-clients" className="cursor-pointer text-sm font-normal">
                       Select All ({filteredClients.length})
                     </Label>
                   </div>
                 )}
               </div>
               {isLoadingClients ? (
-                <div className="flex flex-col items-center justify-center py-8 space-y-2">
+                <div className="flex flex-col items-center justify-center space-y-2 py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                   <p className="text-sm text-slate-500">Loading clients...</p>
                 </div>
               ) : !allClients || allClients.length === 0 ? (
-                <Alert>
+                <Alert className="border-line bg-canvas text-ink">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>No Clients Available</AlertTitle>
                   <AlertDescription>
@@ -229,12 +211,13 @@ export default function ChemicalCostsReportPage() {
                   </AlertDescription>
                 </Alert>
               ) : filteredClients.length === 0 ? (
-                <Alert>
+                <Alert className="border-line bg-canvas text-ink">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>No Clients Found</AlertTitle>
                   <AlertDescription>
-                    No clients found for the selected company ({companies.find(c => c.id === selectedCompany)?.name || selectedCompany}). 
-                    Please select a different company or ensure clients are assigned to this company.
+                    No clients found for the selected company (
+                    {companies.find((c) => c.id === selectedCompany)?.name || selectedCompany}). Please select a
+                    different company or ensure clients are assigned to this company.
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -247,15 +230,13 @@ export default function ChemicalCostsReportPage() {
                 />
               )}
               {selectedClientIds.length > 0 && (
-                <p className="text-sm text-slate-500">
-                  {selectedClientIds.length} client(s) selected
-                </p>
+                <p className="text-sm text-ink-muted">{selectedClientIds.length} client(s) selected</p>
               )}
             </div>
           )}
 
           {/* Date Range Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="from-date" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -266,7 +247,7 @@ export default function ChemicalCostsReportPage() {
                 onChange={setFromDate}
                 disabled={toDate ? [{ after: toDate }] : [{ after: new Date() }]}
                 placeholder="Select from date"
-                className="w-full"
+                className={fieldControlClass}
               />
             </div>
             <div className="space-y-2">
@@ -277,12 +258,9 @@ export default function ChemicalCostsReportPage() {
               <DatePicker
                 value={toDate}
                 onChange={setToDate}
-                disabled={[
-                  ...(fromDate ? [{ before: fromDate }] : []),
-                  { after: new Date() }
-                ]}
+                disabled={[...(fromDate ? [{ before: fromDate }] : []), { after: new Date() }]}
                 placeholder="Select to date"
-                className="w-full"
+                className={fieldControlClass}
               />
             </div>
           </div>
@@ -291,7 +269,7 @@ export default function ChemicalCostsReportPage() {
           <Button
             onClick={handleGenerateReport}
             disabled={isLoading || !isFormValid}
-            className="w-full"
+            className="w-full border border-accent"
             size="lg"
           >
             {isLoading ? (
@@ -308,17 +286,16 @@ export default function ChemicalCostsReportPage() {
           </Button>
 
           {/* Info Alert */}
-          <Alert>
+          <Alert className="border-line bg-canvas text-ink">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Report Information</AlertTitle>
             <AlertDescription>
-              The report will include all chemical costs for the selected clients and pools within the specified date range.
-              Only services with consumables defined will be included in the report.
+              The report will include all chemical costs for the selected clients and pools within the specified date
+              range. Only services with consumables defined will be included in the report.
             </AlertDescription>
           </Alert>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
-

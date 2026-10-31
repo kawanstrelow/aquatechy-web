@@ -60,26 +60,30 @@ export const onlyNumbers = (value: string | number) => {
   return parsed;
 };
 
+function matchesRouteHref(routeHref: string, href: string) {
+  return routeHref === href || href.startsWith(`${routeHref}/`);
+}
+
 export function findRouteByHref(href: string): Menu | undefined {
+  let best: Menu | undefined;
+  let bestLength = -1;
+
+  const consider = (item: Menu) => {
+    if (!matchesRouteHref(item.href, href) || item.href.length <= bestLength) return;
+    best = item;
+    bestLength = item.href.length;
+  };
+
   for (const route of routes) {
-    if (route.href === href) {
-      return route;
-    }
+    consider(route);
+    if (!route.submenu) continue;
 
-    if (route.submenu) {
-      for (const key in route.submenu) {
-        if (route.submenu[key].href === href) {
-          return route.submenu[key] as Menu;
-        }
-      }
-    }
-
-    if (href.includes(route.href)) {
-      return route;
+    for (const key in route.submenu) {
+      consider(route.submenu[key] as Menu);
     }
   }
 
-  return undefined;
+  return best;
 }
 
 export function formatCamelCase(str: string) {

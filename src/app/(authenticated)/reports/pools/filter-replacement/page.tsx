@@ -1,18 +1,21 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Building2, Calendar, CheckCircle2, AlertTriangle, Filter, Loader2, MapPin, Table, Waves } from 'lucide-react';
+import { AlertTriangle, Building2, Calendar, CheckCircle2, Filter, Loader2, MapPin, Waves } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useGetPoolFilterReplacementReport } from '@/hooks/react-query/reports/useGetPoolFilterReplacementReport';
 import { PoolFilterReplacementReportRow } from '@/ts/interfaces/PoolFilterReplacementReport';
+
+import { ReportHeader } from '../../_components/ReportChrome';
+
+const fieldControlClass = 'w-full min-w-[240px] max-w-sm border border-slate-200 bg-white';
 
 function isFilterReplacementOverdue(row: PoolFilterReplacementReportRow): boolean {
   if (!row.nextFilterReplacementDate) return row.lastFilterReplacementDate === null;
@@ -104,46 +107,35 @@ export default function FilterReplacementReportPage() {
       return <Badge variant="destructive">Overdue</Badge>;
     }
 
-    return <Badge variant="default" className="bg-green-100 text-green-800">On Time</Badge>;
+    return (
+      <Badge variant="default" className="border border-success/20 bg-success-soft text-success">
+        On Time
+      </Badge>
+    );
   };
 
   const isLoadingReportData = !!selectedCompany && isLoadingReport;
   const selectedCompanyName = companies.find((company) => company.id === selectedCompany)?.name;
 
   if (isLoadingCompanies) {
-    return (
-      <div className="p-6">
-        <LoadingSpinner />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Link href="/reports/pools">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Pool Reports
-            </Button>
-          </Link>
-        </div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Table className="h-6 w-6 text-[#364D9D]" />
-          Filter Replacement Interval
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Filter replacement schedule for all pools in the selected company
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <ReportHeader
+        title="Filter Replacement Interval"
+        description="Filter replacement schedule for all pools in the selected company"
+        backHref="/reports/pools"
+        backLabel="Back to pool reports"
+      />
 
-      <Card className="mb-6 overflow-hidden bg-surface">
+      <Card className="overflow-hidden border-line bg-surface shadow-lift">
         <div className="border-b border-line bg-surface px-6 py-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-start gap-3">
-              <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
-                <Building2 className="h-4 w-4 text-[#364D9D]" />
+              <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-white">
+                <Building2 className="h-4 w-4 text-accent" />
               </div>
               <div className="min-w-0 space-y-2">
                 <div>
@@ -151,7 +143,7 @@ export default function FilterReplacementReportPage() {
                   <p className="text-sm text-gray-500">Choose which company pools to include in this report</p>
                 </div>
                 <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                  <SelectTrigger id="company" className="w-full min-w-[240px] max-w-sm bg-white">
+                  <SelectTrigger id="company" className={fieldControlClass}>
                     <SelectValue placeholder="Select a company" />
                   </SelectTrigger>
                   <SelectContent>
@@ -166,7 +158,7 @@ export default function FilterReplacementReportPage() {
             </div>
 
             {selectedCompany && selectedCompanyName && (
-              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 lg:min-w-[240px]">
+              <div className="rounded-lg border border-line bg-canvas px-4 py-3 lg:min-w-[240px]">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Viewing</p>
                 <p className="mt-1 truncate text-sm font-semibold text-gray-900">{selectedCompanyName}</p>
               </div>
@@ -183,15 +175,15 @@ export default function FilterReplacementReportPage() {
               </div>
             ) : error ? null : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <Waves className="h-4 w-4 text-[#364D9D]" />
+                    <Waves className="h-4 w-4 text-accent" />
                     <span className="text-sm font-medium text-gray-600">Total Pools</span>
                   </div>
-                  <p className="text-3xl font-bold text-[#364D9D]">{reportRows.length}</p>
+                  <p className="text-3xl font-bold text-accent">{reportRows.length}</p>
                 </div>
 
-                <div className="rounded-xl border border-green-100 bg-green-50 p-4">
+                <div className="rounded-xl border border-success/20 bg-success-soft p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
                     <span className="text-sm font-medium text-gray-600">On Time</span>
@@ -199,7 +191,7 @@ export default function FilterReplacementReportPage() {
                   <p className="text-3xl font-bold text-green-600">{onTimeCount}</p>
                 </div>
 
-                <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+                <div className="rounded-xl border border-danger/20 bg-danger-soft p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-red-600" />
                     <span className="text-sm font-medium text-gray-600">Overdue</span>
@@ -213,102 +205,102 @@ export default function FilterReplacementReportPage() {
       </Card>
 
       {!selectedCompany || isLoadingReportData ? null : error ? (
-        <Card>
+        <Card className="border-line bg-surface shadow-lift">
           <CardContent className="py-8 text-center">
-            <p className="text-red-600">Error loading filter replacement report</p>
+            <p className="text-danger">Error loading filter replacement report</p>
           </CardContent>
         </Card>
       ) : (
-        <Card className="bg-surface">
+        <Card className="overflow-hidden border-line bg-surface shadow-lift">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-[#364D9D]" />
+              <Filter className="h-5 w-5 text-accent" />
               Filter Replacement Schedule
             </CardTitle>
-            <CardDescription>
-              All pools for the selected company and their filter replacement status
-            </CardDescription>
+            <CardDescription>All pools for the selected company and their filter replacement status</CardDescription>
           </CardHeader>
           <CardContent>
-              {sortedReportRows.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No filter replacement data available for this company</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead className="bg-surface">
-                      <tr className="border-b border-line bg-surface">
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Client</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Address</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Filter Model</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Condition</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Last Replacement</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Next Replacement</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Days Until</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedReportRows.map((row) => {
-                        const overdueDays = getOverdueDays(row.nextFilterReplacementDate);
-                        const daysUntil = getDaysUntilNext(row.nextFilterReplacementDate);
+            {sortedReportRows.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-gray-500">No filter replacement data available for this company</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead className="bg-surface">
+                    <tr className="border-b border-line bg-surface">
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Client</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Address</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Filter Model</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Condition</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Last Replacement</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Next Replacement</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Days Until</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedReportRows.map((row) => {
+                      const overdueDays = getOverdueDays(row.nextFilterReplacementDate);
+                      const daysUntil = getDaysUntilNext(row.nextFilterReplacementDate);
 
-                        return (
-                          <tr key={row.poolId} className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="p-3">
-                              <Link href={`/clients/${row.clientId}`} className="font-medium text-[#364D9D] hover:underline">
-                                {row.clientName}
-                              </Link>
-                            </td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-                                <span className="text-sm">{getFullAddress(row.address, row.city, row.state, row.zip)}</span>
-                              </div>
-                            </td>
-                            <td className="p-3">
-                              <span className="text-sm">{row.filterModel ?? '—'}</span>
-                            </td>
-                            <td className="p-3">
-                              <span className="text-sm">{row.filterCondition ?? '—'}</span>
-                            </td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm">{formatDate(row.lastFilterReplacementDate, 'Not set')}</span>
-                              </div>
-                            </td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm">{formatDate(row.nextFilterReplacementDate, 'Unknown')}</span>
-                              </div>
-                            </td>
-                            <td className="p-3">
-                              {row.nextFilterReplacementDate ? (
-                                <span
-                                  className={`text-sm font-medium ${
-                                    overdueDays > 0
-                                      ? 'text-red-600'
-                                      : daysUntil !== null && daysUntil <= 3
-                                        ? 'text-yellow-600'
-                                        : 'text-green-600'
-                                  }`}
-                                >
-                                  {overdueDays > 0 ? `${overdueDays} days overdue` : `${daysUntil} days`}
-                                </span>
-                              ) : (
-                                <span className="text-sm font-medium text-gray-500">Unknown</span>
-                              )}
-                            </td>
-                            <td className="p-3">{getStatusBadge(row)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                      return (
+                        <tr key={row.poolId} className="border-b border-line hover:bg-canvas">
+                          <td className="p-3">
+                            <Link href={`/clients/${row.clientId}`} className="font-medium text-accent hover:underline">
+                              {row.clientName}
+                            </Link>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
+                              <span className="text-sm">
+                                {getFullAddress(row.address, row.city, row.state, row.zip)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <span className="text-sm">{row.filterModel ?? '—'}</span>
+                          </td>
+                          <td className="p-3">
+                            <span className="text-sm">{row.filterCondition ?? '—'}</span>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm">{formatDate(row.lastFilterReplacementDate, 'Not set')}</span>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm">{formatDate(row.nextFilterReplacementDate, 'Unknown')}</span>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            {row.nextFilterReplacementDate ? (
+                              <span
+                                className={`text-sm font-medium ${
+                                  overdueDays > 0
+                                    ? 'text-red-600'
+                                    : daysUntil !== null && daysUntil <= 3
+                                      ? 'text-yellow-600'
+                                      : 'text-green-600'
+                                }`}
+                              >
+                                {overdueDays > 0 ? `${overdueDays} days overdue` : `${daysUntil} days`}
+                              </span>
+                            ) : (
+                              <span className="text-sm font-medium text-gray-500">Unknown</span>
+                            )}
+                          </td>
+                          <td className="p-3">{getStatusBadge(row)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </CardContent>
         </Card>
