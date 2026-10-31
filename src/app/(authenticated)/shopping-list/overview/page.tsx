@@ -15,13 +15,15 @@ import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import useGetShoppingItems from '@/hooks/react-query/shopping-items/useGetShoppingItems';
 import { useCreateShoppingItem } from '@/hooks/react-query/shopping-items/useCreateShoppingItem';
-import { useUpdateShoppingItemStatus } from '@/hooks/react-query/shopping-items/useUpdateShoppingItemStatus';
 import { useDeleteShoppingItem } from '@/hooks/react-query/shopping-items/useDeleteShoppingItem';
+import { useUpdateShoppingItem } from '@/hooks/react-query/shopping-items/useUpdateShoppingItem';
+import { useUpdateShoppingItemStatus } from '@/hooks/react-query/shopping-items/useUpdateShoppingItemStatus';
 import { useUserStore } from '@/store/user';
 import { ShoppingItemStatus, ShoppingListRow } from '@/ts/interfaces/Shopping';
 import { getClientCompanyOwnerId, isClientActive } from '@/utils/clientUtils';
 
 import { AddShoppingItemDialog } from './_components/AddShoppingItemDialog';
+import { EditShoppingItemDialog } from './_components/EditShoppingItemDialog';
 import { ShoppingSummaryCards } from './_components/ShoppingSummaryCards';
 import { createColumns } from './DataTableShoppingItems/columns';
 import { DataTableShoppingItems } from './DataTableShoppingItems';
@@ -70,10 +72,7 @@ export default function ShoppingOverviewPage() {
   }, [clientId, filtersForm]);
 
   const clientsForCompany = useMemo(
-    () =>
-      allClients.filter(
-        (client) => isClientActive(client) && getClientCompanyOwnerId(client) === companyId
-      ),
+    () => allClients.filter((client) => isClientActive(client) && getClientCompanyOwnerId(client) === companyId),
     [allClients, companyId]
   );
 
@@ -107,12 +106,14 @@ export default function ShoppingOverviewPage() {
   });
 
   const { mutateAsync: createItem, isPending: isCreating } = useCreateShoppingItem();
+  const { mutateAsync: updateItem, isPending: isUpdating } = useUpdateShoppingItem(companyId);
   const { mutateAsync: updateStatus } = useUpdateShoppingItemStatus(companyId);
   const { mutateAsync: deleteItem, isPending: isDeleting } = useDeleteShoppingItem(companyId);
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ShoppingListRow | null>(null);
+  const [itemToEdit, setItemToEdit] = useState<ShoppingListRow | null>(null);
 
   const companyOptions = useMemo(
     () =>
@@ -179,6 +180,10 @@ export default function ShoppingOverviewPage() {
     });
   };
 
+  const handleEditClick = (item: ShoppingListRow) => {
+    setItemToEdit(item);
+  };
+
   const handleDeleteClick = (item: ShoppingListRow) => {
     setItemToDelete(item);
     setDeleteDialogOpen(true);
@@ -192,7 +197,7 @@ export default function ShoppingOverviewPage() {
     }
   };
 
-  const columns = createColumns(handleUpdateStatus, handleDeleteClick);
+  const columns = createColumns(handleUpdateStatus, handleDeleteClick, handleEditClick);
 
   if (isLoadingCompanies) return <LoadingSpinner />;
 
@@ -214,57 +219,53 @@ export default function ShoppingOverviewPage() {
           variant="destructive"
         />
 
-        {summaryQuery.isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <ShoppingSummaryCards items={summaryQuery.data ?? []} />
-        )}
+        {summaryQuery.isLoading ? <LoadingSpinner /> : <ShoppingSummaryCards items={summaryQuery.data ?? []} />}
 
         <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
-        <div className="flex w-full flex-wrap items-center gap-2 border-b border-line bg-surface px-5 py-4">
-          <Button type="button" className="shrink-0" onClick={() => setAddDialogOpen(true)} disabled={!companyId}>
-            <PlusIcon className="mr-2" />
-            Add shopping item
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="shrink-0"
-            onClick={() => router.push('/shopping-list/products')}
-          >
-            <PlusIcon className="mr-2" />
-            Add product
-          </Button>
-          {companies.length > 1 && (
-            <div className="min-w-[140px] flex-1">
-              <SelectField name="companyId" options={companyOptions} placeholder="Company" />
-            </div>
-          )}
-          <div className="min-w-[140px] flex-1">
-            <SelectField name="clientId" options={clientOptions} placeholder="Client" />
-          </div>
-          <div className="min-w-[140px] flex-1">
-            <SelectField name="poolId" options={poolOptions} placeholder="Pool" />
-          </div>
-          <div className="min-w-[140px] flex-1">
-            <SelectField name="status" options={statusOptions} placeholder="Status" />
-          </div>
-          {appliedFilters > 0 && (
-            <Button variant="outline" type="button" className="ml-auto shrink-0" onClick={handleClearFilters}>
-              <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
-                {appliedFilters}
-              </span>
-              Clear
-              <X className="ml-2 h-4 w-4" />
+          <div className="flex w-full flex-wrap items-center gap-2 border-b border-line bg-surface px-5 py-4">
+            <Button type="button" className="shrink-0" onClick={() => setAddDialogOpen(true)} disabled={!companyId}>
+              <PlusIcon className="mr-2" />
+              Add shopping item
             </Button>
-          )}
-        </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0"
+              onClick={() => router.push('/shopping-list/products')}
+            >
+              <PlusIcon className="mr-2" />
+              Add product
+            </Button>
+            {companies.length > 1 && (
+              <div className="min-w-[140px] flex-1">
+                <SelectField name="companyId" options={companyOptions} placeholder="Company" />
+              </div>
+            )}
+            <div className="min-w-[140px] flex-1">
+              <SelectField name="clientId" options={clientOptions} placeholder="Client" />
+            </div>
+            <div className="min-w-[140px] flex-1">
+              <SelectField name="poolId" options={poolOptions} placeholder="Pool" />
+            </div>
+            <div className="min-w-[140px] flex-1">
+              <SelectField name="status" options={statusOptions} placeholder="Status" />
+            </div>
+            {appliedFilters > 0 && (
+              <Button variant="outline" type="button" className="ml-auto shrink-0" onClick={handleClearFilters}>
+                <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                  {appliedFilters}
+                </span>
+                Clear
+                <X className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </div>
 
-        {itemsQuery.isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <DataTableShoppingItems columns={columns} data={itemsQuery.data ?? []} />
-        )}
+          {itemsQuery.isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <DataTableShoppingItems columns={columns} data={itemsQuery.data ?? []} />
+          )}
         </div>
 
         <AddShoppingItemDialog
@@ -277,6 +278,23 @@ export default function ShoppingOverviewPage() {
           onSubmit={async (params) => {
             await createItem(params);
             setAddDialogOpen(false);
+          }}
+        />
+
+        <EditShoppingItemDialog
+          open={!!itemToEdit}
+          onOpenChange={(open) => {
+            if (!open) setItemToEdit(null);
+          }}
+          item={itemToEdit}
+          isLoading={isUpdating}
+          onSubmit={async (params) => {
+            try {
+              await updateItem(params);
+              setItemToEdit(null);
+            } catch {
+              // Error toast is shown by the mutation.
+            }
           }}
         />
       </div>

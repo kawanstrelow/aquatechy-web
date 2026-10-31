@@ -1,10 +1,6 @@
 import { Product } from './Product';
 
-export type ShoppingItemStatus =
-  | 'PendingPurchase'
-  | 'OnInventory'
-  | 'OnTechnicianTruck'
-  | 'Installed';
+export type ShoppingItemStatus = 'PendingPurchase' | 'OnInventory' | 'OnTechnicianTruck' | 'Installed';
 
 export interface ShoppingItem {
   id: string;
@@ -49,6 +45,12 @@ export type CreateShoppingItemRequest = {
 
 export type UpdateShoppingItemStatusRequest = {
   status: ShoppingItemStatus;
+  notes?: string;
+};
+
+export type UpdateShoppingItemRequest = {
+  quantity?: number;
+  productId?: string;
   notes?: string;
 };
 

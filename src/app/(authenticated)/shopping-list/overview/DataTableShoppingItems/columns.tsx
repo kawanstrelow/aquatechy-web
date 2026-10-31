@@ -10,7 +10,8 @@ import { ShoppingItemActions } from './components/ShoppingItemActions';
 
 export const createColumns = (
   onUpdateStatus: (item: ShoppingListRow, status: ShoppingListRow['status']) => void,
-  onDelete: (item: ShoppingListRow) => void
+  onDelete: (item: ShoppingListRow) => void,
+  onEdit: (item: ShoppingListRow) => void
 ): ColumnDef<ShoppingListRow>[] => [
   {
     accessorKey: 'productName',
@@ -60,15 +61,13 @@ export const createColumns = (
   {
     accessorKey: 'updatedAt',
     header: 'Updated',
-    cell: ({ row }) => (
-      <div className="text-gray-700">{format(new Date(row.original.updatedAt), 'MMM dd, yyyy')}</div>
-    )
+    cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.updatedAt), 'MMM dd, yyyy')}</div>
   },
   {
     id: 'actions',
     header: '',
     cell: ({ row }) => (
-      <ShoppingItemActions item={row.original} onUpdateStatus={onUpdateStatus} onDelete={onDelete} />
+      <ShoppingItemActions item={row.original} onEdit={onEdit} onUpdateStatus={onUpdateStatus} onDelete={onDelete} />
     )
   }
 ];
