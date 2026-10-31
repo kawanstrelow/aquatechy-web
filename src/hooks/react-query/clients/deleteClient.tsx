@@ -10,7 +10,7 @@ export const useDeleteClient = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const userId = Cookies.get('userId');
-  const { push } = useRouter();
+  const { push, refresh } = useRouter();
 
   const { mutate, isPending, isSuccess } = useMutation({
     mutationFn: async (id: string) =>
@@ -18,6 +18,9 @@ export const useDeleteClient = () => {
         data: { id }
       }),
     onSuccess: (_, id) => {
+      queryClient.setQueryData(['allClients'], (current: { id: string }[] | undefined) =>
+        current?.filter((client) => client.id !== id)
+      );
       queryClient.invalidateQueries({ queryKey: ['allClients'] });
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       queryClient.invalidateQueries({ queryKey: ['services'] });
@@ -27,15 +30,15 @@ export const useDeleteClient = () => {
       queryClient.invalidateQueries({ queryKey: ['allAssignments'] });
       queryClient.invalidateQueries({ queryKey: ['clients', id] });
       queryClient.invalidateQueries({ queryKey: ['clients', 1] });
-      
+
       push('/clients');
+      refresh();
 
       toast({
         duration: 5000,
         title: 'Client deleted successfully',
         variant: 'success'
       });
-
     },
     onError: (
       error: AxiosError<{

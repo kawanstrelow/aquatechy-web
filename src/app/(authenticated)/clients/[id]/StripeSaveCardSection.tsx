@@ -27,7 +27,7 @@ export default function StripeSaveCardSection({ client, variant = 'inline' }: Pr
 
   if (companiesLoading) {
     return variant === 'payments' ? (
-      <div className="flex justify-center rounded-lg border border-gray-200 bg-gray-50 py-8">
+      <div className="flex w-full justify-center rounded-lg border border-gray-200 bg-gray-50 py-8">
         <LoadingSpinner />
       </div>
     ) : null;
@@ -83,7 +83,7 @@ export default function StripeSaveCardSection({ client, variant = 'inline' }: Pr
   );
 
   if (isPayments) {
-    return <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">{inner}</div>;
+    return <div className="w-full rounded-lg border border-gray-200 bg-gray-50 p-6">{inner}</div>;
   }
 
   return inner;

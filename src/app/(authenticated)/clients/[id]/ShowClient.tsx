@@ -1,19 +1,18 @@
 'use client';
 
 import { format } from 'date-fns';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { useUpdateClient } from '@/hooks/react-query/clients/updateClient';
 import { Client } from '@/ts/interfaces/Client';
 import { calculateTotalAssignmentsOfAllPools, calculateTotalMonthlyOfAllPools } from '@/utils';
-import { getInitials } from '@/utils/others';
 
+import { resolveClientCoverPhoto } from './clientCoverPhoto';
 import ClientInfo from './ClientInfo';
 import PoolHeader from './PoolHeader';
 import { ModalDeactivateClient } from '../DataTableClients/ModalDeactivateClient';
@@ -47,9 +46,37 @@ export default function ShowClient({ client }: Props) {
   const canViewMessages = isManagementRole(membership?.role);
 
   const [tab, setTab] = useState<ClientTab>('client_info');
+  const [failedCoverUrl, setFailedCoverUrl] = useState<string | null>(null);
+  const nameCardRef = useRef<HTMLDivElement>(null);
+  const [nameCardHeight, setNameCardHeight] = useState(0);
   const shouldDisableNewPools = useUserStore((state) => state.shouldDisableNewPools);
+  const coverPhoto = resolveClientCoverPhoto(client.pools);
+  const showCoverPhoto = Boolean(coverPhoto) && coverPhoto !== failedCoverUrl;
 
-  if (isPending || isDeleting) return <LoadingSpinner />;
+  useLayoutEffect(() => {
+    if (isPending) return;
+    const element = nameCardRef.current;
+    if (!element) return;
+
+    const updateHeight = () => setNameCardHeight(element.offsetHeight);
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [
+    isPending,
+    client.fullName,
+    client.address,
+    client.addressLine2,
+    client.city,
+    client.state,
+    client.zip,
+    client.isActive,
+    client.deactivatedAt
+  ]);
+
+  if (isPending) return <LoadingSpinner />;
 
   const selectedTabStyles = 'text-gray-800 font-semibold';
 
@@ -62,7 +89,9 @@ export default function ShowClient({ client }: Props) {
   };
 
   const handleDeleteClient = () => {
-    deleteClient(client.id);
+    deleteClient(client.id, {
+      onSuccess: () => setDeleteModalOpen(false)
+    });
   };
 
   const handleAddPool = () => {
@@ -73,18 +102,23 @@ export default function ShowClient({ client }: Props) {
     <div>
       <div className="flex flex-col items-start gap-6 self-stretch pt-2 lg:flex-row lg:pt-0">
         <div className="w-full lg:max-w-sm">
-          <div className="relative flex w-full flex-col items-center justify-start gap-6 text-nowrap rounded-xl border border-line bg-surface px-6 pb-6 pt-16 shadow-lift">
-            <div className="w-[100% - 16px] absolute left-2 right-2 top-2 h-[148px] rounded bg-gradient-to-b from-sky-400 to-teal-400" />
-
-            <div className="PhotoName flex h-[206px] flex-col items-center justify-start gap-3 self-stretch">
-              <Avatar className="h-[140px] w-[140px]">
-                <AvatarImage src={''} />
-                <AvatarFallback className="text-5xl">
-                  {client && client.fullName ? getInitials(client.fullName) : ''}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex h-[54px] flex-col items-center justify-center gap-1 self-stretch">
-                <span className="z-10 flex flex-col items-center gap-0.5 self-stretch text-wrap text-center text-xl font-semibold leading-[30px] text-gray-800">
+          <div className="relative flex w-full flex-col items-center justify-start gap-6 text-nowrap rounded-xl border border-line bg-surface pb-6 shadow-lift">
+            <div className="relative w-full" style={{ paddingBottom: nameCardHeight / 2 }}>
+              <div className="mx-2 mt-2 h-[148px] overflow-hidden rounded bg-gradient-to-b from-sky-400 to-teal-400">
+                {showCoverPhoto && coverPhoto ? (
+                  <img
+                    src={coverPhoto}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    onError={() => setFailedCoverUrl(coverPhoto)}
+                  />
+                ) : null}
+              </div>
+              <div
+                ref={nameCardRef}
+                className="absolute left-6 right-6 top-[156px] z-10 -translate-y-1/2 whitespace-normal rounded-lg border border-line bg-white/95 px-4 py-3 text-center shadow-lift backdrop-blur-sm"
+              >
+                <div className="flex flex-col items-center gap-0.5 text-wrap text-xl font-semibold leading-[30px] text-gray-800">
                   <span>
                     {client.fullName}{' '}
                     {!client.isActive ? <span className="text-sm font-medium text-red-500">Inactive</span> : null}
@@ -94,87 +128,94 @@ export default function ShowClient({ client }: Props) {
                       Inactive since {format(new Date(client.deactivatedAt), 'MMMM d, yyyy')}
                     </span>
                   ) : null}
-                </span>
-                <div className="text-wrap text-center text-sm font-medium text-gray-500">
-                  {client.address}
-                  {client.addressLine2 ? ` ${client.addressLine2}` : ''}, {client.city}, {client.state} {client.zip}
                 </div>
-              </div>
-            </div>
-            <div className="flex flex-row flex-wrap items-start justify-start gap-[18px] self-start lg:flex-col lg:flex-nowrap">
-              <div className="inline-flex w-fit items-start justify-start gap-2">
-                <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="self-stretch text-sm font-medium text-gray-500">Email</div>
-                  <div className="self-stretch text-sm font-medium text-gray-800">{client.email}</div>
-                </div>
-              </div>
-              <div className="inline-flex w-fit items-start justify-start gap-2">
-                <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="self-stretch text-sm font-medium text-gray-500">Company Owner</div>
-                  <div className="self-stretch text-sm font-medium text-gray-800">{client.companyOwner.name}</div>
-                </div>
-              </div>
-              <div className="inline-flex w-fit items-start justify-start gap-2">
-                <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="self-stretch text-sm font-medium text-gray-500">Phone Number</div>
-                  <div className="self-stretch text-sm font-medium text-gray-800">{client.phone}</div>
-                </div>
-              </div>
-              <div className="inline-flex w-fit items-start justify-start gap-2">
-                <div className="Text inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="self-stretch text-sm font-medium text-gray-500">Locations</div>
-                  <div className="self-stretch text-sm font-medium text-gray-800">
-                    {client.pools.length > 0
-                      ? client.pools.length === 1
-                        ? '1 Pool'
-                        : `${client.pools.length} Pools`
-                      : 'No Pools'}
+                <div className="mt-1 text-wrap text-sm font-medium text-gray-500">
+                  <div>
+                    {client.address}
+                    {client.addressLine2 ? ` ${client.addressLine2}` : ''}
                   </div>
-                </div>
-              </div>
-              <div className="inline-flex w-fit items-start justify-start gap-2">
-                <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="self-stretch text-sm font-medium text-gray-500">Last Service</div>
-                  <div className="self-stretch text-sm font-medium text-gray-800">
-                    {client.lastServiceDate != undefined
-                      ? format(new Date(client.lastServiceDate), 'MMMM, dd, yyyy')
-                      : 'No Services'}
-                  </div>
-                </div>
-              </div>
-              <div className="inline-flex w-fit items-start justify-start gap-2">
-                <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="text-sm font-medium text-gray-500">Joined</div>
-                  <div className="text-sm font-medium text-gray-800">
-                    {format(new Date(client.createdAt), 'MMMM, dd, yyyy')}
+                  <div>
+                    {client.city}, {client.state} {client.zip}
                   </div>
                 </div>
               </div>
             </div>
-            <div className="flex w-full flex-col items-center gap-2">
-              <a href={`mailto:${client.email}`} className="w-full">
-                <Button variant={'outline'} className="w-full">
-                  E-mail
+            <div className="flex w-full flex-col gap-6 px-6">
+              <div className="flex flex-row flex-wrap items-start justify-start gap-[18px] self-start lg:flex-col lg:flex-nowrap">
+                <div className="inline-flex w-fit items-start justify-start gap-2">
+                  <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
+                    <div className="self-stretch text-sm font-medium text-gray-500">Email</div>
+                    <div className="self-stretch text-sm font-medium text-gray-800">{client.email}</div>
+                  </div>
+                </div>
+                <div className="inline-flex w-fit items-start justify-start gap-2">
+                  <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
+                    <div className="self-stretch text-sm font-medium text-gray-500">Company Owner</div>
+                    <div className="self-stretch text-sm font-medium text-gray-800">{client.companyOwner.name}</div>
+                  </div>
+                </div>
+                <div className="inline-flex w-fit items-start justify-start gap-2">
+                  <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
+                    <div className="self-stretch text-sm font-medium text-gray-500">Phone Number</div>
+                    <div className="self-stretch text-sm font-medium text-gray-800">{client.phone}</div>
+                  </div>
+                </div>
+                <div className="inline-flex w-fit items-start justify-start gap-2">
+                  <div className="Text inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
+                    <div className="self-stretch text-sm font-medium text-gray-500">Locations</div>
+                    <div className="self-stretch text-sm font-medium text-gray-800">
+                      {client.pools.length > 0
+                        ? client.pools.length === 1
+                          ? '1 Pool'
+                          : `${client.pools.length} Pools`
+                        : 'No Pools'}
+                    </div>
+                  </div>
+                </div>
+                <div className="inline-flex w-fit items-start justify-start gap-2">
+                  <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
+                    <div className="self-stretch text-sm font-medium text-gray-500">Last Service</div>
+                    <div className="self-stretch text-sm font-medium text-gray-800">
+                      {client.lastServiceDate != undefined
+                        ? format(new Date(client.lastServiceDate), 'MMMM, dd, yyyy')
+                        : 'No Services'}
+                    </div>
+                  </div>
+                </div>
+                <div className="inline-flex w-fit items-start justify-start gap-2">
+                  <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
+                    <div className="text-sm font-medium text-gray-500">Joined</div>
+                    <div className="text-sm font-medium text-gray-800">
+                      {format(new Date(client.createdAt), 'MMMM, dd, yyyy')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex w-full flex-col items-center gap-2">
+                <a href={`mailto:${client.email}`} className="w-full">
+                  <Button variant={'outline'} className="w-full">
+                    E-mail
+                  </Button>
+                </a>
+                <Button onClick={handleAddPool} className="w-full" variant={'default'} disabled={shouldDisableNewPools}>
+                  Add pool
                 </Button>
-              </a>
-              <Button onClick={handleAddPool} className="w-full" variant={'default'} disabled={shouldDisableNewPools}>
-                Add pool
-              </Button>
-              {shouldDisableNewPools && (
-                <p className="text-center text-xs font-normal text-slate-500">Upgrade your plan to add more pools.</p>
-              )}
-              <Separator className="w-full bg-gray-200 opacity-50" />
-              <div className="flex w-full justify-center gap-2">
-                <Button
-                  onClick={() => setDeactivateModalOpen(true)}
-                  className="w-full"
-                  variant={client.isActive ? 'destructive' : 'default'}
-                >
-                  {client.isActive ? 'Deactivate' : 'Activate'}
-                </Button>
-                <Button onClick={() => setDeleteModalOpen(true)} variant={'destructive'} className="w-full">
-                  Delete
-                </Button>
+                {shouldDisableNewPools && (
+                  <p className="text-center text-xs font-normal text-slate-500">Upgrade your plan to add more pools.</p>
+                )}
+                <Separator className="w-full bg-gray-200 opacity-50" />
+                <div className="flex w-full justify-center gap-2">
+                  <Button
+                    onClick={() => setDeactivateModalOpen(true)}
+                    className="w-full"
+                    variant={client.isActive ? 'destructive' : 'default'}
+                  >
+                    {client.isActive ? 'Deactivate' : 'Activate'}
+                  </Button>
+                  <Button onClick={() => setDeleteModalOpen(true)} variant={'destructive'} className="w-full">
+                    Delete
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -339,8 +380,13 @@ export default function ShowClient({ client }: Props) {
       </Dialog>
 
       {/* Delete Client Modal */}
-      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-        <ModalDeleteClient open={deleteModalOpen} setOpen={setDeleteModalOpen} handleSubmit={handleDeleteClient} />
+      <Dialog open={deleteModalOpen} onOpenChange={(open) => !isDeleting && setDeleteModalOpen(open)}>
+        <ModalDeleteClient
+          open={deleteModalOpen}
+          setOpen={setDeleteModalOpen}
+          handleSubmit={handleDeleteClient}
+          isPending={isDeleting}
+        />
       </Dialog>
     </div>
   );

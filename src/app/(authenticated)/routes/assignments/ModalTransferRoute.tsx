@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { addDays, differenceInDays, format, getDay } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -35,11 +36,17 @@ type Props = {
   setOpen: (open: boolean) => void;
   assignment?: Assignment;
   isEntireRoute?: boolean;
+  onlyOnce?: boolean;
 };
 
-type FormValues = z.infer<typeof transferAssignmentsSchema>;
+type FormValues = z.infer<typeof transferAssignmentsSchema> & {
+  frequency?: string;
+};
 
-export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute = false }: Props) {
+const onlyOnceFrequencyOptions = [{ key: 'ONCE', value: 'ONCE', name: 'Only once' }];
+
+export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute = false, onlyOnce = false }: Props) {
+  const queryClient = useQueryClient();
   const { members, assignmentToId } = useMembersStore(
     useShallow((state) => ({
       members: state.members,
@@ -76,10 +83,10 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
     }[]
   >([]);
 
-  // Check if assignment is a one-time service (difference between startOn and endAfter < 7 days)
-  const isOneTimeService = assignment 
-    ? differenceInDays(new Date(assignment.endAfter), new Date(assignment.startOn)) < 7
-    : false;
+  // A lead visit is a single day. Other one-time services end within a week of the start.
+  const isOneTimeService =
+    onlyOnce ||
+    (assignment ? differenceInDays(new Date(assignment.endAfter), new Date(assignment.startOn)) < 7 : false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(transferAssignmentsSchema),
@@ -89,7 +96,8 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
       startOn: undefined,
       endAfter: undefined,
       scheduledTo: undefined,
-      isEntireRoute
+      isEntireRoute,
+      frequency: onlyOnce ? 'ONCE' : undefined
     }
   });
 
@@ -111,7 +119,13 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
 
   const handleTransferSuccess = () => {
     setManualLoading(false); // Clear manual loading state
+    if (onlyOnce) {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    }
     form.reset();
+    if (onlyOnce) {
+      form.setValue('frequency', 'ONCE');
+    }
     setOpen(false);
   };
 
@@ -328,7 +342,7 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
   return (
     <>
     <Dialog open={open} onOpenChange={isPending ? undefined : setOpen}>
-      <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-scroll rounded-md md:w-[580px]">
+      <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-x-hidden overflow-y-auto rounded-md md:w-[580px]">
         <DialogTitle className='mb-2'>Transfer assignment</DialogTitle>
         {isPending ? (
           <div className="flex flex-col items-center gap-4 py-8">
@@ -360,7 +374,15 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
                 </div>
 
                 {isOneTimeService ? (
-                  <div className="mt-4 flex gap-4">
+                  <div className="mt-4 flex flex-col gap-4">
+                    {onlyOnce && (
+                      <SelectField
+                        name="frequency"
+                        label="Frequency"
+                        placeholder="Frequency"
+                        options={onlyOnceFrequencyOptions}
+                      />
+                    )}
                     <SelectField
                       label="Scheduled to"
                       name="scheduledTo"

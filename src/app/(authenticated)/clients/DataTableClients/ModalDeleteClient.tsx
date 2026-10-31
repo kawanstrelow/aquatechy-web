@@ -1,3 +1,5 @@
+import { Loader2Icon } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -5,29 +7,29 @@ type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
   handleSubmit: () => void;
+  isPending?: boolean;
 };
 
-export function ModalDeleteClient({ open, setOpen, handleSubmit }: Props) {
+export function ModalDeleteClient({ open, setOpen, handleSubmit, isPending = false }: Props) {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(next) => !isPending && setOpen(next)}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader className="space-y-3">
           <DialogTitle>Are you sure?</DialogTitle>
-          <DialogDescription>This action cannot be undone. Once you delete the client, you will lose all the information related.</DialogDescription>
+          <DialogDescription>
+            This action cannot be undone. Once you delete the client, you will lose all the information related.
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex justify-around">
-          <Button
-            onClick={() => {
-              handleSubmit();
-              setOpen(false);
-            }}
-            className="rounded-md bg-red-500 px-4 py-2 font-bold text-gray-50 hover:bg-red-700"
-          >
+        <div className="flex w-full gap-3">
+          <Button onClick={handleSubmit} disabled={isPending} variant="destructive" className="flex-1">
+            {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
             Delete
           </Button>
           <Button
             onClick={() => setOpen(false)}
-            className="rounded-md bg-gray-500 px-4 py-2 font-bold text-gray-50 hover:bg-gray-700"
+            disabled={isPending}
+            variant="outline"
+            className="flex-1 border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50"
           >
             Cancel
           </Button>
