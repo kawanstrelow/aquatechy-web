@@ -171,7 +171,7 @@ export default function ClientInfo({ client }: { client: Client }) {
             />
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="mt-4 w-full">
             Save
           </Button>
         </form>

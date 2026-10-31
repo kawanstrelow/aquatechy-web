@@ -156,6 +156,13 @@ export const routes: Menu[] = [
         href: '/clients',
         title: 'My Clients'
       },
+      leads: {
+        text: 'Leads',
+        href: '/clients/leads',
+        title: 'Leads',
+        description: 'Track leads, schedule one visit, and convert them into clients',
+        icon: UserPlus
+      },
       addClients: {
         text: 'New Client',
         href: '/clients/new',

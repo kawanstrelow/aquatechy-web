@@ -28,7 +28,7 @@ export function ActionButtons({ client }: ActionButtonsProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  const { mutate: mutateDeleteClient } = useDeleteClient();
+  const { mutate: mutateDeleteClient, isPending: isDeletingClient } = useDeleteClient();
   const shouldDisableNewPools = useUserStore((state) => state.shouldDisableNewPools);
 
   const handleActionSelect = (action: 'view' | 'addPool' | 'delete') => {
@@ -101,11 +101,16 @@ export function ActionButtons({ client }: ActionButtonsProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+      <Dialog open={isDeleteModalOpen} onOpenChange={(open) => !isDeletingClient && setIsDeleteModalOpen(open)}>
         <ModalDeleteClient
           open={isDeleteModalOpen}
           setOpen={setIsDeleteModalOpen}
-          handleSubmit={() => mutateDeleteClient(client.id)}
+          isPending={isDeletingClient}
+          handleSubmit={() =>
+            mutateDeleteClient(client.id, {
+              onSuccess: () => setIsDeleteModalOpen(false)
+            })
+          }
         />
       </Dialog>
     </div>

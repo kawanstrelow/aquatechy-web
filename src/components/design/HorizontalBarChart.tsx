@@ -38,8 +38,16 @@ export function HorizontalBarChart({ items, empty }: HorizontalBarChartProps) {
         const tone = item.tone ?? 'accent';
 
         return (
-          <li key={item.id} className="grid gap-2 sm:grid-cols-[minmax(8rem,14rem)_1fr_auto] sm:items-center">
-            <div className="truncate text-sm font-medium text-ink">{item.label}</div>
+          <li
+            key={item.id}
+            className="grid gap-2 sm:grid-cols-[minmax(8rem,14rem)_1fr_auto] sm:items-center xl:grid-cols-1"
+          >
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              <div className="truncate text-sm font-medium text-ink">{item.label}</div>
+              <span className="hidden shrink-0 text-sm font-semibold tabular-nums text-ink xl:inline">
+                {item.valueLabel ?? item.value}
+              </span>
+            </div>
             <div
               className="h-2 overflow-hidden rounded-full bg-line"
               role="img"
@@ -49,8 +57,10 @@ export function HorizontalBarChart({ items, empty }: HorizontalBarChartProps) {
                 <rect x="0" y="0" width={width} height="8" className={cn(fills[tone])} />
               </svg>
             </div>
-            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-              <span className="text-sm font-semibold tabular-nums text-ink">{item.valueLabel ?? item.value}</span>
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end xl:justify-start">
+              <span className="text-sm font-semibold tabular-nums text-ink xl:hidden">
+                {item.valueLabel ?? item.value}
+              </span>
               {item.detail}
             </div>
           </li>

@@ -19,11 +19,12 @@ import { ShoppingItemStatus, ShoppingListRow } from '@/ts/interfaces/Shopping';
 
 interface ShoppingItemActionsProps {
   item: ShoppingListRow;
+  onEdit: (item: ShoppingListRow) => void;
   onUpdateStatus: (item: ShoppingListRow, status: ShoppingItemStatus) => void;
   onDelete: (item: ShoppingListRow) => void;
 }
 
-export function ShoppingItemActions({ item, onUpdateStatus, onDelete }: ShoppingItemActionsProps) {
+export function ShoppingItemActions({ item, onEdit, onUpdateStatus, onDelete }: ShoppingItemActionsProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleDropdownClick = (e: React.MouseEvent) => {
@@ -39,6 +40,15 @@ export function ShoppingItemActions({ item, onUpdateStatus, onDelete }: Shopping
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onSelect={() => {
+              setIsDropdownOpen(false);
+              onEdit(item);
+            }}
+            className="cursor-pointer"
+          >
+            Edit
+          </DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Update status</DropdownMenuSubTrigger>
             <DropdownMenuSubContent>

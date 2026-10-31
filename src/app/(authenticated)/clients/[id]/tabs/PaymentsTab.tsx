@@ -9,5 +9,9 @@ type Props = {
 };
 
 export default function PaymentsTab({ client }: Props) {
-  return <StripeSaveCardSection client={client} variant="payments" />;
+  return (
+    <div className="w-full self-stretch">
+      <StripeSaveCardSection client={client} variant="payments" />
+    </div>
+  );
 }

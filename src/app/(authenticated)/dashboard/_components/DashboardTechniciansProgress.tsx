@@ -7,6 +7,7 @@ import { TechnicianDailyProgress } from '@/ts/interfaces/Dashboard';
 
 type Props = {
   techniciansProgress: TechnicianDailyProgress[] | undefined;
+  className?: string;
 };
 
 function pctComplete(tech: TechnicianDailyProgress): number {
@@ -21,13 +22,13 @@ function percentClass(percent: number): string {
   return 'text-ink';
 }
 
-export function DashboardTechniciansProgress({ techniciansProgress }: Props) {
+export function DashboardTechniciansProgress({ techniciansProgress, className }: Props) {
   if (techniciansProgress === undefined) {
     return null;
   }
 
   return (
-    <Surface title="Today's route progress" icon={Users}>
+    <Surface title="Today's route progress" icon={Users} className={className}>
       {techniciansProgress.length === 0 ? (
         <EmptyState
           className="px-0 py-6"
@@ -39,7 +40,10 @@ export function DashboardTechniciansProgress({ techniciansProgress }: Props) {
           {techniciansProgress.map((tech) => {
             const percent = pctComplete(tech);
             return (
-              <li key={tech.id} className="grid gap-3 md:grid-cols-[minmax(10rem,16rem)_1fr] md:items-center">
+              <li
+                key={tech.id}
+                className="grid gap-3 md:grid-cols-[minmax(10rem,16rem)_1fr] md:items-center xl:grid-cols-1"
+              >
                 <div className="min-w-0">
                   <p className="truncate font-medium text-ink">
                     {tech.firstName} {tech.lastName}
