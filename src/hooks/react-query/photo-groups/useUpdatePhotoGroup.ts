@@ -4,6 +4,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { UpdatePhotoGroupRequest, PhotoGroupResponse } from '../../../ts/interfaces/PhotoGroups';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -24,14 +26,14 @@ export const useUpdatePhotoGroup = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['photo-groups'] });
       toast({
-        title: 'Photo group updated successfully',
+        title: translateMessage('toasts.photoGroupUpdatedSuccessfully', 'Photo group updated successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating photo group',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingPhotoGroup', 'Error updating photo group'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

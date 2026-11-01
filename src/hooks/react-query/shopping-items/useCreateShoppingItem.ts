@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { CreateShoppingItemRequest, ShoppingItemResponse } from '@/ts/interfaces/Shopping';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -25,14 +27,14 @@ export function useCreateShoppingItem() {
     onSuccess: (_, { companyId }) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items', companyId] });
       toast({
-        title: 'Item added to shopping list',
+        title: translateMessage('toasts.itemAddedToShoppingList', 'Item added to shopping list'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error adding item',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorAddingItem', 'Error adding item'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

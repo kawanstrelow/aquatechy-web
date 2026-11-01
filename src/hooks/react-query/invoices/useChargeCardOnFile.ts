@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { useToast } from '@/components/ui/use-toast';
 import { ChargeCardOnFileResponse } from '@/ts/interfaces/StripeConnect';
 
+import { translateMessage } from '@/i18n/runtime';
+
 /** Allow backend / webhooks time to mark the invoice paid before we refetch. */
 const POST_CHARGE_REFETCH_DELAY_MS = 800;
 const BETWEEN_REFETCHES_DELAY_MS = 500;
@@ -19,9 +21,7 @@ export function useChargeCardOnFile() {
 
   return useMutation({
     mutationFn: async (invoiceId: string) => {
-      const { data } = await clientAxios.post<ChargeCardOnFileResponse>(
-        `/invoices/${invoiceId}/charge-card-on-file`
-      );
+      const { data } = await clientAxios.post<ChargeCardOnFileResponse>(`/invoices/${invoiceId}/charge-card-on-file`);
       return data;
     },
     onSuccess: async (data, invoiceId) => {
@@ -39,7 +39,7 @@ export function useChargeCardOnFile() {
       const msg = error.response?.data?.message;
       toast({
         variant: 'error',
-        title: 'Charge failed',
+        title: translateMessage('toasts.chargeFailed', 'Charge failed'),
         description: Array.isArray(msg) ? msg.join(', ') : msg || error.message
       });
     }

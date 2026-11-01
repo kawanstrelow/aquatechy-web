@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { IoCopy } from 'react-icons/io5';
 
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ type Props = {
 
 export function CopyToClipboard({ value, Icon }: Props) {
   const { toast } = useToast();
+  const t = useTranslations('clients');
 
   return (
     <div className="flex w-full items-center gap-2 text-gray-400">
@@ -20,7 +22,7 @@ export function CopyToClipboard({ value, Icon }: Props) {
         onClick={() => {
           navigator.clipboard.writeText(value);
           toast({
-            title: 'Copied successfully!',
+            title: t('service.copied'),
             variant: 'success',
             duration: 2000
           });

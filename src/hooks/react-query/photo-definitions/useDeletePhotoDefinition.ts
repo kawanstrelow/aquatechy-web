@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -20,17 +22,16 @@ export const useDeletePhotoDefinition = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['photo-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Photo definition deleted successfully',
+        title: translateMessage('toasts.photoDefinitionDeletedSuccessfully', 'Photo definition deleted successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error deleting photo definition',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorDeletingPhotoDefinition', 'Error deleting photo definition'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }
   });
 };
-

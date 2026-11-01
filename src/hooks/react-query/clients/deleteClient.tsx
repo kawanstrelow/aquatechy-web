@@ -6,6 +6,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { useRouter } from 'next/navigation';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeleteClient = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -36,7 +38,7 @@ export const useDeleteClient = () => {
 
       toast({
         duration: 5000,
-        title: 'Client deleted successfully',
+        title: translateMessage('toasts.clientDeletedSuccessfully', 'Client deleted successfully'),
         variant: 'success'
       });
     },
@@ -48,8 +50,10 @@ export const useDeleteClient = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error deleting client',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorDeletingClient', 'Error deleting client'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

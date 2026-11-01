@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { useToast } from '@/components/ui/use-toast';
 import { ClientSetupCheckoutResponse } from '@/ts/interfaces/StripeConnect';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export function useCompanySetupCheckout() {
   const { toast } = useToast();
 
@@ -19,7 +21,7 @@ export function useCompanySetupCheckout() {
       const msg = error.response?.data?.message;
       toast({
         variant: 'error',
-        title: 'Could not create save-card link',
+        title: translateMessage('toasts.couldNotCreateSaveCardLink', 'Could not create save-card link'),
         description: Array.isArray(msg) ? msg.join(', ') : msg || error.message
       });
     }

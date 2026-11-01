@@ -2,14 +2,7 @@
 
 import { format } from 'date-fns';
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DetailedEstimate } from '../utils/estimateUiTypes';
 
 interface EstimatePreviewProps {
@@ -99,8 +92,7 @@ export function EstimatePreview({ estimate }: EstimatePreviewProps) {
                   {format(new Date(estimate.issuedDate), 'MMM dd, yyyy')}
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-500">Valid Until:</span>
-                  {' '}
+                  <span className="font-semibold text-gray-500">Valid Until:</span>{' '}
                   {format(new Date(estimate.validUntil), 'MMM dd, yyyy')}
                 </div>
               </div>

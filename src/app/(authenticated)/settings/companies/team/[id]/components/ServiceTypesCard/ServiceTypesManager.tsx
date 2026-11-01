@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 import { useIsMutating } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -38,6 +40,8 @@ interface ServiceTypesManagerProps {
 }
 
 export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
+  const t = useTranslations('settings');
+
   const [editingServiceType, setEditingServiceType] = useState<ServiceType | null>(null);
   const [deletingServiceType, setDeletingServiceType] = useState<ServiceType | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -60,8 +64,7 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
   const { mutate: linkSelectorGroup } = useLinkSelectorGroup();
   const { mutate: unlinkSelectorGroup } = useUnlinkSelectorGroup();
 
-  const isLinkingGroups =
-    useIsMutating({ mutationKey: ['service-type-groups'] }) > 0;
+  const isLinkingGroups = useIsMutating({ mutationKey: ['service-type-groups'] }) > 0;
 
   const serviceTypes = serviceTypesData?.serviceTypes || [];
   const checklistTemplates = checklistTemplatesData?.templates || [];
@@ -73,9 +76,9 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
   // Helper function to get checklist template name by ID
   const getChecklistTemplateName = (serviceType: ServiceType) => {
     const templateId = serviceType.checklistTemplateId || serviceType.defaultChecklistId;
-    if (!templateId) return 'No template';
-    const template = checklistTemplates.find(t => t.id === templateId);
-    return template?.name || 'Unknown template';
+    if (!templateId) return t('serviceTypes.noTemplate');
+    const template = checklistTemplates.find((t) => t.id === templateId);
+    return template?.name || t('serviceTypes.unknownTemplate');
   };
 
   const handleCreateServiceType = (data: CreateServiceTypeRequest) => {
@@ -88,11 +91,14 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
 
   const handleUpdateServiceType = (data: UpdateServiceTypeRequest) => {
     if (editingServiceType) {
-      updateServiceType({ serviceTypeId: editingServiceType.id, data }, {
-        onSuccess: () => {
-          setEditingServiceType(null);
+      updateServiceType(
+        { serviceTypeId: editingServiceType.id, data },
+        {
+          onSuccess: () => {
+            setEditingServiceType(null);
+          }
         }
-      });
+      );
     }
   };
 
@@ -147,30 +153,30 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
   }
 
   return (
-    <div className="space-y-4 mt-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+    <div className="mt-4 space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Service Types</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-lg font-semibold">{t('serviceTypes.title')}</h3>
+          <p className="text-muted-foreground text-sm">
             Manage service types that can be selected when creating service reports
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} disabled={isCreating}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Service Type
+          <Plus className="mr-2 h-4 w-4" />
+          {t('serviceTypes.add')}
         </Button>
       </div>
 
       {serviceTypes.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="text-muted-foreground mb-2">No service types</div>
-            <p className="text-sm text-muted-foreground text-center mb-4">
+            <div className="text-muted-foreground mb-2">{t('serviceTypes.empty')}</div>
+            <p className="text-muted-foreground mb-4 text-center text-sm">
               Create service types to categorize your services (e.g., Pool Cleaning, Maintenance, etc.).
             </p>
             <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Service Type
+              <Plus className="mr-2 h-4 w-4" />
+              {t('serviceTypes.createFirst')}
             </Button>
           </CardContent>
         </Card>
@@ -179,9 +185,9 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('fields.name')}</TableHead>
+                <TableHead>{t('fields.description')}</TableHead>
+                <TableHead className="text-right">{t('fields.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -191,8 +197,8 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
                     <div className="font-medium">{serviceType.name}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-muted-foreground">
-                      {serviceType.description || 'No description'}
+                    <div className="text-muted-foreground text-sm">
+                      {serviceType.description || t('fields.noDescription')}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -202,7 +208,7 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
                       onClick={() => setEditingServiceType(serviceType)}
                       disabled={isUpdating}
                       className="h-8 w-8 p-0"
-                      title="Configure Service Type"
+                      title={t('serviceTypes.configure')}
                     >
                       <Settings className="h-4 w-4" />
                     </Button>
@@ -251,13 +257,12 @@ export function ServiceTypesManager({ companyId }: ServiceTypesManagerProps) {
         onUnlinkSelectorGroup={handleUnlinkSelectorGroup}
       />
 
-
       {/* Delete Confirmation */}
       <ConfirmActionDialog
         open={!!deletingServiceType}
         onOpenChange={() => setDeletingServiceType(null)}
-        title="Delete Service Type"
-        description={`Are you sure you want to delete "${deletingServiceType?.name}"? This action cannot be undone and may affect existing services.`}
+        title={t('serviceTypes.deleteTitle')}
+        description={t('confirm.deleteAffectsServices', { name: deletingServiceType?.name ?? '' })}
         onConfirm={handleDeleteServiceType}
         variant="destructive"
       />

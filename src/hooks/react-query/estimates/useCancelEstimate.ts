@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { CancelEstimateResponse } from '@/ts/interfaces/Estimate';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useCancelEstimate = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -20,7 +22,7 @@ export const useCancelEstimate = () => {
 
       toast({
         duration: 2000,
-        title: 'Estimate cancelled',
+        title: translateMessage('toasts.estimateCancelled', 'Estimate cancelled'),
         variant: 'success'
       });
     },
@@ -28,12 +30,12 @@ export const useCancelEstimate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to cancel estimate';
+        : errorMessage || translateMessage('toasts.failedToCancelEstimate', 'Failed to cancel estimate');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error cancelling estimate',
+        title: translateMessage('toasts.errorCancellingEstimate', 'Error cancelling estimate'),
         description: message
       });
     }

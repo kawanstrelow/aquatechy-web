@@ -1,39 +1,40 @@
 'use client';
 
-import { useMemo } from 'react';
 import { format } from 'date-fns';
+import { useMemo } from 'react';
 
+import { translateMessage } from '@/i18n/runtime';
 import { MaintenanceType } from '@/ts/enums/enums';
 import { MaintenanceHistory } from '@/ts/interfaces/Pool';
 
 import { ViewingPhoto } from './PhotoViewerDialog';
 
 const FILTER_MAINTENANCE_TITLES: Record<string, string> = {
-  [MaintenanceType.Cleaning]: 'Filter was cleaned',
-  [MaintenanceType.Replacement]: 'Filter was replaced',
-  [MaintenanceType.Inspection]: 'Filter was inspected',
-  [MaintenanceType.Installation]: 'Filter was installed',
-  [MaintenanceType.Adjustment]: 'Filter was adjusted',
-  [MaintenanceType.Other]: 'Filter maintenance'
+  [MaintenanceType.Cleaning]: 'clients.equipment.filterCleaned',
+  [MaintenanceType.Replacement]: 'clients.equipment.filterReplaced',
+  [MaintenanceType.Inspection]: 'clients.equipment.filterInspected',
+  [MaintenanceType.Installation]: 'clients.equipment.filterInstalled',
+  [MaintenanceType.Adjustment]: 'clients.equipment.filterAdjusted',
+  [MaintenanceType.Other]: 'clients.equipment.filterMaintenance'
 };
 
 const SALT_MAINTENANCE_TITLES: Record<string, string> = {
-  [MaintenanceType.Cleaning]: 'Salt cell was cleaned',
-  [MaintenanceType.Replacement]: 'Salt cell was replaced',
-  [MaintenanceType.Inspection]: 'Salt cell was inspected',
-  [MaintenanceType.Installation]: 'Salt cell was installed',
-  [MaintenanceType.Adjustment]: 'Salt cell was adjusted',
-  [MaintenanceType.Other]: 'Salt cell maintenance'
+  [MaintenanceType.Cleaning]: 'clients.equipment.saltCleaned',
+  [MaintenanceType.Replacement]: 'clients.equipment.saltReplaced',
+  [MaintenanceType.Inspection]: 'clients.equipment.saltInspected',
+  [MaintenanceType.Installation]: 'clients.equipment.saltInstalled',
+  [MaintenanceType.Adjustment]: 'clients.equipment.saltAdjusted',
+  [MaintenanceType.Other]: 'clients.equipment.saltMaintenance'
 };
 
 const EMPTY_DESCRIPTIONS = {
-  filter: 'Records appear here after filter cleanings and replacements.',
-  saltSystem: 'Records appear here after salt-cell cleanings.'
+  filter: 'clients.equipment.filterRecordsHint',
+  saltSystem: 'clients.equipment.saltRecordsHint'
 };
 
 function getMaintenanceTitle(titles: Record<string, string>, fallback: string, type?: MaintenanceType | string) {
-  if (!type) return fallback;
-  return titles[type] ?? type;
+  if (!type) return translateMessage(fallback, fallback);
+  return translateMessage(titles[type] ?? '', type);
 }
 
 function isSlugNote(notes?: string) {
@@ -53,7 +54,8 @@ export function MaintenanceRecordsTab({
   onViewPhoto
 }: MaintenanceRecordsTabProps) {
   const titles = variant === 'saltSystem' ? SALT_MAINTENANCE_TITLES : FILTER_MAINTENANCE_TITLES;
-  const fallbackTitle = variant === 'saltSystem' ? 'Salt cell maintenance' : 'Filter maintenance';
+  const fallbackTitle =
+    variant === 'saltSystem' ? 'clients.equipment.saltMaintenance' : 'clients.equipment.filterMaintenance';
 
   const records = useMemo(() => {
     return [...(maintenanceHistory ?? [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -62,8 +64,10 @@ export function MaintenanceRecordsTab({
   if (records.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-gray-200 px-6 py-10 text-center">
-        <p className="text-sm text-gray-500">No maintenance records yet.</p>
-        <p className="mt-1 text-xs text-gray-400">{EMPTY_DESCRIPTIONS[variant]}</p>
+        <p className="text-sm text-gray-500">
+          {translateMessage('clients.equipment.noRecords', 'No maintenance records yet.')}
+        </p>
+        <p className="mt-1 text-xs text-gray-400">{translateMessage(EMPTY_DESCRIPTIONS[variant], '')}</p>
       </div>
     );
   }
@@ -97,7 +101,10 @@ export function MaintenanceRecordsTab({
                     onClick={() =>
                       onViewPhoto({
                         url: photo,
-                        alt: `Maintenance photo ${photoIndex + 1}`,
+                        alt: translateMessage(
+                          'clients.equipment.maintenancePhoto',
+                          'Maintenance photo {index}'
+                        ).replace('{index}', String(photoIndex + 1)),
                         index: photoIndex
                       })
                     }
@@ -105,7 +112,10 @@ export function MaintenanceRecordsTab({
                   >
                     <img
                       src={photo}
-                      alt={`Maintenance photo ${photoIndex + 1}`}
+                      alt={translateMessage('clients.equipment.maintenancePhoto', 'Maintenance photo {index}').replace(
+                        '{index}',
+                        String(photoIndex + 1)
+                      )}
                       className="h-20 w-20 object-cover transition-opacity hover:opacity-80"
                     />
                   </button>

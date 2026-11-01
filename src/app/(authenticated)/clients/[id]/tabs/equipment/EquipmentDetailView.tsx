@@ -1,8 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
+import { translateMessage } from '@/i18n/runtime';
 import { Button } from '@/components/ui/button';
 import { Filter } from '@/ts/interfaces/Pool';
 
@@ -24,9 +26,17 @@ interface EquipmentDetailViewProps {
 }
 
 export function EquipmentDetailView({ filter, poolId, clientId, onBack }: EquipmentDetailViewProps) {
+  const t = useTranslations('clients');
   const [viewingPhoto, setViewingPhoto] = useState<ViewingPhoto | null>(null);
   const [tab, setTab] = useState<DetailTab>('detail');
-  const subtitle = filter?.model || filter?.type;
+  const typeKeys: Record<string, string> = {
+    Sand: 'clients.equipment.sand',
+    Cartridge: 'clients.equipment.cartridge',
+    DE: 'clients.equipment.de',
+    Other: 'clients.equipment.other'
+  };
+  const subtitle =
+    filter?.model || (filter?.type ? translateMessage(typeKeys[filter.type] ?? '', filter.type) : undefined);
 
   return (
     <>
@@ -38,7 +48,7 @@ export function EquipmentDetailView({ filter, poolId, clientId, onBack }: Equipm
             size="icon"
             onClick={onBack}
             className="-ml-2 shrink-0 text-gray-600 hover:text-gray-900"
-            aria-label="Back to equipment"
+            aria-label={t('equipment.back')}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -46,7 +56,7 @@ export function EquipmentDetailView({ filter, poolId, clientId, onBack }: Equipm
             <PoolFilterIcon className="h-9 w-9" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Filter</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('equipment.filter')}</h3>
             {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
           </div>
         </div>
@@ -58,14 +68,14 @@ export function EquipmentDetailView({ filter, poolId, clientId, onBack }: Equipm
               onClick={() => setTab('detail')}
               className={`${tabStyles} ${tab === 'detail' ? activeTabStyles : 'text-gray-500'}`}
             >
-              Equipment Detail
+              {t('equipment.detail')}
             </button>
             <button
               type="button"
               onClick={() => setTab('maintenance')}
               className={`${tabStyles} ${tab === 'maintenance' ? activeTabStyles : 'text-gray-500'}`}
             >
-              Maintenance Records
+              {t('equipment.maintenance')}
             </button>
           </div>
         </div>

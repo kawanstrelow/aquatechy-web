@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type AccountExistsResponse = {
   exists: boolean;
 };
@@ -18,7 +20,7 @@ function errorDescription(message?: string | string[]) {
     if (text) return text;
   }
   if (typeof message === 'string' && message.length > 0) return message;
-  return 'Internal server error';
+  return translateMessage('toasts.internalServerError', 'Internal server error');
 }
 
 export const useCheckAccountExists = () => {
@@ -32,7 +34,7 @@ export const useCheckAccountExists = () => {
     onError: (error: AxiosError<AccountExistsError>) => {
       toast({
         variant: 'error',
-        title: 'Could not check this email.',
+        title: translateMessage('toasts.couldNotCheckThisEmail', 'Could not check this email.'),
         description: errorDescription(error.response?.data?.message)
       });
     }

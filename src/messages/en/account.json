@@ -1,0 +1,26 @@
+{
+  "deleteAccount": "Delete account",
+  "deleteWarning": "Deleting your account will remove all your information from our database.",
+  "deleteWarningIrreversible": "This action cannot be undone.",
+  "typeDeleteToConfirm": "Type DELETE to confirm",
+  "changePassword": "Change password",
+  "changePasswordDescription": "Change your account password",
+  "currentPassword": "Current password",
+  "currentPasswordPlaceholder": "Your current password",
+  "newPassword": "New password",
+  "newPasswordPlaceholder": "New password",
+  "confirmNewPassword": "Confirm new password",
+  "confirmNewPasswordPlaceholder": "Confirm new password",
+  "change": "Change",
+  "confirmPasswordTitle": "Change your password?",
+  "confirmPasswordDescription": "Your current password will be replaced.",
+  "passwordUpdated": "Password updated successfully",
+  "errorUpdatingPassword": "Error updating password",
+  "validation": {
+    "currentPasswordRequired": "Password is required",
+    "newPasswordRequired": "New password is required",
+    "newPasswordMin": "New password must be at least 8 characters",
+    "confirmPasswordRequired": "New password confirmation is required",
+    "passwordMismatch": "New password and new password confirmation do not match"
+  }
+}

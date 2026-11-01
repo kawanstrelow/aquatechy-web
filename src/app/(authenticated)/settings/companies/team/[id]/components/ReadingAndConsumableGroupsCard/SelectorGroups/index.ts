@@ -7,4 +7,3 @@ export { CreateSelectorDefinitionDialog } from './CreateSelectorDefinitionDialog
 export { EditSelectorDefinitionDialog } from './EditSelectorDefinitionDialog';
 export { CreateSelectorOptionDialog } from './CreateSelectorOptionDialog';
 export { EditSelectorOptionDialog } from './EditSelectorOptionDialog';
-

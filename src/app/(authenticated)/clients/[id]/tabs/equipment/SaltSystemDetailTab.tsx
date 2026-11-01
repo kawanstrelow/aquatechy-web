@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
@@ -8,6 +9,7 @@ import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Pencil } from 'lucide-react';
 
+import { translateMessage } from '@/i18n/runtime';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import InputField from '@/components/InputField';
@@ -49,9 +51,12 @@ function getSaltSystemFormValues(saltSystem: SaltSystem | null | undefined): Sal
 }
 
 function formatCondition(condition?: EquipmentCondition | null) {
-  if (!condition) return 'Not specified';
-  if (condition === EquipmentCondition.NeedsReplacement) return 'Needs Replacement';
-  return condition;
+  if (!condition) return translateMessage('clients.shared.notSpecified', 'Not specified');
+  if (condition === EquipmentCondition.NeedsReplacement) {
+    return translateMessage('clients.equipment.needsReplacement', 'Needs Replacement');
+  }
+  const key = condition.charAt(0).toLowerCase() + condition.slice(1);
+  return translateMessage(`clients.equipment.${key}`, condition);
 }
 
 function DetailField({ label, value, onEdit }: { label: string; value: string; onEdit: () => void }) {
@@ -59,7 +64,7 @@ function DetailField({ label, value, onEdit }: { label: string; value: string; o
     <button
       type="button"
       onClick={onEdit}
-      aria-label={`Edit ${label}`}
+      aria-label={translateMessage('clients.equipment.editField', 'Edit {label}').replace('{label}', label)}
       className="group relative w-full rounded-lg border border-gray-100 bg-gray-50/70 px-4 py-3 text-left transition-colors hover:border-sky-200 hover:bg-sky-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
     >
       <Pencil
@@ -80,6 +85,7 @@ interface SaltSystemDetailTabProps {
 }
 
 export function SaltSystemDetailTab({ saltSystem, poolId, clientId, onViewPhoto }: SaltSystemDetailTabProps) {
+  const t = useTranslations('clients');
   const [isEditing, setIsEditing] = useState(false);
   const [focusField, setFocusField] = useState<keyof SaltSystemFormValues | null>(null);
   const { mutate: updateSaltSystem, isPending } = useUpdateSaltSystem();
@@ -150,52 +156,56 @@ export function SaltSystemDetailTab({ saltSystem, poolId, clientId, onViewPhoto 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <InputField name="model" label="Model" placeholder="Enter model" />
-            <InputField name="serialNumber" label="Serial Number" placeholder="Enter serial number" />
+            <InputField name="model" label={t('equipment.model')} placeholder={t('equipment.enterModel')} />
+            <InputField
+              name="serialNumber"
+              label={t('equipment.serialNumber')}
+              placeholder={t('equipment.enterSerial')}
+            />
             <SelectField
               name="status"
-              label="Status"
-              placeholder="Select status"
+              label={t('fields.status')}
+              placeholder={t('equipment.selectStatus')}
               options={[
-                { key: 'Active', value: 'Active', name: 'Active' },
-                { key: 'Inactive', value: 'Inactive', name: 'Inactive' }
+                { key: 'Active', value: 'Active', name: t('shared.active') },
+                { key: 'Inactive', value: 'Inactive', name: t('shared.inactive') }
               ]}
             />
             <SelectField
               name="condition"
-              label="Condition"
-              placeholder="Select condition"
+              label={t('equipment.condition')}
+              placeholder={t('equipment.selectCondition')}
               options={[
-                { key: 'Excellent', value: 'Excellent', name: 'Excellent' },
-                { key: 'Good', value: 'Good', name: 'Good' },
-                { key: 'Fair', value: 'Fair', name: 'Fair' },
-                { key: 'Poor', value: 'Poor', name: 'Poor' },
-                { key: 'NeedsReplacement', value: 'NeedsReplacement', name: 'Needs Replacement' }
+                { key: 'Excellent', value: 'Excellent', name: t('equipment.excellent') },
+                { key: 'Good', value: 'Good', name: t('equipment.good') },
+                { key: 'Fair', value: 'Fair', name: t('equipment.fair') },
+                { key: 'Poor', value: 'Poor', name: t('equipment.poor') },
+                { key: 'NeedsReplacement', value: 'NeedsReplacement', name: t('equipment.needsReplacement') }
               ]}
             />
             <InputField
               name="recommendedCleaningIntervalDays"
-              label="Cleaning Interval (Days)"
+              label={t('equipment.cleaningInterval')}
               type={FieldType.Number}
-              placeholder="Enter days"
+              placeholder={t('equipment.enterDays')}
             />
             <InputField
               name="lastCleaningDate"
-              label="Last Cleaning Date"
+              label={t('equipment.lastCleaningDate')}
               type={FieldType.Date}
-              placeholder="Select date"
+              placeholder={t('shared.selectDate')}
             />
             <InputField
               name="warrantyExpirationDate"
-              label="Warranty Expiration"
+              label={t('equipment.warrantyExpiration')}
               type={FieldType.Date}
-              placeholder="Enter date"
+              placeholder={t('equipment.enterDate')}
             />
             <InputField
               name="replacementDate"
-              label="Replacement Date"
+              label={t('equipment.replacementDate')}
               type={FieldType.Date}
-              placeholder="Enter date"
+              placeholder={t('equipment.enterDate')}
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -211,7 +221,7 @@ export function SaltSystemDetailTab({ saltSystem, poolId, clientId, onViewPhoto 
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Changes'}
+              {isPending ? t('shared.saving') : t('shared.saveChanges')}
             </Button>
           </div>
         </form>
@@ -222,51 +232,65 @@ export function SaltSystemDetailTab({ saltSystem, poolId, clientId, onViewPhoto 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <DetailField label="Model" value={saltSystem?.model || 'Not specified'} onEdit={() => startEditing('model')} />
         <DetailField
-          label="Serial Number"
-          value={saltSystem?.serialNumber || 'Not specified'}
+          label={t('equipment.model')}
+          value={saltSystem?.model || t('shared.notSpecified')}
+          onEdit={() => startEditing('model')}
+        />
+        <DetailField
+          label={t('equipment.serialNumber')}
+          value={saltSystem?.serialNumber || t('shared.notSpecified')}
           onEdit={() => startEditing('serialNumber')}
         />
         <DetailField
-          label="Status"
-          value={saltSystem?.status || 'Not specified'}
+          label={t('fields.status')}
+          value={
+            saltSystem?.status === 'Active'
+              ? t('shared.active')
+              : saltSystem?.status === 'Inactive'
+                ? t('shared.inactive')
+                : saltSystem?.status || t('shared.notSpecified')
+          }
           onEdit={() => startEditing('status')}
         />
         <DetailField
-          label="Condition"
+          label={t('equipment.condition')}
           value={formatCondition(saltSystem?.condition)}
           onEdit={() => startEditing('condition')}
         />
         <DetailField
-          label="Recommended Cleaning Interval"
+          label={t('equipment.recommendedInterval')}
           value={
             saltSystem?.recommendedCleaningIntervalDays
-              ? `${saltSystem.recommendedCleaningIntervalDays} days`
-              : 'Not specified'
+              ? t('equipment.daysCount', { count: saltSystem.recommendedCleaningIntervalDays })
+              : t('shared.notSpecified')
           }
           onEdit={() => startEditing('recommendedCleaningIntervalDays')}
         />
         <DetailField
-          label="Last Cleaning Date"
+          label={t('equipment.lastCleaningDate')}
           value={
-            saltSystem?.lastCleaningDate ? format(new Date(saltSystem.lastCleaningDate), 'MM/dd/yyyy') : 'Not specified'
+            saltSystem?.lastCleaningDate
+              ? format(new Date(saltSystem.lastCleaningDate), 'MM/dd/yyyy')
+              : t('shared.notSpecified')
           }
           onEdit={() => startEditing('lastCleaningDate')}
         />
         <DetailField
-          label="Replacement Date"
+          label={t('equipment.replacementDate')}
           value={
-            saltSystem?.replacementDate ? format(new Date(saltSystem.replacementDate), 'MM/dd/yyyy') : 'Not recorded'
+            saltSystem?.replacementDate
+              ? format(new Date(saltSystem.replacementDate), 'MM/dd/yyyy')
+              : t('shared.notRecorded')
           }
           onEdit={() => startEditing('replacementDate')}
         />
         <DetailField
-          label="Warranty Expires"
+          label={t('equipment.warrantyExpires')}
           value={
             saltSystem?.warrantyExpirationDate
               ? format(new Date(saltSystem.warrantyExpirationDate), 'MM/dd/yyyy')
-              : 'Not recorded'
+              : t('shared.notRecorded')
           }
           onEdit={() => startEditing('warrantyExpirationDate')}
         />
@@ -274,18 +298,18 @@ export function SaltSystemDetailTab({ saltSystem, poolId, clientId, onViewPhoto 
 
       {photos.length > 0 && (
         <div>
-          <h4 className="mb-2 text-sm font-medium text-gray-500">Equipment Photos</h4>
+          <h4 className="mb-2 text-sm font-medium text-gray-500">{t('equipment.photos')}</h4>
           <div className="flex flex-wrap gap-3">
             {photos.map((photo, index) => (
               <button
                 key={`${photo}-${index}`}
                 type="button"
-                onClick={() => onViewPhoto({ url: photo, alt: `Salt system photo ${index + 1}`, index })}
+                onClick={() => onViewPhoto({ url: photo, alt: t('equipment.saltPhoto', { index: index + 1 }), index })}
                 className="overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
               >
                 <img
                   src={photo}
-                  alt={`Salt system photo ${index + 1}`}
+                  alt={t('equipment.saltPhoto', { index: index + 1 })}
                   className="h-24 w-24 object-cover transition-opacity hover:opacity-80"
                 />
               </button>

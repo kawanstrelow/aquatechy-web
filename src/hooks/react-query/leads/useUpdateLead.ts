@@ -8,6 +8,8 @@ import { UpdateLeadRequest } from '@/ts/interfaces/Lead';
 import { getLeadErrorMessage } from './apiError';
 import { asLead } from './leadResponse';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export function useUpdateLead() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -21,7 +23,7 @@ export function useUpdateLead() {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       toast({
         duration: 5000,
-        title: 'Lead updated',
+        title: translateMessage('toasts.leadUpdated', 'Lead updated'),
         variant: 'success'
       });
     },
@@ -29,8 +31,8 @@ export function useUpdateLead() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating lead',
-        description: getLeadErrorMessage(error, 'Internal server error')
+        title: translateMessage('toasts.errorUpdatingLead', 'Error updating lead'),
+        description: getLeadErrorMessage(error, translateMessage('toasts.internalServerError', 'Internal server error'))
       });
     }
   });

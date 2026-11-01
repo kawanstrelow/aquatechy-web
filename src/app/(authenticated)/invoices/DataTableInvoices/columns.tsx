@@ -2,6 +2,9 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+
+import { translateMessage } from '@/i18n/runtime';
+
 import { InvoiceListRow } from '../utils/fakeData';
 import { InvoiceActions } from './components/InvoiceActions';
 
@@ -38,18 +41,14 @@ export const createColumns = (
 ): ColumnDef<InvoiceListRow>[] => [
   {
     accessorKey: 'invoiceNumber',
-    header: 'Invoice Number',
-    cell: ({ row }) => (
-      <div className="font-semibold text-gray-900">{row.original.invoiceNumber}</div>
-    ),
+    header: () => translateMessage('invoices.columns.invoiceNumber', 'Invoice Number'),
+    cell: ({ row }) => <div className="font-semibold text-gray-900">{row.original.invoiceNumber}</div>,
     enableGlobalFilter: true
   },
   {
     accessorKey: 'clientName',
-    header: 'Client',
-    cell: ({ row }) => (
-      <div className="font-medium text-gray-900">{row.original.clientName}</div>
-    ),
+    header: () => translateMessage('invoices.columns.client', 'Client'),
+    cell: ({ row }) => <div className="font-medium text-gray-900">{row.original.clientName}</div>,
     enableGlobalFilter: true,
     filterFn: (row, _, filter) => {
       if (filter === 'all' || filter === '' || !filter) {
@@ -60,17 +59,15 @@ export const createColumns = (
   },
   {
     accessorKey: 'issuedDate',
-    header: 'Issued Date',
-    cell: ({ row }) => (
-      <div className="text-gray-700">{format(new Date(row.original.issuedDate), 'MMM dd, yyyy')}</div>
-    ),
+    header: () => translateMessage('invoices.columns.issuedDate', 'Issued Date'),
+    cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.issuedDate), 'MMM dd, yyyy')}</div>,
     filterFn: (row, columnId, value) => {
       const [start, end] = value || [];
       const date = new Date(row.original.issuedDate);
-      
+
       if ((start || end) && !date) return false;
       if (!date) return false;
-      
+
       if (start && !end) {
         return date.getTime() >= start.getTime();
       } else if (!start && end) {
@@ -83,17 +80,15 @@ export const createColumns = (
   },
   {
     accessorKey: 'dueDate',
-    header: 'Due Date',
-    cell: ({ row }) => (
-      <div className="text-gray-700">{format(new Date(row.original.dueDate), 'MMM dd, yyyy')}</div>
-    ),
+    header: () => translateMessage('invoices.columns.dueDate', 'Due Date'),
+    cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.dueDate), 'MMM dd, yyyy')}</div>,
     filterFn: (row, columnId, value) => {
       const [start, end] = value || [];
       const date = new Date(row.original.dueDate);
-      
+
       if ((start || end) && !date) return false;
       if (!date) return false;
-      
+
       if (start && !end) {
         return date.getTime() >= start.getTime();
       } else if (!start && end) {
@@ -106,24 +101,22 @@ export const createColumns = (
   },
   {
     accessorKey: 'amount',
-    header: 'Amount',
-    cell: ({ row }) => (
-      <div className="font-semibold text-gray-900">${row.original.amount.toFixed(2)}</div>
-    )
+    header: () => translateMessage('invoices.columns.amount', 'Amount'),
+    cell: ({ row }) => <div className="font-semibold text-gray-900">${row.original.amount.toFixed(2)}</div>
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: () => translateMessage('invoices.columns.status', 'Status'),
     cell: ({ row }) => {
-      const statusConfig = statusOptions[row.original.status] || { 
+      const statusConfig = statusOptions[row.original.status] || {
         className: 'bg-gray-100 text-gray-600',
-        label: row.original.status 
+        label: row.original.status
       };
       return (
         <div
           className={`inline-flex max-w-28 items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold ${statusConfig.className}`}
         >
-          {statusConfig.label}
+          {translateMessage(`invoices.status.${row.original.status}`, statusConfig.label)}
         </div>
       );
     },
@@ -136,7 +129,7 @@ export const createColumns = (
   },
   {
     id: 'actions',
-    header: 'Actions',
+    header: () => translateMessage('invoices.columns.actions', 'Actions'),
     cell: ({ row }) => (
       <InvoiceActions
         invoice={row.original}
@@ -150,4 +143,3 @@ export const createColumns = (
     )
   }
 ];
-

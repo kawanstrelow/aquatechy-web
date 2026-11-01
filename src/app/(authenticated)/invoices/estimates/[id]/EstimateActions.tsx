@@ -1,20 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { addDays } from 'date-fns';
-import {
-  ArrowLeft,
-  Send,
-  Download,
-  Edit,
-  Ban,
-  CheckCircle,
-  XCircle,
-  Copy,
-  FileText,
-  Loader2
-} from 'lucide-react';
+import { ArrowLeft, Send, Download, Edit, Ban, CheckCircle, XCircle, Copy, FileText, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
@@ -68,6 +58,7 @@ export function EstimateActions({
   isDuplicating = false,
   smsEnabled = false
 }: EstimateActionsProps) {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [showAcceptDialog, setShowAcceptDialog] = useState(false);
@@ -82,18 +73,23 @@ export function EstimateActions({
   const showCancel = estimate.status !== 'accepted' && estimate.status !== 'cancelled';
   const showViewInvoice = estimate.status === 'accepted' && !!estimate.convertedInvoiceId;
   const sendButtonLabel =
-    estimate.status === 'sent' ? (smsEnabled ? 'Re-send estimate' : 'Re-send Email') : 'Send to Client';
+    estimate.status === 'sent'
+      ? smsEnabled
+        ? t('estimateDetail.resendEstimate')
+        : t('estimateDetail.resendEmail')
+      : t('estimateDetail.sendToClient');
   const sendDialogTitle = smsEnabled
     ? estimate.status === 'sent'
-      ? 'Re-send estimate'
-      : 'Send estimate'
+      ? t('estimateDetail.resendEstimate')
+      : t('estimateDetail.sendEstimate')
     : estimate.status === 'sent'
-      ? 'Re-send estimate email'
-      : 'Send estimate email';
+      ? t('estimateDetail.resendEstimateEmail')
+      : t('estimateDetail.sendEstimateEmail');
+  const sendTarget = { number: estimate.estimateNumber, name: estimate.clientName };
   const sendDialogDescription = smsEnabled
-    ? `Send estimate #${estimate.estimateNumber} to ${estimate.clientName} via email and SMS? SMS is sent only if the client has a phone number.`
-    : `Send estimate #${estimate.estimateNumber} to ${estimate.clientName}?`;
-  const sendConfirmText = smsEnabled ? 'Send estimate' : 'Send Email';
+    ? t('estimateDetail.sendSmsDescription', sendTarget)
+    : t('estimateDetail.sendDescription', sendTarget);
+  const sendConfirmText = smsEnabled ? t('estimateDetail.sendEstimate') : t('estimateDetail.sendEmail');
 
   const handleBack = () => router.push('/invoices/estimates');
 
@@ -102,13 +98,13 @@ export function EstimateActions({
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="outline" onClick={handleBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Estimates
+          {t('actions.backToEstimates')}
         </Button>
 
         {showViewInvoice && onViewInvoice && (
           <Button variant="default" onClick={onViewInvoice}>
             <FileText className="mr-2 h-4 w-4" />
-            View Invoice
+            {t('estimateDetail.viewInvoice')}
           </Button>
         )}
 
@@ -116,7 +112,7 @@ export function EstimateActions({
           <>
             <Button onClick={() => setShowSendDialog(true)} disabled={isSending}>
               <Send className="mr-2 h-4 w-4" />
-              {isSending ? 'Sending...' : sendButtonLabel}
+              {isSending ? t('actions.sending') : sendButtonLabel}
             </Button>
             <ConfirmActionDialog
               open={showSendDialog}
@@ -124,7 +120,7 @@ export function EstimateActions({
               title={sendDialogTitle}
               description={sendDialogDescription}
               confirmText={sendConfirmText}
-              cancelText="Cancel"
+              cancelText={t('actions.cancel')}
               onConfirm={async () => {
                 await onSend();
                 setShowSendDialog(false);
@@ -137,15 +133,15 @@ export function EstimateActions({
           <>
             <Button variant="default" onClick={() => setShowAcceptDialog(true)} disabled={isAccepting}>
               <CheckCircle className="mr-2 h-4 w-4" />
-              {isAccepting ? 'Accepting...' : 'Accept on Behalf'}
+              {isAccepting ? t('actions.accepting') : t('estimateDetail.acceptOnBehalf')}
             </Button>
             <ConfirmActionDialog
               open={showAcceptDialog}
               onOpenChange={setShowAcceptDialog}
-              title="Accept estimate on behalf of client"
-              description={`Accept estimate #${estimate.estimateNumber} for ${estimate.clientName}? A draft invoice will be created.`}
-              confirmText="Accept & Create Invoice"
-              cancelText="Cancel"
+              title={t('estimateDetail.acceptTitle')}
+              description={t('estimateDetail.acceptDescription', sendTarget)}
+              confirmText={t('estimateDetail.acceptConfirm')}
+              cancelText={t('actions.cancel')}
               onConfirm={async () => {
                 await onAccept();
                 setShowAcceptDialog(false);
@@ -158,28 +154,26 @@ export function EstimateActions({
           <>
             <Button variant="outline" onClick={() => setShowDeclineDialog(true)} disabled={isDeclining}>
               <XCircle className="mr-2 h-4 w-4" />
-              {isDeclining ? 'Declining...' : 'Decline'}
+              {isDeclining ? t('actions.declining') : t('actions.decline')}
             </Button>
             <Dialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Decline estimate</DialogTitle>
-                  <DialogDescription>
-                    Record that {estimate.clientName} declined estimate #{estimate.estimateNumber}.
-                  </DialogDescription>
+                  <DialogTitle>{t('estimateDetail.declineTitle')}</DialogTitle>
+                  <DialogDescription>{t('estimateDetail.declineDescription', sendTarget)}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-2 py-2">
-                  <Label htmlFor="decline-reason">Reason (optional)</Label>
+                  <Label htmlFor="decline-reason">{t('fields.reasonOptional')}</Label>
                   <Input
                     id="decline-reason"
                     value={declineReason}
                     onChange={(e) => setDeclineReason(e.target.value)}
-                    placeholder="Decline reason"
+                    placeholder={t('placeholders.declineReason')}
                   />
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setShowDeclineDialog(false)}>
-                    Cancel
+                    {t('actions.cancel')}
                   </Button>
                   <Button
                     variant="destructive"
@@ -191,7 +185,7 @@ export function EstimateActions({
                     }}
                   >
                     {isDeclining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Decline
+                    {t('actions.decline')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -202,14 +196,14 @@ export function EstimateActions({
         {showEdit && onEdit && (
           <Button variant="outline" onClick={onEdit}>
             <Edit className="mr-2 h-4 w-4" />
-            Edit
+            {t('actions.edit')}
           </Button>
         )}
 
         {onDownload && (
           <Button variant="outline" onClick={onDownload} disabled={isDownloading}>
             <Download className="mr-2 h-4 w-4" />
-            {isDownloading ? 'Downloading...' : 'Download PDF'}
+            {isDownloading ? t('actions.downloading') : t('actions.downloadPdf')}
           </Button>
         )}
 
@@ -217,27 +211,27 @@ export function EstimateActions({
           <>
             <Button variant="outline" onClick={() => setShowDuplicateDialog(true)} disabled={isDuplicating}>
               <Copy className="mr-2 h-4 w-4" />
-              Duplicate
+              {t('actions.duplicate')}
             </Button>
             <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Duplicate estimate</DialogTitle>
+                  <DialogTitle>{t('estimateDetail.duplicateTitle')}</DialogTitle>
                   <DialogDescription>
-                    Create a new draft from estimate #{estimate.estimateNumber}. Choose a valid until date.
+                    {t('estimateDetail.duplicateDescription', { number: estimate.estimateNumber })}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-2 py-2">
-                  <Label>Valid Until</Label>
+                  <Label>{t('fields.validUntil')}</Label>
                   <DatePicker
                     value={duplicateValidUntil}
                     onChange={(date) => date && setDuplicateValidUntil(date)}
-                    placeholder="Valid until"
+                    placeholder={t('placeholders.validUntil')}
                   />
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setShowDuplicateDialog(false)}>
-                    Cancel
+                    {t('actions.cancel')}
                   </Button>
                   <Button
                     disabled={isDuplicating}
@@ -247,7 +241,7 @@ export function EstimateActions({
                     }}
                   >
                     {isDuplicating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Duplicate
+                    {t('actions.duplicate')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -263,7 +257,7 @@ export function EstimateActions({
             className="text-red-600 hover:bg-red-50 hover:text-red-700"
           >
             <Ban className="mr-2 h-4 w-4" />
-            {isCancelling ? 'Cancelling…' : 'Cancel Estimate'}
+            {isCancelling ? t('actions.cancelling') : t('estimateDetail.cancelEstimate')}
           </Button>
         )}
       </div>

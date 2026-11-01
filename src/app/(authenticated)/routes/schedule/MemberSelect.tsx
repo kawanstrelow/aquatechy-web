@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useShallow } from 'zustand/react/shallow';
 
 import {
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export default function MemberSelect({ onChange, value, showAllOption, className }: Props) {
+  const t = useTranslations('routes');
   const { assignedToId, members } = useMembersStore(
     useShallow((state) => ({
       assignedToId: state.assignedToId,
@@ -37,11 +39,11 @@ export default function MemberSelect({ onChange, value, showAllOption, className
     <div className={cn('mt-2', className)}>
       <Select onValueChange={handleChange} value={value ?? assignedToId}>
         <SelectTrigger data-testid="select-member">
-          <SelectValue placeholder="Member" />
+          <SelectValue placeholder={t('member')} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            {showAllOption && <SelectItem value="all">All technicians</SelectItem>}
+            {showAllOption && <SelectItem value="all">{t('allTechnicians')}</SelectItem>}
             {members
               .filter(
                 (member, index, self) =>

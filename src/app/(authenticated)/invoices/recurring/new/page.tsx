@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -45,24 +46,10 @@ interface RecurringInvoiceFormData {
   paymentInstructions: string;
 }
 
-const paymentTermsOptions = [
-  { key: PaymentTermsDays.OneDay, value: PaymentTermsDays.OneDay, name: 'Due on 1 day' },
-  { key: PaymentTermsDays.ThreeDays, value: PaymentTermsDays.ThreeDays, name: 'Due on 3 days' },
-  { key: PaymentTermsDays.SevenDays, value: PaymentTermsDays.SevenDays, name: 'Due on 7 days' },
-  { key: PaymentTermsDays.FifteenDays, value: PaymentTermsDays.FifteenDays, name: 'Due on 15 days' },
-  { key: PaymentTermsDays.ThirtyDays, value: PaymentTermsDays.ThirtyDays, name: 'Due on 30 days' },
-  { key: PaymentTermsDays.SixtyDays, value: PaymentTermsDays.SixtyDays, name: 'Due on 60 days' }
-];
-
-const frequencyOptions = [
-  { key: RecurringInvoiceFrequency.Weekly, value: RecurringInvoiceFrequency.Weekly, name: 'Weekly' },
-  { key: RecurringInvoiceFrequency.Monthly, value: RecurringInvoiceFrequency.Monthly, name: 'Monthly' },
-  { key: RecurringInvoiceFrequency.Yearly, value: RecurringInvoiceFrequency.Yearly, name: 'Yearly' }
-];
-
 const defaultPaymentInstructions = 'Please make payment via check or bank transfer. Contact us for bank details.';
 
 export default function CreateRecurringInvoicePage() {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: clients = [], isLoading: isLoadingClients } = useGetAllClients();
@@ -97,9 +84,7 @@ export default function CreateRecurringInvoicePage() {
   const watchedDiscount = form.watch('discountRate');
   const watchedStartOn = form.watch('startOn');
 
-  const { data: pools = [], isLoading: isLoadingPools } = useGetPoolsByClientId(
-    watchedClientId || null
-  );
+  const { data: pools = [], isLoading: isLoadingPools } = useGetPoolsByClientId(watchedClientId || null);
 
   // Get selected client
   const selectedClient = useMemo(() => {
@@ -114,9 +99,41 @@ export default function CreateRecurringInvoicePage() {
   // Get company using selected client's companyOwnerId
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId);
 
+  const smsEnabled = isInvoiceSmsEnabled(company);
+
   const deliveryOptions = useMemo(
-    () => getRecurringInvoiceDeliveryOptions(isInvoiceSmsEnabled(company)),
-    [company]
+    () =>
+      getRecurringInvoiceDeliveryOptions(smsEnabled).map((option) => {
+        if (option.value === RecurringInvoiceDelivery.SaveAsDraft) {
+          return { ...option, name: t('delivery.saveAsDraftLong') };
+        }
+        if (option.value === RecurringInvoiceDelivery.SendOnCreation) {
+          return { ...option, name: smsEnabled ? t('delivery.sendOnCreationSms') : t('delivery.sendOnCreationEmail') };
+        }
+        return { ...option, name: smsEnabled ? t('delivery.createOnlySms') : t('delivery.createOnlyEmail') };
+      }),
+    [smsEnabled, t]
+  );
+
+  const paymentTermsOptions = useMemo(
+    () =>
+      [
+        PaymentTermsDays.OneDay,
+        PaymentTermsDays.ThreeDays,
+        PaymentTermsDays.SevenDays,
+        PaymentTermsDays.FifteenDays,
+        PaymentTermsDays.ThirtyDays,
+        PaymentTermsDays.SixtyDays
+      ].map((value) => ({ key: value, value, name: t(`paymentTerms.${value}`) })),
+    [t]
+  );
+
+  const frequencyOptions = useMemo(
+    () =>
+      [RecurringInvoiceFrequency.Weekly, RecurringInvoiceFrequency.Monthly, RecurringInvoiceFrequency.Yearly].map(
+        (value) => ({ key: value, value, name: t(`frequency.${value}`) })
+      ),
+    [t]
   );
 
   // Get default values from company settings
@@ -160,10 +177,10 @@ export default function CreateRecurringInvoicePage() {
       const unitPrice = Number(item.unitPrice) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
       const calculatedAmount = Math.round(quantity * unitPrice * 100) / 100;
-      
+
       return { ...item, amount: calculatedAmount, quantity, unitPrice, taxRate };
     });
-    
+
     const hasChanges = updatedItems.some((item, index) => {
       const currentItem = currentItems[index];
       if (!currentItem) return true;
@@ -178,7 +195,7 @@ export default function CreateRecurringInvoicePage() {
         item.taxRate !== currentTaxRate
       );
     });
-    
+
     if (hasChanges) {
       form.setValue('lineItems', updatedItems, { shouldDirty: false, shouldValidate: false });
     }
@@ -213,19 +230,19 @@ export default function CreateRecurringInvoicePage() {
       const amount = Number(item.amount) || 0;
       return sum + amount;
     }, 0);
-    
+
     const discountRate = Number(watchedDiscount) || 0;
-    const discountAmount = Math.round((subtotal * discountRate) / 100 * 100) / 100;
+    const discountAmount = Math.round(((subtotal * discountRate) / 100) * 100) / 100;
     const subtotalAfterDiscount = Math.round((subtotal - discountAmount) * 100) / 100;
-    
+
     const taxAmount = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
-      const itemTax = Math.round((amount * taxRate / 100) * 100) / 100;
+      const itemTax = Math.round(((amount * taxRate) / 100) * 100) / 100;
       return sum + itemTax;
     }, 0);
     const total = Math.round((subtotalAfterDiscount + taxAmount) * 100) / 100;
-    
+
     return { subtotal, discountAmount, subtotalAfterDiscount, taxAmount, total };
   }, [watchedLineItems, watchedDiscount, lineItemsVersion, form]);
 
@@ -256,15 +273,16 @@ export default function CreateRecurringInvoicePage() {
   const handleLineItemChange = (index: number, field: keyof InvoiceLineItem, value: string | number) => {
     const currentItems = form.getValues('lineItems');
     const updatedItems = [...currentItems];
-    const numValue = (field === 'quantity' || field === 'unitPrice' || field === 'amount' || field === 'taxRate')
-      ? Number(value) ?? 0
-      : value;
+    const numValue =
+      field === 'quantity' || field === 'unitPrice' || field === 'amount' || field === 'taxRate'
+        ? Number(value) ?? 0
+        : value;
 
     updatedItems[index] = { ...updatedItems[index], [field]: numValue };
 
     if (field === 'quantity' || field === 'unitPrice') {
-      const quantity = field === 'quantity' ? (Number(value) || 0) : Number(updatedItems[index].quantity) || 0;
-      const unitPrice = field === 'unitPrice' ? (Number(value) || 0) : Number(updatedItems[index].unitPrice) || 0;
+      const quantity = field === 'quantity' ? Number(value) || 0 : Number(updatedItems[index].quantity) || 0;
+      const unitPrice = field === 'unitPrice' ? Number(value) || 0 : Number(updatedItems[index].unitPrice) || 0;
       updatedItems[index].amount = Math.round(quantity * unitPrice * 100) / 100;
     }
 
@@ -275,33 +293,33 @@ export default function CreateRecurringInvoicePage() {
   // Helper function to validate and prepare template data
   const prepareTemplateData = (): CreateRecurringInvoiceTemplateRequest | null => {
     const formData = form.getValues();
-    
+
     // Clear previous errors before validation
     form.clearErrors();
-    
+
     // Validate required fields
     if (!formData.clientId) {
-      form.setError('clientId', { message: 'Client is required' }, { shouldFocus: true });
+      form.setError('clientId', { message: 'invoices.errors.clientRequired' }, { shouldFocus: true });
       return null;
     }
 
     if (!formData.startOn) {
-      form.setError('startOn', { message: 'Start date is required' }, { shouldFocus: true });
+      form.setError('startOn', { message: 'invoices.errors.startDateRequired' }, { shouldFocus: true });
       return null;
     }
 
     if (!formData.frequency) {
-      form.setError('frequency', { message: 'Frequency is required' }, { shouldFocus: true });
+      form.setError('frequency', { message: 'invoices.errors.frequencyRequired' }, { shouldFocus: true });
       return null;
     }
 
     if (!formData.delivery) {
-      form.setError('delivery', { message: 'Delivery option is required' }, { shouldFocus: true });
+      form.setError('delivery', { message: 'invoices.errors.deliveryRequired' }, { shouldFocus: true });
       return null;
     }
 
     if (!formData.paymentTerms) {
-      form.setError('paymentTerms', { message: 'Payment terms is required' }, { shouldFocus: true });
+      form.setError('paymentTerms', { message: 'invoices.errors.paymentTermsRequired' }, { shouldFocus: true });
       return null;
     }
 
@@ -326,7 +344,11 @@ export default function CreateRecurringInvoicePage() {
 
     if (validLineItems.length === 0) {
       // Set error on the first line item for better UX
-      form.setError('lineItems.0.description', { message: 'At least one valid line item is required. Please fill description, quantity, and unit price.' }, { shouldFocus: true });
+      form.setError(
+        'lineItems.0.description',
+        { message: 'invoices.errors.lineItemRequiredDetailed' },
+        { shouldFocus: true }
+      );
       return null;
     }
 
@@ -355,7 +377,7 @@ export default function CreateRecurringInvoicePage() {
   const handleSubmit = async (data: RecurringInvoiceFormData) => {
     // Trigger validation on all fields first to mark form as submitted
     await form.trigger();
-    
+
     // Then run our custom validation
     const templateData = prepareTemplateData();
     if (!templateData) {
@@ -391,29 +413,29 @@ export default function CreateRecurringInvoicePage() {
           <div className="flex items-center gap-4">
             <Button type="button" variant="outline" onClick={() => router.back()}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {t('actions.back')}
             </Button>
-            <h1 className="text-2xl font-bold">Create Recurring Invoice Template</h1>
+            <h1 className="text-2xl font-bold">{t('recurringForm.createTitle')}</h1>
           </div>
 
           {/* Main Content */}
           <div className="flex flex-col gap-6">
             {/* Basic Information */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Template Details</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('recurringForm.templateDetails')}</h2>
               <div className="space-y-4">
                 <SelectField
                   name="clientId"
-                  label="Client"
-                  placeholder="Select client"
+                  label={t('fields.client')}
+                  placeholder={t('placeholders.selectClient')}
                   options={clientOptions}
                 />
 
                 {watchedClientId && (
                   <SelectField
                     name="poolId"
-                    label="Pool (Optional)"
-                    placeholder={isLoadingPools ? 'Loading pools...' : 'Select pool (optional)'}
+                    label={t('fields.poolOptional')}
+                    placeholder={isLoadingPools ? t('placeholders.loadingPools') : t('placeholders.selectPool')}
                     options={poolOptions}
                   />
                 )}
@@ -421,35 +443,35 @@ export default function CreateRecurringInvoicePage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <DatePickerField
                     name="startOn"
-                    label="Start On"
-                    placeholder="Select start date"
+                    label={t('fields.startOn')}
+                    placeholder={t('placeholders.selectStartDate')}
                   />
 
                   <SelectField
                     name="frequency"
-                    label="Frequency"
-                    placeholder="Select frequency"
+                    label={t('fields.frequency')}
+                    placeholder={t('placeholders.selectFrequency')}
                     options={frequencyOptions}
                   />
                 </div>
 
                 <SelectField
                   name="delivery"
-                  label="Delivery"
-                  placeholder="Select delivery option"
+                  label={t('fields.delivery')}
+                  placeholder={t('placeholders.selectDelivery')}
                   options={deliveryOptions}
                 />
 
                 <SelectField
                   name="paymentTerms"
-                  label="Payment Terms"
-                  placeholder="Select payment terms"
+                  label={t('fields.paymentTerms')}
+                  placeholder={t('placeholders.selectPaymentTerms')}
                   options={paymentTermsOptions}
                 />
 
                 <InputField
                   name="discountRate"
-                  label="Discount (%)"
+                  label={t('fields.discountPercent')}
                   placeholder="0.00"
                   type={FieldType.Number}
                   props={{
@@ -464,24 +486,21 @@ export default function CreateRecurringInvoicePage() {
             {/* Line Items */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Line Items</h2>
+                <h2 className="text-lg font-semibold">{t('fields.lineItems')}</h2>
                 <Button type="button" variant="outline" size="sm" onClick={handleAddLineItem}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Item
+                  {t('actions.addItem')}
                 </Button>
               </div>
               <div className="space-y-4">
                 {watchedLineItems.map((item, index) => (
                   <div key={index} className="rounded-lg border p-4">
                     <div className="mb-3 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Item {index + 1}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {t('fields.itemNumber', { number: index + 1 })}
+                      </span>
                       {watchedLineItems.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveLineItem(index)}
-                        >
+                        <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveLineItem(index)}>
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       )}
@@ -489,14 +508,14 @@ export default function CreateRecurringInvoicePage() {
                     <div className="space-y-3">
                       <InputField
                         name={`lineItems.${index}.description`}
-                        label="Description"
-                        placeholder="Item description"
+                        label={t('fields.description')}
+                        placeholder={t('placeholders.itemDescription')}
                         type={FieldType.TextArea}
                       />
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         <InputField
                           name={`lineItems.${index}.quantity`}
-                          label="Quantity"
+                          label={t('fields.quantity')}
                           placeholder="1"
                           type={FieldType.Number}
                           props={{
@@ -508,7 +527,7 @@ export default function CreateRecurringInvoicePage() {
                         />
                         <InputField
                           name={`lineItems.${index}.unitPrice`}
-                          label="Unit Price"
+                          label={t('fields.unitPrice')}
                           placeholder="0.00"
                           type={FieldType.Number}
                           props={{
@@ -520,7 +539,7 @@ export default function CreateRecurringInvoicePage() {
                         />
                         <InputField
                           name={`lineItems.${index}.taxRate`}
-                          label="Tax Rate (%)"
+                          label={t('fields.taxRate')}
                           placeholder="0"
                           type={FieldType.Number}
                           props={{
@@ -533,7 +552,7 @@ export default function CreateRecurringInvoicePage() {
                         />
                       </div>
                       <div className="text-right">
-                        <span className="text-sm text-gray-600">Amount: </span>
+                        <span className="text-sm text-gray-600">{t('fields.amount')} </span>
                         <span className="font-semibold">${(Number(item.amount) || 0).toFixed(2)}</span>
                       </div>
                     </div>
@@ -544,32 +563,32 @@ export default function CreateRecurringInvoicePage() {
 
             {/* Tax and Totals */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Tax & Totals</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.taxAndTotals')}</h2>
               <div className="space-y-2 rounded-lg bg-gray-50 p-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="text-gray-600">{t('fields.subtotal')}</span>
                   <span className="font-semibold">${invoiceTotals.subtotal.toFixed(2)}</span>
                 </div>
                 {invoiceTotals.discountAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Discount ({watchedDiscount}%):</span>
+                    <span className="text-gray-600">{t('fields.discountWithRate', { rate: watchedDiscount })}</span>
                     <span className="font-semibold text-red-600">-${invoiceTotals.discountAmount.toFixed(2)}</span>
                   </div>
                 )}
                 {invoiceTotals.discountAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal after discount:</span>
+                    <span className="text-gray-600">{t('fields.subtotalAfterDiscount')}</span>
                     <span className="font-semibold">${invoiceTotals.subtotalAfterDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 {invoiceTotals.taxAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax:</span>
+                    <span className="text-gray-600">{t('fields.tax')}</span>
                     <span className="font-semibold">${invoiceTotals.taxAmount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-gray-300 pt-2 text-lg font-bold">
-                  <span>Total:</span>
+                  <span>{t('fields.total')}</span>
                   <span>${invoiceTotals.total.toFixed(2)}</span>
                 </div>
               </div>
@@ -577,18 +596,18 @@ export default function CreateRecurringInvoicePage() {
 
             {/* Payment Terms and Notes */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Additional Information</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.additionalInformation')}</h2>
               <div className="space-y-4">
                 <InputField
                   name="notes"
-                  label="Notes"
-                  placeholder="Additional notes (optional)"
+                  label={t('fields.notes')}
+                  placeholder={t('placeholders.notesOptional')}
                   type={FieldType.TextArea}
                 />
                 <InputField
                   name="paymentInstructions"
-                  label="Payment Instructions"
-                  placeholder="Payment instructions"
+                  label={t('fields.paymentInstructions')}
+                  placeholder={t('placeholders.paymentInstructions')}
                   type={FieldType.TextArea}
                 />
               </div>
@@ -596,16 +615,11 @@ export default function CreateRecurringInvoicePage() {
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                className="flex-1"
-              >
-                Cancel
+              <Button type="button" variant="outline" onClick={() => router.back()} className="flex-1">
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" className="flex-1" disabled={isCreating}>
-                {isCreating ? 'Creating...' : 'Create Template'}
+                {isCreating ? t('actions.creating') : t('recurringForm.createTemplate')}
               </Button>
             </div>
           </div>
@@ -614,4 +628,3 @@ export default function CreateRecurringInvoicePage() {
     </FormProvider>
   );
 }
-

@@ -3,33 +3,34 @@ import { dateSchema } from '@/schemas/date';
 
 import { defaultSchemas } from './defaultSchemas';
 
-export const transferAssignmentsSchema = z.object({
-  assignmentToId: z
-    .string({
-      required_error: 'assignmentToId is required',
-      invalid_type_error: 'assignmentToId must be a string'
-    })
-    .trim()
-    .min(1, { message: 'assignmentToId must be at least 1 characters' }),
-  weekday: defaultSchemas.weekday,
-  isEntireRoute: z.boolean({
-    required_error: 'isEntireRoute is required',
-    invalid_type_error: 'isEntireRoute must be a boolean'
-  }),
-  scheduledTo: z.string().optional(),
-  startOn: z.coerce
-    .date({
-      required_error: 'startOn is required',
-      invalid_type_error: 'startOn must be a date'
-    })
-    .optional(),
-  endAfter: z
-    .string({
-      required_error: 'endAfter is required',
-      invalid_type_error: 'endAfter must be a string'
-    })
-    .optional()
-})
+export const transferAssignmentsSchema = z
+  .object({
+    assignmentToId: z
+      .string({
+        required_error: 'routes.errors.technicianRequired',
+        invalid_type_error: 'routes.errors.technicianInvalid'
+      })
+      .trim()
+      .min(1, { message: 'routes.errors.technicianMin' }),
+    weekday: defaultSchemas.weekday,
+    isEntireRoute: z.boolean({
+      required_error: 'routes.errors.entireRouteRequired',
+      invalid_type_error: 'routes.errors.entireRouteInvalid'
+    }),
+    scheduledTo: z.string().optional(),
+    startOn: z.coerce
+      .date({
+        required_error: 'routes.errors.startOnRequired',
+        invalid_type_error: 'routes.errors.startOnInvalid'
+      })
+      .optional(),
+    endAfter: z
+      .string({
+        required_error: 'routes.errors.endAfterRequired',
+        invalid_type_error: 'routes.errors.endAfterInvalid'
+      })
+      .optional()
+  })
   .refine(
     (data) => {
       // One-time transfers use scheduledTo; recurring transfers use startOn + endAfter
@@ -39,17 +40,17 @@ export const transferAssignmentsSchema = z.object({
       return Boolean(data.startOn && data.endAfter && String(data.endAfter).trim() !== '');
     },
     {
-      message: 'Start on and end after are required',
+      message: 'routes.errors.startOnAndEndAfterRequired',
       path: ['endAfter']
     }
   );
 
 export const newAssignmentSchema = z
   .object({
-    assignmentToId: z.string().min(1),
+    assignmentToId: z.string().min(1, { message: 'routes.errors.technicianRequired' }),
     poolId: z.string(),
     client: z.string(),
-    serviceTypeId: z.string().min(1, 'Service type is required'),
+    serviceTypeId: z.string().min(1, 'routes.errors.serviceTypeRequired'),
     frequency: defaultSchemas.frequency,
     weekday: defaultSchemas.weekday,
     scheduledTo: z.string().optional(),
@@ -66,7 +67,7 @@ export const newAssignmentSchema = z
       return true;
     },
     {
-      message: 'Scheduled date is required for one-time assignments',
+      message: 'routes.errors.scheduledDateRequired',
       path: ['scheduledTo']
     }
   )
@@ -79,7 +80,7 @@ export const newAssignmentSchema = z
       return true;
     },
     {
-      message: 'Start date and end date are required for recurring assignments',
+      message: 'routes.errors.recurringDatesRequired',
       path: ['startOn']
     }
   );

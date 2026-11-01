@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { IoMdAddCircleOutline } from 'react-icons/io';
 
 import RouteIcon from '@/components/ui/route-icon';
@@ -6,19 +7,16 @@ import TeamIcon from '@/components/ui/team-icon';
 
 const types = {
   add_client: {
-    title: 'Add client',
     color: 'from-blue-600 to-sky-400',
     icon: IoMdAddCircleOutline,
     href: '/clients/new'
   },
   route_dashboard: {
-    title: 'Route dashboard',
     color: 'from-emerald-400 to-stone-400',
     icon: RouteIcon,
     href: '/routes/schedule'
   },
   companies: {
-    title: 'Companies',
     color: 'from-red-500 to-orange-300',
     icon: TeamIcon,
     href: '/settings/companies'
@@ -32,6 +30,7 @@ type Props = {
 };
 
 export default function ActionButton({ type }: Props) {
+  const t = useTranslations('dashboard');
   const Icon = types[type].icon;
   return (
     <Link
@@ -40,7 +39,7 @@ export default function ActionButton({ type }: Props) {
     >
       <Icon color="white" size={25} />
       <div className="inline-flex shrink grow basis-0 flex-col items-start justify-start gap-2 self-stretch">
-        <div className="self-stretch text-lg font-bold text-gray-50">{types[type].title}</div>
+        <div className="self-stretch text-lg font-bold text-gray-50">{t(`actions.${type}`)}</div>
       </div>
     </Link>
   );

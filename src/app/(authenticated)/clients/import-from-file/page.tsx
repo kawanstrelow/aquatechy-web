@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -203,6 +204,7 @@ const convertStateToAbbreviation = (state: CellValue | null | undefined): string
 };
 
 export default function ImportFromFile() {
+  const t = useTranslations('clients');
   const { data: companies = [], isLoading: isCompaniesLoading, isSuccess: isCompaniesSuccess } = useGetCompanies();
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string>('');
@@ -216,7 +218,7 @@ export default function ImportFromFile() {
     const phoneRegex = /^\+1 \(\d{3}\) \d{3}-\d{4}$/;
 
     if (!phoneRegex.test(phone)) {
-      return <span className="text-red-500">Phone must be 10 digits.</span>;
+      return <span className="text-red-500">{t('shared.phoneTenDigits')}</span>;
     }
 
     return phone;
@@ -230,7 +232,7 @@ export default function ImportFromFile() {
 
   const formatEmail = (email: string | undefined) => {
     if (!email) {
-      return <span className="text-red-500">E-mail required</span>;
+      return <span className="text-red-500">{t('shared.emailRequiredShort')}</span>;
     }
     return email;
   };
@@ -308,8 +310,8 @@ export default function ImportFromFile() {
         console.error('Error processing file:', error);
         toast({
           duration: 5000,
-          title: 'Error processing file',
-          description: 'Please make sure you are using the correct Excel or CSV template format',
+          title: t('import.processError'),
+          description: t('import.processErrorDescription'),
           variant: 'error'
         });
       }
@@ -322,8 +324,8 @@ export default function ImportFromFile() {
     const companyOwnerId = form.getValues('companyOwnerId');
     if (!companyOwnerId) {
       toast({
-        title: 'Error',
-        description: 'Please select a company first',
+        title: t('shared.error'),
+        description: t('import.selectCompanyFirst'),
         variant: 'error'
       });
       return;
@@ -338,7 +340,7 @@ export default function ImportFromFile() {
       router.push('/clients');
     } catch (error: unknown) {
       toast({
-        title: 'Error',
+        title: t('shared.error'),
         description: getCreateManyClientsErrorMessage(error),
         variant: 'error'
       });
@@ -367,16 +369,16 @@ export default function ImportFromFile() {
     <>
       <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
         <div className="border-b border-line px-5 py-5 lg:px-8">
-          <Typography element="h1">Import Clients from Excel or CSV</Typography>
+          <Typography element="h1">{t('import.fileTitle')}</Typography>
         </div>
 
         <div className="border-b border-line px-5 py-5 lg:px-8">
           <Typography element="h2" className="mb-4 text-lg font-semibold">
-            How to Import Clients
+            {t('import.howTo')}
           </Typography>
           <ol className="list-decimal space-y-3 pl-4">
             <li>
-              Import from Excel (.xlsx):
+              {t('import.fromExcel')}
               <div className="mt-2">
                 <a
                   href="/templates/client_import_template.xlsx"
@@ -384,12 +386,12 @@ export default function ImportFromFile() {
                   className={cn(buttonVariants({ variant: 'default' }), 'inline-flex items-center gap-2')}
                 >
                   <FileSpreadsheet className="h-4 w-4" />
-                  Download Excel Template
+                  {t('import.downloadExcel')}
                 </a>
               </div>
             </li>
             <li>
-              Import from CSV:
+              {t('import.fromCsv')}
               <div className="mt-2">
                 <a
                   href="/templates/client_import_template.csv"
@@ -397,37 +399,37 @@ export default function ImportFromFile() {
                   className={cn(buttonVariants({ variant: 'outline' }), 'inline-flex items-center gap-2')}
                 >
                   <FileText className="h-4 w-4" />
-                  Download CSV Template
+                  {t('import.downloadCsv')}
                 </a>
               </div>
             </li>
             <li>
-              Fill out the template with your client information:
+              {t('import.fillTemplate')}
               <ul className="mt-2 list-disc pl-4 text-slate-600">
-                <li>Follow the example row provided in the template</li>
-                <li>Make sure to keep the column headers exactly as they are</li>
-                <li>Save the file as Excel (.xlsx) or CSV</li>
+                <li>{t('import.followExample')}</li>
+                <li>{t('import.keepHeaders')}</li>
+                <li>{t('import.saveAs')}</li>
               </ul>
             </li>
             <li>
-              Return to this page and complete these steps:
+              {t('import.returnSteps')}
               <ul className="mt-2 list-disc pl-4 text-slate-600">
-                <li>Select your company from the dropdown below</li>
-                <li>Click &quot;Choose File&quot; and select your filled Excel or CSV file</li>
+                <li>{t('import.selectCompany')}</li>
+                <li>{t('import.chooseFilledFile')}</li>
               </ul>
             </li>
             <li>
-              Review the imported data in the preview table and click{' '}
-              <span className="font-medium">Import Clients</span> when ready
+              {t.rich('import.reviewAndImport', {
+                emphasis: (chunks) => <span className="font-medium">{chunks}</span>
+              })}
             </li>
           </ol>
           <div className="mt-6 rounded-md bg-blue-50 p-4">
             <Typography element="p" className="text-sm text-blue-800">
-              <strong>Note:</strong> The import process will automatically create a pool for each client. After
-              importing, please remember to:
+              <strong>{t('shared.note')}</strong> {t('import.autoPool')}
               <ul className="mt-2 list-disc pl-4">
-                <li>Update each client's pool information</li>
-                <li>Set up service schedules in the Routes section</li>
+                <li>{t('import.updatePool')}</li>
+                <li>{t('import.setupRoutes')}</li>
               </ul>
             </Typography>
           </div>
@@ -437,9 +439,9 @@ export default function ImportFromFile() {
           <Form {...form}>
             <div className="mb-6">
               <SelectField
-                placeholder="Company owner"
+                placeholder={t('shared.companyOwner')}
                 name="companyOwnerId"
-                label="Company owner"
+                label={t('shared.companyOwner')}
                 options={
                   companies
                     .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
@@ -454,7 +456,7 @@ export default function ImportFromFile() {
 
             <div className="mb-6 flex items-center gap-2">
               <label className={cn(buttonVariants({ variant: 'default' }), 'cursor-pointer')}>
-                Choose File
+                {t('shared.chooseFile')}
                 <input
                   type="file"
                   accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
@@ -473,27 +475,27 @@ export default function ImportFromFile() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Client Address</TableHead>
-                      <TableHead>Client City</TableHead>
-                      <TableHead>Client State</TableHead>
-                      <TableHead>Client Zip</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Pool Address</TableHead>
-                      <TableHead>Pool Address Line 2</TableHead>
-                      <TableHead>Pool City</TableHead>
-                      <TableHead>Pool State</TableHead>
-                      <TableHead>Pool Zip</TableHead>
-                      <TableHead>Salt system</TableHead>
-                      <TableHead>Animal Danger</TableHead>
-                      <TableHead>Enter Side</TableHead>
-                      <TableHead>Locker Code</TableHead>
-                      <TableHead>Body of Water</TableHead>
-                      <TableHead>Volume (gal)</TableHead>
-                      <TableHead>Monthly Payment</TableHead>
+                      <TableHead>{t('columns.name')}</TableHead>
+                      <TableHead>{t('columns.company')}</TableHead>
+                      <TableHead>{t('fields.clientAddress')}</TableHead>
+                      <TableHead>{t('fields.clientCity')}</TableHead>
+                      <TableHead>{t('fields.clientState')}</TableHead>
+                      <TableHead>{t('fields.clientZip')}</TableHead>
+                      <TableHead>{t('columns.phone')}</TableHead>
+                      <TableHead>{t('columns.email')}</TableHead>
+                      <TableHead>{t('fields.type')}</TableHead>
+                      <TableHead>{t('fields.poolAddressTitle')}</TableHead>
+                      <TableHead>{t('fields.poolAddressLine2')}</TableHead>
+                      <TableHead>{t('fields.poolCity')}</TableHead>
+                      <TableHead>{t('fields.poolState')}</TableHead>
+                      <TableHead>{t('fields.poolZip')}</TableHead>
+                      <TableHead>{t('fields.saltSystem')}</TableHead>
+                      <TableHead>{t('fields.animalDangerTitle')}</TableHead>
+                      <TableHead>{t('fields.enterSideTitle')}</TableHead>
+                      <TableHead>{t('fields.lockerCode')}</TableHead>
+                      <TableHead>{t('fields.bodyOfWater')}</TableHead>
+                      <TableHead>{t('fields.volumeGal')}</TableHead>
+                      <TableHead>{t('fields.monthlyPaymentTitle')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -513,8 +515,8 @@ export default function ImportFromFile() {
                         <TableCell>{client.poolCity}</TableCell>
                         <TableCell>{client.poolState}</TableCell>
                         <TableCell>{client.poolZip}</TableCell>
-                        <TableCell>{client.hasSaltSystem ? 'Yes' : 'No'}</TableCell>
-                        <TableCell>{client.animalDanger ? 'Yes' : 'No'}</TableCell>
+                        <TableCell>{client.hasSaltSystem ? t('shared.yes') : t('shared.no')}</TableCell>
+                        <TableCell>{client.animalDanger ? t('shared.yes') : t('shared.no')}</TableCell>
                         <TableCell>{client.enterSide}</TableCell>
                         <TableCell>{client.lockerCode}</TableCell>
                         <TableCell>{client.bodyOfWater ?? '-'}</TableCell>
@@ -529,7 +531,7 @@ export default function ImportFromFile() {
               <div className="mt-6">
                 <Button onClick={handleImport} type="button" disabled={isPending || !areAllPhonesValid(parsedData)}>
                   {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-                  Import {parsedData.length} Clients
+                  {t('shared.importClientsCount', { count: parsedData.length })}
                 </Button>
               </div>
             </>
@@ -543,11 +545,11 @@ export default function ImportFromFile() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center">No Companies Available</DialogTitle>
-            <DialogDescription>Please create a company before importing clients.</DialogDescription>
+            <DialogTitle className="text-center">{t('shared.noCompaniesTitle')}</DialogTitle>
+            <DialogDescription>{t('shared.createCompanyBeforeImport')}</DialogDescription>
           </DialogHeader>
           <Button type="button" onClick={() => router.push('/settings/companies')}>
-            Create Company
+            {t('shared.createCompanyTitle')}
           </Button>
         </DialogContent>
       </Dialog>

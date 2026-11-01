@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { MdDeleteOutline } from 'react-icons/md';
 
 import { Button } from '@/components/ui/button';
@@ -8,21 +9,23 @@ type Props = {
 };
 
 export function ModalDeletePool({ deletePool }: Props) {
+  const t = useTranslations('clients');
+
   return (
     <Dialog>
       <DialogTrigger>
         <MdDeleteOutline className="cursor-pointer" />
       </DialogTrigger>
       <DialogContent>
-        <DialogDescription>Are you sure you want to delete this pool?</DialogDescription>
+        <DialogDescription>{t('pool.deletePoolShort')}</DialogDescription>
         <div className="flex w-full justify-around">
           <DialogTrigger className="w-fit" asChild>
             <Button onClick={deletePool} variant="destructive">
-              Delete
+              {t('shared.delete')}
             </Button>
           </DialogTrigger>
           <DialogTrigger className="w-fit" asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t('shared.cancel')}</Button>
           </DialogTrigger>
         </div>
       </DialogContent>

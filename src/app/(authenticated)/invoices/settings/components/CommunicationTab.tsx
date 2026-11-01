@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Info } from 'lucide-react';
@@ -18,12 +19,12 @@ import { DocumentSmsToggle } from './DocumentSmsToggle';
 
 // Sample data for preview
 const sampleData = {
-  'invoice_number': 'INV-2024-001',
-  'client_firstName': 'John',
-  'client_lastName': 'Doe',
-  'company_name': 'Aquatechy Pool Services',
-  'invoice_total': '$162.00',
-  'invoice_dueDate': 'March 15, 2024',
+  invoice_number: 'INV-2024-001',
+  client_firstName: 'John',
+  client_lastName: 'Doe',
+  company_name: 'Aquatechy Pool Services',
+  invoice_total: '$162.00',
+  invoice_dueDate: 'March 15, 2024'
 };
 
 // Available variables list
@@ -33,19 +34,19 @@ const availableVariables = [
   '%client_lastName%',
   '%company_name%',
   '%invoice_total%',
-  '%invoice_dueDate%',
+  '%invoice_dueDate%'
 ];
 
 // Function to replace template variables with sample data
 const replaceTemplateVariables = (text: string | null | undefined): string => {
   if (!text) return '';
-  
+
   let result = text;
   Object.entries(sampleData).forEach(([key, value]) => {
     const regex = new RegExp(`%${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}%`, 'g');
     result = result.replace(regex, value);
   });
-  
+
   return result;
 };
 
@@ -55,14 +56,15 @@ interface CommunicationTabProps {
 }
 
 export function CommunicationTab({ companyId, userRole }: CommunicationTabProps) {
+  const t = useTranslations('invoices');
   const form = useFormContext<{ communication: InvoiceCommunication }>();
   const { mutate: updateSettings, isPending } = useUpdateInvoiceCommunicationSettings(companyId || '');
   const isFreePlan = useUserStore((state) => state.isFreePlan);
   const canManageSettings = userRole === 'Owner' || userRole === 'Admin';
-  
+
   // Fetch company data to get communication preferences
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId || '');
-  
+
   // Use ref to track the last companyId we loaded to prevent overwriting user input
   const lastLoadedCompanyIdRef = useRef<string | undefined>(undefined);
 
@@ -85,31 +87,31 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
   useEffect(() => {
     // Don't run if we don't have companyId, are still loading, don't have company data, or already loaded this company
     if (!companyId || isLoadingCompany || !company || lastLoadedCompanyIdRef.current === companyId) return;
-    
+
     const communication = company.preferences?.invoiceSettingsPreferences?.communication;
-    
+
     // Always ensure the nested structure exists, even if data is null
     const invoiceMsg = communication?.invoiceMessage || { emailSubject: null, emailBody: null };
     const thankYouMsg = communication?.thankYouMessage || { emailSubject: null, emailBody: null };
     const reminderMsg = communication?.reminderMessage || { emailSubject: null, emailBody: null };
-    
+
     // Set all values at once to ensure form state updates properly
-    form.setValue('communication.invoiceMessage', invoiceMsg, { 
-      shouldDirty: false, 
+    form.setValue('communication.invoiceMessage', invoiceMsg, {
+      shouldDirty: false,
       shouldValidate: true,
-      shouldTouch: false 
+      shouldTouch: false
     });
-    
-    form.setValue('communication.thankYouMessage', thankYouMsg, { 
-      shouldDirty: false, 
+
+    form.setValue('communication.thankYouMessage', thankYouMsg, {
+      shouldDirty: false,
       shouldValidate: true,
-      shouldTouch: false 
+      shouldTouch: false
     });
-    
-    form.setValue('communication.reminderMessage', reminderMsg, { 
-      shouldDirty: false, 
+
+    form.setValue('communication.reminderMessage', reminderMsg, {
+      shouldDirty: false,
       shouldValidate: true,
-      shouldTouch: false 
+      shouldTouch: false
     });
 
     form.setValue('communication.sendSms', communication?.sendSms === true, {
@@ -117,7 +119,7 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
       shouldValidate: true,
       shouldTouch: false
     });
-    
+
     // Mark this company as loaded to prevent re-running
     lastLoadedCompanyIdRef.current = companyId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -131,15 +133,15 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyId || !canManageSettings) return;
-    
+
     // Get all three message objects - they must be provided together
     const communication = form.getValues('communication');
-    
+
     // Ensure all three messages are present (they can be null, but the objects must exist)
     const invoiceMessage = communication.invoiceMessage || { emailSubject: null, emailBody: null };
     const thankYouMessage = communication.thankYouMessage || { emailSubject: null, emailBody: null };
     const reminderMessage = communication.reminderMessage || { emailSubject: null, emailBody: null };
-    
+
     updateSettings({
       invoiceMessage,
       thankYouMessage,
@@ -153,33 +155,28 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
       <form onSubmit={handleSubmit} className="space-y-6">
         <DocumentSmsToggle
           name="communication.sendSms"
-          title="Send invoice SMS"
-          description="Also send an SMS when this company sends an invoice email. Uses your connected Quo or Twilio number, or Aquatechy’s number if none is connected. The client must have a phone number. SMS text is not customizable, and there is no per-client invoice SMS preference."
+          title={t('settings.sendInvoiceSms')}
+          description={t('settings.sendInvoiceSmsDescription')}
           canManage={canManageSettings}
           isFreePlan={isFreePlan}
         />
 
         {!canManageSettings && (
           <Alert>
-            <AlertTitle>View only</AlertTitle>
-            <AlertDescription>
-              Only owners and admins can update invoice communication settings for this company.
-            </AlertDescription>
+            <AlertTitle>{t('settings.viewOnly')}</AlertTitle>
+            <AlertDescription>{t('settings.invoiceViewOnly')}</AlertDescription>
           </Alert>
         )}
 
         {/* Variables Info Box */}
         <Alert className="border-blue-200 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-900 font-semibold">Available Variables</AlertTitle>
-          <AlertDescription className="text-blue-800 mt-2">
-            <p className="mb-2">You can use the following variables in your email templates:</p>
+          <AlertTitle className="font-semibold text-blue-900">{t('settings.availableVariables')}</AlertTitle>
+          <AlertDescription className="mt-2 text-blue-800">
+            <p className="mb-2">{t('settings.variablesHelp')}</p>
             <div className="flex flex-wrap gap-2">
               {availableVariables.map((variable) => (
-                <code
-                  key={variable}
-                  className="px-2 py-1 bg-blue-100 text-blue-900 rounded text-sm font-mono"
-                >
+                <code key={variable} className="rounded bg-blue-100 px-2 py-1 font-mono text-sm text-blue-900">
                   {variable}
                 </code>
               ))}
@@ -189,32 +186,35 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
 
         {/* Invoice Message */}
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Invoice Message</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('settings.invoiceMessage')}</h2>
           <div className="space-y-4">
             <InputField
               name="communication.invoiceMessage.emailSubject"
-              label="Email Subject"
-              placeholder="Enter email subject"
+              label={t('fields.emailSubject')}
+              placeholder={t('placeholders.enterEmailSubject')}
               disabled={!canManageSettings}
             />
 
             <InputField
               name="communication.invoiceMessage.emailBody"
-              label="Email Body"
-              placeholder="Enter email body"
+              label={t('fields.emailBody')}
+              placeholder={t('placeholders.enterEmailBody')}
               type={FieldType.TextArea}
               disabled={!canManageSettings}
             />
 
             <div className="rounded-lg bg-gray-50 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-gray-700">Example Preview</h3>
+              <h3 className="mb-2 text-sm font-semibold text-gray-700">{t('settings.examplePreview')}</h3>
               <div className="space-y-2 text-sm text-gray-600">
                 <div>
-                  <span className="font-semibold">Subject:</span> {replaceTemplateVariables(invoiceSubject) || '(No subject)'}
+                  <span className="font-semibold">{t('fields.subject')}</span>{' '}
+                  {replaceTemplateVariables(invoiceSubject) || t('empty.noSubject')}
                 </div>
                 <div className="border-t border-gray-200 pt-2">
-                  <span className="font-semibold">Body:</span>
-                  <div className="mt-1 whitespace-pre-wrap">{replaceTemplateVariables(invoiceBody) || '(No body)'}</div>
+                  <span className="font-semibold">{t('fields.body')}</span>
+                  <div className="mt-1 whitespace-pre-wrap">
+                    {replaceTemplateVariables(invoiceBody) || t('empty.noBody')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -223,32 +223,35 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
 
         {/* Thank You Message */}
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Thank You Message</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('settings.thankYouMessage')}</h2>
           <div className="space-y-4">
             <InputField
               name="communication.thankYouMessage.emailSubject"
-              label="Email Subject"
-              placeholder="Enter email subject"
+              label={t('fields.emailSubject')}
+              placeholder={t('placeholders.enterEmailSubject')}
               disabled={!canManageSettings}
             />
 
             <InputField
               name="communication.thankYouMessage.emailBody"
-              label="Email Body"
-              placeholder="Enter email body"
+              label={t('fields.emailBody')}
+              placeholder={t('placeholders.enterEmailBody')}
               type={FieldType.TextArea}
               disabled={!canManageSettings}
             />
 
             <div className="rounded-lg bg-gray-50 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-gray-700">Example Preview</h3>
+              <h3 className="mb-2 text-sm font-semibold text-gray-700">{t('settings.examplePreview')}</h3>
               <div className="space-y-2 text-sm text-gray-600">
                 <div>
-                  <span className="font-semibold">Subject:</span> {replaceTemplateVariables(thankYouSubject) || '(No subject)'}
+                  <span className="font-semibold">{t('fields.subject')}</span>{' '}
+                  {replaceTemplateVariables(thankYouSubject) || t('empty.noSubject')}
                 </div>
                 <div className="border-t border-gray-200 pt-2">
-                  <span className="font-semibold">Body:</span>
-                  <div className="mt-1 whitespace-pre-wrap">{replaceTemplateVariables(thankYouBody) || '(No body)'}</div>
+                  <span className="font-semibold">{t('fields.body')}</span>
+                  <div className="mt-1 whitespace-pre-wrap">
+                    {replaceTemplateVariables(thankYouBody) || t('empty.noBody')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -257,32 +260,35 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
 
         {/* Reminder Message */}
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Reminder Message</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('settings.reminderMessage')}</h2>
           <div className="space-y-4">
             <InputField
               name="communication.reminderMessage.emailSubject"
-              label="Email Subject"
-              placeholder="Enter email subject"
+              label={t('fields.emailSubject')}
+              placeholder={t('placeholders.enterEmailSubject')}
               disabled={!canManageSettings}
             />
 
             <InputField
               name="communication.reminderMessage.emailBody"
-              label="Email Body"
-              placeholder="Enter email body"
+              label={t('fields.emailBody')}
+              placeholder={t('placeholders.enterEmailBody')}
               type={FieldType.TextArea}
               disabled={!canManageSettings}
             />
 
             <div className="rounded-lg bg-gray-50 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-gray-700">Example Preview</h3>
+              <h3 className="mb-2 text-sm font-semibold text-gray-700">{t('settings.examplePreview')}</h3>
               <div className="space-y-2 text-sm text-gray-600">
                 <div>
-                  <span className="font-semibold">Subject:</span> {replaceTemplateVariables(reminderSubject) || '(No subject)'}
+                  <span className="font-semibold">{t('fields.subject')}</span>{' '}
+                  {replaceTemplateVariables(reminderSubject) || t('empty.noSubject')}
                 </div>
                 <div className="border-t border-gray-200 pt-2">
-                  <span className="font-semibold">Body:</span>
-                  <div className="mt-1 whitespace-pre-wrap">{replaceTemplateVariables(reminderBody) || '(No body)'}</div>
+                  <span className="font-semibold">{t('fields.body')}</span>
+                  <div className="mt-1 whitespace-pre-wrap">
+                    {replaceTemplateVariables(reminderBody) || t('empty.noBody')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -292,7 +298,7 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
         {canManageSettings && (
           <div className="flex justify-start">
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Communication Settings'}
+              {isPending ? t('actions.saving') : t('settings.saveCommunication')}
             </Button>
           </div>
         )}
@@ -300,4 +306,3 @@ export function CommunicationTab({ companyId, userRole }: CommunicationTabProps)
     </Form>
   );
 }
-

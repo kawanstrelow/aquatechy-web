@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, getDay } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -54,6 +55,7 @@ export function DialogTransferMultipleServices({
   fullWidth?: boolean;
   className?: string;
 } = {}) {
+  const t = useTranslations('routes');
   const { services: contextServices } = useServicesContext();
   const services = servicesOverride ?? contextServices;
   const { allAssignments } = useAssignmentsContext();
@@ -173,7 +175,7 @@ export function DialogTransferMultipleServices({
     const targetWeekday = weekdays.indexOf(selected.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -207,7 +209,7 @@ export function DialogTransferMultipleServices({
     const targetWeekday = weekdays.indexOf(selected.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -241,7 +243,7 @@ export function DialogTransferMultipleServices({
     const startDate = new Date(startOnDate);
     const dates: DateOption[] = [
       {
-        name: 'No end',
+        name: t('noEnd'),
         key: 'No end',
         value: 'No end'
       }
@@ -350,19 +352,21 @@ export function DialogTransferMultipleServices({
             type="button"
             disabled={disabled || servicesCount === 0}
           >
-            <span className="md:hidden">Transfer All</span>
-            <span className="hidden md:inline">Transfer All Services</span>
+            <span className="md:hidden">{t('transferAll')}</span>
+            <span className="hidden md:inline">{t('transferAllServices')}</span>
           </Button>
         </DialogTrigger>
         <DialogContent className="max-h-[calc(100dvh-2rem)] w-full max-w-[580px] overflow-y-auto rounded-md">
-          <DialogTitle className="mb-4">Transfer All Services</DialogTitle>
+          <DialogTitle className="mb-4">{t('transferAllServices')}</DialogTitle>
           {isPending ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
               <p className="text-sm text-gray-600">
                 {isPermanentTransfer
-                  ? 'Transferring assignments...'
-                  : `Transferring ${servicesCount} service${servicesCount !== 1 ? 's' : ''}...`}
+                  ? t('transferringAssignments')
+                  : servicesCount === 1
+                    ? t('transferringOneService')
+                    : t('transferringServices', { count: servicesCount })}
               </p>
             </div>
           ) : (
@@ -381,22 +385,18 @@ export function DialogTransferMultipleServices({
                   <RadioGroupItem value="one_time" id="transfer-all-scope-one-time" className="mt-1" />
                   <div className="grid gap-1">
                     <Label htmlFor="transfer-all-scope-one-time" className="cursor-pointer font-normal">
-                      One-time change
+                      {t('oneTimeChange')}
                     </Label>
-                    <span className="text-muted-foreground text-xs">
-                      Move only these scheduled visits to a new technician and date.
-                    </span>
+                    <span className="text-muted-foreground text-xs">{t('moveTheseVisits')}</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <RadioGroupItem value="permanent" id="transfer-all-scope-permanent" className="mt-1" />
                   <div className="grid gap-1">
                     <Label htmlFor="transfer-all-scope-permanent" className="cursor-pointer font-normal">
-                      Permanent change
+                      {t('permanentChange')}
                     </Label>
-                    <span className="text-muted-foreground text-xs">
-                      Transfer the assignments for these services permanently.
-                    </span>
+                    <span className="text-muted-foreground text-xs">{t('transferAssignmentsPermanently')}</span>
                   </div>
                 </div>
               </RadioGroup>
@@ -404,23 +404,18 @@ export function DialogTransferMultipleServices({
               <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
                 {isPermanentTransfer ? (
                   <>
-                    <p className="font-semibold">You are about to transfer all assignments.</p>
-                    <p className="mt-1">
-                      Single services will be transferred as single services to the new date, they will not be
-                      recurrent.
-                    </p>
-                    <p className="mt-1">
-                      Recurrent services will be transferred and will assume the dates you selected.
-                    </p>
+                    <p className="font-semibold">{t('transferAllAssignmentsWarning')}</p>
+                    <p className="mt-1">{t('singleServicesWarning')}</p>
+                    <p className="mt-1">{t('recurrentServicesWarning')}</p>
                   </>
                 ) : (
                   <>
                     <p className="font-semibold">
-                      You are about to transfer {servicesCount} service{servicesCount !== 1 ? 's' : ''}.
+                      {servicesCount === 1
+                        ? t('aboutToTransferOne')
+                        : t('aboutToTransferCount', { count: servicesCount })}
                     </p>
-                    <p className="mt-1">
-                      All services will be transferred to the same technician and scheduled for the same date.
-                    </p>
+                    <p className="mt-1">{t('allServicesSameDate')}</p>
                   </>
                 )}
               </div>
@@ -431,8 +426,8 @@ export function DialogTransferMultipleServices({
                     <div className="basis-full">
                       <SelectField
                         name="assignedToId"
-                        placeholder="Technician..."
-                        label="Technician"
+                        placeholder={t('technicianPlaceholder')}
+                        label={t('technician')}
                         options={uniqueMembers.map((m) => ({
                           key: m.id,
                           value: m.id,
@@ -451,9 +446,9 @@ export function DialogTransferMultipleServices({
                     <div className="mt-1">
                       <div className="flex flex-col gap-4 md:flex-row">
                         <SelectField
-                          label="Start on"
+                          label={t('startOn')}
                           name="startOn"
-                          placeholder="Start on"
+                          placeholder={t('startOn')}
                           options={next10WeekdaysStartOn.map((date) => ({
                             key: date.key,
                             name: date.name,
@@ -461,9 +456,9 @@ export function DialogTransferMultipleServices({
                           }))}
                         />
                         <SelectField
-                          label="End after"
+                          label={t('endAfter')}
                           name="endAfter"
-                          placeholder="End after"
+                          placeholder={t('endAfter')}
                           options={next10WeekdaysEndAfter.map((date) => ({
                             key: date.key,
                             name: date.name,
@@ -476,9 +471,9 @@ export function DialogTransferMultipleServices({
                     <div className="mt-1">
                       <div className="flex flex-col gap-4 md:flex-row">
                         <SelectField
-                          label="Schedule to"
+                          label={t('scheduleTo')}
                           name="scheduledTo"
-                          placeholder="Schedule to"
+                          placeholder={t('scheduleTo')}
                           options={next10DatesWithChosenWeekday.map((date) => ({
                             key: date.key,
                             name: date.name,
@@ -499,7 +494,7 @@ export function DialogTransferMultipleServices({
                 onClick={transferServices}
                 disabled={isPermanentTransfer && assignmentsCount === 0}
               >
-                Transfer All
+                {t('transferAll')}
               </Button>
               <Button
                 variant="outline"
@@ -509,7 +504,7 @@ export function DialogTransferMultipleServices({
                   setOpen(false);
                 }}
               >
-                Cancel
+                {t('cancel')}
               </Button>
             </div>
           )}
@@ -520,12 +515,12 @@ export function DialogTransferMultipleServices({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {isPermanentTransfer ? 'Error Transferring Route' : 'Error Transferring Services'}
+              {isPermanentTransfer ? t('errorTransferringRoute') : t('errorTransferringServices')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-red-600">{errorMessage}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setErrorMessage(null)}>Close</AlertDialogAction>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>{t('close')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -535,32 +530,32 @@ export function DialogTransferMultipleServices({
           <AlertDialogHeader>
             <AlertDialogTitle>
               {transferResults?.failureCount === 0 ? (
-                <span className="text-gray-600">✓ All Services Transferred Successfully</span>
+                <span className="text-gray-600">{t('allServicesTransferred')}</span>
               ) : transferResults?.successCount === 0 ? (
-                <span className="text-gray-600">Transfer Failed</span>
+                <span className="text-gray-600">{t('transferFailed')}</span>
               ) : (
-                <span className="text-gray-600">Partial Transfer Completed</span>
+                <span className="text-gray-600">{t('partialTransfer')}</span>
               )}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <div className="grid grid-cols-3 gap-4 py-4 text-sm">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-700">{transferResults?.totalProcessed}</div>
-                  <div className="text-gray-500">Total Processed</div>
+                  <div className="text-gray-500">{t('totalProcessed')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">{transferResults?.successCount}</div>
-                  <div className="text-gray-500">Successful</div>
+                  <div className="text-gray-500">{t('successful')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">{transferResults?.failureCount}</div>
-                  <div className="text-gray-500">Failed</div>
+                  <div className="text-gray-500">{t('failed')}</div>
                 </div>
               </div>
 
               {transferResults && transferResults.failureCount > 0 && (
                 <div className="mt-4">
-                  <div className="mb-2 text-sm font-semibold text-gray-700">Failed Transfers:</div>
+                  <div className="mb-2 text-sm font-semibold text-gray-700">{t('failedTransfers')}</div>
 
                   {transferResults.results
                     .filter((result) => !result.success)
@@ -577,14 +572,16 @@ export function DialogTransferMultipleServices({
 
               {transferResults && transferResults.successCount > 0 && transferResults.failureCount > 0 && (
                 <div className="mt-3 rounded-md bg-blue-50 p-3 text-sm text-blue-800">
-                  <strong>Note:</strong> {transferResults.successCount} service(s) were transferred successfully. The
-                  failed transfers above were skipped and may require manual attention.
+                  <strong>{t('note')}</strong>{' '}
+                  {transferResults.successCount === 1
+                    ? t('partialServiceNoteOne')
+                    : t('partialServiceNoteMany', { count: transferResults.successCount })}
                 </div>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setTransferResults(null)}>Close</AlertDialogAction>
+            <AlertDialogAction onClick={() => setTransferResults(null)}>{t('close')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -594,32 +591,32 @@ export function DialogTransferMultipleServices({
           <AlertDialogHeader>
             <AlertDialogTitle>
               {permanentResults?.failureCount === 0 ? (
-                <span className="text-green-600">✓ All Assignments Transferred Successfully</span>
+                <span className="text-green-600">{t('allAssignmentsTransferred')}</span>
               ) : permanentResults?.successCount === 0 ? (
-                <span className="text-red-600">Transfer Failed</span>
+                <span className="text-red-600">{t('transferFailed')}</span>
               ) : (
-                <span className="text-yellow-600">Partial Transfer Completed</span>
+                <span className="text-yellow-600">{t('partialTransfer')}</span>
               )}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <div className="grid grid-cols-3 gap-4 py-4 text-sm">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-700">{permanentResults?.totalProcessed}</div>
-                  <div className="text-gray-500">Total Processed</div>
+                  <div className="text-gray-500">{t('totalProcessed')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">{permanentResults?.successCount}</div>
-                  <div className="text-gray-500">Successful</div>
+                  <div className="text-gray-500">{t('successful')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">{permanentResults?.failureCount}</div>
-                  <div className="text-gray-500">Failed</div>
+                  <div className="text-gray-500">{t('failed')}</div>
                 </div>
               </div>
 
               {permanentResults && permanentResults.failureCount > 0 && (
                 <div className="mt-4">
-                  <div className="mb-2 text-sm font-semibold text-gray-700">Failed Transfers:</div>
+                  <div className="mb-2 text-sm font-semibold text-gray-700">{t('failedTransfers')}</div>
 
                   {permanentResults.results
                     .filter((result) => !result.success)
@@ -636,14 +633,16 @@ export function DialogTransferMultipleServices({
 
               {permanentResults && permanentResults.successCount > 0 && permanentResults.failureCount > 0 && (
                 <div className="mt-3 rounded-md bg-blue-50 p-3 text-sm text-blue-800">
-                  <strong>Note:</strong> {permanentResults.successCount} assignment(s) were transferred successfully.
-                  The failed transfers above were skipped and may require manual attention.
+                  <strong>{t('note')}</strong>{' '}
+                  {permanentResults.successCount === 1
+                    ? t('partialAssignmentNoteOne')
+                    : t('partialAssignmentNoteMany', { count: permanentResults.successCount })}
                 </div>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setPermanentResults(null)}>Close</AlertDialogAction>
+            <AlertDialogAction onClick={() => setPermanentResults(null)}>{t('close')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

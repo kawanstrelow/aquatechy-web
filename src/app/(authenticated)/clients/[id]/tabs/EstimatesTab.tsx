@@ -1,10 +1,12 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
+import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 
+import { translateMessage } from '@/i18n/runtime';
 import { BasicServicesDataTable } from '@/components/basic-services-datatable';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Button } from '@/components/ui/button';
@@ -42,31 +44,27 @@ const statusOptions: Record<EstimateStatus, { label: string; className: string }
 const columns: ColumnDef<TableEstimate>[] = [
   {
     accessorKey: 'estimateNumber',
-    header: 'Estimate Number',
+    header: () => translateMessage('clients.columns.estimateNumber', 'Estimate Number'),
     cell: ({ row }) => <div className="font-semibold text-gray-900">{row.original.estimateNumber}</div>
   },
   {
     accessorKey: 'issuedDate',
-    header: 'Issued Date',
-    cell: ({ row }) => (
-      <div className="text-gray-700">{format(new Date(row.original.issuedDate), 'MMM dd, yyyy')}</div>
-    )
+    header: () => translateMessage('clients.columns.issuedDate', 'Issued Date'),
+    cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.issuedDate), 'MMM dd, yyyy')}</div>
   },
   {
     accessorKey: 'validUntil',
-    header: 'Valid Until',
-    cell: ({ row }) => (
-      <div className="text-gray-700">{format(new Date(row.original.validUntil), 'MMM dd, yyyy')}</div>
-    )
+    header: () => translateMessage('clients.columns.validUntil', 'Valid Until'),
+    cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.validUntil), 'MMM dd, yyyy')}</div>
   },
   {
     accessorKey: 'amount',
-    header: 'Amount',
+    header: () => translateMessage('clients.columns.amount', 'Amount'),
     cell: ({ row }) => <div className="font-semibold text-gray-900">${row.original.amount.toFixed(2)}</div>
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: () => translateMessage('clients.columns.status', 'Status'),
     cell: ({ row }) => {
       const statusConfig = statusOptions[row.original.status] || {
         className: 'bg-gray-100 text-gray-600',
@@ -76,7 +74,7 @@ const columns: ColumnDef<TableEstimate>[] = [
         <div
           className={`inline-flex max-w-28 items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold ${statusConfig.className}`}
         >
-          {statusConfig.label}
+          {translateMessage(`clients.estimates.${row.original.status}`, statusConfig.label)}
         </div>
       );
     }
@@ -88,6 +86,7 @@ type Props = {
 };
 
 export default function EstimatesTab({ clientId }: Props) {
+  const t = useTranslations('clients');
   const router = useRouter();
   const { data: estimates = [], isLoading, isError } = useGetEstimatesByClientId(clientId);
 
@@ -110,8 +109,8 @@ export default function EstimatesTab({ clientId }: Props) {
   if (isError) {
     return (
       <div className="flex w-full flex-col items-center justify-center gap-2 py-12 text-center">
-        <h3 className="text-lg font-semibold text-gray-900">Unable to load estimates</h3>
-        <p className="text-sm text-gray-500">You may not have permission to view this client&apos;s estimates.</p>
+        <h3 className="text-lg font-semibold text-gray-900">{t('estimates.loadError')}</h3>
+        <p className="text-sm text-gray-500">{t('estimates.permission')}</p>
       </div>
     );
   }
@@ -120,16 +119,14 @@ export default function EstimatesTab({ clientId }: Props) {
     <div className="flex w-full flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Estimates</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('estimates.title')}</h3>
           <p className="text-sm text-gray-500">
-            {estimates.length === 0
-              ? 'No estimates yet for this client.'
-              : `${estimates.length} estimate${estimates.length === 1 ? '' : 's'}`}
+            {estimates.length === 0 ? t('estimates.empty') : t('estimates.count', { count: estimates.length })}
           </p>
         </div>
         <Button onClick={handleCreateEstimate}>
           <PlusIcon className="mr-2 h-4 w-4" />
-          Create estimate
+          {t('estimates.create')}
         </Button>
       </div>
 
@@ -137,7 +134,7 @@ export default function EstimatesTab({ clientId }: Props) {
         <BasicServicesDataTable columns={columns} data={estimates} onRowClick={handleRowClick} />
       ) : (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 py-12">
-          <p className="text-sm text-gray-500">Create an estimate to send a quote to this client.</p>
+          <p className="text-sm text-gray-500">{t('estimates.emptyHint')}</p>
         </div>
       )}
     </div>

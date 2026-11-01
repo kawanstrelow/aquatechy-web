@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { MdEdit, MdVisibility, MdDownload } from 'react-icons/md';
@@ -21,15 +22,16 @@ interface InvoiceActionsProps {
   onMarkUnpaid?: (invoice: InvoiceListRow) => void;
 }
 
-export function InvoiceActions({ 
-  invoice, 
-  onView, 
-  onEdit, 
-  onCancelInvoice, 
+export function InvoiceActions({
+  invoice,
+  onView,
+  onEdit,
+  onCancelInvoice,
   onDownload,
   onMarkPaid,
   onMarkUnpaid
 }: InvoiceActionsProps) {
+  const t = useTranslations('invoices');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleActionSelect = (action: string) => {
@@ -66,53 +68,33 @@ export function InvoiceActions({
     <div onClick={handleDropdownClick}>
       <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={handleDropdownClick}>
+          <Button variant="ghost" size="icon" onClick={handleDropdownClick} aria-label={t('actions.openActions')}>
             <BsThreeDotsVertical className="text-stone-500" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => handleActionSelect('view')} className="cursor-pointer">
-            <div className="flex w-full items-center cursor-pointer mr-36">
-              View
-              
-            </div>
+            <div className="mr-36 flex w-full cursor-pointer items-center">{t('actions.view')}</div>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => handleActionSelect('edit')}>
-            <div className="flex w-full items-center cursor-pointer">
-              Edit
-              
-            </div>
+            <div className="flex w-full cursor-pointer items-center">{t('actions.edit')}</div>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => handleActionSelect('download')}>
-            <div className="flex w-full items-center cursor-pointer">
-              Download PDF
-              
-            </div>
+            <div className="flex w-full cursor-pointer items-center">{t('actions.downloadPdf')}</div>
           </DropdownMenuItem>
           {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
             <DropdownMenuItem onSelect={() => handleActionSelect('markPaid')}>
-              <div className="flex w-full items-center cursor-pointer">
-                Mark as Paid
-                
-              </div>
+              <div className="flex w-full cursor-pointer items-center">{t('list.markAsPaid')}</div>
             </DropdownMenuItem>
           )}
           {invoice.status === 'paid' && (
             <DropdownMenuItem onSelect={() => handleActionSelect('markUnpaid')}>
-              <div className="flex w-full items-center cursor-pointer">
-                Mark as Unpaid
-                
-              </div>
+              <div className="flex w-full cursor-pointer items-center">{t('list.markAsUnpaid')}</div>
             </DropdownMenuItem>
           )}
           {invoice.status !== 'paid' && invoice.status !== 'cancelled' ? (
-            <DropdownMenuItem
-              onSelect={() => handleActionSelect('cancelInvoice')}
-              className="text-red-500"
-            >
-              <div className="flex w-full items-center cursor-pointer">
-                Cancel invoice
-              </div>
+            <DropdownMenuItem onSelect={() => handleActionSelect('cancelInvoice')} className="text-red-500">
+              <div className="flex w-full cursor-pointer items-center">{t('list.cancelInvoiceConfirm')}</div>
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>
@@ -120,4 +102,3 @@ export function InvoiceActions({
     </div>
   );
 }
-

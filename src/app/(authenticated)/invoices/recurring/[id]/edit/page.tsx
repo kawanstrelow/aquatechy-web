@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -17,7 +18,6 @@ import useGetCompany from '@/hooks/react-query/companies/getCompany';
 import {
   RecurringInvoiceDelivery,
   PaymentTermsDays,
-  RecurringInvoiceFrequency,
   RecurringInvoiceTemplate
 } from '@/ts/interfaces/RecurringInvoiceTemplate';
 import { getRecurringInvoiceDeliveryOptions, isInvoiceSmsEnabled } from '@/utils/companyCommunicationSms';
@@ -30,26 +30,8 @@ interface RecurringInvoiceFormData {
   paymentInstructions: string;
 }
 
-const paymentTermsOptions = [
-  { key: PaymentTermsDays.OneDay, value: PaymentTermsDays.OneDay, name: 'Due on 1 day' },
-  { key: PaymentTermsDays.ThreeDays, value: PaymentTermsDays.ThreeDays, name: 'Due on 3 days' },
-  { key: PaymentTermsDays.SevenDays, value: PaymentTermsDays.SevenDays, name: 'Due on 7 days' },
-  { key: PaymentTermsDays.FifteenDays, value: PaymentTermsDays.FifteenDays, name: 'Due on 15 days' },
-  { key: PaymentTermsDays.ThirtyDays, value: PaymentTermsDays.ThirtyDays, name: 'Due on 30 days' },
-  { key: PaymentTermsDays.SixtyDays, value: PaymentTermsDays.SixtyDays, name: 'Due on 60 days' }
-];
-
-const frequencyLabels: Record<RecurringInvoiceFrequency, string> = {
-  [RecurringInvoiceFrequency.Weekly]: 'Weekly',
-  [RecurringInvoiceFrequency.Monthly]: 'Monthly',
-  [RecurringInvoiceFrequency.Each2Months]: 'Every 2 Months',
-  [RecurringInvoiceFrequency.Each3Months]: 'Every 3 Months',
-  [RecurringInvoiceFrequency.Each4Months]: 'Every 4 Months',
-  [RecurringInvoiceFrequency.Each6Months]: 'Every 6 Months',
-  [RecurringInvoiceFrequency.Yearly]: 'Yearly'
-};
-
 export default function EditRecurringInvoicePage() {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const params = useParams();
   const templateId = params?.id as string;
@@ -71,17 +53,10 @@ export default function EditRecurringInvoicePage() {
     return (
       <div className="flex flex-col gap-6 p-2">
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-red-600">Error</h2>
-          <p className="mt-2 text-gray-600">
-            {error instanceof Error ? error.message : 'Failed to load recurring invoice template'}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push('/invoices/recurring')}
-            className="mt-4"
-          >
-            Back to Templates
+          <h2 className="text-lg font-semibold text-red-600">{t('errors.error')}</h2>
+          <p className="mt-2 text-gray-600">{error instanceof Error ? error.message : t('errors.loadTemplate')}</p>
+          <Button type="button" variant="outline" onClick={() => router.push('/invoices/recurring')} className="mt-4">
+            {t('actions.backToTemplates')}
           </Button>
         </div>
       </div>
@@ -92,10 +67,36 @@ export default function EditRecurringInvoicePage() {
 }
 
 function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemplate }) {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const { mutate: updateTemplate, isPending: isUpdating } = useUpdateRecurringInvoiceTemplate();
   const { data: company } = useGetCompany(template.companyOwnerId);
-  const deliveryOptions = getRecurringInvoiceDeliveryOptions(isInvoiceSmsEnabled(company));
+  const smsEnabled = isInvoiceSmsEnabled(company);
+  const deliveryOptions = useMemo(
+    () =>
+      getRecurringInvoiceDeliveryOptions(smsEnabled).map((option) => {
+        if (option.value === RecurringInvoiceDelivery.SaveAsDraft) {
+          return { ...option, name: t('delivery.saveAsDraftLong') };
+        }
+        if (option.value === RecurringInvoiceDelivery.SendOnCreation) {
+          return { ...option, name: smsEnabled ? t('delivery.sendOnCreationSms') : t('delivery.sendOnCreationEmail') };
+        }
+        return { ...option, name: smsEnabled ? t('delivery.createOnlySms') : t('delivery.createOnlyEmail') };
+      }),
+    [smsEnabled, t]
+  );
+  const paymentTermsOptions = useMemo(
+    () =>
+      [
+        PaymentTermsDays.OneDay,
+        PaymentTermsDays.ThreeDays,
+        PaymentTermsDays.SevenDays,
+        PaymentTermsDays.FifteenDays,
+        PaymentTermsDays.ThirtyDays,
+        PaymentTermsDays.SixtyDays
+      ].map((value) => ({ key: value, value, name: t(`paymentTerms.${value}`) })),
+    [t]
+  );
 
   const form = useForm<RecurringInvoiceFormData>({
     defaultValues: {
@@ -146,26 +147,26 @@ function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemp
           <div className="flex items-center gap-4">
             <Button type="button" variant="outline" onClick={() => router.back()}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {t('actions.back')}
             </Button>
-            <h1 className="text-2xl font-bold">Edit Recurring Invoice Template</h1>
+            <h1 className="text-2xl font-bold">{t('recurringForm.editTitle')}</h1>
           </div>
 
           {/* Main Content */}
           <div className="flex flex-col gap-6">
             {/* Read-only Information */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Template Information (Read-only)</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('recurringForm.readOnlyInfo')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Reference Number</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">{t('columns.referenceNumber')}</label>
                   <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900">
                     {template.referenceNumber || '-'}
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Client</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">{t('fields.client')}</label>
                   <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900">
                     {template.client ? `${template.client.firstName} ${template.client.lastName}`.trim() : '-'}
                   </div>
@@ -173,16 +174,18 @@ function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemp
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Start Date</label>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">{t('columns.startDate')}</label>
                     <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900">
                       {new Date(template.startOn).toLocaleDateString()}
                     </div>
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Frequency</label>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">{t('fields.frequency')}</label>
                     <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900">
-                      {frequencyLabels[template.frequency] || template.frequency}
+                      {t.has(`frequency.${template.frequency}`)
+                        ? t(`frequency.${template.frequency}`)
+                        : template.frequency}
                     </div>
                   </div>
                 </div>
@@ -191,69 +194,77 @@ function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemp
 
             {/* Line Items (Read-only) */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Line Items (Read-only)</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('recurringForm.readOnlyLineItems')}</h2>
               <div className="space-y-4">
                 {template.lineItems && template.lineItems.length > 0 ? (
                   template.lineItems.map((item, index) => (
                     <div key={item.id || index} className="rounded-lg border p-4">
                       <div className="mb-3 flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Item {index + 1}</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          {t('fields.itemNumber', { number: index + 1 })}
+                        </span>
                       </div>
                       <div className="space-y-3">
                         <div>
-                          <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
+                          <label className="mb-1 block text-sm font-medium text-gray-700">
+                            {t('fields.description')}
+                          </label>
                           <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900">
                             {item.description || '-'}
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">Quantity</label>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                              {t('fields.quantity')}
+                            </label>
                             <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900">
                               {item.quantity}
                             </div>
                           </div>
                           <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">Unit Price</label>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                              {t('fields.unitPrice')}
+                            </label>
                             <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900">
                               ${(Number(item.unitPrice) || 0).toFixed(2)}
                             </div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-sm text-gray-600">Amount: </span>
+                          <span className="text-sm text-gray-600">{t('fields.amount')} </span>
                           <span className="font-semibold">${(Number(item.amount) || 0).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500">No line items</div>
+                  <div className="text-center text-gray-500">{t('empty.noLineItems')}</div>
                 )}
               </div>
             </div>
 
             {/* Editable Fields */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Editable Settings</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('recurringForm.editableSettings')}</h2>
               <div className="space-y-4">
                 <SelectField
                   name="delivery"
-                  label="Delivery"
-                  placeholder="Select delivery option"
+                  label={t('fields.delivery')}
+                  placeholder={t('placeholders.selectDelivery')}
                   options={deliveryOptions}
                 />
 
                 <SelectField
                   name="paymentTerms"
-                  label="Payment Terms"
-                  placeholder="Select payment terms"
+                  label={t('fields.paymentTerms')}
+                  placeholder={t('placeholders.selectPaymentTerms')}
                   options={paymentTermsOptions}
                 />
 
                 <InputField
                   name="discountRate"
-                  label="Discount (%)"
+                  label={t('fields.discountPercent')}
                   placeholder="0.00"
                   type={FieldType.Number}
                   props={{
@@ -267,32 +278,32 @@ function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemp
 
             {/* Tax and Totals */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Tax & Totals</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.taxAndTotals')}</h2>
               <div className="space-y-2 rounded-lg bg-gray-50 p-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="text-gray-600">{t('fields.subtotal')}</span>
                   <span className="font-semibold">${invoiceTotals.subtotal.toFixed(2)}</span>
                 </div>
                 {invoiceTotals.discountAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Discount ({watchedDiscount}%):</span>
+                    <span className="text-gray-600">{t('fields.discountWithRate', { rate: watchedDiscount })}</span>
                     <span className="font-semibold text-red-600">-${invoiceTotals.discountAmount.toFixed(2)}</span>
                   </div>
                 )}
                 {invoiceTotals.discountAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal after discount:</span>
+                    <span className="text-gray-600">{t('fields.subtotalAfterDiscount')}</span>
                     <span className="font-semibold">${invoiceTotals.subtotalAfterDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 {invoiceTotals.taxAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax:</span>
+                    <span className="text-gray-600">{t('fields.tax')}</span>
                     <span className="font-semibold">${invoiceTotals.taxAmount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-gray-300 pt-2 text-lg font-bold">
-                  <span>Total:</span>
+                  <span>{t('fields.total')}</span>
                   <span>${invoiceTotals.total.toFixed(2)}</span>
                 </div>
               </div>
@@ -300,18 +311,18 @@ function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemp
 
             {/* Payment Terms and Notes */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Additional Information</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.additionalInformation')}</h2>
               <div className="space-y-4">
                 <InputField
                   name="notes"
-                  label="Notes"
-                  placeholder="Additional notes (optional)"
+                  label={t('fields.notes')}
+                  placeholder={t('placeholders.notesOptional')}
                   type={FieldType.TextArea}
                 />
                 <InputField
                   name="paymentInstructions"
-                  label="Payment Instructions"
-                  placeholder="Payment instructions"
+                  label={t('fields.paymentInstructions')}
+                  placeholder={t('placeholders.paymentInstructions')}
                   type={FieldType.TextArea}
                 />
               </div>
@@ -319,16 +330,11 @@ function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemp
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                className="flex-1"
-              >
-                Cancel
+              <Button type="button" variant="outline" onClick={() => router.back()} className="flex-1">
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" className="flex-1" disabled={isUpdating}>
-                {isUpdating ? 'Updating...' : 'Update Template'}
+                {isUpdating ? t('actions.updating') : t('recurringForm.updateTemplate')}
               </Button>
             </div>
           </div>
@@ -337,4 +343,3 @@ function EditRecurringInvoiceForm({ template }: { template: RecurringInvoiceTemp
     </FormProvider>
   );
 }
-

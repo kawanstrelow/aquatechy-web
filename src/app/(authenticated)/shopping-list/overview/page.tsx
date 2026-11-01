@@ -1,6 +1,7 @@
 'use client';
 
 import { PlusIcon } from '@radix-ui/react-icons';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -36,6 +37,8 @@ type FilterFormData = {
 };
 
 export default function ShoppingOverviewPage() {
+  const t = useTranslations('shopping');
+  const common = useTranslations('common');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: companies = [], isLoading: isLoadingCompanies } = useGetCompanies();
@@ -127,18 +130,18 @@ export default function ShoppingOverviewPage() {
 
   const clientOptions = useMemo(
     () => [
-      { key: 'all', value: 'all', name: 'All clients' },
+      { key: 'all', value: 'all', name: t('allClients') },
       ...clientsForCompany.map((client) => ({
         key: client.id,
         value: client.id,
         name: client.fullName
       }))
     ],
-    [clientsForCompany]
+    [clientsForCompany, t]
   );
 
   const poolOptions = useMemo(() => {
-    const options = [{ key: 'all', value: 'all', name: 'All pools' }];
+    const options = [{ key: 'all', value: 'all', name: t('allPools') }];
     const pools =
       clientId !== 'all'
         ? clientsForCompany.find((client) => client.id === clientId)?.pools ?? []
@@ -151,9 +154,15 @@ export default function ShoppingOverviewPage() {
     });
 
     return options;
-  }, [clientsForCompany, clientId]);
+  }, [clientsForCompany, clientId, t]);
 
-  const statusOptions = [{ key: 'all', value: 'all', name: 'All statuses' }, ...SHOPPING_ITEM_STATUS_OPTIONS];
+  const statusOptions = [
+    { key: 'all', value: 'all', name: t('allStatuses') },
+    ...SHOPPING_ITEM_STATUS_OPTIONS.map((option) => ({
+      ...option,
+      name: t(`statuses.${option.value}`)
+    }))
+  ];
 
   const appliedFilters = useMemo(() => {
     let count = 0;
@@ -207,14 +216,14 @@ export default function ShoppingOverviewPage() {
         <ConfirmActionDialog
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
-          title="Remove item"
+          title={t('removeItem')}
           description={
             itemToDelete
-              ? `Remove ${itemToDelete.productName} from the shopping list for ${itemToDelete.poolName}?`
-              : 'Remove this item from the shopping list?'
+              ? t('removeItemForPool', { product: itemToDelete.productName, pool: itemToDelete.poolName })
+              : t('removeItemGeneric')
           }
-          confirmText={isDeleting ? 'Removing…' : 'Remove'}
-          cancelText="Cancel"
+          confirmText={isDeleting ? t('removing') : t('remove')}
+          cancelText={common('cancel')}
           onConfirm={handleConfirmDelete}
           variant="destructive"
         />
@@ -225,7 +234,7 @@ export default function ShoppingOverviewPage() {
           <div className="flex w-full flex-wrap items-center gap-2 border-b border-line bg-surface px-5 py-4">
             <Button type="button" className="shrink-0" onClick={() => setAddDialogOpen(true)} disabled={!companyId}>
               <PlusIcon className="mr-2" />
-              Add shopping item
+              {t('addShoppingItem')}
             </Button>
             <Button
               type="button"
@@ -234,28 +243,28 @@ export default function ShoppingOverviewPage() {
               onClick={() => router.push('/shopping-list/products')}
             >
               <PlusIcon className="mr-2" />
-              Add product
+              {t('addProduct')}
             </Button>
             {companies.length > 1 && (
               <div className="min-w-[140px] flex-1">
-                <SelectField name="companyId" options={companyOptions} placeholder="Company" />
+                <SelectField name="companyId" options={companyOptions} placeholder={t('company')} />
               </div>
             )}
             <div className="min-w-[140px] flex-1">
-              <SelectField name="clientId" options={clientOptions} placeholder="Client" />
+              <SelectField name="clientId" options={clientOptions} placeholder={t('client')} />
             </div>
             <div className="min-w-[140px] flex-1">
-              <SelectField name="poolId" options={poolOptions} placeholder="Pool" />
+              <SelectField name="poolId" options={poolOptions} placeholder={t('pool')} />
             </div>
             <div className="min-w-[140px] flex-1">
-              <SelectField name="status" options={statusOptions} placeholder="Status" />
+              <SelectField name="status" options={statusOptions} placeholder={t('status')} />
             </div>
             {appliedFilters > 0 && (
               <Button variant="outline" type="button" className="ml-auto shrink-0" onClick={handleClearFilters}>
                 <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
                   {appliedFilters}
                 </span>
-                Clear
+                {t('clear')}
                 <X className="ml-2 h-4 w-4" />
               </Button>
             )}

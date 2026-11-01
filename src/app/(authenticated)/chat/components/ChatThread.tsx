@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
 import { AiMessage } from '@/ts/interfaces/AiChat';
@@ -17,6 +18,7 @@ type ChatThreadProps = {
 };
 
 export function ChatThread({ messages, isSending, pendingUserContent, onSuggestionClick }: ChatThreadProps) {
+  const t = useTranslations('chat');
   const bottomRef = useRef<HTMLDivElement>(null);
   const visibleMessages = messages.filter((m) => m.role === 'user' || m.role === 'assistant');
 
@@ -61,7 +63,7 @@ export function ChatThread({ messages, isSending, pendingUserContent, onSuggesti
           <div className="flex justify-start">
             <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-500 shadow-sm">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Thinking…
+              {t('thinking')}
             </div>
           </div>
         )}

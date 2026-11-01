@@ -1,0 +1,179 @@
+{
+  "quickstart": {
+    "text": "Quick Start",
+    "title": "Quick Start Guide",
+    "description": "Get started with Aquatechy in a few simple steps"
+  },
+  "dashboard": {
+    "text": "Dashboard",
+    "title": "Dashboard",
+    "description": "Overview of your pools as a technician or a manager"
+  },
+  "chat": {
+    "text": "Chat",
+    "title": "AI Chat",
+    "description": "Ask questions about your company data"
+  },
+  "clients": {
+    "text": "Clients",
+    "title": "Clients",
+    "description": "Manage your clients and edit their information"
+  },
+  "myClients": {
+    "text": "My Clients",
+    "title": "My Clients"
+  },
+  "leads": {
+    "text": "Leads",
+    "title": "Leads",
+    "description": "Track leads, schedule one visit, and convert them into clients"
+  },
+  "newClient": {
+    "text": "New Client",
+    "title": "New Client",
+    "description": "Create a new client, add a pool and assign a technician to it"
+  },
+  "quickbooksImport": {
+    "text": "QuickBooks Import",
+    "title": "Import Clients from QuickBooks",
+    "description": "Import clients from a QuickBooks file"
+  },
+  "fileImport": {
+    "text": "Excel / CSV Import",
+    "title": "Import Clients from Excel or CSV",
+    "description": "Import clients using our Excel or CSV template"
+  },
+  "skimmerImport": {
+    "text": "Skimmer Import",
+    "title": "Import Clients from Skimmer",
+    "description": "Import clients from Skimmer Excel file"
+  },
+  "routes": {
+    "text": "Routes",
+    "title": "Routes",
+    "description": "See your schedule and find the best route for a new pool location"
+  },
+  "schedule": {
+    "text": "Schedule",
+    "title": "Schedule",
+    "description": "See your schedule and the pools you have to service"
+  },
+  "routeFinder": {
+    "text": "Route Finder",
+    "title": "Route Finder",
+    "description": "Find the best route for a new pool location"
+  },
+  "requests": {
+    "text": "Requests",
+    "title": "Requests",
+    "description": "Manage your requests and see their status"
+  },
+  "services": {
+    "text": "Services",
+    "title": "Services",
+    "description": "Look services made by your company"
+  },
+  "invoices": {
+    "text": "Invoices",
+    "title": "Invoices",
+    "description": "Manage your invoices and track payments"
+  },
+  "invoicesOverview": {
+    "text": "Overview",
+    "title": "Invoices Overview",
+    "description": "View and manage all your invoices"
+  },
+  "estimates": {
+    "text": "Estimates",
+    "title": "Estimates",
+    "description": "Create and manage client estimates"
+  },
+  "recurring": {
+    "text": "Recurring",
+    "title": "Recurring Invoices",
+    "description": "Manage recurring invoice templates"
+  },
+  "invoiceSettings": {
+    "text": "Settings",
+    "title": "Invoice Settings",
+    "description": "Configure invoice settings and preferences"
+  },
+  "shopping": {
+    "text": "Shopping list",
+    "title": "Shopping list",
+    "description": "Manage your product catalog and shopping lists"
+  },
+  "shoppingOverview": {
+    "text": "Overview",
+    "title": "Shopping list overview",
+    "description": "Track shopping items across clients and pools"
+  },
+  "products": {
+    "text": "Products",
+    "title": "Products",
+    "description": "View and manage products in your catalog"
+  },
+  "workOrders": {
+    "text": "Work Orders",
+    "title": "Work Orders",
+    "description": "Manage work orders and track their progress"
+  },
+  "workOrdersOverview": {
+    "text": "Overview",
+    "title": "Work Orders Overview",
+    "description": "View and manage work orders"
+  },
+  "addWorkOrder": {
+    "text": "Add Work Order",
+    "title": "Add Work Order",
+    "description": "Create a new work order"
+  },
+  "reports": {
+    "text": "Reports",
+    "title": "Reports",
+    "description": "Generate comprehensive reports and analytics"
+  },
+  "clientReports": {
+    "text": "Client Reports",
+    "title": "Client Reports",
+    "description": "Client activity and pool maintenance reports"
+  },
+  "serviceReports": {
+    "text": "Service Reports",
+    "title": "Service Reports",
+    "description": "Service completion and technician reports"
+  },
+  "teamReports": {
+    "text": "Team Reports",
+    "title": "Team Reports",
+    "description": "Team performance and productivity reports"
+  },
+  "poolReports": {
+    "text": "Pool Reports",
+    "title": "Pool Reports",
+    "description": "Pool equipment and filter maintenance reports"
+  },
+  "settings": {
+    "text": "Settings",
+    "title": "Settings"
+  },
+  "profile": {
+    "text": "Profile",
+    "title": "Profile"
+  },
+  "subscription": {
+    "text": "Subscription",
+    "title": "Subscription",
+    "description": "Manage your subscription and see our plans"
+  },
+  "preferences": {
+    "text": "Preferences",
+    "title": "Preferences",
+    "description": "Manage company preference settings."
+  },
+  "companies": {
+    "text": "Companies",
+    "title": "Companies",
+    "description": "Manage your companies and edit their information."
+  }
+}

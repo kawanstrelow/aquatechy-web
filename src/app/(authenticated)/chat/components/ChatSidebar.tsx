@@ -2,6 +2,7 @@
 
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import {
   AlertDialog,
@@ -37,12 +38,15 @@ export function ChatSidebar({
   onSelect,
   onDelete
 }: ChatSidebarProps) {
+  const t = useTranslations('chat');
+  const common = useTranslations('common');
+
   return (
     <aside className="flex h-full w-full flex-col border-r border-slate-200 bg-white lg:w-[260px] lg:shrink-0">
       <div className="border-b border-slate-200 p-3">
         <Button type="button" className="w-full gap-2 bg-[#364D9D] hover:bg-[#2d3f82]" onClick={onNewChat}>
           <Plus className="h-4 w-4" />
-          New chat
+          {t('newChat')}
         </Button>
       </div>
 
@@ -54,7 +58,7 @@ export function ChatSidebar({
         )}
 
         {!isLoading && conversations.length === 0 && (
-          <p className="px-2 py-6 text-center text-xs text-slate-400">No conversations yet</p>
+          <p className="px-2 py-6 text-center text-xs text-slate-400">{t('noConversations')}</p>
         )}
 
         <ul className="space-y-0.5">
@@ -70,7 +74,7 @@ export function ChatSidebar({
                     isActive ? 'bg-[#364D9D]/10 text-slate-900' : 'text-slate-700 hover:bg-slate-100'
                   )}
                 >
-                  <div className="truncate text-sm font-medium">{conversation.title?.trim() || 'New chat'}</div>
+                  <div className="truncate text-sm font-medium">{conversation.title?.trim() || t('newChat')}</div>
                   <div className="mt-0.5 text-[11px] text-slate-400">
                     {formatDistanceToNow(new Date(conversation.updatedAt), { addSuffix: true })}
                   </div>
@@ -81,7 +85,7 @@ export function ChatSidebar({
                     <button
                       type="button"
                       className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 opacity-0 transition hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
-                      aria-label="Delete conversation"
+                      aria-label={t('deleteConversation')}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -89,19 +93,17 @@ export function ChatSidebar({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This removes the conversation from your history. You cannot undo this action.
-                      </AlertDialogDescription>
+                      <AlertDialogTitle>{t('deleteChatTitle')}</AlertDialogTitle>
+                      <AlertDialogDescription>{t('deleteChatDescription')}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{common('cancel')}</AlertDialogCancel>
                       <AlertDialogAction
                         disabled={isDeleting}
                         className="bg-red-600 hover:bg-red-700"
                         onClick={() => onDelete(conversation.id)}
                       >
-                        Delete
+                        {common('delete')}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

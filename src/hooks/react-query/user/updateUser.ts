@@ -1,6 +1,6 @@
-import { dataTagSymbol, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 import { IUserSchema } from '@/app/(authenticated)/settings/profile/page';
 import { updateUserBootstrap } from '@/hooks/react-query/user/getUser';
@@ -11,7 +11,7 @@ import { clientAxios } from '../../../lib/clientAxios';
 export const useUpdateUser = (userId: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const router = useRouter();
+  const t = useTranslations('common');
 
   const { mutate, isPending, isSuccess } = useMutation({
     mutationFn: async (data: IUserSchema) => await clientAxios.patch('/users', data),
@@ -28,8 +28,8 @@ export const useUpdateUser = (userId: string) => {
       toast({
         duration: 5000,
         variant: 'error',
-        title: 'Error updating user',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: t('errorUpdatingUser'),
+        description: error.response?.data?.message ? error.response.data.message : t('internalServerError')
       });
     }
   });

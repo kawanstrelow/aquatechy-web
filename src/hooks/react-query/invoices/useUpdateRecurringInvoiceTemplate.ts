@@ -9,6 +9,8 @@ import {
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useUpdateRecurringInvoiceTemplate = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -47,7 +49,10 @@ export const useUpdateRecurringInvoiceTemplate = () => {
 
       toast({
         duration: 2000,
-        title: 'Recurring invoice template updated successfully',
+        title: translateMessage(
+          'toasts.recurringInvoiceTemplateUpdatedSuccessfully',
+          'Recurring invoice template updated successfully'
+        ),
         variant: 'success'
       });
     },
@@ -59,12 +64,19 @@ export const useUpdateRecurringInvoiceTemplate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to update recurring invoice template';
+        : errorMessage ||
+          translateMessage(
+            'toasts.failedToUpdateRecurringInvoiceTemplate',
+            'Failed to update recurring invoice template'
+          );
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating recurring invoice template',
+        title: translateMessage(
+          'toasts.errorUpdatingRecurringInvoiceTemplate',
+          'Error updating recurring invoice template'
+        ),
         description: message
       });
     }
@@ -72,7 +84,3 @@ export const useUpdateRecurringInvoiceTemplate = () => {
 
   return { mutate, mutateAsync, isPending, isSuccess };
 };
-
-
-
-

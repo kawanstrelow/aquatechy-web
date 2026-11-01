@@ -5,6 +5,8 @@ import { DeleteRequest } from '@/app/(authenticated)/requests/ModalEditRequest';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeleteRequest = (requestId: string) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -16,7 +18,7 @@ export const useDeleteRequest = (requestId: string) => {
 
       toast({
         duration: 5000,
-        title: 'Request deleted successfully',
+        title: translateMessage('toasts.requestDeletedSuccessfully', 'Request deleted successfully'),
         variant: 'success'
       });
     },
@@ -28,8 +30,10 @@ export const useDeleteRequest = (requestId: string) => {
       toast({
         duration: 5000,
         variant: 'error',
-        title: 'Error deleting request',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorDeletingRequest', 'Error deleting request'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

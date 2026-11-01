@@ -93,7 +93,6 @@ const clientNames = [
   'Robert Garcia'
 ];
 
-
 const statuses: Invoice['status'][] = ['paid', 'unpaid', 'draft', 'overdue', 'cancelled'];
 
 function randomDate(start: Date, end: Date): Date {
@@ -134,7 +133,7 @@ export function generateFakeInvoices(count: number = 25): Invoice[] {
     const invoice: Invoice = {
       id: `inv-${String(i + 1).padStart(4, '0')}`,
       invoiceNumber: `INV-${String(i + 1).padStart(6, '0')}`,
-      clientId: `client-${String(i % clientNames.length + 1).padStart(3, '0')}`,
+      clientId: `client-${String((i % clientNames.length) + 1).padStart(3, '0')}`,
       clientName: randomElement(clientNames),
       issuedDate,
       dueDate,
@@ -215,8 +214,8 @@ export function getDetailedInvoice(invoice: Invoice): DetailedInvoice {
     const quantity = randomInt(1, 4);
     const unitPrice = Math.round((Math.random() * 500 + 50) * 100) / 100;
     const amount = Math.round(quantity * unitPrice * 100) / 100;
-    const taxRate = Math.round((Math.random() * 10) * 100) / 100; // 0-10%
-    const taxAmount = Math.round((amount * taxRate / 100) * 100) / 100;
+    const taxRate = Math.round(Math.random() * 10 * 100) / 100; // 0-10%
+    const taxAmount = Math.round(((amount * taxRate) / 100) * 100) / 100;
 
     lineItems.push({
       description,
@@ -237,12 +236,12 @@ export function getDetailedInvoice(invoice: Invoice): DetailedInvoice {
     const lastItem = lineItems[lineItems.length - 1];
     lastItem.amount += adjustment;
     lastItem.unitPrice = Math.round((lastItem.amount / lastItem.quantity) * 100) / 100;
-    lastItem.taxAmount = Math.round((lastItem.amount * (lastItem.taxRate ?? 0) / 100) * 100) / 100;
+    lastItem.taxAmount = Math.round(((lastItem.amount * (lastItem.taxRate ?? 0)) / 100) * 100) / 100;
     subtotal = invoice.amount;
   } else {
     // Fallback if no items
-    const taxRate = Math.round((Math.random() * 10) * 100) / 100;
-    const taxAmount = Math.round((invoice.amount * taxRate / 100) * 100) / 100;
+    const taxRate = Math.round(Math.random() * 10 * 100) / 100;
+    const taxAmount = Math.round(((invoice.amount * taxRate) / 100) * 100) / 100;
     lineItems.push({
       description: 'Service Fee',
       quantity: 1,
@@ -273,7 +272,7 @@ export function getDetailedInvoice(invoice: Invoice): DetailedInvoice {
 
 export function getInvoiceById(id: string): Invoice | undefined {
   const invoices = generateFakeInvoices(100);
-  return invoices.find(inv => inv.id === id);
+  return invoices.find((inv) => inv.id === id);
 }
 
 export function getDetailedInvoiceById(id: string): DetailedInvoice | undefined {
@@ -281,4 +280,3 @@ export function getDetailedInvoiceById(id: string): DetailedInvoice | undefined 
   if (!invoice) return undefined;
   return getDetailedInvoice(invoice);
 }
-

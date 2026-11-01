@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, getDay } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -39,6 +40,7 @@ type Props = {
 type FormValues = z.infer<typeof transferAssignmentsSchema>;
 
 export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntireRoute = false }: Props) {
+  const t = useTranslations('routes');
   const { members, assignmentToId } = useMembersStore(
     useShallow((state) => ({
       members: state.members,
@@ -104,7 +106,11 @@ export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntir
     setErrorMessage(error); // Set error message to display in dialog
   };
 
-  const { mutate: transferPermanently, isPending: isPendingPermanently } = useTransferPermanentlyRoute(assignment, handleTransferSuccess, handleTransferError);
+  const { mutate: transferPermanently, isPending: isPendingPermanently } = useTransferPermanentlyRoute(
+    assignment,
+    handleTransferSuccess,
+    handleTransferError
+  );
   const [manualLoading, setManualLoading] = useState(false);
 
   const isPending = isPendingPermanently || manualLoading;
@@ -142,7 +148,7 @@ export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntir
     const targetWeekday = weekdays.indexOf(weekday.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -185,7 +191,7 @@ export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntir
     const dates: { name: string; key: string; value: string }[] = [];
 
     dates.push({
-      name: 'No end',
+      name: t('noEnd'),
       key: 'No end',
       value: 'No end'
     });
@@ -236,29 +242,28 @@ export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntir
     <>
       <Dialog open={open} onOpenChange={isPending ? undefined : setOpen}>
         <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-scroll rounded-md md:w-[580px]">
-          <DialogTitle>Transfer Complete Route</DialogTitle>
+          <DialogTitle>{t('transferCompleteRoute')}</DialogTitle>
 
           <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
-                    <p className="font-semibold">You are about to transfer all assignments.</p>
-                    <p className="mt-1">Single services will be transferred as single services to the new date, they will not be recurrent.</p>
-                    <p className="mt-1">Recurrent services will be transferred and will assume the dates you selected.</p>
-                  </div>
+            <p className="font-semibold">{t('transferAllAssignmentsWarning')}</p>
+            <p className="mt-1">{t('singleServicesWarning')}</p>
+            <p className="mt-1">{t('recurrentServicesWarning')}</p>
+          </div>
           {isPending ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
-              <p className="text-sm text-gray-600">Transferring assignments...</p>
+              <p className="text-sm text-gray-600">{t('transferringAssignments')}</p>
             </div>
           ) : (
             <>
               <Form {...form}>
                 <form className="flex flex-col gap-4">
-                  
                   <div className="flex gap-4">
                     <div className="basis-full">
                       <SelectField
                         name="assignmentToId"
-                        placeholder="Technician..."
-                        label="Technician"
+                        placeholder={t('technicianPlaceholder')}
+                        label={t('technician')}
                         options={uniqueMembers.map((m) => ({
                           key: m.id,
                           value: m.id,
@@ -276,9 +281,9 @@ export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntir
                   <div className="mt-1">
                     <div className="flex flex-col gap-4 md:flex-row">
                       <SelectField
-                        label="Start on"
+                        label={t('startOn')}
                         name="startOn"
-                        placeholder="Start on"
+                        placeholder={t('startOn')}
                         options={next10WeekdaysStartOn.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -286,9 +291,9 @@ export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntir
                         }))}
                       />
                       <SelectField
-                        label="End after"
+                        label={t('endAfter')}
                         name="endAfter"
-                        placeholder="End after"
+                        placeholder={t('endAfter')}
                         options={next10WeekdaysEndAfter.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -300,17 +305,19 @@ export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntir
                 </form>
               </Form>
               <div className="flex justify-around gap-4 pt-4">
-                <Button onClick={transferRoute} className='w-full'>Transfer</Button>
+                <Button onClick={transferRoute} className="w-full">
+                  {t('transfer')}
+                </Button>
 
                 <Button
                   variant="outline"
-                  className='w-full'
+                  className="w-full"
                   onClick={() => {
                     form.reset();
                     setOpen(false);
                   }}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
               </div>
             </>
@@ -322,75 +329,73 @@ export function DialogTransferCompleteRoute({ open, setOpen, assignment, isEntir
       <AlertDialog open={!!errorMessage} onOpenChange={(open) => !open && setErrorMessage(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Error Transferring Route</AlertDialogTitle>
-            <AlertDialogDescription className="text-red-600">
-              {errorMessage}
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('errorTransferringRoute')}</AlertDialogTitle>
+            <AlertDialogDescription className="text-red-600">{errorMessage}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setErrorMessage(null)}>
-              Close
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>{t('close')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Transfer Results Dialog */}
       <AlertDialog open={!!transferResults} onOpenChange={(open) => !open && setTransferResults(null)}>
-        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <AlertDialogContent className="flex max-h-[80vh] max-w-2xl flex-col overflow-hidden">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {transferResults?.failureCount === 0 ? (
-                <span className="text-green-600">✓ All Assignments Transferred Successfully</span>
+                <span className="text-green-600">{t('allAssignmentsTransferred')}</span>
               ) : transferResults?.successCount === 0 ? (
-                <span className="text-red-600">Transfer Failed</span>
+                <span className="text-red-600">{t('transferFailed')}</span>
               ) : (
-                <span className="text-yellow-600">Partial Transfer Completed</span>
+                <span className="text-yellow-600">{t('partialTransfer')}</span>
               )}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <div className="grid grid-cols-3 gap-4 py-4 text-sm">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-700">{transferResults?.totalProcessed}</div>
-                  <div className="text-gray-500">Total Processed</div>
+                  <div className="text-gray-500">{t('totalProcessed')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">{transferResults?.successCount}</div>
-                  <div className="text-gray-500">Successful</div>
+                  <div className="text-gray-500">{t('successful')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">{transferResults?.failureCount}</div>
-                  <div className="text-gray-500">Failed</div>
+                  <div className="text-gray-500">{t('failed')}</div>
                 </div>
               </div>
 
               {transferResults && transferResults.failureCount > 0 && (
                 <div className="mt-4">
-                  <div className="text-sm font-semibold text-gray-700 mb-2">Failed Transfers:</div>
-                  
-                    {transferResults.results
-                      .filter((result) => !result.success)
-                      .map((result, index) => (
-                        <div key={result.assignmentId || index} className="p-3 bg-white rounded border border-red-200 mb-2 mt-2">
-                          <div className="text-sm text-red-700">{result.message}</div>
-                        </div>
-                      ))}
-                  
+                  <div className="mb-2 text-sm font-semibold text-gray-700">{t('failedTransfers')}</div>
+
+                  {transferResults.results
+                    .filter((result) => !result.success)
+                    .map((result, index) => (
+                      <div
+                        key={result.assignmentId || index}
+                        className="mb-2 mt-2 rounded border border-red-200 bg-white p-3"
+                      >
+                        <div className="text-sm text-red-700">{result.message}</div>
+                      </div>
+                    ))}
                 </div>
               )}
 
               {transferResults && transferResults.successCount > 0 && transferResults.failureCount > 0 && (
-                <div className="mt-3 p-3 bg-blue-50 rounded-md text-sm text-blue-800">
-                  <strong>Note:</strong> {transferResults.successCount} assignment(s) were transferred successfully. 
-                  The failed transfers above were skipped and may require manual attention.
+                <div className="mt-3 rounded-md bg-blue-50 p-3 text-sm text-blue-800">
+                  <strong>{t('note')}</strong>{' '}
+                  {transferResults.successCount === 1
+                    ? t('partialAssignmentNoteOne')
+                    : t('partialAssignmentNoteMany', { count: transferResults.successCount })}
                 </div>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setTransferResults(null)}>
-              Close
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => setTransferResults(null)}>{t('close')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

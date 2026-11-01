@@ -1,6 +1,7 @@
 'use client';
 
 import { Users } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { EmptyState, SplitBar, StatusBadge, Surface } from '@/components/design';
 import { TechnicianDailyProgress } from '@/ts/interfaces/Dashboard';
@@ -23,17 +24,19 @@ function percentClass(percent: number): string {
 }
 
 export function DashboardTechniciansProgress({ techniciansProgress, className }: Props) {
+  const t = useTranslations('dashboard');
+
   if (techniciansProgress === undefined) {
     return null;
   }
 
   return (
-    <Surface title="Today's route progress" icon={Users} className={className}>
+    <Surface title={t('todayRouteProgress')} icon={Users} className={className}>
       {techniciansProgress.length === 0 ? (
         <EmptyState
           className="px-0 py-6"
-          title="No technician routes for today"
-          description="Scheduled visits will show progress here as your team works through the day."
+          title={t('noTechnicianRoutesTitle')}
+          description={t('noTechnicianRoutesDescription')}
         />
       ) : (
         <ul className="flex flex-col gap-5">
@@ -52,7 +55,7 @@ export function DashboardTechniciansProgress({ techniciansProgress, className }:
                     <span className={`font-semibold tabular-nums ${percentClass(percent)}`}>{percent}%</span>
                     <span className="mx-1.5">·</span>
                     <span className="tabular-nums">
-                      {tech.completedCount} of {tech.totalScheduled} completed
+                      {t('completedOf', { completed: tech.completedCount, total: tech.totalScheduled })}
                     </span>
                   </p>
                 </div>
@@ -61,12 +64,12 @@ export function DashboardTechniciansProgress({ techniciansProgress, className }:
                     done={tech.completedCount}
                     skipped={tech.skippedCount}
                     open={tech.openCount}
-                    label={`${tech.completedCount} of ${tech.totalScheduled} visits completed`}
+                    label={t('visitsCompleted', { completed: tech.completedCount, total: tech.totalScheduled })}
                   />
                   <div className="flex flex-wrap gap-2">
-                    <StatusBadge tone="success">Done {tech.completedCount}</StatusBadge>
-                    <StatusBadge tone="warning">Skipped {tech.skippedCount}</StatusBadge>
-                    <StatusBadge tone="neutral">Open {tech.openCount}</StatusBadge>
+                    <StatusBadge tone="success">{t('doneCount', { count: tech.completedCount })}</StatusBadge>
+                    <StatusBadge tone="warning">{t('skippedCount', { count: tech.skippedCount })}</StatusBadge>
+                    <StatusBadge tone="neutral">{t('openCount', { count: tech.openCount })}</StatusBadge>
                   </div>
                 </div>
               </li>

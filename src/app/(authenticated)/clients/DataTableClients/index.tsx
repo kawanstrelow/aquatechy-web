@@ -1,6 +1,7 @@
 'use client';
 
 import { PlusIcon } from '@radix-ui/react-icons';
+import { useTranslations } from 'next-intl';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -36,6 +37,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTableClients<TValue>({ columns, data, onFiltersChange }: DataTableProps<Client, TValue>) {
+  const t = useTranslations('clients');
   const shouldDisableNewPools = useUserStore((state) => state.shouldDisableNewPools);
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([{ id: 'isActive', value: 'active' }]);
@@ -113,9 +115,9 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
 
   // Defina as opções para o SelectField
   const selectOptions = [
-    { key: 'all', value: 'all', name: 'All clients' },
-    { key: 'active', value: 'active', name: 'Active' },
-    { key: 'inactive', value: 'inactive', name: 'Inactive' }
+    { key: 'all', value: 'all', name: t('list.allClients') },
+    { key: 'active', value: 'active', name: t('shared.active') },
+    { key: 'inactive', value: 'inactive', name: t('shared.inactive') }
   ];
 
   const form = useForm({
@@ -131,13 +133,13 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
   const cities = Array.from(new Set(sortedData.map((client) => client.city)));
   // Definindo opções para o SelectField da cidade
   const citySelectOptions = [
-    { value: 'all', name: 'All cities', key: 'all_cities' },
+    { value: 'all', name: t('list.allCities'), key: 'all_cities' },
     ...cities.map((city) => ({ value: city, name: city, key: city }))
   ];
 
   const types = Array.from(new Set(sortedData.map((client) => client.type)));
   const typesSelectOptions = [
-    { value: 'all', name: 'All types', key: 'all_types' },
+    { value: 'all', name: t('list.allTypes'), key: 'all_types' },
     ...types.map((type) => ({ value: type, name: type, key: type }))
   ];
 
@@ -151,7 +153,7 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
   );
 
   const companyOptions = [
-    { key: 'all', value: 'all', name: 'All companies' },
+    { key: 'all', value: 'all', name: t('shared.allCompanies') },
     ...companies.map((company) => ({
       key: company.id,
       value: company.id,
@@ -189,129 +191,133 @@ export function DataTableClients<TValue>({ columns, data, onFiltersChange }: Dat
         isExporting={isExporting}
       />
       <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
-      <div className="flex w-full flex-col items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4 md:flex-row">
-        <div className="flex w-full flex-col gap-4 text-nowrap md:flex-row">
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <Button disabled={shouldDisableNewPools}>
-                <PlusIcon className="mr-2" />
-                {shouldDisableNewPools ? 'New Client' : <Link href={'/clients/new'}>New Client</Link>}
+        <div className="flex w-full flex-col items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4 md:flex-row">
+          <div className="flex w-full flex-col gap-4 text-nowrap md:flex-row">
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Button disabled={shouldDisableNewPools}>
+                  <PlusIcon className="mr-2" />
+                  {shouldDisableNewPools ? (
+                    t('list.newClient')
+                  ) : (
+                    <Link href={'/clients/new'}>{t('list.newClient')}</Link>
+                  )}
+                </Button>
+              </HoverCardTrigger>
+              {shouldDisableNewPools && (
+                <HoverCardContent side="bottom" className="w-full">
+                  {t('list.upgradePlan')}
+                </HoverCardContent>
+              )}
+            </HoverCard>
+            {ownerAdminOfficeCompanies.length > 0 && (
+              <Button type="button" variant="outline" onClick={handleExportClick} disabled={isExporting}>
+                <Download className="mr-2" />
+                {isExporting ? t('shared.exporting') : t('shared.export')}
               </Button>
-            </HoverCardTrigger>
-            {shouldDisableNewPools && (
-              <HoverCardContent side="bottom" className="w-full">
-                Upgrade your plan to add more pools.
-              </HoverCardContent>
             )}
-          </HoverCard>
-          {ownerAdminOfficeCompanies.length > 0 && (
-            <Button type="button" variant="outline" onClick={handleExportClick} disabled={isExporting}>
-              <Download className="mr-2" />
-              {isExporting ? 'Exporting...' : 'Export'}
+            <Button variant="outline">
+              <Link href={'/clients/bulk-actions'}>{t('list.bulkActions')}</Link>
             </Button>
-          )}
-          <Button variant="outline">
-            <Link href={'/clients/bulk-actions'}>Bulk Actions</Link>
-          </Button>
-          <Input
-            placeholder="Filter clients..."
-            value={globalFilter ?? ''}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="md:max-w-xs"
-          />
+            <Input
+              placeholder={t('list.filterClients')}
+              value={globalFilter ?? ''}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              className="md:max-w-xs"
+            />
+          </div>
+          <div className="flex w-full">
+            <Form {...form}>
+              <form className="flex w-full flex-col gap-4 md:flex-row">
+                <SelectField
+                  name="companyOwnerId"
+                  options={companyOptions}
+                  placeholder={t('fields.company')}
+                  onValueChange={(value) => {
+                    form.setValue('companyOwnerId', value);
+                    onFiltersChange(form.getValues());
+                  }}
+                />
+                <SelectField
+                  name="isActive"
+                  options={selectOptions}
+                  placeholder={t('fields.status')}
+                  onValueChange={(value) => {
+                    form.setValue('isActive', value);
+                    table.getColumn('isActive')?.setFilterValue(value);
+                    onFiltersChange(form.getValues());
+                  }}
+                />
+                <SelectField
+                  name="city"
+                  options={citySelectOptions}
+                  placeholder={t('fields.city')}
+                  onValueChange={(value) => table.getColumn('city')?.setFilterValue(value)}
+                />
+                <SelectField
+                  name="type"
+                  options={typesSelectOptions}
+                  placeholder={t('fields.type')}
+                  onValueChange={(value) => table.getColumn('type')?.setFilterValue(value)}
+                />
+              </form>
+            </Form>
+          </div>
         </div>
-        <div className="flex w-full">
-          <Form {...form}>
-            <form className="flex w-full flex-col gap-4 md:flex-row">
-              <SelectField
-                name="companyOwnerId"
-                options={companyOptions}
-                placeholder="Company"
-                onValueChange={(value) => {
-                  form.setValue('companyOwnerId', value);
-                  onFiltersChange(form.getValues());
-                }}
-              />
-              <SelectField
-                name="isActive"
-                options={selectOptions}
-                placeholder="Status"
-                onValueChange={(value) => {
-                  form.setValue('isActive', value);
-                  table.getColumn('isActive')?.setFilterValue(value);
-                  onFiltersChange(form.getValues());
-                }}
-              />
-              <SelectField
-                name="city"
-                options={citySelectOptions}
-                placeholder="City"
-                onValueChange={(value) => table.getColumn('city')?.setFilterValue(value)}
-              />
-              <SelectField
-                name="type"
-                options={typesSelectOptions}
-                placeholder="Type"
-                onValueChange={(value) => table.getColumn('type')?.setFilterValue(value)}
-              />
-            </form>
-          </Form>
-        </div>
-      </div>
-      <Table>
-        <TableHeader className="bg-surface">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
-              {headerGroup.headers.map((header) => {
-                const isSortable = header.column.columnDef.header;
-                return (
-                  <TableHead key={header.id} onClick={() => isSortable && toggleSortOrder(header.column.id)}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    {isSortable && (
-                      <span>{sortColumn === header.column.id && (sortOrder === 'asc' ? ' ↓' : ' ↑')}</span>
-                    )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                className="cursor-pointer"
-                key={row.id}
-                data-state={row.getIsSelected() && 'selected'}
-                // onClick={() => push(`/clients/${row.original.id}`)}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <React.Fragment key={cell.id}>
-                    <TableCell
-                      // click na linha para enviar para view do client, mas não
-                      // se aplica nas
-                      onClick={
-                        [2, 3, 4].includes(cell.column.getIndex())
-                          ? () => {}
-                          : () => push(`/clients/${row.original.id}`)
-                      }
-                      key={cell.id}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  </React.Fragment>
-                ))}
+        <Table>
+          <TableHeader className="bg-surface">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
+                {headerGroup.headers.map((header) => {
+                  const isSortable = header.column.columnDef.header;
+                  return (
+                    <TableHead key={header.id} onClick={() => isSortable && toggleSortOrder(header.column.id)}>
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {isSortable && (
+                        <span>{sortColumn === header.column.id && (sortOrder === 'asc' ? ' ↓' : ' ↑')}</span>
+                      )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  className="cursor-pointer"
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                  // onClick={() => push(`/clients/${row.original.id}`)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <React.Fragment key={cell.id}>
+                      <TableCell
+                        // click na linha para enviar para view do client, mas não
+                        // se aplica nas
+                        onClick={
+                          [2, 3, 4].includes(cell.column.getIndex())
+                            ? () => {}
+                            : () => push(`/clients/${row.original.id}`)
+                        }
+                        key={cell.id}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    </React.Fragment>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  {t('shared.noResults')}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </>
   );

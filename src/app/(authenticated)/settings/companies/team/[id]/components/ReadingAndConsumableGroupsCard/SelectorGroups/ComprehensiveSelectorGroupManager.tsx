@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,7 +14,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Edit, Trash2, Settings, GripVertical, Save, X } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -46,50 +53,44 @@ const SELECTOR_LIMITS = {
   definitionQuestion: { min: 1, max: 200 },
   definitionDescription: { max: 500 },
   optionText: { min: 1, max: 50 },
-  optionValue: { min: 1, max: 50 },
+  optionValue: { min: 1, max: 50 }
 } as const;
 
 const selectorGroupNameSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.groupName.min, 'Name is required')
-  .max(SELECTOR_LIMITS.groupName.max, `Name must be at most ${SELECTOR_LIMITS.groupName.max} characters`);
+  .min(SELECTOR_LIMITS.groupName.min, 'settings.errors.nameRequiredShort')
+  .max(SELECTOR_LIMITS.groupName.max, 'settings.errors.nameMax');
 
 const selectorGroupDescriptionSchema = z
   .string()
   .trim()
-  .max(SELECTOR_LIMITS.groupDescription.max, `Description must be at most ${SELECTOR_LIMITS.groupDescription.max} characters`);
+  .max(SELECTOR_LIMITS.groupDescription.max, 'settings.errors.descriptionMaxDynamic');
 
 const selectorDefinitionQuestionSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.definitionQuestion.min, 'Question is required')
-  .max(
-    SELECTOR_LIMITS.definitionQuestion.max,
-    `Question must be at most ${SELECTOR_LIMITS.definitionQuestion.max} characters`
-  );
+  .min(SELECTOR_LIMITS.definitionQuestion.min, 'settings.errors.questionRequired')
+  .max(SELECTOR_LIMITS.definitionQuestion.max, 'settings.errors.questionMax');
 
 const selectorDefinitionDescriptionSchema = z
   .string()
   .trim()
-  .max(
-    SELECTOR_LIMITS.definitionDescription.max,
-    `Description must be at most ${SELECTOR_LIMITS.definitionDescription.max} characters`
-  );
+  .max(SELECTOR_LIMITS.definitionDescription.max, 'settings.errors.descriptionMaxDynamic');
 
 const selectorOptionTextSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.optionText.min, 'Display text is required')
-  .max(SELECTOR_LIMITS.optionText.max, `Display text must be at most ${SELECTOR_LIMITS.optionText.max} characters`);
+  .min(SELECTOR_LIMITS.optionText.min, 'settings.errors.displayTextRequired')
+  .max(SELECTOR_LIMITS.optionText.max, 'settings.errors.displayTextMax');
 
 const selectorOptionValueSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.optionValue.min, 'Value is required')
-  .max(SELECTOR_LIMITS.optionValue.max, `Value must be at most ${SELECTOR_LIMITS.optionValue.max} characters`);
+  .min(SELECTOR_LIMITS.optionValue.min, 'settings.errors.valueRequired')
+  .max(SELECTOR_LIMITS.optionValue.max, 'settings.errors.valueMax');
 
-const nonNegativeOrderSchema = z.number().int().min(0, 'Order must be 0 or greater');
+const nonNegativeOrderSchema = z.number().int().min(0, 'settings.errors.orderMin');
 
 function getSelectorGroupNameError(name: string): string | undefined {
   const r = selectorGroupNameSchema.safeParse(name);
@@ -171,11 +172,7 @@ function validateBatchOptionCreate(row: BatchSelectorOptionCreate): string | und
   return undefined;
 }
 
-function validateBatchOptionUpdate(update: {
-  text?: string;
-  value?: string;
-  order?: number;
-}): string | undefined {
+function validateBatchOptionUpdate(update: { text?: string; value?: string; order?: number }): string | undefined {
   if (update.text !== undefined) {
     const t = getSelectorOptionTextError(update.text);
     if (t) return t;
@@ -260,19 +257,14 @@ function DraggableSelectorDefinitionRow({
   isUpdating,
   pendingChanges
 }: DraggableSelectorDefinitionRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: definition.id });
+  const t = useTranslations('settings');
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: definition.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : 1
   };
 
   // Determine row styling based on pending changes
@@ -288,42 +280,38 @@ function DraggableSelectorDefinitionRow({
   return (
     <TableRow ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''} ${rowClassName}`}>
       <TableCell {...attributes} {...listeners}>
-        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+        <GripVertical className="text-muted-foreground h-4 w-4 cursor-grab active:cursor-grabbing" />
       </TableCell>
       <TableCell>
         <div>
           <div className="flex items-center gap-2">
             <div className="font-medium">{definition.question}</div>
             {definition.id.startsWith('temp-') && (
-              <Badge variant="default" className="bg-green-600 text-white text-xs">
+              <Badge variant="default" className="bg-green-600 text-xs text-white">
                 New
               </Badge>
             )}
             {pendingChanges.definitionUpdates.has(definition.id) && !definition.id.startsWith('temp-') && (
-              <Badge variant="default" className="bg-blue-600 text-white text-xs">
+              <Badge variant="default" className="bg-blue-600 text-xs text-white">
                 Modified
               </Badge>
             )}
             {pendingChanges.definitionDeletes.has(definition.id) && (
               <Badge variant="destructive" className="text-xs">
-                Deleted
+                {t('fields.deleted')}
               </Badge>
             )}
           </div>
-          {definition.description && (
-            <div className="text-sm text-muted-foreground mt-1">
-              {definition.description}
-            </div>
-          )}
+          {definition.description && <div className="text-muted-foreground mt-1 text-sm">{definition.description}</div>}
         </div>
       </TableCell>
       <TableCell className="hidden md:table-cell">
-        <Badge variant={definition.isRequired ? "default" : "secondary"} className="text-xs">
-          {definition.isRequired ? "Required" : "Optional"}
+        <Badge variant={definition.isRequired ? 'default' : 'secondary'} className="text-xs">
+          {definition.isRequired ? 'Required' : 'Optional'}
         </Badge>
       </TableCell>
       <TableCell className="hidden md:table-cell">
-        <div className="text-sm text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           {definition.localOptions?.length || definition.options?.length || 0} options
         </div>
       </TableCell>
@@ -335,7 +323,7 @@ function DraggableSelectorDefinitionRow({
             onClick={() => onManageOptions(definition)}
             disabled={isUpdating}
             className="h-8 w-8 p-0"
-            title="Manage Options"
+            title={t('selectors.manageOptions')}
           >
             <Settings className="h-3 w-3" />
           </Button>
@@ -345,7 +333,7 @@ function DraggableSelectorDefinitionRow({
             onClick={() => onEdit(definition)}
             disabled={isUpdating}
             className="h-8 w-8 p-0"
-            title="Edit Question"
+            title={t('selectors.editQuestion')}
           >
             <Edit className="h-3 w-3" />
           </Button>
@@ -354,8 +342,8 @@ function DraggableSelectorDefinitionRow({
             size="sm"
             onClick={() => onDelete(definition)}
             disabled={isUpdating}
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-            title="Delete Question"
+            className="text-destructive hover:text-destructive h-8 w-8 p-0"
+            title={t('selectors.deleteQuestion')}
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -378,6 +366,7 @@ export function ComprehensiveSelectorGroupManager({
   selectorGroup,
   companyId
 }: ComprehensiveSelectorGroupManagerProps) {
+  const t = useTranslations('settings');
   const [editingDefinition, setEditingDefinition] = useState<SelectorDefinition | null>(null);
   const [managingOptionsForDefinition, setManagingOptionsForDefinition] = useState<SelectorDefinition | null>(null);
   const [editingOption, setEditingOption] = useState<SelectorOption | null>(null);
@@ -386,7 +375,9 @@ export function ComprehensiveSelectorGroupManager({
   const [showSaveConfirmationDialog, setShowSaveConfirmationDialog] = useState(false);
   const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false);
 
-  const [localDefinitions, setLocalDefinitions] = useState<(SelectorDefinition & { localOptions?: SelectorOption[] })[]>([]);
+  const [localDefinitions, setLocalDefinitions] = useState<
+    (SelectorDefinition & { localOptions?: SelectorOption[] })[]
+  >([]);
   const [localGroup, setLocalGroup] = useState<SelectorGroup | null>(null);
 
   const [pendingChanges, setPendingChanges] = useState<PendingChanges>({
@@ -436,14 +427,14 @@ export function ComprehensiveSelectorGroupManager({
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates
     })
   );
 
   const handleGroupUpdate = (field: string, value: any) => {
     if (localGroup) {
-      setLocalGroup(prev => prev ? { ...prev, [field]: value } : null);
-      setPendingChanges(prev => ({
+      setLocalGroup((prev) => (prev ? { ...prev, [field]: value } : null));
+      setPendingChanges((prev) => ({
         ...prev,
         groupUpdates: { ...prev.groupUpdates, [field]: value }
       }));
@@ -452,9 +443,7 @@ export function ComprehensiveSelectorGroupManager({
 
   const handleCreateDefinition = (data: any) => {
     // Check if a definition with the same question already exists in creates
-    const existingCreate = pendingChanges.definitionCreates.find(create =>
-      create.question === data.question
-    );
+    const existingCreate = pendingChanges.definitionCreates.find((create) => create.question === data.question);
 
     if (existingCreate) {
       return; // Prevent duplicate creation
@@ -470,7 +459,7 @@ export function ComprehensiveSelectorGroupManager({
     };
 
     // Add to pending creates
-    setPendingChanges(prev => ({
+    setPendingChanges((prev) => ({
       ...prev,
       definitionCreates: [...prev.definitionCreates, newDefinition]
     }));
@@ -489,7 +478,7 @@ export function ComprehensiveSelectorGroupManager({
       localOptions: []
     };
 
-    setLocalDefinitions(prev => [...prev, tempDefinition]);
+    setLocalDefinitions((prev) => [...prev, tempDefinition]);
     setShowCreateDefinitionDialog(false);
   };
 
@@ -498,17 +487,15 @@ export function ComprehensiveSelectorGroupManager({
       // Don't update temporary definitions in pending changes
       if (editingDefinition.id.startsWith('temp-')) {
         // Update the create in pending changes
-        setPendingChanges(prev => ({
+        setPendingChanges((prev) => ({
           ...prev,
-          definitionCreates: prev.definitionCreates.map(create =>
-            create.question === editingDefinition.question
-              ? { ...create, ...data }
-              : create
+          definitionCreates: prev.definitionCreates.map((create) =>
+            create.question === editingDefinition.question ? { ...create, ...data } : create
           )
         }));
       } else {
         // Update existing definition in pending changes
-        setPendingChanges(prev => {
+        setPendingChanges((prev) => {
           const updates = new Map(prev.definitionUpdates);
           const existingUpdate = updates.get(editingDefinition.id) || {};
           updates.set(editingDefinition.id, { ...existingUpdate, ...data });
@@ -517,13 +504,7 @@ export function ComprehensiveSelectorGroupManager({
       }
 
       // Update local state
-      setLocalDefinitions(prev =>
-        prev.map(def =>
-          def.id === editingDefinition.id
-            ? { ...def, ...data }
-            : def
-        )
-      );
+      setLocalDefinitions((prev) => prev.map((def) => (def.id === editingDefinition.id ? { ...def, ...data } : def)));
 
       setEditingDefinition(null);
     }
@@ -533,39 +514,36 @@ export function ComprehensiveSelectorGroupManager({
     // Don't delete temporary (new) definitions - just remove them from creates and local state
     if (definition.id.startsWith('temp-')) {
       // Remove from pending creates
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
-        definitionCreates: prev.definitionCreates.filter(create =>
-          create.question !== definition.question
-        )
+        definitionCreates: prev.definitionCreates.filter((create) => create.question !== definition.question)
       }));
     } else {
       // Add real definitions to pending deletes
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
         definitionDeletes: new Set(prev.definitionDeletes).add(definition.id)
       }));
     }
 
     // Remove from local state immediately for UI feedback
-    setLocalDefinitions(prev =>
-      prev.filter(def => def.id !== definition.id)
-    );
+    setLocalDefinitions((prev) => prev.filter((def) => def.id !== definition.id));
   };
 
   const handleCreateOption = (data: any) => {
     if (!managingOptionsForDefinition) return;
 
     // Check if an option with the same text already exists in creates
-    const existingCreate = pendingChanges.optionCreates.find(create =>
-      create.text === data.text && create.selectorDefinitionId === managingOptionsForDefinition.id
+    const existingCreate = pendingChanges.optionCreates.find(
+      (create) => create.text === data.text && create.selectorDefinitionId === managingOptionsForDefinition.id
     );
 
     if (existingCreate) {
       return; // Prevent duplicate creation
     }
 
-    const currentOptions = (managingOptionsForDefinition as any).localOptions || managingOptionsForDefinition.options || [];
+    const currentOptions =
+      (managingOptionsForDefinition as any).localOptions || managingOptionsForDefinition.options || [];
 
     // Use the temporary ID if this is a new definition, otherwise use the real ID
     const definitionId = managingOptionsForDefinition.id.startsWith('temp-')
@@ -576,11 +554,13 @@ export function ComprehensiveSelectorGroupManager({
       selectorDefinitionId: definitionId,
       text: data.text,
       value: data.value,
-      order: currentOptions.length + pendingChanges.optionCreates.filter(c => c.selectorDefinitionId === definitionId).length
+      order:
+        currentOptions.length +
+        pendingChanges.optionCreates.filter((c) => c.selectorDefinitionId === definitionId).length
     };
 
     // Add to pending creates
-    setPendingChanges(prev => ({
+    setPendingChanges((prev) => ({
       ...prev,
       optionCreates: [...prev.optionCreates, newOption]
     }));
@@ -596,8 +576,8 @@ export function ComprehensiveSelectorGroupManager({
     };
 
     // Update the local definition's options
-    setLocalDefinitions(prev =>
-      prev.map(def =>
+    setLocalDefinitions((prev) =>
+      prev.map((def) =>
         def.id === managingOptionsForDefinition.id
           ? {
               ...def,
@@ -615,9 +595,9 @@ export function ComprehensiveSelectorGroupManager({
       // Don't update temporary options in pending changes
       if (editingOption.id.startsWith('temp-option-')) {
         // Update the create in pending changes
-        setPendingChanges(prev => ({
+        setPendingChanges((prev) => ({
           ...prev,
-          optionCreates: prev.optionCreates.map(create =>
+          optionCreates: prev.optionCreates.map((create) =>
             create.text === editingOption.text && create.selectorDefinitionId === managingOptionsForDefinition.id
               ? { ...create, ...data }
               : create
@@ -625,7 +605,7 @@ export function ComprehensiveSelectorGroupManager({
         }));
       } else {
         // Update existing option in pending changes
-        setPendingChanges(prev => {
+        setPendingChanges((prev) => {
           const updates = new Map(prev.optionUpdates);
           const existingUpdate = updates.get(editingOption.id) || {};
           updates.set(editingOption.id, { ...existingUpdate, ...data });
@@ -634,12 +614,12 @@ export function ComprehensiveSelectorGroupManager({
       }
 
       // Update local state
-      setLocalDefinitions(prev =>
-        prev.map(def =>
+      setLocalDefinitions((prev) =>
+        prev.map((def) =>
           def.id === managingOptionsForDefinition.id
             ? {
                 ...def,
-                localOptions: (def.localOptions || def.options || []).map(opt =>
+                localOptions: (def.localOptions || def.options || []).map((opt) =>
                   opt.id === editingOption.id ? { ...opt, ...data } : opt
                 )
               }
@@ -657,27 +637,27 @@ export function ComprehensiveSelectorGroupManager({
     // Don't delete temporary (new) options - just remove them from creates and local state
     if (option.id.startsWith('temp-option-')) {
       // Remove from pending creates
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
-        optionCreates: prev.optionCreates.filter(create =>
-          !(create.text === option.text && create.selectorDefinitionId === managingOptionsForDefinition.id)
+        optionCreates: prev.optionCreates.filter(
+          (create) => !(create.text === option.text && create.selectorDefinitionId === managingOptionsForDefinition.id)
         )
       }));
     } else {
       // Add real options to pending deletes
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
         optionDeletes: new Set(prev.optionDeletes).add(option.id)
       }));
     }
 
     // Remove from local state immediately for UI feedback
-    setLocalDefinitions(prev =>
-      prev.map(def =>
+    setLocalDefinitions((prev) =>
+      prev.map((def) =>
         def.id === managingOptionsForDefinition.id
           ? {
               ...def,
-              localOptions: (def.localOptions || def.options || []).filter(opt => opt.id !== option.id)
+              localOptions: (def.localOptions || def.options || []).filter((opt) => opt.id !== option.id)
             }
           : def
       )
@@ -688,8 +668,8 @@ export function ComprehensiveSelectorGroupManager({
     const { active, over } = event;
 
     if (active.id !== over.id) {
-      const oldIndex = localDefinitions.findIndex(item => item.id === active.id);
-      const newIndex = localDefinitions.findIndex(item => item.id === over.id);
+      const oldIndex = localDefinitions.findIndex((item) => item.id === active.id);
+      const newIndex = localDefinitions.findIndex((item) => item.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newDefinitions = arrayMove(localDefinitions, oldIndex, newIndex);
@@ -706,17 +686,15 @@ export function ComprehensiveSelectorGroupManager({
         updatedDefinitions.forEach((def, index) => {
           if (def.id.startsWith('temp-')) {
             // Update order in creates array
-            setPendingChanges(prev => ({
+            setPendingChanges((prev) => ({
               ...prev,
-              definitionCreates: prev.definitionCreates.map(create =>
-                create.question === def.question
-                  ? { ...create, order: index }
-                  : create
+              definitionCreates: prev.definitionCreates.map((create) =>
+                create.question === def.question ? { ...create, order: index } : create
               )
             }));
           } else {
             // Add to updates map
-            setPendingChanges(prev => {
+            setPendingChanges((prev) => {
               const updates = new Map(prev.definitionUpdates);
               const existingUpdate = updates.get(def.id) || {};
               updates.set(def.id, { ...existingUpdate, order: index });
@@ -729,13 +707,15 @@ export function ComprehensiveSelectorGroupManager({
   };
 
   const hasPendingChanges = () => {
-    return Object.keys(pendingChanges.groupUpdates).length > 0 ||
-           pendingChanges.definitionUpdates.size > 0 ||
-           pendingChanges.definitionDeletes.size > 0 ||
-           pendingChanges.definitionCreates.length > 0 ||
-           pendingChanges.optionUpdates.size > 0 ||
-           pendingChanges.optionDeletes.size > 0 ||
-           pendingChanges.optionCreates.length > 0;
+    return (
+      Object.keys(pendingChanges.groupUpdates).length > 0 ||
+      pendingChanges.definitionUpdates.size > 0 ||
+      pendingChanges.definitionDeletes.size > 0 ||
+      pendingChanges.definitionCreates.length > 0 ||
+      pendingChanges.optionUpdates.size > 0 ||
+      pendingChanges.optionDeletes.size > 0 ||
+      pendingChanges.optionCreates.length > 0
+    );
   };
 
   const handleSaveAllChanges = () => {
@@ -745,13 +725,13 @@ export function ComprehensiveSelectorGroupManager({
         definitionCreates: pendingChanges.definitionCreates,
         definitionUpdates: pendingChanges.definitionUpdates,
         optionCreates: pendingChanges.optionCreates,
-        optionUpdates: pendingChanges.optionUpdates,
+        optionUpdates: pendingChanges.optionUpdates
       });
       if (validationError) {
         toast({
           variant: 'error',
-          title: 'Cannot save',
-          description: validationError,
+          title: t('selectors.cannotSave'),
+          description: validationError
         });
         return;
       }
@@ -807,30 +787,33 @@ export function ComprehensiveSelectorGroupManager({
       }
 
       // Remove empty arrays to clean up the request
-      Object.keys(batchData).forEach(key => {
+      Object.keys(batchData).forEach((key) => {
         const value = batchData[key as keyof CrudSelectorGroupRequest];
         if (Array.isArray(value) && value.length === 0) {
           delete batchData[key as keyof CrudSelectorGroupRequest];
         }
       });
 
-      batchUpdateSelectorGroup({
-        selectorGroupId: selectorGroup.id,
-        data: batchData
-      }, {
-        onSuccess: () => {
-          setPendingChanges({
-            groupUpdates: {},
-            definitionUpdates: new Map(),
-            definitionDeletes: new Set(),
-            definitionCreates: [],
-            optionUpdates: new Map(),
-            optionDeletes: new Set(),
-            optionCreates: []
-          });
-          onOpenChange(false);
+      batchUpdateSelectorGroup(
+        {
+          selectorGroupId: selectorGroup.id,
+          data: batchData
+        },
+        {
+          onSuccess: () => {
+            setPendingChanges({
+              groupUpdates: {},
+              definitionUpdates: new Map(),
+              definitionDeletes: new Set(),
+              definitionCreates: [],
+              optionUpdates: new Map(),
+              optionDeletes: new Set(),
+              optionCreates: []
+            });
+            onOpenChange(false);
+          }
         }
-      });
+      );
     }
   };
 
@@ -862,14 +845,17 @@ export function ComprehensiveSelectorGroupManager({
         deleteGroup: true
       };
 
-      batchUpdateSelectorGroup({
-        selectorGroupId: selectorGroup.id,
-        data: batchData
-      }, {
-        onSuccess: () => {
-          onOpenChange(false);
+      batchUpdateSelectorGroup(
+        {
+          selectorGroupId: selectorGroup.id,
+          data: batchData
+        },
+        {
+          onSuccess: () => {
+            onOpenChange(false);
+          }
         }
-      });
+      );
     }
   };
 
@@ -878,42 +864,41 @@ export function ComprehensiveSelectorGroupManager({
   }
 
   const managingDefinitionOptions = managingOptionsForDefinition
-    ? localDefinitions.find(d => d.id === managingOptionsForDefinition.id)?.localOptions ||
-      localDefinitions.find(d => d.id === managingOptionsForDefinition.id)?.options || []
+    ? localDefinitions.find((d) => d.id === managingOptionsForDefinition.id)?.localOptions ||
+      localDefinitions.find((d) => d.id === managingOptionsForDefinition.id)?.options ||
+      []
     : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[900px]">
         <DialogHeader>
-          <DialogTitle>Manage Selector Group</DialogTitle>
-          <DialogDescription>
-            Update group settings, questions, and answer options all in one place
-          </DialogDescription>
+          <DialogTitle>{t('selectors.manageGroup')}</DialogTitle>
+          <DialogDescription>{t('selectors.comprehensiveHint')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Group Settings */}
           <Card>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
-                <CardTitle className="text-lg">Group Settings</CardTitle>
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle className="text-lg">{t('selectors.groupSettings')}</CardTitle>
                 <Button
                   onClick={() => setShowDeleteConfirmationDialog(true)}
                   variant="destructive"
                   size="sm"
                   disabled={isBulkUpdating}
-                  className="w-full sm:w-auto mt-2 sm:mt-0"
+                  className="mt-2 w-full sm:mt-0 sm:w-auto"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Group
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {t('selectors.deleteGroupAction')}
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:gap-4 w-full">
+              <div className="flex w-full flex-col sm:flex-row sm:gap-4">
                 <div className="flex-1">
-                  <Label htmlFor="groupName">Name</Label>
+                  <Label htmlFor="groupName">{t('fields.name')}</Label>
                   <Input
                     id="groupName"
                     value={localGroup.name}
@@ -922,8 +907,8 @@ export function ComprehensiveSelectorGroupManager({
                     maxLength={SELECTOR_LIMITS.groupName.max}
                   />
                 </div>
-                <div className="flex-1 mt-2 sm:mt-0">
-                  <Label htmlFor="groupDescription">Description</Label>
+                <div className="mt-2 flex-1 sm:mt-0">
+                  <Label htmlFor="groupDescription">{t('fields.description')}</Label>
                   <Textarea
                     id="groupDescription"
                     value={localGroup.description || ''}
@@ -941,20 +926,24 @@ export function ComprehensiveSelectorGroupManager({
 
           {/* Pending Changes Summary */}
           {hasPendingChanges() && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <span className="text-sm font-medium text-amber-800">
-                    Pending Changes:
-                  </span>
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                  <span className="text-sm font-medium text-amber-800">{t('fields.pendingChanges')}</span>
                   <span className="text-sm text-amber-700">
-                    {Object.keys(pendingChanges.groupUpdates).length > 0 ? '1 group, ' : ''}
-                    {pendingChanges.definitionCreates.length + pendingChanges.optionCreates.length} new,
-                    {pendingChanges.definitionUpdates.size + pendingChanges.optionUpdates.size} modified,
-                    {pendingChanges.definitionDeletes.size + pendingChanges.optionDeletes.size} deleted
+                    {Object.keys(pendingChanges.groupUpdates).length > 0 ? t('selectors.oneGroup') : ''}
+                    {t('selectors.newCount', {
+                      count: pendingChanges.definitionCreates.length + pendingChanges.optionCreates.length
+                    })}
+                    {t('selectors.modifiedCount', {
+                      count: pendingChanges.definitionUpdates.size + pendingChanges.optionUpdates.size
+                    })}
+                    {t('selectors.deletedCount', {
+                      count: pendingChanges.definitionDeletes.size + pendingChanges.optionDeletes.size
+                    })}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                <div className="mt-2 flex w-full flex-col gap-2 sm:mt-0 sm:w-auto sm:flex-row">
                   <Button
                     onClick={handleDiscardChanges}
                     size="sm"
@@ -968,10 +957,10 @@ export function ComprehensiveSelectorGroupManager({
                     onClick={() => setShowSaveConfirmationDialog(true)}
                     size="sm"
                     disabled={isBulkUpdating}
-                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full bg-green-600 text-white hover:bg-green-700 sm:w-auto"
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    {isBulkUpdating ? 'Saving...' : 'Save All'}
+                    <Save className="mr-2 h-4 w-4" />
+                    {isBulkUpdating ? t('actions.saving') : t('actions.saveAll')}
                   </Button>
                 </div>
               </div>
@@ -981,16 +970,16 @@ export function ComprehensiveSelectorGroupManager({
           {/* Definitions Management */}
           <Card>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <CardTitle className="text-lg">Questions & Options</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <CardTitle className="text-lg">{t('selectors.questionsAndOptions')}</CardTitle>
+                  <p className="text-muted-foreground mt-1 text-sm">
                     Manage questions and their multiple choice options
                   </p>
                 </div>
                 <Button onClick={() => setShowCreateDefinitionDialog(true)} disabled={isBulkUpdating} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Question
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('selectors.addQuestion')}
                 </Button>
               </div>
             </CardHeader>
@@ -998,29 +987,25 @@ export function ComprehensiveSelectorGroupManager({
               {definitionsLoading ? (
                 <LoadingSpinner />
               ) : localDefinitions.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="text-sm mb-2">No questions</div>
-                  <p className="text-xs">Create questions with multiple choice answers for this selector group.</p>
+                <div className="text-muted-foreground py-8 text-center">
+                  <div className="mb-2 text-sm">{t('selectors.noQuestions')}</div>
+                  <p className="text-xs">{t('selectors.questionsHint')}</p>
                 </div>
               ) : (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-8"></TableHead>
-                        <TableHead>Question</TableHead>
-                        <TableHead className="hidden md:table-cell">Required</TableHead>
-                        <TableHead className="hidden md:table-cell">Options</TableHead>
-                        <TableHead className="w-32">Actions</TableHead>
+                        <TableHead>{t('fields.question')}</TableHead>
+                        <TableHead className="hidden md:table-cell">{t('fields.required')}</TableHead>
+                        <TableHead className="hidden md:table-cell">{t('fields.options')}</TableHead>
+                        <TableHead className="w-32">{t('fields.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       <SortableContext
-                        items={localDefinitions.map(def => def.id)}
+                        items={localDefinitions.map((def) => def.id)}
                         strategy={verticalListSortingStrategy}
                       >
                         {localDefinitions.map((definition) => (
@@ -1046,50 +1031,57 @@ export function ComprehensiveSelectorGroupManager({
           {managingOptionsForDefinition && (
             <Card>
               <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
+                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <CardTitle className="text-lg">Options for: "{managingOptionsForDefinition?.question}"</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-muted-foreground mt-1 text-sm">
                       Manage multiple choice options for this question
                     </p>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                  <div className="mt-2 flex w-full flex-col gap-2 sm:mt-0 sm:w-auto sm:flex-row">
                     <Button onClick={() => setShowCreateOptionDialog(true)} disabled={isBulkUpdating} size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Option
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t('selectors.addOption')}
                     </Button>
                     <Button onClick={() => setManagingOptionsForDefinition(null)} variant="outline" size="sm">
-                      <X className="h-4 w-4 mr-2" />
-                      Close
+                      <X className="mr-2 h-4 w-4" />
+                      {t('actions.close')}
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 {managingDefinitionOptions.length === 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <div className="text-sm mb-2">No options available</div>
-                    <p className="text-xs">Add multiple choice options for this question</p>
+                  <div className="text-muted-foreground py-4 text-center">
+                    <div className="mb-2 text-sm">{t('selectors.noOptions')}</div>
+                    <p className="text-xs">{t('selectors.addOptionsHint')}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {managingDefinitionOptions.map((option) => (
-                      <div key={option.id} className={`flex items-center justify-between p-3 border rounded-lg ${
-                        option.id.startsWith('temp-option-') ? 'bg-green-50' :
-                        pendingChanges.optionUpdates.has(option.id) ? 'bg-blue-50' :
-                        pendingChanges.optionDeletes.has(option.id) ? 'bg-red-50' : ''
-                      }`}>
+                      <div
+                        key={option.id}
+                        className={`flex items-center justify-between rounded-lg border p-3 ${
+                          option.id.startsWith('temp-option-')
+                            ? 'bg-green-50'
+                            : pendingChanges.optionUpdates.has(option.id)
+                              ? 'bg-blue-50'
+                              : pendingChanges.optionDeletes.has(option.id)
+                                ? 'bg-red-50'
+                                : ''
+                        }`}
+                      >
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{option.text}</span>
-                          
+
                           {pendingChanges.optionUpdates.has(option.id) && !option.id.startsWith('temp-option-') && (
-                            <Badge variant="default" className="bg-blue-600 text-white text-xs">
+                            <Badge variant="default" className="bg-blue-600 text-xs text-white">
                               Modified
                             </Badge>
                           )}
                           {pendingChanges.optionDeletes.has(option.id) && (
                             <Badge variant="destructive" className="text-xs">
-                              Deleted
+                              {t('fields.deleted')}
                             </Badge>
                           )}
                         </div>
@@ -1108,7 +1100,7 @@ export function ComprehensiveSelectorGroupManager({
                             size="sm"
                             onClick={() => handleDeleteOption(option)}
                             disabled={isBulkUpdating}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                            className="text-destructive hover:text-destructive h-8 w-8 p-0"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -1165,8 +1157,13 @@ export function ComprehensiveSelectorGroupManager({
         <ConfirmActionDialog
           open={showSaveConfirmationDialog}
           onOpenChange={setShowSaveConfirmationDialog}
-          title="Save All Changes"
-          description={`You are about to save all changes to this selector group. This action will update all open services scheduled from today onwards, expire all user sessions (users will need to log in again), and apply ${Object.keys(pendingChanges.groupUpdates).length > 0 ? '1 group update, ' : ''}${pendingChanges.definitionCreates.length + pendingChanges.optionCreates.length} new items, ${pendingChanges.definitionUpdates.size + pendingChanges.optionUpdates.size} modifications, and ${pendingChanges.definitionDeletes.size + pendingChanges.optionDeletes.size} deletions. This operation cannot be undone.`}
+          title={t('selectors.saveAll')}
+          description={t('selectors.saveConfirm', {
+            groupUpdate: Object.keys(pendingChanges.groupUpdates).length > 0 ? t('selectors.oneGroupUpdate') : '',
+            created: pendingChanges.definitionCreates.length + pendingChanges.optionCreates.length,
+            modified: pendingChanges.definitionUpdates.size + pendingChanges.optionUpdates.size,
+            deleted: pendingChanges.definitionDeletes.size + pendingChanges.optionDeletes.size
+          })}
           onConfirm={async () => {
             setShowSaveConfirmationDialog(false);
             handleSaveAllChanges();
@@ -1179,8 +1176,8 @@ export function ComprehensiveSelectorGroupManager({
         <ConfirmActionDialog
           open={showDeleteConfirmationDialog}
           onOpenChange={setShowDeleteConfirmationDialog}
-          title="Delete Selector Group"
-          description={`Are you sure you want to delete "${localGroup?.name}"? This action will permanently delete the entire selector group including all questions and options. This will update all open services scheduled from today onwards, expire all user sessions (users will need to log in again), and cannot be undone.`}
+          title={t('selectors.deleteGroup')}
+          description={t('selectors.deleteGroupConfirm', { name: localGroup?.name ?? '' })}
           onConfirm={async () => {
             setShowDeleteConfirmationDialog(false);
             handleDeleteGroup();

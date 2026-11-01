@@ -3,6 +3,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { UpdateSelectorOptionRequest, SelectorOptionResponse } from '@/ts/interfaces/SelectorGroups';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface UpdateSelectorOptionParams {
   selectorOptionId: string;
   data: UpdateSelectorOptionRequest;
@@ -24,7 +26,7 @@ export function useUpdateSelectorOption() {
       queryClient.invalidateQueries({ queryKey: ['selectorGroups'] });
       toast({
         duration: 2000,
-        title: 'Option updated successfully',
+        title: translateMessage('toasts.optionUpdatedSuccessfully', 'Option updated successfully'),
         variant: 'success'
       });
     },
@@ -32,9 +34,10 @@ export function useUpdateSelectorOption() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating option',
-        description: error.response?.data?.message || 'Internal server error'
+        title: translateMessage('toasts.errorUpdatingOption', 'Error updating option'),
+        description:
+          error.response?.data?.message || translateMessage('toasts.internalServerError', 'Internal server error')
       });
-    },
+    }
   });
 }

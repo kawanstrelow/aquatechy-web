@@ -5,6 +5,8 @@ import Cookies from 'js-cookie';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeleteAssignment = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -22,7 +24,7 @@ export const useDeleteAssignment = () => {
 
       toast({
         duration: 2000,
-        title: 'Assignment deleted successfully',
+        title: translateMessage('toasts.assignmentDeletedSuccessfully', 'Assignment deleted successfully'),
         variant: 'success'
       });
     },
@@ -30,8 +32,11 @@ export const useDeleteAssignment = () => {
       console.error('Delete assignment error:', error);
       toast({
         variant: 'error',
-        title: 'Error deleting assignment',
-        description: error.response?.data?.message || error.message || 'Internal server error'
+        title: translateMessage('toasts.errorDeletingAssignment', 'Error deleting assignment'),
+        description:
+          error.response?.data?.message ||
+          error.message ||
+          translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

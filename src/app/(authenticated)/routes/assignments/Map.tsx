@@ -1,6 +1,7 @@
 'use client';
 
 import { DirectionsRenderer, GoogleMap, Marker } from '@react-google-maps/api';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -28,12 +29,12 @@ const calculateMapCenter = (assignments: Assignment[]) => {
 
 const calculateBounds = (assignments: Assignment[]): google.maps.LatLngBounds | null => {
   if (assignments.length === 0) return null;
-  
+
   const bounds = new google.maps.LatLngBounds();
   assignments.forEach((assignment) => {
     bounds.extend(assignment.pool.coords);
   });
-  
+
   return bounds;
 };
 
@@ -47,6 +48,7 @@ type Props = {
 };
 
 const Map = ({ assignments, directions, distance, duration, isLoaded, loadError }: Props) => {
+  const t = useTranslations('routes');
   const { width } = useWindowDimensions();
   const mapRef = useRef<google.maps.Map | null>(null);
   const hasZoomedRef = useRef(false);
@@ -55,7 +57,7 @@ const Map = ({ assignments, directions, distance, duration, isLoaded, loadError 
   const showDistanceDuration = distance !== '' && duration !== '';
 
   // Track assignment IDs to detect changes
-  const assignmentIds = assignments.map(a => a.id).join(',');
+  const assignmentIds = assignments.map((a) => a.id).join(',');
 
   // Reset zoom flag when assignments change (e.g., switching weekdays)
   useEffect(() => {
@@ -79,7 +81,7 @@ const Map = ({ assignments, directions, distance, duration, isLoaded, loadError 
   }, [assignments.length, isLoaded, assignments]);
 
   if (loadError) {
-    return <div>Error loading maps</div>;
+    return <div>{t('errorLoadingMaps')}</div>;
   }
 
   if (!isLoaded) {
@@ -90,7 +92,7 @@ const Map = ({ assignments, directions, distance, duration, isLoaded, loadError 
 
   const onLoad = (map: google.maps.Map) => {
     mapRef.current = map;
-    
+
     // Zoom to fit all markers when map first loads
     if (assignments.length > 0) {
       const bounds = calculateBounds(assignments);
@@ -107,9 +109,9 @@ const Map = ({ assignments, directions, distance, duration, isLoaded, loadError 
     <div className="h-full">
       {showDistanceDuration && (
         <div className="absolute z-10 ml-2.5 mt-16 rounded-sm bg-gray-50 px-2 shadow-lg sm:right-24 sm:mt-2.5">
-          <h3 className="py-1">Distance: {distance}</h3>
+          <h3 className="py-1">{t('distance', { value: distance })}</h3>
           <Separator />
-          <h3 className="py-1">Duration: {duration}</h3>
+          <h3 className="py-1">{t('duration', { value: duration })}</h3>
         </div>
       )}
 

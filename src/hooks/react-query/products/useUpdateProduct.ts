@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { ProductResponse, UpdateProductRequest } from '@/ts/interfaces/Product';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -26,14 +28,14 @@ export function useUpdateProduct(companyId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products', companyId] });
       toast({
-        title: 'Product updated successfully',
+        title: translateMessage('toasts.productUpdatedSuccessfully', 'Product updated successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating product',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingProduct', 'Error updating product'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

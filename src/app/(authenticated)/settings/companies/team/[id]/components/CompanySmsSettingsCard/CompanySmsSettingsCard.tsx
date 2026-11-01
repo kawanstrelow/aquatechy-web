@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -40,7 +42,7 @@ const formSchema = z
     if (!isCompleteUsPhone(data.testPhoneNumber)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Phone number is incomplete',
+        message: 'settings.errors.phoneIncomplete',
         path: ['testPhoneNumber']
       });
     }
@@ -49,14 +51,14 @@ const formSchema = z
       if (!data.apiKey.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'API key is required.',
+          message: 'settings.errors.apiKeyRequired',
           path: ['apiKey']
         });
       }
       if (!toQuoFrom(data.phoneNumber)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Enter an E.164 number (+1…) or a Quo phone id (PN…)',
+          message: 'settings.errors.quoFromInvalid',
           path: ['phoneNumber']
         });
       }
@@ -66,21 +68,21 @@ const formSchema = z
       if (!data.accountSid.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Account SID is required.',
+          message: 'settings.errors.accountSidRequired',
           path: ['accountSid']
         });
       }
       if (!data.authToken.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Auth token is required.',
+          message: 'settings.errors.authTokenRequired',
           path: ['authToken']
         });
       }
       if (!toE164UsPhone(data.fromNumber)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Phone number is incomplete',
+          message: 'settings.errors.phoneIncomplete',
           path: ['fromNumber']
         });
       }
@@ -177,6 +179,7 @@ function formatVerifiedAt(verifiedAt: string | null): string | null {
 }
 
 function ConnectedStatus({ settings }: { settings: CompanySmsSettingsPublic }) {
+  const t = useTranslations('settings');
   if (settings.provider === 'aquatechy') {
     return null;
   }
@@ -188,15 +191,19 @@ function ConnectedStatus({ settings }: { settings: CompanySmsSettingsPublic }) {
 
   return (
     <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
-      Currently sending service-report SMS from your {providerLabel} number{' '}
-      <span className="font-medium">{fromNumber}</span>
-      {last4 ? <> (key ••••{last4})</> : null}
-      {verified ? `. Verified ${verified}.` : '.'}
+      {t.rich('sms.sendingFrom', {
+        provider: providerLabel,
+        number: () => <span className="font-medium">{fromNumber}</span>
+      })}
+      {last4 ? t('sms.keyLast4', { last4 }) : null}
+      {verified ? t('sms.verifiedAt', { date: verified }) : '.'}
     </p>
   );
 }
 
 export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
+  const t = useTranslations('settings');
+
   const { data, isLoading, isError } = useGetCompanySmsSettings(companyId);
   const { mutate, mutateAsync, isPending } = useUpdateCompanySmsSettings(companyId);
   const [wipeConfirmOpen, setWipeConfirmOpen] = useState(false);
@@ -270,10 +277,10 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
 
   const saveLabel =
     isPending && provider !== 'aquatechy'
-      ? 'Verifying and sending test SMS…'
+      ? t('sms.verifying')
       : provider === 'aquatechy'
-        ? 'Use Aquatechy’s number'
-        : 'Save and send test SMS';
+        ? t('sms.useAquatechyNumber')
+        : t('sms.saveAndTest');
 
   return (
     <div className="mb-8">
@@ -288,7 +295,7 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
               <MessageSquare className="h-5 w-5 text-gray-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-800">Service report SMS</h3>
+              <h3 className="text-sm font-semibold text-gray-800">{t('sms.title')}</h3>
               <p className="text-muted-foreground text-sm font-normal">
                 Choose Aquatechy’s number or your own Quo or Twilio account. Completed-service, invoice, and estimate
                 SMS use this number. Signup and verification still use Aquatechy.
@@ -310,7 +317,7 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
                 <div className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
               </div>
             ) : isError ? (
-              <p className="text-sm text-red-600">Could not load SMS settings. Please try again.</p>
+              <p className="text-sm text-red-600">{t('sms.loadError')}</p>
             ) : (
               <Form {...form}>
                 <div>
@@ -373,30 +380,30 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
                       <div className="space-y-4">
                         <InputField
                           name="apiKey"
-                          label="Quo API key"
+                          label={t('sms.quoApiKey')}
                           placeholder={
                             data?.provider === 'quo' && data.apiKeyLast4
                               ? `••••${data.apiKeyLast4}`
-                              : 'Quo workspace API key'
+                              : t('sms.quoApiKeyPlaceholder')
                           }
                           type={FieldType.Password}
                         />
                         <InputField
                           name="phoneNumber"
-                          label="From number"
-                          placeholder="+15551234567 or PN…"
+                          label={t('sms.fromNumber')}
+                          placeholder={t('sms.fromPlaceholder')}
                           type={FieldType.Default}
                         />
                         <InputField
                           name="userId"
-                          label="Quo member id (optional)"
+                          label={t('sms.memberId')}
                           placeholder="US123abc"
                           type={FieldType.Default}
                         />
                         <InputField
                           name="testPhoneNumber"
-                          label="Test phone number"
-                          placeholder="Where to send the connection test SMS"
+                          label={t('sms.testPhone')}
+                          placeholder={t('sms.testPhoneHint')}
                           type={FieldType.Phone}
                         />
                         <p className="text-muted-foreground text-sm">
@@ -411,25 +418,25 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
                       <div className="space-y-4">
                         <InputField
                           name="accountSid"
-                          label="Account SID"
+                          label={t('sms.accountSid')}
                           placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                           type={FieldType.Default}
                         />
                         <InputField
                           name="authToken"
-                          label="Auth token"
+                          label={t('sms.authToken')}
                           placeholder={
                             data?.provider === 'twilio' && data.authTokenLast4
                               ? `••••${data.authTokenLast4}`
-                              : 'Twilio auth token'
+                              : t('sms.twilioAuthTokenPlaceholder')
                           }
                           type={FieldType.Password}
                         />
-                        <InputField name="fromNumber" label="From number" type={FieldType.Phone} />
+                        <InputField name="fromNumber" label={t('sms.fromNumber')} type={FieldType.Phone} />
                         <InputField
                           name="testPhoneNumber"
-                          label="Test phone number"
-                          placeholder="Where to send the connection test SMS"
+                          label={t('sms.testPhone')}
+                          placeholder={t('sms.testPhoneHint')}
                           type={FieldType.Phone}
                         />
                         <p className="text-muted-foreground text-sm">
@@ -472,8 +479,8 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
       <ConfirmActionDialog
         open={wipeConfirmOpen}
         onOpenChange={setWipeConfirmOpen}
-        title="Use Aquatechy’s number?"
-        description="This removes your stored credentials. Service-report SMS will use Aquatechy’s number."
+        title={t('sms.useAquatechyTitle')}
+        description={t('sms.useAquatechyDescription')}
         confirmText="Use Aquatechy’s number"
         onConfirm={handleWipeConfirm}
       />

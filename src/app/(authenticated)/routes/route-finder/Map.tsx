@@ -5,6 +5,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Colors } from '@/constants/colors';
 import { Assignment } from '@/ts/interfaces/Assignments';
 import { Pool } from '@/ts/interfaces/Pool';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Typography } from '@/components/Typography';
 import { format } from 'date-fns';
@@ -59,6 +60,7 @@ interface MapProps {
 }
 
 const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, loadError }: MapProps) => {
+  const t = useTranslations('routes');
   const [selectedAssignment, setSelectedAssignment] = useState<AssignmentWithColor | null>(null);
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -67,12 +69,12 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] = useState<Assignment | null>(null);
   const [assignmentToTransfer, setAssignmentToTransfer] = useState<Assignment | null>(null); // Add this state
-  
+
   const user = useUserStore((state) => state.user);
   const { data: members } = useGetMembersOfAllCompaniesByUserId(user.id);
 
   if (loadError) {
-    return <div>Error loading maps</div>;
+    return <div>{t('errorLoadingMaps')}</div>;
   }
 
   if (!isLoaded) {
@@ -83,7 +85,6 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
 
   return (
     <div className="relative h-full">
-
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={assignments.length === 0 && poolsWithoutAssignments.length === 0 ? 4 : 10}
@@ -110,7 +111,7 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
         {/* Existing assignments */}
         <div>
           {assignments
-            .filter(assignment => assignment.color !== 'transparent')
+            .filter((assignment) => assignment.color !== 'transparent')
             .map((assignment: AssignmentWithColor) => {
               return (
                 <Marker
@@ -189,12 +190,12 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
               maxWidth: 500
             }}
           >
-            <div className="min-w-32 animate-in fade-in-0 rounded-md bg-white p-2 px-3 shadow-md">
+            <div className="min-w-32 rounded-md bg-white p-2 px-3 shadow-md animate-in fade-in-0">
               <div className="mb-1 flex items-center justify-between">
                 <div className="flex flex-1 items-center justify-start gap-2">
                   <span
                     className="h-2 w-6 rounded-md"
-                    style={{ 
+                    style={{
                       backgroundColor: selectedAssignment.color
                     }}
                   />
@@ -209,27 +210,26 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
               </div>
               <div className="space-y-1">
                 <Typography element="p" className="text-sm">
-                  <span className="font-semibold">Technician </span>
-                  {members?.find(m => m.id === selectedAssignment.assignmentToId)
-                    ? `${members.find(m => m.id === selectedAssignment.assignmentToId)?.firstName} ${members.find(m => m.id === selectedAssignment.assignmentToId)?.lastName}`
-                    : 'Unknown'
-                  }
+                  <span className="font-semibold">{t('technician')} </span>
+                  {members?.find((m) => m.id === selectedAssignment.assignmentToId)
+                    ? `${members.find((m) => m.id === selectedAssignment.assignmentToId)?.firstName} ${members.find((m) => m.id === selectedAssignment.assignmentToId)?.lastName}`
+                    : t('unknown')}
                 </Typography>
                 <Typography element="p" className="text-sm">
-                  <span className="font-semibold">Client </span>
+                  <span className="font-semibold">{t('client')} </span>
                   {selectedAssignment.pool.name.trim()}
                 </Typography>
                 <Typography element="p" className="text-sm">
-                  <span className="font-semibold">Address </span>
+                  <span className="font-semibold">{t('address')} </span>
                   {`${selectedAssignment.pool.address}, ${selectedAssignment.pool.city}, ${selectedAssignment.pool.zip}`}
                 </Typography>
                 <Typography element="p" className="text-sm">
-                  <span className="font-semibold">Day </span>
+                  <span className="font-semibold">{t('day')} </span>
                   {format(selectedAssignment.startOn, 'EEEE')}
                 </Typography>
-                
+
                 {/* Action buttons */}
-                <div className="mt-4 w-full flex items-center gap-2">
+                <div className="mt-4 flex w-full items-center gap-2">
                   <Button
                     size="default"
                     style={{ width: '100%' }}
@@ -243,7 +243,7 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
                     className="flex items-center gap-1"
                   >
                     <ArrowLeftRight className="h-3 w-3" />
-                    Transfer
+                    {t('transfer')}
                   </Button>
                   <Button
                     size="default"
@@ -258,7 +258,7 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
                     className="flex items-center gap-1"
                   >
                     <Trash2 className="h-3 w-3" />
-                    Delete
+                    {t('delete')}
                   </Button>
                 </div>
               </div>
@@ -269,21 +269,19 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
         {/* Info window for selected pool without assignment */}
         {selectedPool && (
           <InfoBox
-            position={
-              new google.maps.LatLng(selectedPool.coords.lat ?? 0, selectedPool.coords.lng ?? 0)
-            }
+            position={new google.maps.LatLng(selectedPool.coords.lat ?? 0, selectedPool.coords.lng ?? 0)}
             options={{
               closeBoxURL: '',
               enableEventPropagation: true,
               maxWidth: 500
             }}
           >
-            <div className="min-w-32 animate-in fade-in-0 rounded-md bg-white p-2 px-3 shadow-md">
+            <div className="min-w-32 rounded-md bg-white p-2 px-3 shadow-md animate-in fade-in-0">
               <div className="mb-1 flex items-center justify-between">
                 <div className="flex flex-1 items-center justify-start gap-2">
                   <span
                     className="h-2 w-6 rounded-md"
-                    style={{ 
+                    style={{
                       backgroundColor: '#FF0000'
                     }}
                   />
@@ -298,15 +296,15 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
               </div>
               <div className="space-y-1">
                 <Typography element="p" className="text-sm">
-                  <span className="font-semibold">Pool </span>
+                  <span className="font-semibold">{t('pool')} </span>
                   {selectedPool.name.trim()}
                 </Typography>
                 <Typography element="p" className="text-sm">
-                  <span className="font-semibold">Address </span>
+                  <span className="font-semibold">{t('address')} </span>
                   {`${selectedPool.address}, ${selectedPool.city}, ${selectedPool.zip}`}
                 </Typography>
-                <Typography element="p" className="text-sm text-red-600 font-semibold">
-                  No assignment scheduled
+                <Typography element="p" className="text-sm font-semibold text-red-600">
+                  {t('noAssignmentScheduled')}
                 </Typography>
                 <div className="mt-2">
                   <Button
@@ -317,7 +315,7 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
                     }}
                     className="w-full"
                   >
-                    Assign
+                    {t('assign')}
                   </Button>
                 </div>
               </div>
@@ -369,4 +367,4 @@ const Map = ({ assignments, poolsWithoutAssignments, newLocation, isLoaded, load
   );
 };
 
-export default Map; 
+export default Map;

@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import React from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
@@ -14,27 +23,27 @@ import { SelectorOption, UpdateSelectorOptionRequest, SelectorDefinition } from 
 
 const SELECTOR_LIMITS = {
   optionText: { min: 1, max: 50 },
-  optionValue: { min: 1, max: 50 },
+  optionValue: { min: 1, max: 50 }
 } as const;
 
 const selectorOptionTextSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.optionText.min, 'Display text is required')
-  .max(SELECTOR_LIMITS.optionText.max, `Display text must be at most ${SELECTOR_LIMITS.optionText.max} characters`);
+  .min(SELECTOR_LIMITS.optionText.min, 'settings.errors.displayTextRequired')
+  .max(SELECTOR_LIMITS.optionText.max, 'settings.errors.displayTextMax');
 
 const selectorOptionValueSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.optionValue.min, 'Value is required')
-  .max(SELECTOR_LIMITS.optionValue.max, `Value must be at most ${SELECTOR_LIMITS.optionValue.max} characters`);
+  .min(SELECTOR_LIMITS.optionValue.min, 'settings.errors.valueRequired')
+  .max(SELECTOR_LIMITS.optionValue.max, 'settings.errors.valueMax');
 
-const nonNegativeOrderSchema = z.number().int().min(0, 'Order must be 0 or greater');
+const nonNegativeOrderSchema = z.number().int().min(0, 'settings.errors.orderMin');
 
 const updateSelectorOptionSchema = z.object({
   text: selectorOptionTextSchema,
   value: selectorOptionValueSchema,
-  order: nonNegativeOrderSchema,
+  order: nonNegativeOrderSchema
 });
 
 type UpdateSelectorOptionFormData = z.infer<typeof updateSelectorOptionSchema>;
@@ -54,15 +63,17 @@ export function EditSelectorOptionDialog({
   selectorOption,
   onSubmit,
   isLoading = false,
-  selectorDefinition,
+  selectorDefinition
 }: EditSelectorOptionDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<UpdateSelectorOptionFormData>({
     resolver: zodResolver(updateSelectorOptionSchema),
     defaultValues: {
       text: selectorOption?.text || '',
       value: selectorOption?.value || '',
-      order: selectorOption?.order || 0,
-    },
+      order: selectorOption?.order || 0
+    }
   });
 
   // Update form when selectorOption changes
@@ -71,7 +82,7 @@ export function EditSelectorOptionDialog({
       form.reset({
         text: selectorOption.text,
         value: selectorOption.value,
-        order: selectorOption.order,
+        order: selectorOption.order
       });
     }
   }, [selectorOption, form]);
@@ -80,7 +91,7 @@ export function EditSelectorOptionDialog({
     onSubmit({
       text: data.text.trim(),
       value: data.value.trim(),
-      order: data.order,
+      order: data.order
     });
   };
 
@@ -92,10 +103,8 @@ export function EditSelectorOptionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Selector Option</DialogTitle>
-          <DialogDescription>
-            Update the option for: "{selectorDefinition.question}"
-          </DialogDescription>
+          <DialogTitle>{t('selectors.editOption')}</DialogTitle>
+          <DialogDescription>Update the option for: "{selectorDefinition.question}"</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -104,10 +113,10 @@ export function EditSelectorOptionDialog({
               name="text"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Display Text *</FormLabel>
+                  <FormLabel>{t('selectors.displayText')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Excellent, Good, Fair, Poor"
+                      placeholder={t('selectors.optionExamplesShort')}
                       maxLength={SELECTOR_LIMITS.optionText.max}
                       {...field}
                     />
@@ -117,13 +126,12 @@ export function EditSelectorOptionDialog({
               )}
             />
 
-
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Option'}
+                {isLoading ? t('actions.updating') : t('selectors.updateOption')}
               </Button>
             </DialogFooter>
           </form>

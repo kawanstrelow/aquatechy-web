@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { clientAxios } from '@/lib/clientAxios';
 import { GetRecurringInvoiceTemplateByIdResponse } from '@/ts/interfaces/RecurringInvoiceTemplate';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export default function useGetRecurringInvoiceTemplateById(templateId: string | undefined) {
   const query = useQuery({
     queryKey: ['recurring-invoice-template', templateId],
@@ -52,18 +54,16 @@ export default function useGetRecurringInvoiceTemplateById(templateId: string | 
 
           if (
             status === 404 ||
-            (errorMessage &&
-              typeof errorMessage === 'string' &&
-              errorMessage.toLowerCase().includes('not found'))
+            (errorMessage && typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('not found'))
           ) {
-            throw new Error('Recurring invoice template not found');
+            throw new Error(
+              translateMessage('toasts.recurringInvoiceTemplateNotFound', 'Recurring invoice template not found')
+            );
           }
 
           if (status === 400 && errorMessage) {
             // Handle validation errors or permission denied
-            const message = Array.isArray(errorMessage)
-              ? errorMessage.join(', ')
-              : errorMessage;
+            const message = Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage;
             throw new Error(message);
           }
 
@@ -73,7 +73,10 @@ export default function useGetRecurringInvoiceTemplateById(templateId: string | 
               ? Array.isArray(errorMessage)
                 ? errorMessage.join(', ')
                 : errorMessage
-              : 'Failed to fetch recurring invoice template'
+              : translateMessage(
+                  'toasts.failedToFetchRecurringInvoiceTemplate',
+                  'Failed to fetch recurring invoice template'
+                )
           );
         }
 
@@ -87,7 +90,3 @@ export default function useGetRecurringInvoiceTemplateById(templateId: string | 
 
   return query;
 }
-
-
-
-

@@ -3,7 +3,12 @@ import { clientAxios } from '@/lib/clientAxios';
 import { AxiosError } from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 
-export function getCreateManyClientsErrorMessage(error: unknown, fallback = 'Failed to import clients') {
+import { translateMessage } from '@/i18n/runtime';
+
+export function getCreateManyClientsErrorMessage(
+  error: unknown,
+  fallback = translateMessage('toasts.failedToImportClients', 'Failed to import clients')
+) {
   const axiosError = error as AxiosError<{ message?: string | string[] }>;
   const errorMessage = axiosError.response?.data?.message;
 
@@ -75,7 +80,7 @@ export function useCreateManyClients() {
 
       toast({
         duration: 5000,
-        title: 'Clients added successfully',
+        title: translateMessage('toasts.clientsAddedSuccessfully', 'Clients added successfully'),
         variant: 'success'
       });
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,11 +25,11 @@ import { ShoppingListRow, UpdateShoppingItemRequest } from '@/ts/interfaces/Shop
 
 const schema = z.object({
   categoryFilter: z.string().optional(),
-  productId: z.string().min(1, 'Product is required'),
+  productId: z.string().min(1, 'shopping.validation.productRequired'),
   quantity: z.coerce
-    .number({ invalid_type_error: 'Quantity must be greater than 0' })
-    .refine((value) => Number.isFinite(value) && value > 0, 'Quantity must be greater than 0'),
-  notes: z.string().max(1000, 'Notes must be at most 1000 characters')
+    .number({ invalid_type_error: 'shopping.validation.quantityMin' })
+    .refine((value) => Number.isFinite(value) && value > 0, 'shopping.validation.quantityMin'),
+  notes: z.string().max(1000, 'shopping.validation.notesMax')
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -78,6 +79,8 @@ function hasShoppingItemChanges(
 }
 
 export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isLoading }: EditShoppingItemDialogProps) {
+  const t = useTranslations('shopping');
+  const common = useTranslations('common');
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -128,8 +131,8 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
 
   const categoryFilterOptions = useMemo(() => {
     const options = [
-      { key: 'all', value: 'all', name: 'All categories' },
-      { key: 'uncategorized', value: 'uncategorized', name: 'Uncategorized' }
+      { key: 'all', value: 'all', name: t('allCategories') },
+      { key: 'uncategorized', value: 'uncategorized', name: t('uncategorized') }
     ];
 
     categoriesQuery.data?.productCategories
@@ -139,7 +142,7 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
       });
 
     return options;
-  }, [categoriesQuery.data?.productCategories]);
+  }, [categoriesQuery.data?.productCategories, t]);
 
   const productOptions = useMemo(() => {
     const products = productsQuery.data ?? [];
@@ -158,12 +161,12 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
       options.unshift({
         key: item.productId,
         value: item.productId,
-        name: item.product.isActive ? item.product.name : `${item.product.name} (inactive)`
+        name: item.product.isActive ? item.product.name : t('inactiveSuffix', { name: item.product.name })
       });
     }
 
     return options;
-  }, [productsQuery.data, item, productId, categoryFilter]);
+  }, [productsQuery.data, item, productId, categoryFilter, t]);
 
   const hasChanges = item ? hasShoppingItemChanges(item, { productId, quantity, notes }) : false;
 
@@ -183,11 +186,8 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Edit shopping item</DialogTitle>
-          <DialogDescription>
-            Update the product, quantity, or notes. Quantity replaces the amount on this line. Client and pool stay the
-            same.
-          </DialogDescription>
+          <DialogTitle>{t('editDialog.title')}</DialogTitle>
+          <DialogDescription>{t('editDialog.description')}</DialogDescription>
         </DialogHeader>
 
         {item && (
@@ -195,20 +195,22 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-3 rounded-lg border border-line px-3 py-2">
                 <div>
-                  <p className="text-xs text-gray-500">Client</p>
+                  <p className="text-xs text-gray-500">{t('editDialog.client')}</p>
                   <p className="text-sm font-medium text-gray-900">{item.clientName}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Pool</p>
+                  <p className="text-xs text-gray-500">{t('editDialog.pool')}</p>
                   <p className="text-sm font-medium text-gray-900">{item.poolName}</p>
                 </div>
               </div>
 
               <SelectField
                 name="categoryFilter"
-                label="Category"
+                label={t('addDialog.category')}
                 options={categoryFilterOptions}
-                placeholder={categoriesQuery.isLoading ? 'Loading categories...' : 'Filter by category'}
+                placeholder={
+                  categoriesQuery.isLoading ? t('addDialog.loadingCategories') : t('addDialog.filterByCategory')
+                }
                 disabled={categoriesQuery.isLoading}
                 onValueChange={() => {
                   form.setValue('productId', '');
@@ -217,14 +219,14 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
 
               <SelectField
                 name="productId"
-                label="Product *"
+                label={t('addDialog.product')}
                 options={productOptions}
                 placeholder={
                   productsQuery.isLoading
-                    ? 'Loading products...'
+                    ? t('addDialog.loadingProducts')
                     : productOptions.length === 0
-                      ? 'No products in this category'
-                      : 'Select product'
+                      ? t('addDialog.noProductsInCategory')
+                      : t('addDialog.selectProduct')
                 }
                 disabled={productsQuery.isLoading || productOptions.length === 0}
               />
@@ -234,7 +236,7 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
                 name="quantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quantity *</FormLabel>
+                    <FormLabel>{t('addDialog.quantity')}</FormLabel>
                     <FormControl>
                       <Input type="number" min={0.01} step="any" placeholder="1" {...field} />
                     </FormControl>
@@ -248,9 +250,14 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel>{t('addDialog.notes')}</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Optional notes" className="resize-none" rows={3} {...field} />
+                      <Textarea
+                        placeholder={t('addDialog.notesPlaceholder')}
+                        className="resize-none"
+                        rows={3}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -259,10 +266,10 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                  Cancel
+                  {common('cancel')}
                 </Button>
                 <Button type="submit" disabled={isLoading || !hasChanges || productOptions.length === 0}>
-                  {isLoading ? 'Saving...' : 'Save changes'}
+                  {isLoading ? t('editDialog.saving') : t('editDialog.saveChanges')}
                 </Button>
               </DialogFooter>
             </form>

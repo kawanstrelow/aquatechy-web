@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -61,6 +62,7 @@ interface FilterFormData {
 }
 
 export default function InvoicesPage() {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: allClients } = useGetAllClients();
@@ -161,7 +163,7 @@ export default function InvoicesPage() {
   const handleClearFilters = async () => {
     const firstOfMonth = getFirstDayOfMonth();
     const todayEnd = getTodayEnd();
-    
+
     filtersForm.reset({
       from: firstOfMonth,
       to: todayEnd,
@@ -190,7 +192,7 @@ export default function InvoicesPage() {
   // Apply filters when form values change
   useEffect(() => {
     const values = filtersForm.getValues();
-    
+
     const newFilters: UseGetInvoicesParams = {
       page: 1, // Reset to first page when filters change
       clientId: values.client && values.client !== 'all' ? values.client : null,
@@ -201,7 +203,7 @@ export default function InvoicesPage() {
     };
 
     // Only update if filters actually changed
-    const filtersChanged = 
+    const filtersChanged =
       newFilters.clientId !== currentFilters.clientId ||
       newFilters.companyOwnerId !== currentFilters.companyOwnerId ||
       newFilters.status !== currentFilters.status ||
@@ -278,11 +280,14 @@ export default function InvoicesPage() {
 
   const handleExport = async () => {
     const values = filtersForm.getValues();
-    
+
     await exportInvoicesCSV({
       clientId: values.client && values.client !== 'all' ? values.client : null,
       companyOwnerId: values.company && values.company !== 'all' ? values.company : null,
-      status: values.status && values.status !== 'all' ? (values.status as 'paid' | 'unpaid' | 'draft' | 'overdue' | 'cancelled') : null,
+      status:
+        values.status && values.status !== 'all'
+          ? (values.status as 'paid' | 'unpaid' | 'draft' | 'overdue' | 'cancelled')
+          : null,
       fromDate: values.from ? values.from.toISOString().split('T')[0] : null,
       toDate: values.to ? new Date(new Date(values.to).setHours(23, 59, 59, 999)).toISOString() : null
     });
@@ -314,42 +319,46 @@ export default function InvoicesPage() {
         <ConfirmActionDialog
           open={cancelDialogOpen}
           onOpenChange={setCancelDialogOpen}
-          title="Cancel invoice"
+          title={t('list.cancelInvoiceTitle')}
           description={
             invoiceToCancel
-              ? `Cancel invoice #${invoiceToCancel.invoiceNumber}? It will remain in your records as cancelled.`
-              : 'Cancel this invoice? It will remain in your records as cancelled.'
+              ? t('list.cancelInvoiceDescription', { number: invoiceToCancel.invoiceNumber ?? '' })
+              : t('list.cancelInvoiceFallback')
           }
-          confirmText={isCancelling ? 'Cancelling…' : 'Cancel invoice'}
-          cancelText="Close"
+          confirmText={isCancelling ? t('actions.cancelling') : t('list.cancelInvoiceConfirm')}
+          cancelText={t('actions.close')}
           onConfirm={handleConfirmCancelInvoice}
           variant="destructive"
         />
         <Dialog open={markPaidDialogOpen} onOpenChange={handleMarkPaidDialogOpenChange}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Mark as Paid</DialogTitle>
+              <DialogTitle>{t('list.markAsPaidTitle')}</DialogTitle>
               <DialogDescription>
                 {invoiceToMarkPaid
-                  ? `Mark invoice #${invoiceToMarkPaid.invoiceNumber} as paid. Choose the payment date.`
-                  : 'Mark this invoice as paid. Choose the payment date.'}
+                  ? t('list.markAsPaidDescription', { number: invoiceToMarkPaid.invoiceNumber ?? '' })
+                  : t('list.markAsPaidFallback')}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2 py-2">
-              <Label>Payment date</Label>
+              <Label>{t('fields.paymentDate')}</Label>
               <DatePicker
                 value={paymentDate}
                 onChange={(date) => date && setPaymentDate(date)}
-                placeholder="Select payment date"
+                placeholder={t('placeholders.selectPaymentDate')}
               />
             </div>
             <DialogFooter className="gap-2 sm:space-x-0">
-              <Button variant="outline" onClick={() => handleMarkPaidDialogOpenChange(false)} disabled={isUpdatingStatus}>
-                Cancel
+              <Button
+                variant="outline"
+                onClick={() => handleMarkPaidDialogOpenChange(false)}
+                disabled={isUpdatingStatus}
+              >
+                {t('actions.cancel')}
               </Button>
               <Button onClick={handleConfirmMarkPaid} disabled={isUpdatingStatus}>
                 {isUpdatingStatus ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Mark as Paid
+                {t('list.markAsPaid')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -359,21 +368,21 @@ export default function InvoicesPage() {
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button type="button" onClick={handleCreateInvoice}>
               <PlusIcon className="mr-2" />
-              Create Invoice
+              {t('list.createInvoice')}
             </Button>
             <Button type="button" variant="outline" onClick={handleExport} disabled={isExporting}>
               <Download className="mr-2" />
-              {isExporting ? 'Exporting...' : 'Export'}
+              {isExporting ? t('actions.exporting') : t('actions.export')}
             </Button>
           </div>
-          
+
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <FormItem className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <FormLabel className="whitespace-nowrap">From</FormLabel>
+              <FormLabel className="whitespace-nowrap">{t('fields.from')}</FormLabel>
               <FormControl>
                 <DatePicker
                   className="w-full sm:w-fit"
-                  placeholder="Issued From"
+                  placeholder={t('fields.issuedFrom')}
                   value={watchedFrom || defaultDateFrom}
                   onChange={(date) => {
                     if (date) {
@@ -388,11 +397,11 @@ export default function InvoicesPage() {
               </FormControl>
             </FormItem>
             <FormItem className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <FormLabel className="whitespace-nowrap">To</FormLabel>
+              <FormLabel className="whitespace-nowrap">{t('fields.to')}</FormLabel>
               <FormControl>
                 <DatePicker
                   className="w-full sm:w-fit"
-                  placeholder="Issued To"
+                  placeholder={t('fields.issuedTo')}
                   value={watchedTo || defaultDateTo}
                   onChange={(date) => {
                     if (date) {
@@ -406,13 +415,13 @@ export default function InvoicesPage() {
                 />
               </FormControl>
             </FormItem>
-            
+
             {appliedFilters > 0 && (
               <Button variant="outline" type="button" onClick={handleClearFilters}>
                 <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
                   {appliedFilters}
                 </span>
-                <span>Clear</span>
+                <span>{t('actions.clear')}</span>
                 <X className="ml-2 h-4 w-4" />
               </Button>
             )}
@@ -424,12 +433,12 @@ export default function InvoicesPage() {
 
         {/* Data Table */}
         {invoicesQuery.isPending || invoicesQuery.isLoading ? (
-          <div>Loading...</div>
+          <div>{t('empty.loading')}</div>
         ) : (
           <div className="flex flex-col gap-4">
-            <DataTableInvoices 
-              columns={columns} 
-              data={invoicesQuery.data?.invoices ?? []} 
+            <DataTableInvoices
+              columns={columns}
+              data={invoicesQuery.data?.invoices ?? []}
               clients={clients.length > 0 ? clients : invoiceClients}
               companies={companiesList}
               onCompanyChange={(companyId) => {
@@ -437,7 +446,7 @@ export default function InvoicesPage() {
               }}
               onRowClick={(invoice) => handleView(invoice)}
             />
-            
+
             {invoicesQuery.data && invoicesQuery.data.totalCount > 0 && (
               <div className="flex justify-center py-4">
                 <PaginationDemo
@@ -454,4 +463,3 @@ export default function InvoicesPage() {
     </FormProvider>
   );
 }
-

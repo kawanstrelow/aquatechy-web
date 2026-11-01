@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export function useDeleteConversation() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -20,12 +22,12 @@ export function useDeleteConversation() {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to delete conversation';
+        : errorMessage || translateMessage('toasts.failedToDeleteConversation', 'Failed to delete conversation');
 
       toast({
         duration: 3000,
         variant: 'error',
-        title: 'Error deleting chat',
+        title: translateMessage('toasts.errorDeletingChat', 'Error deleting chat'),
         description: message
       });
     }

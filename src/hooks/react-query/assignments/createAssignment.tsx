@@ -7,6 +7,8 @@ import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { CreateAssignment } from '../../../ts/interfaces/Assignments';
 
+import { translateMessage } from '@/i18n/runtime';
+
 const createAssignmentBodySchema = z.object({
   assignmentToId: z.string().min(1),
   poolId: z.string().min(1),
@@ -25,7 +27,8 @@ export const useCreateAssignment = () => {
   const { toast } = useToast();
   const userId = Cookies.get('userId');
   const { mutate, isPending } = useMutation({
-    mutationFn: async (data: CreateAssignment | CreateAssignmentWithInstructions) => await clientAxios.post('/assignments', data),
+    mutationFn: async (data: CreateAssignment | CreateAssignmentWithInstructions) =>
+      await clientAxios.post('/assignments', data),
 
     onError: (
       error: AxiosError<{
@@ -34,8 +37,10 @@ export const useCreateAssignment = () => {
     ) => {
       toast({
         variant: 'error',
-        title: 'Error creating assignment',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorCreatingAssignment', 'Error creating assignment'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     },
 
@@ -46,7 +51,7 @@ export const useCreateAssignment = () => {
       toast({
         variant: 'success',
         duration: 2000,
-        title: 'Assignment created successfully'
+        title: translateMessage('toasts.assignmentCreatedSuccessfully', 'Assignment created successfully')
       });
     }
   });

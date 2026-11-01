@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { CreateEstimateRequest, CreateEstimateResponse } from '@/ts/interfaces/Estimate';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useCreateEstimate = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -33,7 +35,7 @@ export const useCreateEstimate = () => {
 
       toast({
         duration: 2000,
-        title: 'Estimate created successfully',
+        title: translateMessage('toasts.estimateCreatedSuccessfully', 'Estimate created successfully'),
         variant: 'success'
       });
     },
@@ -41,12 +43,12 @@ export const useCreateEstimate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to create estimate';
+        : errorMessage || translateMessage('toasts.failedToCreateEstimate', 'Failed to create estimate');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating estimate',
+        title: translateMessage('toasts.errorCreatingEstimate', 'Error creating estimate'),
         description: message
       });
     }

@@ -1,0 +1,83 @@
+{
+  "address": {
+    "required": "La dirección es obligatoria.",
+    "invalidType": "La dirección debe ser un texto.",
+    "min": "La dirección debe tener al menos 1 carácter."
+  },
+  "city": {
+    "required": "La ciudad es obligatoria.",
+    "invalidType": "La ciudad debe ser un texto.",
+    "min": "La ciudad debe tener al menos 1 carácter."
+  },
+  "name": {
+    "required": "El nombre es obligatorio.",
+    "invalidType": "El nombre debe ser un texto.",
+    "min": "El nombre debe tener al menos 2 caracteres."
+  },
+  "firstName": {
+    "required": "El nombre es obligatorio.",
+    "invalidType": "El nombre debe ser un texto.",
+    "min": "El nombre debe tener al menos 2 caracteres."
+  },
+  "lastName": {
+    "required": "El apellido es obligatorio.",
+    "invalidType": "El apellido debe ser un texto.",
+    "min": "El apellido debe tener al menos 2 caracteres."
+  },
+  "company": {
+    "required": "La empresa es obligatoria.",
+    "invalidType": "La empresa debe ser un texto.",
+    "min": "La empresa debe tener al menos 2 caracteres."
+  },
+  "state": {
+    "required": "El estado es obligatorio.",
+    "invalidType": "El estado debe ser un texto.",
+    "min": "El estado debe tener al menos 2 caracteres."
+  },
+  "email": {
+    "required": "El correo es obligatorio.",
+    "invalid": "Correo no válido."
+  },
+  "password": {
+    "min": "La contraseña debe tener al menos 8 caracteres"
+  },
+  "phone": {
+    "incomplete": "El teléfono está incompleto"
+  },
+  "zipCode": {
+    "min": "El código postal debe tener al menos 5 caracteres",
+    "invalid": "Código postal no válido"
+  },
+  "language": {
+    "required": "El idioma es obligatorio.",
+    "invalidType": "El idioma debe ser inglés, portugués o español."
+  },
+  "paymentUnit": {
+    "min": "La unidad de pago debe ser 1 o mayor."
+  },
+  "volume": {
+    "min": "El volumen debe ser mayor que 0."
+  },
+  "clientType": {
+    "required": "El tipo de cliente es obligatorio.",
+    "invalidType": "El tipo de cliente debe ser Residencial o Empresa."
+  },
+  "weekday": {
+    "required": "El día de la semana es obligatorio.",
+    "invalidType": "El día de la semana no es válido."
+  },
+  "csvFile": {
+    "invalid": "Archivo no válido o el archivo debe pesar menos de 7MB y estar en formato .csv."
+  },
+  "imageFile": {
+    "invalid": "Imagen no válida o el archivo debe pesar menos de 7MB y estar en formato .jpeg o .png."
+  },
+  "poolType": {
+    "required": "El tipo de piscina es obligatorio.",
+    "invalidType": "El tipo de piscina debe ser Sal, Cloro u Otro."
+  },
+  "timezone": {
+    "required": "La zona horaria es obligatoria.",
+    "invalid": "Zona horaria no válida."
+  }
+}

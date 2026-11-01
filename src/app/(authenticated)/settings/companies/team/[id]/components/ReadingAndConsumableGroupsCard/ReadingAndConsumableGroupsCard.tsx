@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,6 +22,8 @@ const tabTriggerClassName =
   'flex-1 min-w-[45%] sm:min-w-0 flex items-center justify-center gap-2 rounded-md px-2 py-2 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700';
 
 export function ReadingAndConsumableGroupsCard({ company }: ReadingAndConsumableGroupsCardProps) {
+  const t = useTranslations('settings');
+
   const [activeTab, setActiveTab] = useState('reading');
 
   return (
@@ -29,27 +33,27 @@ export function ReadingAndConsumableGroupsCard({ company }: ReadingAndConsumable
           <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-lg bg-slate-100 p-1 text-slate-500">
             <TabsTrigger value="reading" className={tabTriggerClassName}>
               <TestTube className="h-4 w-4" />
-              Reading
+              {t('groups.reading')}
             </TabsTrigger>
 
             <TabsTrigger value="checklist" className={tabTriggerClassName}>
               <ClipboardList className="h-4 w-4" />
-              Checklist
+              {t('groups.checklist')}
             </TabsTrigger>
 
             <TabsTrigger value="consumable" className={tabTriggerClassName}>
               <Package className="h-4 w-4" />
-              Consumables
+              {t('groups.consumables')}
             </TabsTrigger>
 
             <TabsTrigger value="photo" className={tabTriggerClassName}>
               <Camera className="h-4 w-4" />
-              Photos
+              {t('groups.photos')}
             </TabsTrigger>
 
             <TabsTrigger value="selector" className={tabTriggerClassName}>
               <CheckSquare className="h-4 w-4" />
-              Selectors
+              {t('groups.selectors')}
             </TabsTrigger>
           </TabsList>
 

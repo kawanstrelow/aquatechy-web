@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import Cookies from 'js-cookie';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeleteService = (clientId: string) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -28,7 +30,7 @@ export const useDeleteService = (clientId: string) => {
 
       toast({
         duration: 2000,
-        title: 'Deleted service successfully',
+        title: translateMessage('toasts.deletedServiceSuccessfully', 'Deleted service successfully'),
         variant: 'success'
       });
     },
@@ -40,8 +42,10 @@ export const useDeleteService = (clientId: string) => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error deleting service',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorDeletingService', 'Error deleting service'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

@@ -7,13 +7,15 @@ import { createFormData } from '@/utils/formUtils';
 import { useToast } from '@/components/ui/use-toast';
 import { Frequency } from '@/ts/enums/enums';
 
+import { translateMessage } from '@/i18n/runtime';
+
 // Update the Assignment interface to match the form schema
 export interface Assignment {
   assignmentToId: string;
   serviceTypeId: string;
   frequency: Frequency;
   // Fields for recurring assignments (not ONCE)
-  weekday?: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+  weekday?: 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY';
   startOn?: string;
   endAfter?: string;
   // Field for one-time assignment (ONCE)
@@ -71,7 +73,7 @@ export const useCreateClientWithMultipleAssignments = (options?: { redirectTo?: 
   return useMutation({
     mutationFn: async (data: CreateClientWithAssignmentsData) => {
       // Process assignments - remove weekday when frequency is ONCE
-      const processedAssignments = data.assignments.map(assignment => {
+      const processedAssignments = data.assignments.map((assignment) => {
         if (assignment.frequency === Frequency.ONCE) {
           // For ONCE frequency, only include scheduledTo and exclude weekday, startOn, endAfter
           const { weekday, startOn, endAfter, ...rest } = assignment;
@@ -103,7 +105,7 @@ export const useCreateClientWithMultipleAssignments = (options?: { redirectTo?: 
       router.push(options?.redirectTo || '/clients');
       toast({
         duration: 5000,
-        title: 'Client added successfully',
+        title: translateMessage('toasts.clientAddedSuccessfully', 'Client added successfully'),
         variant: 'success'
       });
     },
@@ -115,9 +117,11 @@ export const useCreateClientWithMultipleAssignments = (options?: { redirectTo?: 
       console.log(error);
       toast({
         duration: 5000,
-        title: 'Error adding client',
+        title: translateMessage('toasts.errorAddingClient', 'Error adding client'),
         variant: 'error',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

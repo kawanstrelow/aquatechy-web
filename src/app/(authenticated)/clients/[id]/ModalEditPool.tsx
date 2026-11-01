@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { UseFormReturn } from 'react-hook-form';
 import { MdOutlineEdit } from 'react-icons/md';
 
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function DialogEditPool({ form, handleSubmit, monthlyPaymentChanged }: Props) {
+  const t = useTranslations('clients');
   const isDirty = form.formState.isDirty;
 
   return (
@@ -25,23 +27,28 @@ export function DialogEditPool({ form, handleSubmit, monthlyPaymentChanged }: Pr
       <DialogContent className="max-h-screen max-w-fit overflow-y-scroll">
         <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(handleSubmit)}>
           <div>
-            <InputField name="address" placeholder="Address" />
+            <InputField name="address" placeholder={t('fields.address')} />
           </div>
           <div className="inline-flex items-start justify-start gap-4 self-stretch">
             <StateAndCitySelect cityName="city" stateName="state" />
           </div>
           <div className="inline-flex items-start justify-start gap-4 self-stretch">
-            <InputField name="monthlyPayment" placeholder="Monthly payment" type={FieldType.CurrencyValue} />
-            <InputField name="lockerCode" placeholder="Gate code" />
-            <InputField name="enterSide" placeholder="Enter side" />
+            <InputField name="monthlyPayment" placeholder={t('fields.monthlyPayment')} type={FieldType.CurrencyValue} />
+            <InputField name="lockerCode" placeholder={t('fields.gateCode')} />
+            <InputField name="enterSide" placeholder={t('fields.enterSide')} />
           </div>
 
           <div className="mb-4 h-full w-full">
-            <InputField className="h-full" type={FieldType.TextArea} name="notes" placeholder="Location notes..." />
+            <InputField
+              className="h-full"
+              type={FieldType.TextArea}
+              name="notes"
+              placeholder={t('fields.locationNotes')}
+            />
           </div>
           {(isDirty || monthlyPaymentChanged) && (
             <Button className="mt-4" type="submit">
-              Save
+              {t('shared.save')}
             </Button>
           )}
         </form>

@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, getDay } from 'date-fns';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -21,7 +22,8 @@ import { clientSchema } from '@/schemas/client';
 import { poolSchema } from '@/schemas/pool';
 import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { useUserStore } from '@/store/user';
-import { FieldType, Frequency, IanaTimeZones, LanguageOptions, STATE_TIMEZONE_MAP } from '@/ts/enums/enums';
+import { languageForForm, languageSelectOptions, type AppLocale } from '@/i18n/locale';
+import { FieldType, Frequency, IanaTimeZones, STATE_TIMEZONE_MAP } from '@/ts/enums/enums';
 import { isEmpty } from '@/utils';
 import useGetMembersOfAllCompaniesByUserId from '@/hooks/react-query/companies/getMembersOfAllCompaniesByUserId';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
@@ -30,7 +32,11 @@ import { ArrowLeftIcon, Loader2Icon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { AddressInput } from '@/components/AddressInput';
 import { CompanyCreatePreferencesForm } from '@/components/CompanyCreatePreferencesForm';
 import { CompanyLogoPicker } from '@/components/CompanyLogoPicker';
-import { useCreateClientWithMultipleAssignments, Assignment, CreateClientWithAssignmentsData } from '@/hooks/react-query/clients/createClientWithMultipleAssignments';
+import {
+  useCreateClientWithMultipleAssignments,
+  Assignment,
+  CreateClientWithAssignmentsData
+} from '@/hooks/react-query/clients/createClientWithMultipleAssignments';
 import { useUpdateUser } from '@/hooks/react-query/user/updateUser';
 import { useCreateCompany } from '@/hooks/react-query/companies/createCompany';
 import { useToast } from '@/components/ui/use-toast';
@@ -59,53 +65,53 @@ export type IPersonalDataSchema = z.infer<typeof personalDataSchema>;
 const companySchema = z.object({
   name: z
     .string({
-      required_error: 'Name is required.',
-      invalid_type_error: 'Name must be a string.'
+      required_error: 'onboarding.errors.nameRequired',
+      invalid_type_error: 'onboarding.errors.nameString'
     })
     .trim()
-    .min(1, { message: 'Name must be at least 1 character.' }),
+    .min(1, { message: 'onboarding.errors.nameMin' }),
   email: z
     .string({
-      required_error: 'Email is required.',
-      invalid_type_error: 'Email must be a string.'
+      required_error: 'onboarding.errors.emailRequired',
+      invalid_type_error: 'onboarding.errors.emailString'
     })
-    .email({ message: 'Invalid e-mail.' }),
+    .email({ message: 'onboarding.errors.emailInvalid' }),
   phone: z
     .string({
-      required_error: 'Phone is required.',
-      invalid_type_error: 'Phone must be a string.'
+      required_error: 'onboarding.errors.phoneRequired',
+      invalid_type_error: 'onboarding.errors.phoneString'
     })
     .trim()
-    .min(1, { message: 'Phone must be at least 1 character.' }),
+    .min(1, { message: 'onboarding.errors.phoneMin' }),
   address: z
     .string({
-      required_error: 'Address is required.',
-      invalid_type_error: 'Address must be a string.'
+      required_error: 'onboarding.errors.addressRequired',
+      invalid_type_error: 'onboarding.errors.addressString'
     })
     .trim()
-    .min(1, { message: 'Address must be at least 1 character.' }),
+    .min(1, { message: 'onboarding.errors.addressMin' }),
   addressLine2: defaultSchemas.addressLine2,
   city: z
     .string({
-      required_error: 'City is required.',
-      invalid_type_error: 'City must be a string.'
+      required_error: 'onboarding.errors.cityRequired',
+      invalid_type_error: 'onboarding.errors.cityString'
     })
     .trim()
-    .min(1, { message: 'City must be at least 1 character.' }),
+    .min(1, { message: 'onboarding.errors.cityMin' }),
   state: z
     .string({
-      required_error: 'State is required.',
-      invalid_type_error: 'State must be a string.'
+      required_error: 'onboarding.errors.stateRequired',
+      invalid_type_error: 'onboarding.errors.stateString'
     })
     .trim()
-    .min(1, { message: 'State must be at least 1 character.' }),
+    .min(1, { message: 'onboarding.errors.stateMin' }),
   zip: z
     .string({
-      required_error: 'Zip is required.',
-      invalid_type_error: 'Zip must be a string.'
+      required_error: 'onboarding.errors.zipRequired',
+      invalid_type_error: 'onboarding.errors.zipString'
     })
     .trim()
-    .min(1, { message: 'Zip must be at least 1 character.' })
+    .min(1, { message: 'onboarding.errors.zipMin' })
 });
 
 export type ICompanySchema = z.infer<typeof companySchema>;
@@ -113,7 +119,7 @@ export type ICompanySchema = z.infer<typeof companySchema>;
 // Step 4: Client/Pool/Assignment Schema
 const assignmentSchema = z.object({
   assignmentToId: z.string().min(1),
-  serviceTypeId: z.string().min(1, 'Service type is required'),
+  serviceTypeId: z.string().min(1, 'onboarding.errors.serviceTypeRequired'),
   weekday: defaultSchemas.weekday,
   frequency: defaultSchemas.frequency,
   startOn: z.string().min(1),
@@ -128,7 +134,7 @@ const additionalSchemas = z.object({
   clientType: z.enum(['Commercial', 'Residential']),
   timezone: defaultSchemas.timezone,
   companyOwnerId: z.string().min(1, {
-    message: 'Company owner is required.'
+    message: 'onboarding.errors.companyOwnerRequired'
   }),
   clientAddressLine2: z.optional(z.string().trim()),
   poolAddressLine2: z.optional(z.string().trim())
@@ -150,6 +156,9 @@ type PoolAndClientSchema = z.infer<typeof poolAndClientSchema>;
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const locale = useLocale() as AppLocale;
+  const common = useTranslations('common');
+  const t = useTranslations('onboarding');
   const { toast } = useToast();
   const { width } = useWindowDimensions();
   const isMobile = width ? width < 640 : false;
@@ -166,25 +175,25 @@ export default function OnboardingPage() {
       index: 0,
       active: true,
       complete: false,
-      title: 'Personal Information'
+      title: t('steps.personal')
     },
     {
       index: 1,
       active: false,
       complete: false,
-      title: 'Company Information'
+      title: t('steps.company')
     },
     {
       index: 2,
       active: false,
       complete: false,
-      title: 'Company Preferences'
+      title: t('steps.preferences')
     },
     {
       index: 3,
       active: false,
       complete: false,
-      title: 'First Client'
+      title: t('steps.firstClient')
     }
   ]);
 
@@ -201,7 +210,7 @@ export default function OnboardingPage() {
       zip: user?.zip || '',
       state: user?.state || '',
       city: user?.city || '',
-      language: user?.language || LanguageOptions.English
+      language: languageForForm(user?.language, locale)
     },
     resolver: zodResolver(personalDataSchema)
   });
@@ -212,6 +221,13 @@ export default function OnboardingPage() {
     if (personalDataForm.getValues('email') === user.email) return;
     personalDataForm.setValue('email', user.email, { shouldValidate: true, shouldDirty: false });
   }, [user?.email, personalDataForm]);
+
+  useEffect(() => {
+    if (personalDataForm.formState.dirtyFields.language) return;
+    const nextLanguage = languageForForm(user?.language, locale);
+    if (personalDataForm.getValues('language') === nextLanguage) return;
+    personalDataForm.setValue('language', nextLanguage);
+  }, [user?.language, locale, personalDataForm]);
 
   const { mutate: updateUser, isPending: isUpdatingUser, isSuccess: isUserUpdated } = useUpdateUser(user.id);
 
@@ -230,13 +246,18 @@ export default function OnboardingPage() {
     }
   });
 
-  const { mutate: createCompany, isPending: isCreatingCompany, isSuccess: isCompanyCreated } = useCreateCompany({ skipRedirect: true });
+  const {
+    mutate: createCompany,
+    isPending: isCreatingCompany,
+    isSuccess: isCompanyCreated
+  } = useCreateCompany({ skipRedirect: true });
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
   // Step 4: Client/Pool/Assignment Form
   const { data: members } = useGetMembersOfAllCompaniesByUserId(user.id);
   const { data: companies, isLoading: isCompaniesLoading, isSuccess: isCompaniesSuccess } = useGetCompanies();
-  const { mutateAsync: createClientWithAssignments, isPending: isCreatingClient } = useCreateClientWithMultipleAssignments({ redirectTo: '/quickstart' });
+  const { mutateAsync: createClientWithAssignments, isPending: isCreatingClient } =
+    useCreateClientWithMultipleAssignments({ redirectTo: '/quickstart' });
 
   const clientForm = useForm<PoolAndClientSchema>({
     resolver: zodResolver(poolAndClientSchema),
@@ -251,7 +272,7 @@ export default function OnboardingPage() {
       lockerCode: '123',
       enterSide: 'Left',
       hasSaltSystem: 'false',
-      poolNotes: 'Pool has a screen around it.',
+      poolNotes: 'Pool has a screen around it.'
     }
   });
 
@@ -272,18 +293,19 @@ export default function OnboardingPage() {
 
   const scheduledToDates = useMemo(() => getScheduledToDates(), []);
 
-  const ownerAdminOfficeCompanies = companies?.filter(
-    (c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office'
-  ) || [];
+  const ownerAdminOfficeCompanies =
+    companies?.filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office') || [];
 
   // Get service types based on the selected company
   const selectedCompanyId = clientForm.watch('companyOwnerId');
   const { data: serviceTypesData, isLoading: isServiceTypesLoading } = useGetServiceTypes(selectedCompanyId || '');
 
   const uniqueMembers = useMemo(() => {
-    return members
-      ?.filter((member) => member.firstName !== '')
-      .filter((member, index, self) => index === self.findIndex((t) => t.id === member.id)) || [];
+    return (
+      members
+        ?.filter((member) => member.firstName !== '')
+        .filter((member, index, self) => index === self.findIndex((t) => t.id === member.id)) || []
+    );
   }, [members]);
 
   // Handle step 1 completion - populate company form with personal data
@@ -460,7 +482,7 @@ export default function OnboardingPage() {
     const targetWeekday = weekdays.indexOf(weekday.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -499,7 +521,7 @@ export default function OnboardingPage() {
     const dates: { name: string; key: string; value: string }[] = [];
 
     dates.push({
-      name: 'No end',
+      name: t('noEnd'),
       key: 'No end',
       value: 'No end'
     });
@@ -583,7 +605,9 @@ export default function OnboardingPage() {
       setAssignmentDateOptions(newOptions);
 
       // Clear errors for removed and shifted assignment fields
-      (['assignmentToId', 'serviceTypeId', 'weekday', 'frequency', 'startOn', 'endAfter', 'scheduledTo'] as const).forEach((field) => {
+      (
+        ['assignmentToId', 'serviceTypeId', 'weekday', 'frequency', 'startOn', 'endAfter', 'scheduledTo'] as const
+      ).forEach((field) => {
         clientForm.clearErrors(`${field}-${index}` as never);
       });
     }
@@ -600,7 +624,9 @@ export default function OnboardingPage() {
   const validateAssignments = () => {
     let hasErrors = false;
 
-    (['assignmentToId', 'serviceTypeId', 'weekday', 'frequency', 'startOn', 'endAfter', 'scheduledTo'] as const).forEach((field) => {
+    (
+      ['assignmentToId', 'serviceTypeId', 'weekday', 'frequency', 'startOn', 'endAfter', 'scheduledTo'] as const
+    ).forEach((field) => {
       assignments.forEach((_, index) => {
         clearAssignmentFieldError(index, field);
       });
@@ -613,35 +639,35 @@ export default function OnboardingPage() {
 
     assignments.forEach((assignment, index) => {
       if (!assignment.assignmentToId) {
-        setAssignmentFieldError(index, 'assignmentToId', 'Technician is required');
+        setAssignmentFieldError(index, 'assignmentToId', t('errors.technicianRequired'));
         hasErrors = true;
       }
       if (!assignment.serviceTypeId) {
-        setAssignmentFieldError(index, 'serviceTypeId', 'Service type is required');
+        setAssignmentFieldError(index, 'serviceTypeId', t('errors.serviceTypeRequired'));
         hasErrors = true;
       }
       if (!assignment.frequency) {
-        setAssignmentFieldError(index, 'frequency', 'Frequency is required');
+        setAssignmentFieldError(index, 'frequency', t('errors.frequencyRequired'));
         hasErrors = true;
       }
 
       if (assignment.frequency === Frequency.ONCE) {
         if (!assignment.scheduledTo) {
-          setAssignmentFieldError(index, 'scheduledTo', 'Scheduled date is required');
+          setAssignmentFieldError(index, 'scheduledTo', t('errors.scheduledDateRequired'));
           hasErrors = true;
         }
       } else {
         if (!assignment.weekday) {
-          setAssignmentFieldError(index, 'weekday', 'Weekday is required');
+          setAssignmentFieldError(index, 'weekday', t('errors.weekdayRequired'));
           hasErrors = true;
         }
         if (assignment.weekday && assignment.frequency) {
           if (!assignment.startOn) {
-            setAssignmentFieldError(index, 'startOn', 'Start on is required');
+            setAssignmentFieldError(index, 'startOn', t('errors.startOnRequired'));
             hasErrors = true;
           }
           if (!assignment.endAfter) {
-            setAssignmentFieldError(index, 'endAfter', 'End after is required');
+            setAssignmentFieldError(index, 'endAfter', t('errors.endAfterRequired'));
             hasErrors = true;
           }
         }
@@ -698,7 +724,7 @@ export default function OnboardingPage() {
     if (field === 'weekday' || (field === 'frequency' && updatedAssignment.frequency !== Frequency.ONCE)) {
       if (updatedAssignment.weekday && updatedAssignment.frequency !== Frequency.ONCE) {
         const startOnDates = getNext10DatesForStartOnBasedOnWeekday(updatedAssignment.weekday);
-        setAssignmentDateOptions(prev => ({
+        setAssignmentDateOptions((prev) => ({
           ...prev,
           [index]: {
             ...prev[index],
@@ -709,10 +735,18 @@ export default function OnboardingPage() {
     }
 
     if (field === 'startOn') {
-      if (updatedAssignment.startOn && updatedAssignment.frequency && updatedAssignment.frequency !== Frequency.ONCE && updatedAssignment.startOn !== '') {
+      if (
+        updatedAssignment.startOn &&
+        updatedAssignment.frequency &&
+        updatedAssignment.frequency !== Frequency.ONCE &&
+        updatedAssignment.startOn !== ''
+      ) {
         try {
-          const endAfterDates = getNext10DatesForEndAfterBasedOnWeekday(new Date(updatedAssignment.startOn), updatedAssignment.frequency);
-          setAssignmentDateOptions(prev => ({
+          const endAfterDates = getNext10DatesForEndAfterBasedOnWeekday(
+            new Date(updatedAssignment.startOn),
+            updatedAssignment.frequency
+          );
+          setAssignmentDateOptions((prev) => ({
             ...prev,
             [index]: {
               ...prev[index],
@@ -738,12 +772,9 @@ export default function OnboardingPage() {
       assignmentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       toast({
         duration: 5000,
-        title: 'Error',
+        title: t('errors.title'),
         variant: 'error',
-        description:
-          assignments.length === 0
-            ? 'At least one assignment is required'
-            : 'Please fill in all required fields for all assignments'
+        description: assignments.length === 0 ? t('errors.assignmentRequired') : t('errors.assignmentFields')
       });
       return;
     }
@@ -783,9 +814,7 @@ export default function OnboardingPage() {
         poolNotes: data.poolNotes,
         bodyOfWater: data.bodyOfWater?.trim() || undefined,
         estimatesConvertedFrom: data.estimatesConvertedFrom,
-        ...(data.volumeInGallons != null && data.volumeInGallons > 0
-          ? { volumeInGallons: data.volumeInGallons }
-          : {}),
+        ...(data.volumeInGallons != null && data.volumeInGallons > 0 ? { volumeInGallons: data.volumeInGallons } : {}),
         assignments: assignments
       };
 
@@ -857,14 +886,14 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col w-full">
+    <div className="flex min-h-screen w-full flex-col">
       <div className="w-full px-4 md:px-8">
         <div className="mb-8 pt-4 md:pt-8">
           <Typography element="h1" className="mb-2 text-3xl font-bold">
-            Welcome to Aquatechy!
+            {t('welcome')}
           </Typography>
           <Typography element="p" className="text-gray-600">
-            Let's get you set up in just a few steps
+            {t('welcomeSubtitle')}
           </Typography>
         </div>
 
@@ -872,44 +901,55 @@ export default function OnboardingPage() {
           <Stepper steps={steps.stepsData} goToStep={steps.goToStep} />
         </div>
 
-        {/* Step 1: Personal Information */}
+        {/* Step 1: {t('personal.title')} */}
         {steps.currentStepIndex === 0 && (
           <Form {...personalDataForm}>
             <form onSubmit={personalDataForm.handleSubmit(handlePersonalDataSubmit)}>
               <div className="space-y-6 rounded-lg border bg-white p-6">
                 <Typography element="h2" className="text-xl font-semibold">
-                  Personal Information
+                  {t('personal.title')}
                 </Typography>
                 <Typography element="p" className="text-sm text-gray-600">
-                  Let's start by completing your profile information
+                  {t('personal.subtitle')}
                 </Typography>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <InputField name="firstName" label="First Name" placeholder="First Name" />
-                    <InputField name="lastName" label="Last Name" placeholder="Last Name" />
-                    <InputField name="company" label="Company" placeholder="Company" />
+                    <InputField name="firstName" label={t('fields.firstName')} placeholder={t('fields.firstName')} />
+                    <InputField name="lastName" label={t('fields.lastName')} placeholder={t('fields.lastName')} />
+                    <InputField name="company" label={t('fields.company')} placeholder={t('fields.company')} />
                   </div>
 
                   <div className="space-y-4">
                     <AddressInput
                       name="address"
-                      label="Address"
-                      placeholder="Enter your address"
+                      label={t('fields.address')}
+                      placeholder={t('fields.addressPlaceholder')}
                       onAddressSelect={handlePersonalDataAddressSelect}
                     />
-                    <InputField name="addressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+                    <InputField name="addressLine2" label={t('fields.addressLine2')} placeholder={t('fields.apt')} />
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                      <InputField name="state" label="State" placeholder="State"  />
-                      <InputField name="city" label="City" placeholder="City"  />
-                      <InputField name="zip" label="Zip Code" placeholder="Zip Code" />
+                      <InputField name="state" label={t('fields.state')} placeholder={t('fields.state')} />
+                      <InputField name="city" label={t('fields.city')} placeholder={t('fields.city')} />
+                      <InputField name="zip" label={t('fields.zip')} placeholder={t('fields.zip')} />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <InputField name="phone" placeholder="Phone" label="Phone" type={FieldType.Phone} />
-                    <InputField disabled name="email" placeholder="E-mail" label="E-mail" />
+                    <InputField
+                      name="phone"
+                      placeholder={t('fields.phone')}
+                      label={t('fields.phone')}
+                      type={FieldType.Phone}
+                    />
+                    <InputField disabled name="email" placeholder={t('fields.email')} label={t('fields.email')} />
                   </div>
+                  <SelectField
+                    name="language"
+                    label={common('language')}
+                    placeholder={common('selectLanguage')}
+                    options={languageSelectOptions}
+                  />
                 </div>
 
                 <div className="flex justify-end">
@@ -917,10 +957,10 @@ export default function OnboardingPage() {
                     {isUpdatingUser ? (
                       <>
                         <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
+                        {t('actions.saving')}
                       </>
                     ) : (
-                      'Continue'
+                      t('actions.continue')
                     )}
                   </Button>
                 </div>
@@ -929,7 +969,7 @@ export default function OnboardingPage() {
           </Form>
         )}
 
-        {/* Step 2: Company Information */}
+        {/* Step 2: {t('company.title')} */}
         {steps.currentStepIndex === 1 && (
           <Form {...companyForm}>
             <form
@@ -940,10 +980,10 @@ export default function OnboardingPage() {
             >
               <div className="space-y-6 rounded-lg border bg-white p-6">
                 <Typography element="h2" className="text-xl font-semibold">
-                  Company Information
+                  {t('company.title')}
                 </Typography>
                 <Typography element="p" className="text-sm text-gray-600">
-                  Now let's set up your company profile
+                  {t('company.subtitle')}
                 </Typography>
 
                 <div className="space-y-6">
@@ -956,39 +996,35 @@ export default function OnboardingPage() {
                   <div className="space-y-4">
                     <InputField
                       name="name"
-                      label="Company Name"
-                      placeholder="Enter company name"
+                      label={t('fields.companyName')}
+                      placeholder={t('fields.companyNamePlaceholder')}
                     />
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <InputField
                         name="email"
-                        label="Email"
-                        placeholder="Enter email address"
+                        label={t('fields.emailAddress')}
+                        placeholder={t('fields.emailPlaceholder')}
                       />
                       <InputField
                         name="phone"
-                        label="Phone"
-                        placeholder="Enter phone number"
+                        label={t('fields.phone')}
+                        placeholder={t('fields.phonePlaceholder')}
                         type={FieldType.Phone}
                       />
                     </div>
 
                     <AddressInput
                       name="address"
-                      label="Address"
-                      placeholder="Enter address"
+                      label={t('fields.address')}
+                      placeholder={t('fields.enterAddress')}
                       onAddressSelect={handleCompanyAddressSelect}
                     />
-                    <InputField name="addressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+                    <InputField name="addressLine2" label={t('fields.addressLine2')} placeholder={t('fields.apt')} />
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <CompanyStateAndCitySelect stateName="state" cityName="city" />
-                      <InputField
-                        name="zip"
-                        label="Zip Code"
-                        placeholder="Enter zip code"
-                      />
+                      <InputField name="zip" label={t('fields.zip')} placeholder={t('fields.zipPlaceholder')} />
                     </div>
                   </div>
                 </div>
@@ -996,10 +1032,10 @@ export default function OnboardingPage() {
                 <div className="flex justify-between">
                   <Button type="button" variant="outline" onClick={steps.prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                    Previous
+                    {t('actions.previous')}
                   </Button>
                   <Button type="submit" className="min-w-[120px]">
-                    Continue
+                    {t('actions.continue')}
                   </Button>
                 </div>
               </div>
@@ -1024,24 +1060,23 @@ export default function OnboardingPage() {
               <div className="space-y-6">
                 <div className="rounded-lg border bg-white p-6">
                   <Typography element="h2" className="mb-2 text-xl font-semibold">
-                    Create Your First Client
+                    {t('client.title')}
                   </Typography>
                   <Typography element="p" className="mb-6 text-sm text-gray-600">
-                    We pre-filled a sample test client so you can explore the app quickly. Add at least one assignment
-                    before finishing setup.
+                    {t('client.subtitle')}
                   </Typography>
 
-                  {/* Client Information */}
+                  {/* {t('client.info')} */}
                   <div className="mb-6 space-y-4">
                     <Typography element="h3" className="text-base font-medium">
-                      Client Information
+                      {t('client.info')}
                     </Typography>
 
                     <div className="w-full">
                       <SelectField
-                        placeholder="Company owner"
+                        placeholder={t('fields.companyOwner')}
                         name="companyOwnerId"
-                        label="Company owner"
+                        label={t('fields.companyOwner')}
                         options={
                           ownerAdminOfficeCompanies.map((c) => ({
                             key: c.id,
@@ -1053,16 +1088,28 @@ export default function OnboardingPage() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                      <InputField name="firstName" placeholder="First name" label="First name" />
-                      <InputField name="lastName" placeholder="Last name" label="Last name" />
-                      <InputField name="clientCompany" placeholder="Company" label="Company" />
-                      <InputField name="customerCode" placeholder="Customer code" label="Customer code" />
+                      <InputField
+                        name="firstName"
+                        placeholder={t('fields.firstNameLower')}
+                        label={t('fields.firstNameLower')}
+                      />
+                      <InputField
+                        name="lastName"
+                        placeholder={t('fields.lastNameLower')}
+                        label={t('fields.lastNameLower')}
+                      />
+                      <InputField name="clientCompany" placeholder={t('fields.company')} label={t('fields.company')} />
+                      <InputField
+                        name="customerCode"
+                        placeholder={t('fields.customerCode')}
+                        label={t('fields.customerCode')}
+                      />
                     </div>
 
                     <AddressInput
                       name="clientAddress"
-                      label="Billing address"
-                      placeholder="Enter address"
+                      label={t('fields.billingAddress')}
+                      placeholder={t('fields.enterAddress')}
                       onAddressSelect={({ state, city, zipCode, timezone }) => {
                         clientForm.setValue('clientState', state, { shouldValidate: true });
                         setTimeout(() => {
@@ -1074,29 +1121,34 @@ export default function OnboardingPage() {
                     />
                     <InputField
                       name="clientAddressLine2"
-                      label="Address Line 2"
-                      placeholder="Apt, suite, unit"
+                      label={t('fields.addressLine2')}
+                      placeholder={t('fields.apt')}
                     />
 
-                    <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row w-full">
+                    <div className="flex w-full flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
                       <StateAndCitySelect />
-                      <InputField name="clientZip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
+                      <InputField
+                        name="clientZip"
+                        label={t('fields.zipLower')}
+                        placeholder={t('fields.zipLower')}
+                        type={FieldType.Zip}
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <SelectField
-                        placeholder="Client Type"
+                        placeholder={t('fields.clientType')}
                         name="clientType"
-                        label="Client Type"
+                        label={t('fields.clientType')}
                         options={[
-                          { key: 'Residential', name: 'Residential', value: 'Residential' },
-                          { key: 'Commercial', name: 'Commercial', value: 'Commercial' }
+                          { key: 'Residential', name: t('clientTypes.residential'), value: 'Residential' },
+                          { key: 'Commercial', name: t('clientTypes.commercial'), value: 'Commercial' }
                         ]}
                       />
                       <SelectField
-                        placeholder="Select Time Zone"
+                        placeholder={t('fields.selectTimezone')}
                         name="timezone"
-                        label="Client Time zone"
+                        label={t('fields.clientTimezone')}
                         options={Object.values(IanaTimeZones).map((tz) => ({
                           key: tz,
                           name: tz,
@@ -1106,23 +1158,32 @@ export default function OnboardingPage() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                      <InputField type={FieldType.Phone} name="phone" placeholder="Mobile phone" label="Mobile phone" />
-                      <InputField name="email" placeholder="E-mail" label="E-mail" />
-                      <InputField name="invoiceEmail" placeholder="Invoice e-mail" label="Invoice e-mail" />
+                      <InputField
+                        type={FieldType.Phone}
+                        name="phone"
+                        placeholder={t('fields.mobilePhone')}
+                        label={t('fields.mobilePhone')}
+                      />
+                      <InputField name="email" placeholder={t('fields.email')} label={t('fields.email')} />
+                      <InputField
+                        name="invoiceEmail"
+                        placeholder={t('fields.invoiceEmail')}
+                        label={t('fields.invoiceEmail')}
+                      />
                     </div>
 
                     <InputField
-                      label={isMobile ? 'Notes about client' : "Notes about client (customer won't see that)"}
+                      label={isMobile ? t('fields.clientNotesShort') : t('fields.clientNotes')}
                       name="clientNotes"
-                      placeholder="Type clients notes here..."
+                      placeholder={t('fields.clientNotesPlaceholder')}
                       type={FieldType.TextArea}
                     />
                   </div>
 
-                  {/* Pool Information */}
+                  {/* {t('pool.info')} */}
                   <div className="mb-6 space-y-4">
                     <Typography element="h3" className="text-base font-medium">
-                      Pool Information
+                      {t('pool.info')}
                     </Typography>
 
                     <div className="flex flex-col gap-2">
@@ -1130,14 +1191,14 @@ export default function OnboardingPage() {
                         <InputField
                           name="sameBillingAddress"
                           type={FieldType.Checkbox}
-                          placeholder="Billing address is the same than service address"
+                          placeholder={t('fields.sameBilling')}
                         />
                       </div>
                       <div className="inline-flex items-start justify-start gap-2">
                         <InputField
                           name="animalDanger"
                           type={FieldType.Checkbox}
-                          placeholder="It must take care with animals?"
+                          placeholder={t('fields.animalDanger')}
                         />
                       </div>
                     </div>
@@ -1145,19 +1206,23 @@ export default function OnboardingPage() {
                     {!clientForm.watch('sameBillingAddress') && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                          <InputField name="poolAddress" placeholder="Pool address" label="Pool address" />
+                          <InputField
+                            name="poolAddress"
+                            placeholder={t('fields.poolAddress')}
+                            label={t('fields.poolAddress')}
+                          />
                           <StateAndCitySelect stateName="poolState" cityName="poolCity" />
                           <InputField
                             name="poolZip"
-                            label="Zip code"
-                            placeholder="Zip code"
+                            label={t('fields.zipLower')}
+                            placeholder={t('fields.zipLower')}
                             type={FieldType.Zip}
                           />
                         </div>
                         <InputField
                           name="poolAddressLine2"
-                          label="Pool Address Line 2"
-                          placeholder="Apt, suite, unit"
+                          label={t('fields.poolAddressLine2')}
+                          placeholder={t('fields.apt')}
                         />
                       </div>
                     )}
@@ -1165,28 +1230,32 @@ export default function OnboardingPage() {
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <InputField
                         name="monthlyPayment"
-                        placeholder="Monthly payment by client"
+                        placeholder={t('fields.monthlyPayment')}
                         type={FieldType.CurrencyValue}
-                        label="Monthly payment by client"
+                        label={t('fields.monthlyPayment')}
                       />
-                      <InputField name="lockerCode" placeholder="Gate code" label="Gate code" />
+                      <InputField name="lockerCode" placeholder={t('fields.gateCode')} label={t('fields.gateCode')} />
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <InputField name="enterSide" placeholder="Enter side" label="Enter side" />
-                      <InputField name="bodyOfWater" placeholder="e.g. Main pool, spa" label="Body of water" />
+                      <InputField name="enterSide" placeholder={t('fields.enterSide')} label={t('fields.enterSide')} />
+                      <InputField
+                        name="bodyOfWater"
+                        placeholder={t('fields.bodyOfWaterPlaceholder')}
+                        label={t('fields.bodyOfWater')}
+                      />
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <InputField
                         name="volumeInGallons"
-                        label="Volume (gallons)"
-                        placeholder="e.g. 15000"
+                        label={t('fields.volume')}
+                        placeholder={t('fields.volumePlaceholder')}
                         type={FieldType.Number}
                         props={{ min: 1, step: 1 }}
                       />
                       <SelectField
                         name="hasSaltSystem"
-                        label="Salt system"
-                        placeholder="Salt system"
+                        label={t('fields.saltSystem')}
+                        placeholder={t('fields.saltSystem')}
                         options={HasSaltSystemOptions}
                       />
                     </div>
@@ -1194,25 +1263,21 @@ export default function OnboardingPage() {
                     <InputField
                       className="h-32"
                       name="poolNotes"
-                      placeholder="Location notes..."
-                      label={isMobile ? 'Notes about location' : "Notes about location (customer won't see that)"}
+                      placeholder={t('fields.locationNotesPlaceholder')}
+                      label={isMobile ? t('fields.locationNotesShort') : t('fields.locationNotes')}
                       type={FieldType.TextArea}
                     />
                   </div>
 
-                  {/* Assignment Information */}
+                  {/* {t('assignment.info')} */}
                   <div ref={assignmentSectionRef} className="space-y-4">
                     <div className="space-y-1">
                       <Typography element="h3" className="text-base font-medium">
-                        Assignment Information
+                        {t('assignment.info')}
                       </Typography>
-                      <p className="text-sm text-gray-500">
-                        Choose who will service this pool, the service type, and the schedule.
-                      </p>
+                      <p className="text-sm text-gray-500">{t('assignment.help')}</p>
                       {showAssignmentErrors && (
-                        <p className="text-sm font-medium text-red-500">
-                          Please complete the required assignment fields below.
-                        </p>
+                        <p className="text-sm font-medium text-red-500">{t('assignment.requiredHint')}</p>
                       )}
                     </div>
 
@@ -1227,7 +1292,7 @@ export default function OnboardingPage() {
                       >
                         <div className="flex items-center justify-between">
                           <Typography element="h4" className="text-sm font-medium">
-                            Assignment {index + 1}
+                            {t('assignment.item', { index: index + 1 })}
                           </Typography>
                           {assignments.length > 1 && (
                             <Button
@@ -1247,8 +1312,8 @@ export default function OnboardingPage() {
                             <SelectField
                               name={`assignmentToId-${index}`}
                               disabled={!members || members.length === 0}
-                              placeholder="Technician"
-                              label="Technician"
+                              placeholder={t('fields.technician')}
+                              label={t('fields.technician')}
                               options={uniqueMembers.map((m) => ({
                                 key: m.id,
                                 name: `${m.firstName} ${m.lastName}`,
@@ -1257,34 +1322,46 @@ export default function OnboardingPage() {
                               value={assignment.assignmentToId}
                               onValueChange={(value) => updateAssignment(index, 'assignmentToId', value)}
                             />
-                            {(!members || members.length === 0) && <FormDescription>No technicians available</FormDescription>}
+                            {(!members || members.length === 0) && (
+                              <FormDescription>{t('assignment.noTechnicians')}</FormDescription>
+                            )}
                           </FormItem>
                           <FormItem className="w-full">
                             <SelectField
                               name={`serviceTypeId-${index}`}
                               disabled={!selectedCompanyId || isServiceTypesLoading}
-                              placeholder={serviceTypesData?.serviceTypes?.length ? "Service Type" : "No service types available"}
-                              label="Service Type"
-                              options={serviceTypesData?.serviceTypes
-                                ?.filter((serviceType) => serviceType.isActive)
-                                .map((serviceType) => ({
-                                  key: serviceType.id,
-                                  name: serviceType.name,
-                                  value: serviceType.id
-                                })) || []}
+                              placeholder={
+                                serviceTypesData?.serviceTypes?.length
+                                  ? t('fields.serviceType')
+                                  : t('fields.noServiceTypes')
+                              }
+                              label={t('fields.serviceType')}
+                              options={
+                                serviceTypesData?.serviceTypes
+                                  ?.filter((serviceType) => serviceType.isActive)
+                                  .map((serviceType) => ({
+                                    key: serviceType.id,
+                                    name: serviceType.name,
+                                    value: serviceType.id
+                                  })) || []
+                              }
                               value={assignment.serviceTypeId}
                               onValueChange={(value) => updateAssignment(index, 'serviceTypeId', value)}
                             />
-                            {!selectedCompanyId && <FormDescription>Please select a company first</FormDescription>}
-                            {selectedCompanyId && !serviceTypesData?.serviceTypes?.length && <FormDescription>No service types available for this company</FormDescription>}
+                            {!selectedCompanyId && (
+                              <FormDescription>{t('assignment.selectCompanyFirst')}</FormDescription>
+                            )}
+                            {selectedCompanyId && !serviceTypesData?.serviceTypes?.length && (
+                              <FormDescription>{t('assignment.noServiceTypesForCompany')}</FormDescription>
+                            )}
                           </FormItem>
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <SelectField
                             name={`frequency-${index}`}
-                            label="Frequency"
-                            placeholder="Frequency"
+                            label={t('fields.frequency')}
+                            placeholder={t('fields.frequency')}
                             options={Frequencies}
                             value={assignment.frequency || ''}
                             onValueChange={(value) => updateAssignment(index, 'frequency', value)}
@@ -1292,8 +1369,8 @@ export default function OnboardingPage() {
                           {assignment.frequency !== Frequency.ONCE && (
                             <SelectField
                               name={`weekday-${index}`}
-                              label="Weekday"
-                              placeholder="Weekday"
+                              label={t('fields.weekday')}
+                              placeholder={t('fields.weekday')}
                               options={Weekdays}
                               value={assignment.weekday || ''}
                               onValueChange={(value) => updateAssignment(index, 'weekday', value)}
@@ -1304,28 +1381,42 @@ export default function OnboardingPage() {
                         {assignment.frequency === Frequency.ONCE ? (
                           <SelectField
                             name={`scheduledTo-${index}`}
-                            label="Schedule to"
-                            placeholder="Schedule on"
+                            label={t('fields.scheduleTo')}
+                            placeholder={t('fields.scheduleOn')}
                             options={scheduledToDates}
                             value={assignment.scheduledTo || ''}
                             onValueChange={(value) => updateAssignment(index, 'scheduledTo', value)}
                           />
                         ) : (
-                          assignment.weekday && assignment.frequency && (
+                          assignment.weekday &&
+                          assignment.frequency && (
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                               <SelectField
                                 name={`startOn-${index}`}
-                                label="Start on"
-                                placeholder="Start on"
-                                options={assignmentDateOptions[index]?.startOn || getNext10DatesForStartOnBasedOnWeekday(assignment.weekday) || []}
+                                label={t('fields.startOn')}
+                                placeholder={t('fields.startOn')}
+                                options={
+                                  assignmentDateOptions[index]?.startOn ||
+                                  getNext10DatesForStartOnBasedOnWeekday(assignment.weekday) ||
+                                  []
+                                }
                                 value={assignment.startOn}
                                 onValueChange={(value) => updateAssignment(index, 'startOn', value)}
                               />
                               <SelectField
                                 name={`endAfter-${index}`}
-                                label="End after"
-                                placeholder="End after"
-                                options={assignmentDateOptions[index]?.endAfter || (assignment.startOn && assignment.startOn !== '' ? getNext10DatesForEndAfterBasedOnWeekday(new Date(assignment.startOn), assignment.frequency) : []) || []}
+                                label={t('fields.endAfter')}
+                                placeholder={t('fields.endAfter')}
+                                options={
+                                  assignmentDateOptions[index]?.endAfter ||
+                                  (assignment.startOn && assignment.startOn !== ''
+                                    ? getNext10DatesForEndAfterBasedOnWeekday(
+                                        new Date(assignment.startOn),
+                                        assignment.frequency
+                                      )
+                                    : []) ||
+                                  []
+                                }
                                 value={assignment.endAfter}
                                 onValueChange={(value) => updateAssignment(index, 'endAfter', value)}
                               />
@@ -1335,34 +1426,25 @@ export default function OnboardingPage() {
                       </div>
                     ))}
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addAssignment}
-                      className="w-full"
-                    >
+                    <Button type="button" variant="outline" onClick={addAssignment} className="w-full">
                       <PlusIcon className="mr-2 h-4 w-4" />
-                      Add Another Assignment
+                      {t('assignment.add')}
                     </Button>
                   </div>
 
                   <div className="mt-6 flex justify-between">
                     <Button type="button" variant="outline" onClick={steps.prevStep}>
                       <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                      Previous
+                      {t('actions.previous')}
                     </Button>
-                    <Button
-                      disabled={isCreatingClient}
-                      type="submit"
-                      className="min-w-[120px]"
-                    >
+                    <Button disabled={isCreatingClient} type="submit" className="min-w-[120px]">
                       {isCreatingClient ? (
                         <>
                           <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
+                          {t('actions.creating')}
                         </>
                       ) : (
-                        'Complete Setup'
+                        t('actions.complete')
                       )}
                     </Button>
                   </div>
@@ -1375,4 +1457,3 @@ export default function OnboardingPage() {
     </div>
   );
 }
-

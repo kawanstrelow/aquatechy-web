@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,9 +23,9 @@ import { CreateProductCategoryParams } from '@/hooks/react-query/products/useCre
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 
 const schema = z.object({
-  companyId: z.string().min(1, 'Company is required'),
-  name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be at most 100 characters'),
-  description: z.string().max(500, 'Description must be at most 500 characters').optional()
+  companyId: z.string().min(1, 'shopping.validation.companyRequired'),
+  name: z.string().trim().min(1, 'shopping.validation.nameRequired').max(100, 'shopping.validation.nameMax100'),
+  description: z.string().max(500, 'shopping.validation.descriptionMax500').optional()
 });
 
 interface ProductCategoryFormDialogProps {
@@ -44,6 +45,8 @@ export function ProductCategoryFormDialog({
   onSubmit,
   isLoading
 }: ProductCategoryFormDialogProps) {
+  const t = useTranslations('shopping');
+  const common = useTranslations('common');
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -93,10 +96,8 @@ export function ProductCategoryFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add category</DialogTitle>
-          <DialogDescription>
-            Select a company first, then enter the category details for that catalog.
-          </DialogDescription>
+          <DialogTitle>{t('categoryDialog.title')}</DialogTitle>
+          <DialogDescription>{t('categoryDialog.description')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -104,16 +105,17 @@ export function ProductCategoryFormDialog({
             {showCompanySelect ? (
               <SelectField
                 name="companyId"
-                label="Company *"
+                label={t('categoryDialog.company')}
                 options={companyOptions}
-                placeholder="Select company"
+                placeholder={t('categoryDialog.selectCompany')}
               />
             ) : (
               <>
                 <input type="hidden" {...form.register('companyId')} />
                 {companies.length === 1 && (
-                  <p className="text-sm text-muted-foreground">
-                    Company: <span className="font-medium text-foreground">{companies[0].name}</span>
+                  <p className="text-muted-foreground text-sm">
+                    {t('categoryDialog.companyLabel')}{' '}
+                    <span className="text-foreground font-medium">{companies[0].name}</span>
                   </p>
                 )}
               </>
@@ -125,9 +127,9 @@ export function ProductCategoryFormDialog({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name *</FormLabel>
+                    <FormLabel>{t('categoryDialog.name')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Chemicals" {...field} />
+                      <Input placeholder={t('categoryDialog.namePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -139,10 +141,10 @@ export function ProductCategoryFormDialog({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t('categoryDialog.descriptionLabel')}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Optional description"
+                        placeholder={t('categoryDialog.descriptionPlaceholder')}
                         className="resize-none"
                         rows={3}
                         {...field}
@@ -156,10 +158,10 @@ export function ProductCategoryFormDialog({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                Cancel
+                {common('cancel')}
               </Button>
               <Button type="submit" disabled={isLoading || !canEditDetails}>
-                {isLoading ? 'Creating...' : 'Create category'}
+                {isLoading ? t('categoryDialog.creating') : t('categoryDialog.create')}
               </Button>
             </DialogFooter>
           </form>

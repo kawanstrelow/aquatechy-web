@@ -6,6 +6,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { Assignment } from '@/ts/interfaces/Assignments';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useUpdateAssignments = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -19,7 +21,7 @@ export const useUpdateAssignments = () => {
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
       toast({
         duration: 2000,
-        title: 'Updated assignments successfully',
+        title: translateMessage('toasts.updatedAssignmentsSuccessfully', 'Updated assignments successfully'),
         variant: 'success'
       });
     },
@@ -30,8 +32,10 @@ export const useUpdateAssignments = () => {
     ) => {
       toast({
         variant: 'error',
-        title: 'Error updating assignment',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorUpdatingAssignment', 'Error updating assignment'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

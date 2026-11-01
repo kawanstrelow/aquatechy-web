@@ -1,5 +1,8 @@
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+
+import { translateOptionLabel } from '@/i18n/runtime';
 
 import { Request } from '@/ts/interfaces/Request';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,6 +15,7 @@ interface RequestsTabProps {
 }
 
 export default function RequestsTab({ requests, poolId, clientId }: RequestsTabProps) {
+  const t = useTranslations('clients');
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [open, setOpen] = useState(false);
   const getStatusColor = (status: string) => {
@@ -46,62 +50,56 @@ export default function RequestsTab({ requests, poolId, clientId }: RequestsTabP
 
   return (
     <>
-    <div className="w-full rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="min-w-[100px] flex-1">Date</TableHead>
-            <TableHead className="min-w-[100px] flex-1">Description</TableHead>
-            <TableHead className="min-w-[100px] flex-1">Status</TableHead>
-            <TableHead className="min-w-[100px] flex-1">Outcome</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {requests && requests.length > 0 ? (
-            requests.map((request) => (
-              <TableRow
-                key={request.id}
-                className="cursor-pointer hover:bg-slate-100/50"
-                onClick={() => handleRowClick(request)}
-              >
-                <TableCell className="min-w-[100px] flex-1 text-slate-500">
-                  {formatDate(request.createdAt)}
-                </TableCell>
-                <TableCell className="min-w-[100px] flex-1 text-slate-500">
-                  <div className="max-w-xs truncate" title={request.description}>
-                    {request.description}
-                  </div>
-                </TableCell>
-                <TableCell className="min-w-[100px] flex-1 text-slate-500">
-                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(request.status)}`}>
-                    {request.status}
-                  </span>
-                </TableCell>
-                <TableCell className="min-w-[100px] flex-1 text-slate-500">
-                  <div className="max-w-xs truncate" title={request.outcome || ''}>
-                    {request.outcome || '-'}
-                  </div>
+      <div className="w-full rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[100px] flex-1">{t('columns.date')}</TableHead>
+              <TableHead className="min-w-[100px] flex-1">{t('columns.description')}</TableHead>
+              <TableHead className="min-w-[100px] flex-1">{t('columns.status')}</TableHead>
+              <TableHead className="min-w-[100px] flex-1">{t('columns.outcome')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {requests && requests.length > 0 ? (
+              requests.map((request) => (
+                <TableRow
+                  key={request.id}
+                  className="cursor-pointer hover:bg-slate-100/50"
+                  onClick={() => handleRowClick(request)}
+                >
+                  <TableCell className="min-w-[100px] flex-1 text-slate-500">{formatDate(request.createdAt)}</TableCell>
+                  <TableCell className="min-w-[100px] flex-1 text-slate-500">
+                    <div className="max-w-xs truncate" title={request.description}>
+                      {request.description}
+                    </div>
+                  </TableCell>
+                  <TableCell className="min-w-[100px] flex-1 text-slate-500">
+                    <span
+                      className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(request.status)}`}
+                    >
+                      {translateOptionLabel({ key: request.status, name: request.status })}
+                    </span>
+                  </TableCell>
+                  <TableCell className="min-w-[100px] flex-1 text-slate-500">
+                    <div className="max-w-xs truncate" title={request.outcome || ''}>
+                      {request.outcome || '-'}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  {t('shared.noResults')}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-    {selectedRequest && (
-      <ModalEditRequest 
-        request={selectedRequest} 
-        open={open} 
-        setOpen={setOpen} 
-      />
-    )}
+      {selectedRequest && <ModalEditRequest request={selectedRequest} open={open} setOpen={setOpen} />}
     </>
   );
 }

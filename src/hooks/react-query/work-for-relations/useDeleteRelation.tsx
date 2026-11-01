@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeleteRelation = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -15,14 +17,14 @@ export const useDeleteRelation = () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
       toast({
         duration: 2000,
-        title: 'Deleted relation successfully',
+        title: translateMessage('toasts.deletedRelationSuccessfully', 'Deleted relation successfully'),
         variant: 'success'
       });
     },
     onError: () => {
       toast({
         duration: 5000,
-        title: 'Error deleting relation',
+        title: translateMessage('toasts.errorDeletingRelation', 'Error deleting relation'),
         variant: 'error'
       });
     }

@@ -6,6 +6,8 @@ import { clientAxios } from '../../../lib/clientAxios';
 import { ServiceTypeEmailPreferences } from '../../../ts/interfaces/ServiceTypeEmailPreferences';
 import { ServiceTypeResponse } from '../../../ts/interfaces/ServiceTypes';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface UpdateServiceTypeEmailPreferencesRequest {
   serviceTypeEmailPreferences: ServiceTypeEmailPreferences;
 }
@@ -19,26 +21,23 @@ export const useUpdateServiceTypeEmailPreferences = (serviceTypeId: string) => {
 
   return useMutation({
     mutationFn: async (data: ServiceTypeEmailPreferences): Promise<ServiceTypeResponse> => {
-      const response = await clientAxios.patch(
-        `/service-types/${serviceTypeId}/email-preferences`,
-        {
-          serviceTypeEmailPreferences: data
-        } as UpdateServiceTypeEmailPreferencesRequest
-      );
+      const response = await clientAxios.patch(`/service-types/${serviceTypeId}/email-preferences`, {
+        serviceTypeEmailPreferences: data
+      } as UpdateServiceTypeEmailPreferencesRequest);
       return response.data;
     },
     onSuccess: () => {
       // Invalidate service types query to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['service-types'] });
       toast({
-        title: 'Email preferences updated successfully',
+        title: translateMessage('toasts.emailPreferencesUpdatedSuccessfully', 'Email preferences updated successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating email preferences',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingEmailPreferences', 'Error updating email preferences'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

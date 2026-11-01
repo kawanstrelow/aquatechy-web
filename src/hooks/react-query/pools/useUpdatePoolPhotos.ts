@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import Cookies from 'js-cookie';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export type UpdatePoolPhotosVariables = {
   poolId: string;
   clientId: string;
@@ -40,7 +42,7 @@ export const useUpdatePoolPhotos = () => {
 
       toast({
         duration: 2000,
-        title: 'Pool photos updated successfully',
+        title: translateMessage('toasts.poolPhotosUpdatedSuccessfully', 'Pool photos updated successfully'),
         variant: 'success'
       });
     },
@@ -48,8 +50,9 @@ export const useUpdatePoolPhotos = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating pool photos',
-        description: error.response?.data?.message ?? 'Internal server error'
+        title: translateMessage('toasts.errorUpdatingPoolPhotos', 'Error updating pool photos'),
+        description:
+          error.response?.data?.message ?? translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,17 +29,15 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
+  DragEndEvent
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import { ChecklistTemplate, UpdateChecklistTemplateRequest } from '@/ts/interfaces/ChecklistTemplates';
@@ -45,29 +52,19 @@ interface DraggableChecklistItemProps {
 }
 
 function DraggableChecklistItem({ field, index, control, onRemove, canRemove }: DraggableChecklistItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: field.id });
+  const t = useTranslations('settings');
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : 1
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-start gap-2 p-3 border rounded-lg"
-    >
+    <div ref={setNodeRef} style={style} className="flex items-start gap-2 rounded-lg border p-3">
       <div
-        className="h-4 w-4 text-muted-foreground mt-2 flex-shrink-0 cursor-grab active:cursor-grabbing"
+        className="text-muted-foreground mt-2 h-4 w-4 flex-shrink-0 cursor-grab active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >
@@ -80,10 +77,7 @@ function DraggableChecklistItem({ field, index, control, onRemove, canRemove }: 
           render={({ field: inputField }) => (
             <FormItem>
               <FormControl>
-                <Input
-                  placeholder={`Item ${index + 1} (e.g., Vacuum pool floor)`}
-                  {...inputField}
-                />
+                <Input placeholder={t('checklists.itemPlaceholder', { index: index + 1 })} {...inputField} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -107,15 +101,15 @@ function DraggableChecklistItem({ field, index, control, onRemove, canRemove }: 
 
 const checklistItemSchema = z.object({
   id: z.string().optional(),
-  label: z.string().min(1, 'Label is required').max(100, 'Label must be less than 100 characters'),
+  label: z.string().min(1, 'settings.errors.labelRequired').max(100, 'settings.errors.labelMax'),
   order: z.number().min(1)
 });
 
 const updateChecklistTemplateSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isActive: z.boolean(),
-  items: z.array(checklistItemSchema).min(1, 'At least one checklist item is required')
+  items: z.array(checklistItemSchema).min(1, 'settings.errors.checklistItemRequired')
 });
 
 interface EditChecklistTemplateDialogProps {
@@ -133,6 +127,8 @@ export function EditChecklistTemplateDialog({
   onSubmit,
   isLoading
 }: EditChecklistTemplateDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof updateChecklistTemplateSchema>>({
     resolver: zodResolver(updateChecklistTemplateSchema),
     defaultValues: {
@@ -151,7 +147,7 @@ export function EditChecklistTemplateDialog({
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates
     })
   );
 
@@ -162,17 +158,19 @@ export function EditChecklistTemplateDialog({
         name: template.name,
         description: template.description || '',
         isActive: template.isActive,
-        items: sortedItems.map(item => ({
+        items: sortedItems.map((item) => ({
           id: item.id,
           label: item.label,
           order: item.order
         }))
       });
-      replace(sortedItems.map(item => ({
-        id: item.id,
-        label: item.label,
-        order: item.order
-      })));
+      replace(
+        sortedItems.map((item) => ({
+          id: item.id,
+          label: item.label,
+          order: item.order
+        }))
+      );
     }
   }, [template, form, replace]);
 
@@ -193,8 +191,8 @@ export function EditChecklistTemplateDialog({
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = fields.findIndex(field => field.id === active.id);
-      const newIndex = fields.findIndex(field => field.id === over?.id);
+      const oldIndex = fields.findIndex((field) => field.id === active.id);
+      const newIndex = fields.findIndex((field) => field.id === over?.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         move(oldIndex, newIndex);
@@ -226,12 +224,10 @@ export function EditChecklistTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Edit Checklist Template</DialogTitle>
-          <DialogDescription>
-            Update the checklist template information and manage its checklist items.
-          </DialogDescription>
+          <DialogTitle>{t('checklists.editTitle')}</DialogTitle>
+          <DialogDescription>{t('checklists.editDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -241,9 +237,9 @@ export function EditChecklistTemplateDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Template Name *</FormLabel>
+                  <FormLabel>{t('checklists.templateName')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Pool Cleaning Checklist" {...field} />
+                    <Input placeholder={t('checklists.namePlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -255,10 +251,10 @@ export function EditChecklistTemplateDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of what this template covers..."
+                      placeholder={t('checklists.descriptionPlaceholder')}
                       className="resize-none"
                       rows={2}
                       {...field}
@@ -269,27 +265,18 @@ export function EditChecklistTemplateDialog({
               )}
             />
 
-
-
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <FormLabel>Checklist Items *</FormLabel>
+                <FormLabel>{t('checklists.itemsRequired')}</FormLabel>
                 <Button type="button" onClick={addItem} size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Item
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('checklists.addItem')}
                 </Button>
               </div>
 
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={fields.map(field => field.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
+              <div className="max-h-60 space-y-3 overflow-y-auto">
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={fields.map((field) => field.id)} strategy={verticalListSortingStrategy}>
                     {fields.map((field, index) => (
                       <DraggableChecklistItem
                         key={field.id}
@@ -305,12 +292,12 @@ export function EditChecklistTemplateDialog({
               </div>
             </div>
 
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end w-full">
+            <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Template'}
+                {isLoading ? t('actions.updating') : t('checklists.update')}
               </Button>
             </DialogFooter>
           </form>

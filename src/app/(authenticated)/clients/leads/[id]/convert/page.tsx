@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
@@ -12,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useShallow } from 'zustand/react/shallow';
 
+import { translateMessage } from '@/i18n/runtime';
 import { AddressInput } from '@/components/AddressInput';
 import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import InputField from '@/components/InputField';
@@ -48,10 +50,10 @@ const additionalSchemas = z.object({
   clientCompany: z.string().nullable().optional(),
   clientType: z.enum(['Commercial', 'Residential']),
   timezone: defaultSchemas.timezone,
-  companyOwnerId: z.string().min(1, { message: 'Company owner is required.' }),
+  companyOwnerId: z.string().min(1, { message: 'clients.errors.ownerRequired' }),
   clientAddressLine2: z.optional(z.string().trim()),
   poolAddressLine2: z.optional(z.string().trim()),
-  invoiceEmail: z.union([z.literal(''), z.string().trim().email({ message: 'Invalid e-mail.' })]).optional()
+  invoiceEmail: z.union([z.literal(''), z.string().trim().email({ message: 'validation.email.invalid' })]).optional()
 });
 
 const convertFormSchema = clientSchema.and(poolSchema).and(additionalSchemas);
@@ -155,7 +157,9 @@ function getNext10DatesForStartOnBasedOnWeekday(weekday: string) {
 
 function getNext10DatesForEndAfterBasedOnWeekday(startOn: Date, frequency: string) {
   const startDate = new Date(startOn);
-  const dates: { name: string; key: string; value: string }[] = [{ name: 'No end', key: 'No end', value: 'No end' }];
+  const dates: { name: string; key: string; value: string }[] = [
+    { name: translateMessage('clients.fields.noEnd', 'No end'), key: 'No end', value: 'No end' }
+  ];
   const daysToAdd =
     frequency === 'E2WEEKS'
       ? 14
@@ -242,6 +246,7 @@ export default function Page({ params: { id } }: Props) {
 }
 
 function ConvertLeadForm({ lead }: { lead: Lead }) {
+  const t = useTranslations('clients');
   const router = useRouter();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -317,9 +322,9 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
   });
 
   const steps = useSteps([
-    { index: 0, active: true, complete: false, title: 'Client' },
-    { index: 1, active: false, complete: false, title: 'Pool' },
-    { index: 2, active: false, complete: false, title: 'Assignments' }
+    { index: 0, active: true, complete: false, title: t('fields.client') },
+    { index: 1, active: false, complete: false, title: t('fields.pool') },
+    { index: 2, active: false, complete: false, title: t('fields.assignments') }
   ]);
 
   const selectedCompanyId = form.watch('companyOwnerId');
@@ -533,9 +538,9 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
     if (filled.some((visit) => !isCompleteVisit(visit))) {
       toast({
         duration: 5000,
-        title: 'Assignment is incomplete',
+        title: t('leads.assignmentIncomplete'),
         variant: 'error',
-        description: 'Fill in the technician, service type, and dates, or clear the assignment.'
+        description: t('leads.assignmentIncompleteDescription')
       });
       return;
     }
@@ -587,11 +592,11 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
         } catch (error) {
           toast({
             duration: 5000,
-            title: 'Client saved, pool details were not',
+            title: t('leads.clientSavedPoolFailed'),
             variant: 'error',
             description: getLeadErrorMessage(
               error as AxiosError<{ message?: string | string[] }>,
-              'Internal server error'
+              translateMessage('toasts.internalServerError', 'Internal server error')
             )
           });
         }
@@ -604,11 +609,11 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
           } catch (error) {
             toast({
               duration: 5000,
-              title: 'Client saved, visit was not updated',
+              title: t('leads.clientSavedVisitFailed'),
               variant: 'error',
               description: getLeadErrorMessage(
                 error as AxiosError<{ message?: string | string[] }>,
-                'Internal server error'
+                translateMessage('toasts.internalServerError', 'Internal server error')
               )
             });
           }
@@ -634,7 +639,7 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
           className="border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50"
           asChild
         >
-          <Link href={`/clients/leads/${lead.id}`}>Back to lead</Link>
+          <Link href={`/clients/leads/${lead.id}`}>{t('leads.backToLead')}</Link>
         </Button>
       </div>
       <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
@@ -652,34 +657,40 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
             {steps.currentStepIndex === 0 && (
               <>
                 <Typography element="h2" className="pb-0 text-base">
-                  Basic information
+                  {t('fields.basicInformation')}
                 </Typography>
                 <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
                   <SelectField
-                    placeholder="Company owner"
+                    placeholder={t('shared.companyOwner')}
                     name="companyOwnerId"
-                    label="Company owner"
+                    label={t('shared.companyOwner')}
                     disabled
                     options={[
                       {
                         key: lead.companyOwnerId,
-                        name: companies.find((company) => company.id === lead.companyOwnerId)?.name || 'Company',
+                        name:
+                          companies.find((company) => company.id === lead.companyOwnerId)?.name ||
+                          t('leads.companyFallback'),
                         value: lead.companyOwnerId
                       }
                     ]}
                   />
                 </div>
                 <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                  <InputField name="firstName" placeholder="First name" label="First name" />
-                  <InputField name="lastName" placeholder="Last name" label="Last name" />
-                  <InputField name="clientCompany" placeholder="Company" label="Company" />
-                  <InputField name="customerCode" placeholder="Customer code" label="Customer code" />
+                  <InputField name="firstName" placeholder={t('fields.firstName')} label={t('fields.firstName')} />
+                  <InputField name="lastName" placeholder={t('fields.lastName')} label={t('fields.lastName')} />
+                  <InputField name="clientCompany" placeholder={t('fields.company')} label={t('fields.company')} />
+                  <InputField
+                    name="customerCode"
+                    placeholder={t('fields.customerCode')}
+                    label={t('fields.customerCode')}
+                  />
                 </div>
                 <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
                   <AddressInput
                     name="clientAddress"
-                    label="Billing address"
-                    placeholder="Enter address"
+                    label={t('fields.billingAddress')}
+                    placeholder={t('fields.enterAddress')}
                     onAddressSelect={({ state, city, zipCode }) => {
                       form.setValue('clientState', state, { shouldValidate: true });
                       setTimeout(() => {
@@ -689,43 +700,61 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                     }}
                   />
                 </div>
-                <InputField name="clientAddressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+                <InputField
+                  name="clientAddressLine2"
+                  label={t('fields.addressLine2')}
+                  placeholder={t('fields.aptSuite')}
+                />
                 <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
                   <StateAndCitySelect />
-                  <InputField name="clientZip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
+                  <InputField
+                    name="clientZip"
+                    label={t('fields.zipCode')}
+                    placeholder={t('fields.zipCode')}
+                    type={FieldType.Zip}
+                  />
                 </div>
                 <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
                   <SelectField
-                    placeholder="Client Type"
+                    placeholder={t('fields.clientType')}
                     name="clientType"
-                    label="Client Type"
+                    label={t('fields.clientType')}
                     options={[
-                      { key: 'Residential', name: 'Residential', value: 'Residential' },
-                      { key: 'Commercial', name: 'Commercial', value: 'Commercial' }
+                      { key: 'Residential', name: t('fields.residential'), value: 'Residential' },
+                      { key: 'Commercial', name: t('fields.commercial'), value: 'Commercial' }
                     ]}
                   />
                   <SelectField
-                    placeholder="Select Time Zone"
+                    placeholder={t('fields.selectTimeZone')}
                     name="timezone"
-                    label="Client Time zone"
+                    label={t('fields.clientTimeZone')}
                     disabled
                     options={Object.values(IanaTimeZones).map((zone) => ({ key: zone, name: zone, value: zone }))}
                   />
                 </div>
                 <Typography element="h2" className="mt-2 text-base">
-                  Contact information
+                  {t('fields.contactInformation')}
                 </Typography>
                 <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                  <InputField type={FieldType.Phone} name="phone" placeholder="Mobile phone" label="Mobile phone" />
-                  <InputField name="email" placeholder="E-mail" label="E-mail" />
-                  <InputField name="invoiceEmail" placeholder="Invoice e-mail" label="Invoice e-mail" />
+                  <InputField
+                    type={FieldType.Phone}
+                    name="phone"
+                    placeholder={t('fields.mobilePhone')}
+                    label={t('fields.mobilePhone')}
+                  />
+                  <InputField name="email" placeholder={t('fields.emailHyphen')} label={t('fields.emailHyphen')} />
+                  <InputField
+                    name="invoiceEmail"
+                    placeholder={t('fields.invoiceEmail')}
+                    label={t('fields.invoiceEmail')}
+                  />
                 </div>
                 <div className="flex w-full items-center gap-4">
                   <div className="w-[100%]">
                     <InputField
-                      label="Notes about client (customer won't see that)"
+                      label={t('fields.notesAboutClientHidden')}
                       name="clientNotes"
-                      placeholder="Type clients notes here..."
+                      placeholder={t('fields.clientNotesPlaceholderPlural')}
                       type={FieldType.TextArea}
                     />
                   </div>
@@ -745,34 +774,42 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
             {steps.currentStepIndex === 1 && (
               <>
                 <Typography element="h2" className="mt-2 text-base">
-                  Service Information
+                  {t('fields.serviceInformation')}
                 </Typography>
                 <div className="flex flex-col gap-2">
                   <div className="inline-flex items-start justify-start gap-2">
                     <InputField
                       name="sameBillingAddress"
                       type={FieldType.Checkbox}
-                      placeholder="Billing address is the same than service address"
+                      placeholder={t('fields.sameBillingAddress')}
                     />
                   </div>
                   <div className="inline-flex items-start justify-start gap-2">
                     <InputField
                       name="animalDanger"
                       type={FieldType.Checkbox}
-                      placeholder="It must take care with animals?"
+                      placeholder={t('fields.animalCareQuestion')}
                     />
                   </div>
                 </div>
                 {!form.watch('sameBillingAddress') && (
                   <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
-                    <InputField name="poolAddress" placeholder="Pool address" label="Pool address" />
-                    <InputField name="poolAddressLine2" label="Pool Address Line 2" placeholder="Apt, suite, unit" />
+                    <InputField
+                      name="poolAddress"
+                      placeholder={t('fields.poolAddress')}
+                      label={t('fields.poolAddress')}
+                    />
+                    <InputField
+                      name="poolAddressLine2"
+                      label={t('fields.poolAddressLine2')}
+                      placeholder={t('fields.aptSuite')}
+                    />
                     <StateAndCitySelect stateName="poolState" cityName="poolCity" />
                     <InputField
                       className="min-w-fit"
                       name="poolZip"
-                      label="Zip code"
-                      placeholder="Zip code"
+                      label={t('fields.zipCode')}
+                      placeholder={t('fields.zipCode')}
                       type={FieldType.Zip}
                     />
                   </div>
@@ -780,42 +817,46 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                 <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                   <InputField
                     name="monthlyPayment"
-                    placeholder="Monthly payment by client"
+                    placeholder={t('fields.monthlyPaymentByClient')}
                     type={FieldType.CurrencyValue}
-                    label="Monthly payment by client"
+                    label={t('fields.monthlyPaymentByClient')}
                   />
-                  <InputField name="lockerCode" placeholder="Gate code" label="Gate code" />
+                  <InputField name="lockerCode" placeholder={t('fields.gateCode')} label={t('fields.gateCode')} />
                 </div>
                 <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-                  <InputField name="enterSide" placeholder="Enter side" label="Enter side" />
-                  <InputField name="bodyOfWater" placeholder="e.g. Main pool, spa" label="Body of water" />
+                  <InputField name="enterSide" placeholder={t('fields.enterSide')} label={t('fields.enterSide')} />
+                  <InputField
+                    name="bodyOfWater"
+                    placeholder={t('fields.bodyOfWaterExample')}
+                    label={t('fields.bodyOfWater')}
+                  />
                 </div>
                 <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                   <InputField
                     name="volumeInGallons"
-                    label="Volume (gallons)"
-                    placeholder="e.g. 15000"
+                    label={t('fields.volumeGallons')}
+                    placeholder={t('fields.volumeExample')}
                     type={FieldType.Number}
                     props={{ min: 1, step: 1 }}
                   />
                   <SelectField
                     name="hasSaltSystem"
-                    label="Salt system"
-                    placeholder="Salt system"
+                    label={t('fields.saltSystem')}
+                    placeholder={t('fields.saltSystem')}
                     options={HasSaltSystemOptions}
                   />
                 </div>
                 <InputField
                   className="h-32"
                   name="poolNotes"
-                  placeholder="Location notes..."
-                  label="Notes about location (customer won't see that)"
+                  placeholder={t('fields.locationNotes')}
+                  label={t('fields.notesAboutLocationHidden')}
                   type={FieldType.TextArea}
                 />
                 <div className="flex w-full flex-1 flex-row items-center justify-between">
                   <Button type="button" onClick={steps.prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                    Previous
+                    {t('shared.previous')}
                   </Button>
                   <Button disabled={form.formState.isValidating} type="button" onClick={handleValidatePoolStep}>
                     {form.formState.isValidating && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
@@ -828,18 +869,16 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
             {steps.currentStepIndex === 2 && (
               <>
                 <Typography element="h2" className="text-base">
-                  Assignment Information
+                  {t('fields.assignmentInformation')}
                 </Typography>
                 <p className="text-sm text-gray-500">
-                  {savedAssignment
-                    ? 'The current visit is filled in. Change it, add another, or leave it as it is.'
-                    : 'Add a visit, or leave this blank to convert without one.'}
+                  {savedAssignment ? t('leads.currentVisit') : t('leads.addVisitOrBlank')}
                 </p>
                 {assignments.map((assignment, index) => (
                   <div key={assignment.existingId || index} className="w-full space-y-4 rounded-lg border p-4">
                     <div className="flex items-center justify-between">
                       <Typography element="h3" className="text-sm font-medium">
-                        Assignment {index + 1}
+                        {t('fields.assignmentNumber', { number: index + 1 })}
                       </Typography>
                       {assignments.length > 1 && (
                         <Button
@@ -858,8 +897,8 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                         <SelectField
                           name={`assignmentToId-${index}`}
                           disabled={members.length === 0}
-                          placeholder="Technician"
-                          label="Technician"
+                          placeholder={t('fields.technician')}
+                          label={t('fields.technician')}
                           options={uniqueMembers.map((member) => ({
                             key: member.id,
                             name: `${member.firstName} ${member.lastName}`,
@@ -868,16 +907,18 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                           value={assignment.assignmentToId}
                           onValueChange={(value) => updateAssignment(index, 'assignmentToId', value)}
                         />
-                        {members.length === 0 && <FormDescription>No technicians available</FormDescription>}
+                        {members.length === 0 && <FormDescription>{t('leads.noTechnicians')}</FormDescription>}
                       </FormItem>
                       <FormItem className="w-full">
                         <SelectField
                           name={`serviceTypeId-${index}`}
                           disabled={!selectedCompanyId || isServiceTypesLoading}
                           placeholder={
-                            serviceTypesData?.serviceTypes?.length ? 'Service Type' : 'No service types available'
+                            serviceTypesData?.serviceTypes?.length
+                              ? t('fields.serviceTypeTitle')
+                              : t('leads.noServiceTypes')
                           }
-                          label="Service Type"
+                          label={t('fields.serviceTypeTitle')}
                           options={
                             serviceTypesData?.serviceTypes
                               ?.filter((serviceType) => serviceType.isActive)
@@ -890,14 +931,14 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                           value={assignment.serviceTypeId}
                           onValueChange={(value) => updateAssignment(index, 'serviceTypeId', value)}
                         />
-                        {!selectedCompanyId && <FormDescription>Please select a company first</FormDescription>}
+                        {!selectedCompanyId && <FormDescription>{t('leads.selectCompanyFirst')}</FormDescription>}
                       </FormItem>
                     </div>
                     <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
                       <SelectField
                         name={`frequency-${index}`}
-                        label="Frequency"
-                        placeholder="Frequency"
+                        label={t('fields.frequency')}
+                        placeholder={t('fields.frequency')}
                         options={Frequencies}
                         value={assignment.frequency}
                         onValueChange={(value) => updateAssignment(index, 'frequency', value)}
@@ -905,8 +946,8 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                       {assignment.frequency !== Frequency.ONCE && (
                         <SelectField
                           name={`weekday-${index}`}
-                          label="Weekday"
-                          placeholder="Weekday"
+                          label={t('fields.weekday')}
+                          placeholder={t('fields.weekday')}
                           options={Weekdays}
                           value={assignment.weekday || ''}
                           onValueChange={(value) => updateAssignment(index, 'weekday', value)}
@@ -916,13 +957,15 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                     {assignment.frequency === Frequency.ONCE ? (
                       <div className="inline-flex w-full items-start justify-start gap-4">
                         <FormItem className="w-full">
-                          <label className="mb-2 block text-sm font-medium leading-none">Scheduled Date</label>
+                          <label className="mb-2 block text-sm font-medium leading-none">
+                            {t('fields.scheduledDateTitle')}
+                          </label>
                           <Select
                             value={assignment.scheduledTo || ''}
                             onValueChange={(value) => updateAssignment(index, 'scheduledTo', value)}
                           >
                             <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select date" />
+                              <SelectValue placeholder={t('shared.selectDate')} />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
@@ -942,8 +985,8 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                         <div className="inline-flex w-full items-start justify-start gap-4">
                           <SelectField
                             name={`startOn-${index}`}
-                            label="Start on"
-                            placeholder="Start on"
+                            label={t('fields.startOn')}
+                            placeholder={t('fields.startOn')}
                             options={
                               assignmentDateOptions[index]?.startOn ||
                               getNext10DatesForStartOnBasedOnWeekday(assignment.weekday) ||
@@ -954,8 +997,8 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                           />
                           <SelectField
                             name={`endAfter-${index}`}
-                            label="End after"
-                            placeholder="End after"
+                            label={t('fields.endAfter')}
+                            placeholder={t('fields.endAfter')}
                             options={
                               assignmentDateOptions[index]?.endAfter ||
                               (assignment.startOn
@@ -975,16 +1018,16 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                 ))}
                 <Button type="button" variant="outline" onClick={addAssignment} className="w-full">
                   <PlusIcon className="mr-2 h-4 w-4" />
-                  Add Another Assignment
+                  {t('leads.addAnotherAssignment')}
                 </Button>
                 <div className="flex w-full flex-1 flex-row items-center justify-between">
                   <Button type="button" onClick={steps.prevStep}>
                     <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                    Previous
+                    {t('shared.previous')}
                   </Button>
                   <Button disabled={pending} type="submit">
                     {pending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-                    Convert to client
+                    {t('leads.convert')}
                   </Button>
                 </div>
               </>

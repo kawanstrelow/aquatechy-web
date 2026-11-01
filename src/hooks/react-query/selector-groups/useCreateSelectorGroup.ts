@@ -1,7 +1,12 @@
 /* eslint-disable no-useless-catch */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientAxios } from '@/lib/clientAxios';
-import { CreateSelectorGroupRequest, SelectorGroupResponse, CreateSelectorGroupDefinitionRequest, CreateSelectorGroupOptionRequest } from '@/ts/interfaces/SelectorGroups';
+import {
+  CreateSelectorGroupRequest,
+  SelectorGroupResponse,
+  CreateSelectorGroupDefinitionRequest,
+  CreateSelectorGroupOptionRequest
+} from '@/ts/interfaces/SelectorGroups';
 
 function generateSelectorOptionValueFromText(text: string): string {
   return text
@@ -13,6 +18,8 @@ function generateSelectorOptionValueFromText(text: string): string {
     .replace(/^_|_$/g, '');
 }
 import { useToast } from '@/components/ui/use-toast';
+
+import { translateMessage } from '@/i18n/runtime';
 
 interface CreateSelectorGroupParams {
   companyId: string;
@@ -31,7 +38,7 @@ export function useCreateSelectorGroup() {
           name: data.name.trim(),
           description: data.description?.trim() ? data.description.trim() : undefined,
           isDefault: data.isDefault,
-          order: data.order || 0,
+          order: data.order || 0
         };
 
         const groupResponse = await clientAxios.post(`/selector-groups/companies/${companyId}`, groupData);
@@ -45,10 +52,13 @@ export function useCreateSelectorGroup() {
             const definitionData = {
               question: defData.question.trim(),
               isRequired: defData.isRequired || false,
-              order: defData.order,
+              order: defData.order
             };
 
-            const defResponse = await clientAxios.post(`/selector-definitions/groups/${createdGroup.id}`, definitionData);
+            const defResponse = await clientAxios.post(
+              `/selector-definitions/groups/${createdGroup.id}`,
+              definitionData
+            );
             const createdDefinition = defResponse.data.selectorDefinition;
             createdDefinitions.push(createdDefinition);
 
@@ -58,7 +68,7 @@ export function useCreateSelectorGroup() {
                 const optionRequestData = {
                   text: optionData.text.trim(),
                   value: optionData.value?.trim() || generateSelectorOptionValueFromText(optionData.text),
-                  order: optionData.order,
+                  order: optionData.order
                 };
 
                 await clientAxios.post(`/selector-options/definitions/${createdDefinition.id}`, optionRequestData);
@@ -79,7 +89,7 @@ export function useCreateSelectorGroup() {
       queryClient.invalidateQueries({ queryKey: ['selectorOptions'] });
       toast({
         duration: 2000,
-        title: 'Selector group created successfully',
+        title: translateMessage('toasts.selectorGroupCreatedSuccessfully', 'Selector group created successfully'),
         variant: 'success'
       });
     },
@@ -87,9 +97,10 @@ export function useCreateSelectorGroup() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating selector group',
-        description: error.response?.data?.message || 'Internal server error'
+        title: translateMessage('toasts.errorCreatingSelectorGroup', 'Error creating selector group'),
+        description:
+          error.response?.data?.message || translateMessage('toasts.internalServerError', 'Internal server error')
       });
-    },
+    }
   });
 }

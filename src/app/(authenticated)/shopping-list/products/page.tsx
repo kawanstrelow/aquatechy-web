@@ -1,6 +1,7 @@
 'use client';
 
 import { PlusIcon } from '@radix-ui/react-icons';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -18,7 +19,12 @@ import { useUpdateProduct } from '@/hooks/react-query/products/useUpdateProduct'
 import { useCreateProductCategory } from '@/hooks/react-query/products/useCreateProductCategory';
 import { useUserStore } from '@/store/user';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
-import { CreateProductCategoryRequest, CreateProductRequest, ProductListRow, UpdateProductRequest } from '@/ts/interfaces/Product';
+import {
+  CreateProductCategoryRequest,
+  CreateProductRequest,
+  ProductListRow,
+  UpdateProductRequest
+} from '@/ts/interfaces/Product';
 
 import { ProductCategoryFormDialog } from './_components/ProductCategoryFormDialog';
 import { ProductFormDialog } from './_components/ProductFormDialog';
@@ -39,6 +45,7 @@ function canManageCatalog(role?: CompanyWithMyRole['role']) {
 }
 
 export default function ProductsPage() {
+  const t = useTranslations('shopping');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: companies = [], isLoading: isLoadingCompanies } = useGetCompanies();
@@ -57,10 +64,7 @@ export default function ProductsPage() {
   const status = filtersForm.watch('status');
   const search = filtersForm.watch('search');
 
-  const selectedCompany = useMemo(
-    () => companies.find((company) => company.id === companyId),
-    [companies, companyId]
-  );
+  const selectedCompany = useMemo(() => companies.find((company) => company.id === companyId), [companies, companyId]);
 
   const canManage = canManageCatalog(selectedCompany?.role);
 
@@ -116,19 +120,19 @@ export default function ProductsPage() {
 
   const categoryOptions = useMemo(() => {
     const options = [
-      { key: 'all', value: 'all', name: 'All categories' },
-      { key: 'uncategorized', value: 'uncategorized', name: 'Uncategorized' }
+      { key: 'all', value: 'all', name: t('allCategories') },
+      { key: 'uncategorized', value: 'uncategorized', name: t('uncategorized') }
     ];
     categoriesQuery.data?.productCategories.forEach((category) => {
       options.push({ key: category.id, value: category.id, name: category.name });
     });
     return options;
-  }, [categoriesQuery.data?.productCategories]);
+  }, [categoriesQuery.data?.productCategories, t]);
 
   const statusOptions = [
-    { key: 'active', value: 'active', name: 'Active only' },
-    { key: 'inactive', value: 'inactive', name: 'Inactive only' },
-    { key: 'all', value: 'all', name: 'All statuses' }
+    { key: 'active', value: 'active', name: t('activeOnly') },
+    { key: 'inactive', value: 'inactive', name: t('inactiveOnly') },
+    { key: 'all', value: 'all', name: t('allStatuses') }
   ];
 
   const appliedFilters = useMemo(() => {
@@ -185,57 +189,52 @@ export default function ProductsPage() {
     <FormProvider {...filtersForm}>
       <div className="flex flex-col gap-6 p-2">
         <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
-        <div className="flex w-full flex-wrap items-center gap-2 border-b border-line bg-surface px-5 py-4">
-          <Button type="button" className="shrink-0" onClick={handleOpenCreateProduct} disabled={!companyId}>
-            <PlusIcon className="mr-2" />
-            Add product
-          </Button>
-          {canManage && (
-            <Button
-              type="button"
-              variant="outline"
-              className="shrink-0"
-              onClick={() => setCategoryDialogOpen(true)}
-            >
+          <div className="flex w-full flex-wrap items-center gap-2 border-b border-line bg-surface px-5 py-4">
+            <Button type="button" className="shrink-0" onClick={handleOpenCreateProduct} disabled={!companyId}>
               <PlusIcon className="mr-2" />
-              Add category
+              {t('addProduct')}
             </Button>
-          )}
-          <div className="min-w-[140px] flex-1 max-w-xs">
-            <Input
-              placeholder="Search by name or SKU"
-              value={search}
-              onChange={(event) => filtersForm.setValue('search', event.target.value)}
-              className="h-10 w-full bg-surface"
-            />
-          </div>
-          {companies.length > 1 && (
-            <div className="min-w-[140px] flex-1">
-              <SelectField name="companyId" options={companyOptions} placeholder="Company" />
+            {canManage && (
+              <Button type="button" variant="outline" className="shrink-0" onClick={() => setCategoryDialogOpen(true)}>
+                <PlusIcon className="mr-2" />
+                {t('addCategory')}
+              </Button>
+            )}
+            <div className="min-w-[140px] max-w-xs flex-1">
+              <Input
+                placeholder={t('searchPlaceholder')}
+                value={search}
+                onChange={(event) => filtersForm.setValue('search', event.target.value)}
+                className="h-10 w-full bg-surface"
+              />
             </div>
-          )}
-          <div className="min-w-[140px] flex-1">
-            <SelectField name="categoryId" options={categoryOptions} placeholder="Category" />
+            {companies.length > 1 && (
+              <div className="min-w-[140px] flex-1">
+                <SelectField name="companyId" options={companyOptions} placeholder={t('company')} />
+              </div>
+            )}
+            <div className="min-w-[140px] flex-1">
+              <SelectField name="categoryId" options={categoryOptions} placeholder={t('category')} />
+            </div>
+            <div className="min-w-[140px] flex-1">
+              <SelectField name="status" options={statusOptions} placeholder={t('status')} />
+            </div>
+            {appliedFilters > 0 && (
+              <Button variant="outline" type="button" className="shrink-0" onClick={handleClearFilters}>
+                <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                  {appliedFilters}
+                </span>
+                {t('clear')}
+                <X className="ml-2 h-4 w-4" />
+              </Button>
+            )}
           </div>
-          <div className="min-w-[140px] flex-1">
-            <SelectField name="status" options={statusOptions} placeholder="Status" />
-          </div>
-          {appliedFilters > 0 && (
-            <Button variant="outline" type="button" className="shrink-0" onClick={handleClearFilters}>
-              <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
-                {appliedFilters}
-              </span>
-              Clear
-              <X className="ml-2 h-4 w-4" />
-            </Button>
-          )}
-        </div>
 
-        {productsQuery.isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <DataTableProducts columns={columns} data={productsQuery.data ?? []} />
-        )}
+          {productsQuery.isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <DataTableProducts columns={columns} data={productsQuery.data ?? []} />
+          )}
         </div>
 
         <ProductFormDialog

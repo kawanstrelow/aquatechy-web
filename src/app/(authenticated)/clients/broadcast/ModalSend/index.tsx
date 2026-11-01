@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Send } from 'lucide-react';
 import { useState } from 'react';
 
@@ -11,6 +12,7 @@ interface ModalSendProps {
 }
 
 export function ModalSend({ onSubmit, disabled }: ModalSendProps) {
+  const t = useTranslations('clients');
   const [open, setOpen] = useState(false);
 
   return (
@@ -18,14 +20,14 @@ export function ModalSend({ onSubmit, disabled }: ModalSendProps) {
       <DialogTrigger asChild>
         <Button className="w-full" disabled={disabled}>
           <Send className="mr-2 h-6 w-6" />
-          Schedule broadcast
+          {t('broadcast.schedule')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <div className="flex flex-col items-center gap-2 text-center">
           <Typography>
-            You are about to send an email to your selected customers. <br />
-            <b className="font-semibold">Do you want to confirm shipping?</b>
+            {t('broadcast.confirmBody')} <br />
+            <b className="font-semibold">{t('broadcast.confirmTitle')}</b>
           </Typography>
           <Button
             type="button"
@@ -35,7 +37,7 @@ export function ModalSend({ onSubmit, disabled }: ModalSendProps) {
               setOpen(false);
             }}
           >
-            Send
+            {t('shared.send')}
           </Button>
         </div>
       </DialogContent>

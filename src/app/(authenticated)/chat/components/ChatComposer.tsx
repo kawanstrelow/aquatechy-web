@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowUp, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { KeyboardEvent, useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ export function ChatComposer({
   onCompanySelect,
   companyLocked
 }: ChatComposerProps) {
+  const t = useTranslations('chat');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const trimmed = value.trim();
   const canSend = trimmed.length > 0 && trimmed.length <= MAX_CONTENT_LENGTH && !isSending;
@@ -62,9 +64,9 @@ export function ChatComposer({
             disabled={isSending}
           />
           {companyLocked ? (
-            <span className="text-[11px] text-slate-400">Changing company starts a new chat</span>
+            <span className="text-[11px] text-slate-400">{t('companyChangeStartsNew')}</span>
           ) : (
-            <span className="text-[11px] text-slate-400">Company scope for this chat</span>
+            <span className="text-[11px] text-slate-400">{t('companyScope')}</span>
           )}
         </div>
 
@@ -74,7 +76,7 @@ export function ChatComposer({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about clients, invoices, services…"
+            placeholder={t('placeholder')}
             disabled={isSending}
             rows={1}
             className={cn(
@@ -88,14 +90,12 @@ export function ChatComposer({
             disabled={!canSend}
             onClick={onSend}
             className="absolute bottom-2 right-2 h-9 w-9 rounded-full bg-[#364D9D] hover:bg-[#2d3f82] disabled:opacity-40"
-            aria-label="Send message"
+            aria-label={t('sendMessage')}
           >
             {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
           </Button>
         </div>
-        <p className="mt-1.5 text-center text-[11px] text-slate-400">
-          Enter to send · Shift+Enter for a new line · Read-only assistant
-        </p>
+        <p className="mt-1.5 text-center text-[11px] text-slate-400">{t('composerHint')}</p>
       </div>
     </div>
   );

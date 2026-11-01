@@ -5,6 +5,8 @@ import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { AcceptInvitation } from '@/ts/interfaces/Company';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useAcceptCompanyInvitation = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -18,8 +20,10 @@ export const useAcceptCompanyInvitation = () => {
     ) => {
       return toast({
         variant: 'error',
-        title: 'Error accepting invitation.',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorAcceptingInvitation', 'Error accepting invitation.'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     },
 
@@ -28,7 +32,7 @@ export const useAcceptCompanyInvitation = () => {
       return toast({
         variant: 'success',
         duration: 5000,
-        title: 'Invitation accepted successfully.'
+        title: translateMessage('toasts.invitationAcceptedSuccessfully', 'Invitation accepted successfully.')
       });
     }
   });

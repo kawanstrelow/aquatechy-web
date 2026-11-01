@@ -6,13 +6,15 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { Company } from '@/ts/interfaces/Company';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type PreferencesData = {
   serviceEmailPreferences?: {
     sendEmails?: boolean;
     // attachChemicalsReadings?: boolean;
     // attachChecklist?: boolean;
     // attachServicePhotos?: boolean;
-    
+
     // New fields
     attachReadingsGroups?: boolean;
     attachConsumablesGroups?: boolean;
@@ -47,7 +49,7 @@ export const useUpdateCompanyPreferences = (companyId: string) => {
       // Update the company cache directly instead of invalidating
       queryClient.setQueryData(['companies', companyId], (oldData: Company | undefined) => {
         if (!oldData) return oldData;
-        
+
         return {
           ...oldData,
           preferences: {
@@ -63,7 +65,7 @@ export const useUpdateCompanyPreferences = (companyId: string) => {
                 ...oldData.preferences?.equipmentMaintenancePreferences,
                 ...variables.equipmentMaintenancePreferences
               }
-            }),
+            })
           }
         };
       });
@@ -71,9 +73,9 @@ export const useUpdateCompanyPreferences = (companyId: string) => {
       // Also update the companies list cache if it exists
       queryClient.setQueryData(['companies'], (oldData: Company[] | undefined) => {
         if (!oldData) return oldData;
-        
-        return oldData.map(company => 
-          company.id === companyId 
+
+        return oldData.map((company) =>
+          company.id === companyId
             ? {
                 ...company,
                 preferences: {
@@ -89,7 +91,7 @@ export const useUpdateCompanyPreferences = (companyId: string) => {
                       ...company.preferences?.equipmentMaintenancePreferences,
                       ...variables.equipmentMaintenancePreferences
                     }
-                  }),
+                  })
                 }
               }
             : company
@@ -97,15 +99,15 @@ export const useUpdateCompanyPreferences = (companyId: string) => {
       });
 
       toast({
-        title: 'Preferences updated successfully',
+        title: translateMessage('toasts.preferencesUpdatedSuccessfully', 'Preferences updated successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       console.log('error', error);
       toast({
-        title: 'Error updating preferences',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingPreferences', 'Error updating preferences'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

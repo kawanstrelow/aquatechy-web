@@ -9,6 +9,8 @@ import {
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeleteRecurringInvoiceTemplate = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -38,7 +40,10 @@ export const useDeleteRecurringInvoiceTemplate = () => {
 
       toast({
         duration: 2000,
-        title: 'Recurring invoice template deleted successfully',
+        title: translateMessage(
+          'toasts.recurringInvoiceTemplateDeletedSuccessfully',
+          'Recurring invoice template deleted successfully'
+        ),
         variant: 'success'
       });
     },
@@ -50,12 +55,19 @@ export const useDeleteRecurringInvoiceTemplate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to delete recurring invoice template';
+        : errorMessage ||
+          translateMessage(
+            'toasts.failedToDeleteRecurringInvoiceTemplate',
+            'Failed to delete recurring invoice template'
+          );
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error deleting recurring invoice template',
+        title: translateMessage(
+          'toasts.errorDeletingRecurringInvoiceTemplate',
+          'Error deleting recurring invoice template'
+        ),
         description: message
       });
     }
@@ -63,7 +75,3 @@ export const useDeleteRecurringInvoiceTemplate = () => {
 
   return { mutate, mutateAsync, isPending, isSuccess };
 };
-
-
-
-

@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -20,14 +22,17 @@ export const useDeleteConsumableDefinition = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['consumable-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Consumable definition deleted successfully',
+        title: translateMessage(
+          'toasts.consumableDefinitionDeletedSuccessfully',
+          'Consumable definition deleted successfully'
+        ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error deleting consumable definition',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorDeletingConsumableDefinition', 'Error deleting consumable definition'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

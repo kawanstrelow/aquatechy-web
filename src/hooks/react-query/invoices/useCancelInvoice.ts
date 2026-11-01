@@ -6,6 +6,8 @@ import { CancelInvoiceRequest, CancelInvoiceResponse } from '@/ts/interfaces/Inv
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useCancelInvoice = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -23,7 +25,7 @@ export const useCancelInvoice = () => {
 
       toast({
         duration: 2000,
-        title: 'Invoice cancelled',
+        title: translateMessage('toasts.invoiceCancelled', 'Invoice cancelled'),
         variant: 'success'
       });
     },
@@ -35,12 +37,12 @@ export const useCancelInvoice = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to cancel invoice';
+        : errorMessage || translateMessage('toasts.failedToCancelInvoice', 'Failed to cancel invoice');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error cancelling invoice',
+        title: translateMessage('toasts.errorCancellingInvoice', 'Error cancelling invoice'),
         description: message
       });
     }

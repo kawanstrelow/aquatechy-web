@@ -1,9 +1,11 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { translateMessage, translateOptionLabel } from '@/i18n/runtime';
 import InputField from '@/components/InputField';
 import { MultiSelect } from '@/components/MultiSelect';
 import SelectField from '@/components/SelectField';
@@ -23,8 +25,8 @@ import { error } from 'console';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 
 const schema = z.object({
-  message: z.string().min(1, { message: 'Message is required' }),
-  subject: z.string().min(1, { message: 'Subject is required' })
+  message: z.string().min(1, { message: 'clients.errors.messageRequired' }),
+  subject: z.string().min(1, { message: 'clients.errors.subjectRequired' })
 });
 
 type SendBroadcastInput = {
@@ -42,14 +44,15 @@ async function sendBroadcastFn(data: SendBroadcastInput) {
 }
 
 const useSendBroadcastService = () => {
+  const t = useTranslations('clients');
   const { toast } = useToast();
   return useMutation({
     mutationFn: sendBroadcastFn,
     onSuccess: () => {
       toast({
         variant: 'success',
-        title: 'Broadcast scheduled',
-        description: 'Your broadcast has been successfully scheduled for your clients.'
+        title: t('broadcast.scheduled'),
+        description: t('broadcast.scheduledDescription')
       });
     },
     onError: (
@@ -59,14 +62,17 @@ const useSendBroadcastService = () => {
     ) => {
       toast({
         variant: 'error',
-        title: 'Error sending broadcast',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: t('broadcast.error'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });
 };
 
 export default function Page() {
+  const t = useTranslations('clients');
   const { data: clientsData = [] } = useGetAllClients();
   const [selectedCities, setSelectedCities] = useState<string[]>(['All cities']);
   const [selectedTypes, setSelectedTypes] = useState<string[]>(['All clients']);
@@ -147,8 +153,8 @@ export default function Page() {
     if (filteredClients.length === 0) {
       toast({
         variant: 'error',
-        title: 'No clients selected',
-        description: 'Please refine your filters to select at least one client.',
+        title: t('broadcast.noneSelected'),
+        description: t('broadcast.noneSelectedDescription'),
         duration: 5000
       });
       return;
@@ -174,41 +180,68 @@ export default function Page() {
         <div className="flex w-full flex-col items-start justify-start gap-4 bg-gray-50 p-2">
           <div>
             <p>
-              Address this message to <b>{filteredClients.length} clients</b>.
+              {t.rich('broadcast.addressTo', {
+                count: filteredClients.length,
+                b: (chunks) => <b>{chunks}</b>
+              })}
             </p>
           </div>
 
           <div className="mb-5 flex w-full flex-col gap-1 md:flex-row md:gap-4">
             <MultiSelect
-              placeholder="Select Cities"
-              options={cities.map((city) => ({ value: city, label: city }))}
+              placeholder={t('broadcast.selectCities')}
+              options={cities.map((city) => ({
+                value: city,
+                label: city === 'All cities' ? t('broadcast.allCities') : city
+              }))}
               selected={selectedCities}
               onChange={handleCitySelectionChange}
             />
             <MultiSelect
-              placeholder="Select Days"
-              options={daysOfWeek.map((day) => ({ value: day, label: day })) as any}
+              placeholder={t('broadcast.selectDays')}
+              options={
+                daysOfWeek.map((day) => {
+                  const weekday = day ?? '';
+                  return {
+                    value: weekday,
+                    label:
+                      weekday === 'All days'
+                        ? t('broadcast.allDays')
+                        : translateOptionLabel({
+                            key: weekday.charAt(0) + weekday.slice(1).toLowerCase(),
+                            name: weekday
+                          })
+                  };
+                }) as any
+              }
               selected={selectedDays}
               onChange={handleDaySelectionChange}
             />
             <div className="mt-2 w-full">
               <SelectField
                 name="type"
-                placeholder="Select client types"
+                placeholder={t('broadcast.selectClientTypes')}
                 value={selectedTypes[0] || 'All clients'}
                 options={types.map((type) => ({
                   key: type, // Uma chave única para cada item
                   value: type, // O valor que será enviado ao formulário
-                  name: type === 'All clients' ? 'All clients' : type // Nome que será mostrado para o usuário
+                  name:
+                    type === 'All clients'
+                      ? t('broadcast.allClients')
+                      : type === 'Residential'
+                        ? t('fields.residential')
+                        : type === 'Commercial'
+                          ? t('fields.commercial')
+                          : type
                 }))}
                 onValueChange={handleTypeSelectionChange as any}
               />
             </div>
           </div>
 
-          <Input placeholder="Enter subject" {...form.register('subject')} />
+          <Input placeholder={t('broadcast.subject')} {...form.register('subject')} />
           <div className="w-full">
-            <InputField placeholder="Insert a message for your clients" name="message" type={FieldType.TextArea} />
+            <InputField placeholder={t('broadcast.message')} name="message" type={FieldType.TextArea} />
           </div>
           <ConfirmActionDialog
             trigger={
@@ -219,11 +252,11 @@ export default function Page() {
                 }
               >
                 <SendIcon className="mr-2 h-4 w-4" />
-                Schedule broadcast
+                {t('broadcast.schedule')}
               </Button>
             }
-            title="Do you want to confirm shipping?"
-            description="You are about to send an email to your selected customers"
+            title={t('broadcast.confirmTitle')}
+            description={t('broadcast.confirmDescription')}
             onConfirm={form.handleSubmit(handleSubmit)}
           />
         </div>

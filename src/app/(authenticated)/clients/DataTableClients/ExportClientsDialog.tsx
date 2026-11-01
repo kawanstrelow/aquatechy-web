@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ export function ExportClientsDialog({
   onConfirm,
   isExporting
 }: ExportClientsDialogProps) {
+  const t = useTranslations('clients');
   const needsCompanyStep = companies.length > 1;
   const [step, setStep] = useState<ExportStep>(needsCompanyStep ? 'companies' : 'format');
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds);
@@ -85,10 +87,8 @@ export function ExportClientsDialog({
         {step === 'companies' ? (
           <>
             <DialogHeader>
-              <DialogTitle>Export clients</DialogTitle>
-              <DialogDescription>
-                Choose one or more companies to include. Inactive clients and pools are included.
-              </DialogDescription>
+              <DialogTitle>{t('list.exportTitle')}</DialogTitle>
+              <DialogDescription>{t('list.exportCompaniesDescription')}</DialogDescription>
             </DialogHeader>
             <div className="max-h-64 space-y-3 overflow-y-auto py-1">
               {companies.map((company) => {
@@ -110,7 +110,7 @@ export function ExportClientsDialog({
             </div>
             <DialogFooter className="gap-2 sm:space-x-0">
               <Button type="button" variant="outline" onClick={handleClose} disabled={isExporting}>
-                Cancel
+                {t('shared.cancel')}
               </Button>
               <Button
                 type="button"
@@ -118,18 +118,18 @@ export function ExportClientsDialog({
                 onClick={handleClearAll}
                 disabled={isExporting || selectedIds.length === 0}
               >
-                Clear all
+                {t('shared.clearAll')}
               </Button>
               <Button type="button" onClick={handleNext} disabled={selectedIds.length === 0}>
-                Next
+                {t('shared.next')}
               </Button>
             </DialogFooter>
           </>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Export clients</DialogTitle>
-              <DialogDescription>Choose CSV or Excel (XLSX) for the download.</DialogDescription>
+              <DialogTitle>{t('list.exportTitle')}</DialogTitle>
+              <DialogDescription>{t('list.exportFormatDescription')}</DialogDescription>
             </DialogHeader>
             <RadioGroup
               value={format}
@@ -143,32 +143,32 @@ export function ExportClientsDialog({
                   <Label htmlFor="export-format-csv" className="cursor-pointer font-normal">
                     CSV
                   </Label>
-                  <span className="text-muted-foreground text-xs">Comma-separated file for spreadsheets</span>
+                  <span className="text-muted-foreground text-xs">{t('list.csvHint')}</span>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <RadioGroupItem value="xlsx" id="export-format-xlsx" className="mt-1" />
                 <div className="grid gap-1">
                   <Label htmlFor="export-format-xlsx" className="cursor-pointer font-normal">
-                    Excel (XLSX)
+                    {t('list.excel')}
                   </Label>
-                  <span className="text-muted-foreground text-xs">Excel workbook</span>
+                  <span className="text-muted-foreground text-xs">{t('list.excelHint')}</span>
                 </div>
               </div>
             </RadioGroup>
             <DialogFooter className="gap-2 sm:space-x-0">
               {needsCompanyStep ? (
                 <Button type="button" variant="outline" onClick={() => setStep('companies')} disabled={isExporting}>
-                  Back
+                  {t('shared.back')}
                 </Button>
               ) : (
                 <Button type="button" variant="outline" onClick={handleClose} disabled={isExporting}>
-                  Cancel
+                  {t('shared.cancel')}
                 </Button>
               )}
               <Button type="button" onClick={handleConfirm} disabled={isExporting || selectedIds.length === 0}>
                 {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {isExporting ? 'Exporting...' : 'Export'}
+                {isExporting ? t('shared.exporting') : t('shared.export')}
               </Button>
             </DialogFooter>
           </>

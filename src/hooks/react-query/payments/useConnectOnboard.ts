@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { useToast } from '@/components/ui/use-toast';
 import { ConnectOnboardResponse } from '@/ts/interfaces/StripeConnect';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export function useConnectOnboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -23,7 +25,7 @@ export function useConnectOnboard() {
       const msg = error.response?.data?.message;
       toast({
         variant: 'error',
-        title: 'Could not open Stripe onboarding',
+        title: translateMessage('toasts.couldNotOpenStripeOnboarding', 'Could not open Stripe onboarding'),
         description: Array.isArray(msg) ? msg.join(', ') : msg || error.message
       });
     }

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type SendRecoverEmail = {
   newPassword: string;
   token: string;
@@ -17,7 +19,7 @@ export const useResetPassword = () => {
     onSuccess: async () => {
       toast({
         duration: 2000,
-        title: 'Password reset successfully!',
+        title: translateMessage('toasts.passwordResetSuccessfully', 'Password reset successfully!'),
         variant: 'success'
       });
       router.push('/login');
@@ -27,7 +29,7 @@ export const useResetPassword = () => {
         if (error.response?.status === 409) {
           toast({
             duration: 5000,
-            title: 'Email not found',
+            title: translateMessage('toasts.emailNotFound', 'Email not found'),
             variant: 'error'
           });
           return error;
@@ -36,8 +38,8 @@ export const useResetPassword = () => {
       if (error.message === 'Network Error') {
         toast({
           duration: 5000,
-          title: 'Internal error',
-          description: 'Please try again later',
+          title: translateMessage('toasts.internalError', 'Internal error'),
+          description: translateMessage('toasts.pleaseTryAgainLater', 'Please try again later'),
           variant: 'error'
         });
       }

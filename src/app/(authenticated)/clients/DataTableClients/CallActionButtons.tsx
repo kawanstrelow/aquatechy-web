@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { MdDeleteOutline } from 'react-icons/md';
@@ -23,6 +24,7 @@ interface ActionButtonsProps {
 }
 
 export function ActionButtons({ client }: ActionButtonsProps) {
+  const t = useTranslations('clients');
   const { push } = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -74,17 +76,17 @@ export function ActionButtons({ client }: ActionButtonsProps) {
             {isNavigating ? (
               <div className="flex items-center gap-2">
                 <Loader2Icon className="h-4 w-4 animate-spin" />
-                Loading...
+                {t('shared.loading')}
               </div>
             ) : (
-              'View'
+              t('shared.view')
             )}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => handleActionSelect('addPool')}
             disabled={isNavigating || shouldDisableNewPools}
           >
-            Add Pool
+            {t('list.addPool')}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => handleActionSelect('delete')}
@@ -92,7 +94,7 @@ export function ActionButtons({ client }: ActionButtonsProps) {
             disabled={isNavigating}
           >
             <div className="flex w-full items-center">
-              Delete
+              {t('shared.delete')}
               <DropdownMenuShortcut>
                 <MdDeleteOutline size={14} />
               </DropdownMenuShortcut>

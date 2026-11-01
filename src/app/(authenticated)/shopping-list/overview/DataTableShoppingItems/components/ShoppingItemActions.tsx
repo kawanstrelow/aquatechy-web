@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 
@@ -15,6 +16,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { SHOPPING_ITEM_STATUS_LABELS, SHOPPING_ITEM_STATUS_OPTIONS } from '@/constants/shopping';
+import { translateMessage } from '@/i18n/runtime';
 import { ShoppingItemStatus, ShoppingListRow } from '@/ts/interfaces/Shopping';
 
 interface ShoppingItemActionsProps {
@@ -25,6 +27,8 @@ interface ShoppingItemActionsProps {
 }
 
 export function ShoppingItemActions({ item, onEdit, onUpdateStatus, onDelete }: ShoppingItemActionsProps) {
+  const t = useTranslations('shopping');
+  const common = useTranslations('common');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleDropdownClick = (e: React.MouseEvent) => {
@@ -47,10 +51,10 @@ export function ShoppingItemActions({ item, onEdit, onUpdateStatus, onDelete }: 
             }}
             className="cursor-pointer"
           >
-            Edit
+            {common('edit')}
           </DropdownMenuItem>
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Update status</DropdownMenuSubTrigger>
+            <DropdownMenuSubTrigger>{t('updateStatus')}</DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
               {SHOPPING_ITEM_STATUS_OPTIONS.map((option) => (
                 <DropdownMenuItem
@@ -62,7 +66,10 @@ export function ShoppingItemActions({ item, onEdit, onUpdateStatus, onDelete }: 
                   }}
                   className="cursor-pointer"
                 >
-                  {SHOPPING_ITEM_STATUS_LABELS[option.value as ShoppingItemStatus]}
+                  {translateMessage(
+                    `shopping.statuses.${option.value}`,
+                    SHOPPING_ITEM_STATUS_LABELS[option.value as ShoppingItemStatus]
+                  )}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuSubContent>
@@ -75,7 +82,7 @@ export function ShoppingItemActions({ item, onEdit, onUpdateStatus, onDelete }: 
             }}
             className="cursor-pointer text-red-500"
           >
-            Remove
+            {t('remove')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

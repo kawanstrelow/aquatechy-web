@@ -1,5 +1,6 @@
 import { ControllerRenderProps, useFormContext } from 'react-hook-form';
 
+import { translateMessage } from '@/i18n/runtime';
 import { FieldType } from '@/ts/enums/enums';
 
 import { InputMasked } from './InputMasked';
@@ -57,7 +58,7 @@ export default function InputField({ name, placeholder, type = FieldType.Default
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 transform"
-            aria-label="Toggle password visibility"
+            aria-label={translateMessage('shell.togglePasswordVisibility', 'Toggle password visibility')}
           >
             {showPassword ? (
               <EyeOff className="text-gray-500" size={20} />
@@ -134,11 +135,8 @@ export default function InputField({ name, placeholder, type = FieldType.Default
           className="h-9"
           {...(props.props || {})}
           onChange={(e) => {
-            const nextValue =
-              e.target.value === '' ? undefined : e.target.valueAsNumber;
-            field.onChange(
-              nextValue !== undefined && Number.isNaN(nextValue) ? e.target.value : nextValue
-            );
+            const nextValue = e.target.value === '' ? undefined : e.target.valueAsNumber;
+            field.onChange(nextValue !== undefined && Number.isNaN(nextValue) ? e.target.value : nextValue);
             if (props.props?.onChange) {
               props.props.onChange(e);
             }

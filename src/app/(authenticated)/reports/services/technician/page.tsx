@@ -1,6 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { Building2, CalendarIcon, Download } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -27,6 +28,7 @@ const MAX_ADJUSTMENT_DESCRIPTION_LENGTH = 120;
 const toLocalDateString = (date: Date) => format(date, 'yyyy-MM-dd');
 
 export default function TechnicianReportPage() {
+  const t = useTranslations('reports');
   const user = useUserStore((state) => state.user);
   const { data: members, isLoading: membersLoading } = useGetMembersOfAllCompaniesByUserId(user.id);
   const generateReportMutation = useGenerateTechnicianReport();
@@ -196,7 +198,7 @@ export default function TechnicianReportPage() {
         const serviceType = filteredTypeOfService.find((s) => s.id === serviceTypeId);
         return {
           serviceTypeId,
-          serviceTypeName: serviceType?.name || 'Unknown Service',
+          serviceTypeName: serviceType?.name || t('technicianReport.unknownService'),
           calculateMethod: payment.calculateMethod,
           ...(payment.calculateMethod === 'amount' && {
             paymentAmountPerService: parsePaymentValue(payment.paymentAmountPerService) ?? 0
@@ -239,7 +241,7 @@ export default function TechnicianReportPage() {
       setDiscountsDescription('');
     } catch (error) {
       console.error('Error generating report:', error);
-      alert(error instanceof Error ? error.message : 'Failed to generate report. Please try again.');
+      alert(error instanceof Error ? error.message : t('technicianReport.generateError'));
     }
   };
 
@@ -300,25 +302,25 @@ export default function TechnicianReportPage() {
   return (
     <div className="flex flex-col gap-6">
       <ReportHeader
-        title="Service report by technician"
-        description="Download a PDF of completed services and pay for one technician."
+        title={t('technicianReport.title')}
+        description={t('technicianReport.description')}
         backHref="/reports/services"
-        backLabel="Back to service reports"
+        backLabel={t('back.serviceReports')}
       />
 
       <Card className="overflow-hidden border-line bg-surface shadow-lift">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base text-ink">
             <CalendarIcon className="h-5 w-5 text-accent" />
-            Report filters
+            {t('technicianReport.filters')}
           </CardTitle>
-          <CardDescription>Select company, technician, and date range</CardDescription>
+          <CardDescription>{t('technicianReport.filtersHint')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <label className="mb-2 block flex items-center gap-2 text-sm font-medium">
               <Building2 className="h-4 w-4" />
-              Company
+              {t('technicianReport.company')}
             </label>
             <Select
               value={selectedCompany}
@@ -330,7 +332,7 @@ export default function TechnicianReportPage() {
               }}
             >
               <SelectTrigger className={fieldControlClass}>
-                <SelectValue placeholder="Select a company" />
+                <SelectValue placeholder={t('technicianReport.selectCompany')} />
               </SelectTrigger>
               <SelectContent>
                 {companies.map((company) => (
@@ -343,10 +345,10 @@ export default function TechnicianReportPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">Technician</label>
+            <label className="mb-2 block text-sm font-medium">{t('technicianReport.technician')}</label>
             <Select disabled={!selectedCompany} value={selectedTechnician} onValueChange={setSelectedTechnician}>
               <SelectTrigger className={fieldControlClass}>
-                <SelectValue placeholder="Select a technician" />
+                <SelectValue placeholder={t('technicianReport.selectTechnician')} />
               </SelectTrigger>
               <SelectContent>
                 {filteredTechnicians?.map((member) => (
@@ -359,7 +361,7 @@ export default function TechnicianReportPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">Service types</label>
+            <label className="mb-2 block text-sm font-medium">{t('technicianReport.serviceTypes')}</label>
             <MultiSelect
               disabled={!selectedCompany}
               options={filteredTypeOfService.map((service) => ({
@@ -368,7 +370,7 @@ export default function TechnicianReportPage() {
               }))}
               selected={selectedServiceTypes}
               onChange={handleServiceTypesChange}
-              placeholder="Select service types"
+              placeholder={t('technicianReport.selectServiceTypes')}
               className="w-full"
             />
           </div>
@@ -376,7 +378,7 @@ export default function TechnicianReportPage() {
           {/* Payment configuration for selected service types */}
           {selectedServiceTypes.length > 0 && (
             <div className="space-y-4">
-              <label className="block text-sm font-medium">Payment Configuration</label>
+              <label className="block text-sm font-medium">{t('technicianReport.paymentConfiguration')}</label>
               {selectedServiceTypes.map((serviceTypeId) => {
                 const serviceType = filteredTypeOfService.find((s) => s.id === serviceTypeId);
                 const payment = serviceTypePayments[serviceTypeId];
@@ -385,14 +387,14 @@ export default function TechnicianReportPage() {
                     <div className="flex items-center gap-3">
                       <div className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-gray-800">
-                          {serviceType?.name || 'Unknown Service'}
+                          {serviceType?.name || t('technicianReport.unknownService')}
                         </span>
                       </div>
                     </div>
 
                     {/* Payment Method Selection */}
                     <div className="space-y-2">
-                      <label className="text-xs font-medium text-gray-600">Payment Method</label>
+                      <label className="text-xs font-medium text-gray-600">{t('technicianReport.paymentMethod')}</label>
                       <Select
                         value={payment?.calculateMethod || 'amount'}
                         onValueChange={(value: 'amount' | 'percentage') =>
@@ -400,11 +402,11 @@ export default function TechnicianReportPage() {
                         }
                       >
                         <SelectTrigger className={`w-full ${fieldControlClass}`}>
-                          <SelectValue placeholder="Select payment method" />
+                          <SelectValue placeholder={t('technicianReport.selectPaymentMethod')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="amount">Fixed amount per service</SelectItem>
-                          <SelectItem value="percentage">Percentage of the pool's monthly payment</SelectItem>
+                          <SelectItem value="amount">{t('technicianReport.fixedAmount')}</SelectItem>
+                          <SelectItem value="percentage">{t('technicianReport.percentageOfPayment')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -413,7 +415,9 @@ export default function TechnicianReportPage() {
                     <div className="space-y-2">
                       {payment?.calculateMethod === 'amount' ? (
                         <>
-                          <label className="text-xs font-medium text-gray-600">Amount paid per Service (US$)</label>
+                          <label className="text-xs font-medium text-gray-600">
+                            {t('technicianReport.amountPerService')}
+                          </label>
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-500">$</span>
                             <Input
@@ -436,26 +440,27 @@ export default function TechnicianReportPage() {
                           {(() => {
                             const amount = parsePaymentValue(payment.paymentAmountPerService);
                             return amount !== null && amount < 0;
-                          })() && <p className="text-xs text-red-500">Amount cannot be negative</p>}
+                          })() && <p className="text-xs text-red-500">{t('technicianReport.amountNegative')}</p>}
 
                           {/* Explanation text for Pool Cleaning with amount payment */}
                           {payment?.calculateMethod === 'amount' && serviceType?.name === 'Pool Cleaning' && (
                             <div className="mt-2 rounded-md bg-blue-50 p-2">
                               <p className="text-xs text-blue-700">
-                                <strong>How it works:</strong> Services will be calculated considering payment unit
-                                settled in the pool multiplied by the fixed amount set here.
+                                <strong>{t('technicianReport.howItWorks')}</strong>{' '}
+                                {t('technicianReport.amountExplanation')}
                               </p>
                               <p className="mt-1 text-xs text-blue-700">
-                                <strong>Example:</strong> If you set $10.00 here and Pool A has 2 payment units while
-                                Pool B has 3 payment units, Pool A will pay $20.00 per service (2 × $10.00) and Pool B
-                                will pay $30.00 per service (3 × $10.00).
+                                <strong>{t('technicianReport.amountExampleLabel')}</strong>{' '}
+                                {t('technicianReport.amountExample')}
                               </p>
                             </div>
                           )}
                         </>
                       ) : (
                         <>
-                          <label className="text-xs font-medium text-gray-600">Percentage per Service (%)</label>
+                          <label className="text-xs font-medium text-gray-600">
+                            {t('technicianReport.percentagePerService')}
+                          </label>
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
@@ -479,15 +484,14 @@ export default function TechnicianReportPage() {
                           {(() => {
                             const percentage = parsePaymentValue(payment.paymentPercentagePerService);
                             return percentage !== null && (percentage < 0 || percentage > 100);
-                          })() && <p className="text-xs text-red-500">Percentage must be between 0 and 100</p>}
+                          })() && <p className="text-xs text-red-500">{t('technicianReport.percentageRange')}</p>}
 
                           {/* Explanation text for percentage calculation */}
                           {payment?.calculateMethod === 'percentage' && (
                             <div className="mt-2 rounded-md bg-blue-50 p-2">
                               <p className="text-xs text-blue-700">
-                                <strong>How it works:</strong> Enter the percentage of the pool's monthly payment that
-                                should be paid per service. For example, if you want to pay 70% of the monthly payment
-                                for weekly services, enter <strong>16.2%</strong> (70% ÷ 4.33 weeks).
+                                <strong>{t('technicianReport.howItWorks')}</strong>{' '}
+                                {t('technicianReport.percentageExplanation')}
                               </p>
                             </div>
                           )}
@@ -501,15 +505,13 @@ export default function TechnicianReportPage() {
           )}
 
           <div className="space-y-4">
-            <label className="block text-sm font-medium">Payment Adjustments (Optional)</label>
-            <p className="text-xs text-gray-500">
-              Add extras or discounts to the report total. Leave amount at 0 to skip.
-            </p>
+            <label className="block text-sm font-medium">{t('technicianReport.adjustments')}</label>
+            <p className="text-xs text-gray-500">{t('technicianReport.adjustmentsHint')}</p>
 
             <div className="space-y-3 rounded-lg border border-line bg-canvas p-4">
-              <span className="text-sm font-medium text-gray-800">Extras</span>
+              <span className="text-sm font-medium text-gray-800">{t('technicianReport.extras')}</span>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">Amount (US$)</label>
+                <label className="text-xs font-medium text-gray-600">{t('technicianReport.amountUsd')}</label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">$</span>
                   <Input
@@ -527,13 +529,13 @@ export default function TechnicianReportPage() {
                   />
                 </div>
                 {parsePaymentValue(extrasAmount) !== null && parsePaymentValue(extrasAmount)! < 0 && (
-                  <p className="text-xs text-red-500">Amount cannot be negative</p>
+                  <p className="text-xs text-red-500">{t('technicianReport.amountNegative')}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">Description</label>
+                <label className="text-xs font-medium text-gray-600">{t('technicianReport.descriptionLabel')}</label>
                 <Textarea
-                  placeholder="e.g. Holiday route coverage bonus"
+                  placeholder={t('technicianReport.extrasPlaceholder')}
                   value={extrasDescription}
                   maxLength={MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
                   onChange={(e) => setExtrasDescription(e.target.value)}
@@ -550,7 +552,7 @@ export default function TechnicianReportPage() {
                     {parsePaymentValue(extrasAmount) !== null &&
                       parsePaymentValue(extrasAmount)! > 0 &&
                       extrasDescription.trim().length === 0 && (
-                        <span className="text-red-500">Description is required when amount is greater than 0</span>
+                        <span className="text-red-500">{t('technicianReport.descriptionRequired')}</span>
                       )}
                   </span>
                   <span>
@@ -561,9 +563,9 @@ export default function TechnicianReportPage() {
             </div>
 
             <div className="space-y-3 rounded-lg border border-line bg-canvas p-4">
-              <span className="text-sm font-medium text-gray-800">Discounts</span>
+              <span className="text-sm font-medium text-gray-800">{t('technicianReport.discounts')}</span>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">Amount (US$)</label>
+                <label className="text-xs font-medium text-gray-600">{t('technicianReport.amountUsd')}</label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">$</span>
                   <Input
@@ -581,13 +583,13 @@ export default function TechnicianReportPage() {
                   />
                 </div>
                 {parsePaymentValue(discountsAmount) !== null && parsePaymentValue(discountsAmount)! < 0 && (
-                  <p className="text-xs text-red-500">Amount cannot be negative</p>
+                  <p className="text-xs text-red-500">{t('technicianReport.amountNegative')}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">Description</label>
+                <label className="text-xs font-medium text-gray-600">{t('technicianReport.descriptionLabel')}</label>
                 <Textarea
-                  placeholder="e.g. Credit adjustment for missed service"
+                  placeholder={t('technicianReport.discountsPlaceholder')}
                   value={discountsDescription}
                   maxLength={MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
                   onChange={(e) => setDiscountsDescription(e.target.value)}
@@ -604,7 +606,7 @@ export default function TechnicianReportPage() {
                     {parsePaymentValue(discountsAmount) !== null &&
                       parsePaymentValue(discountsAmount)! > 0 &&
                       discountsDescription.trim().length === 0 && (
-                        <span className="text-red-500">Description is required when amount is greater than 0</span>
+                        <span className="text-red-500">{t('technicianReport.descriptionRequired')}</span>
                       )}
                   </span>
                   <span>
@@ -616,9 +618,9 @@ export default function TechnicianReportPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">From Date</label>
+            <label className="mb-2 block text-sm font-medium">{t('technicianReport.fromDate')}</label>
             <DatePicker
-              placeholder="Select start date"
+              placeholder={t('technicianReport.selectStartDate')}
               value={fromDate}
               className={`w-full ${fieldControlClass}`}
               onChange={(date) => {
@@ -636,9 +638,9 @@ export default function TechnicianReportPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">To Date</label>
+            <label className="mb-2 block text-sm font-medium">{t('technicianReport.toDate')}</label>
             <DatePicker
-              placeholder="Select end date"
+              placeholder={t('technicianReport.selectEndDate')}
               value={toDate}
               className={`w-full ${fieldControlClass}`}
               onChange={(date) => {
@@ -661,7 +663,7 @@ export default function TechnicianReportPage() {
             className="flex w-full items-center gap-2 border border-accent"
           >
             <Download className="h-4 w-4" />
-            {generateReportMutation.isPending ? 'Generating PDF...' : 'Generate & Download PDF'}
+            {generateReportMutation.isPending ? t('technicianReport.generating') : t('technicianReport.generate')}
           </Button>
         </CardContent>
       </Card>

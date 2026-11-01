@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { addDays, differenceInDays, format, getDay } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useShallow } from 'zustand/react/shallow';
@@ -43,9 +44,18 @@ type FormValues = z.infer<typeof transferAssignmentsSchema> & {
   frequency?: string;
 };
 
-const onlyOnceFrequencyOptions = [{ key: 'ONCE', value: 'ONCE', name: 'Only once' }];
+const onlyOnceFrequencyOptions = [{ key: 'OnlyOnce', value: 'ONCE', name: 'Only once' }];
+
+function releaseBodyPointerLock() {
+  const hasOpenDialog = document.querySelector(
+    '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]'
+  );
+  if (hasOpenDialog) return;
+  document.body.style.pointerEvents = '';
+}
 
 export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute = false, onlyOnce = false }: Props) {
+  const t = useTranslations('routes');
   const queryClient = useQueryClient();
   const { members, assignmentToId } = useMembersStore(
     useShallow((state) => ({
@@ -55,12 +65,12 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
   );
   const selectedWeekday = useWeekdayStore((state) => state.selectedWeekday);
   const user = useUserStore((state) => state.user);
-  
+
   // Fetch members if they're not already loaded
   const { data: fetchedMembers } = useGetMembersOfAllCompaniesByUserId(user.id);
-  
+
   // Use fetched members if store is empty, otherwise use store members
-  const availableMembers = members.length > 0 ? members : (fetchedMembers || []);
+  const availableMembers = members.length > 0 ? members : fetchedMembers || [];
   const [next10WeekdaysStartOn, setNext10WeekdaysStartOn] = useState<
     {
       name: string;
@@ -136,14 +146,18 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
     setErrorMessage(message);
   };
 
-  const { mutate: transferPermanently, isPending: isPendingPermanently } = useTransferPermanentlyRoute(assignment, handleTransferSuccess, handleTransferError);
+  const { mutate: transferPermanently, isPending: isPendingPermanently } = useTransferPermanentlyRoute(
+    assignment,
+    handleTransferSuccess,
+    handleTransferError
+  );
   const [manualLoading, setManualLoading] = useState(false);
 
   const isPending = isPendingPermanently || manualLoading;
 
   function generateScheduledToOptions(weekday: string) {
     if (!weekday) return;
-    
+
     const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const targetWeekday = weekdays.indexOf(weekday.toLowerCase());
 
@@ -232,7 +246,7 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
     const targetWeekday = weekdays.indexOf(weekday.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -275,7 +289,7 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
     const dates: { name: string; key: string; value: string }[] = [];
 
     dates.push({
-      name: 'No end',
+      name: t('noEnd'),
       key: 'No end',
       value: 'No end'
     });
@@ -318,6 +332,25 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
     }
   }, [open]);
 
+  const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (open) {
+      wasOpenRef.current = true;
+      return;
+    }
+    if (!wasOpenRef.current) return;
+
+    // Dialog and Select ship separate dismissable-layer copies. Closing this
+    // dialog can leave document.body.style.pointerEvents = "none".
+    const immediate = window.setTimeout(releaseBodyPointerLock, 0);
+    const afterCloseAnimation = window.setTimeout(releaseBodyPointerLock, 400);
+    return () => {
+      window.clearTimeout(immediate);
+      window.clearTimeout(afterCloseAnimation);
+    };
+  }, [open]);
+
   useEffect(() => {
     if (weekday) {
       if (isOneTimeService) {
@@ -341,114 +374,121 @@ export function DialogTransferRoute({ open, setOpen, assignment, isEntireRoute =
 
   return (
     <>
-    <Dialog open={open} onOpenChange={isPending ? undefined : setOpen}>
-      <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-x-hidden overflow-y-auto rounded-md md:w-[580px]">
-        <DialogTitle className='mb-2'>Transfer assignment</DialogTitle>
-        {isPending ? (
-          <div className="flex flex-col items-center gap-4 py-8">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
-            <p className="text-sm text-gray-600">Transferring assignments...</p>
-          </div>
-        ) : (
-          <>
-            <Form {...form}>
-              <form className="flex flex-col gap-4">
-                <div className="flex gap-4">
-                  <div className="basis-full">
-                    <SelectField
-                      name="assignmentToId"
-                      placeholder="Technician..."
-                      label="Technician"
-                      options={uniqueMembers.map((m) => ({
-                        key: m.id,
-                        value: m.id,
-                        name: `${m.firstName} ${m.lastName}`
-                      }))}
-                    />
-                  </div>
-
-                  <WeekdaySelect
-                    value={form.watch('weekday')}
-                    onChange={(weekday: WeekdaysUppercase) => form.setValue('weekday', weekday)}
-                  />
-                </div>
-
-                {isOneTimeService ? (
-                  <div className="mt-4 flex flex-col gap-4">
-                    {onlyOnce && (
+      <Dialog open={open} onOpenChange={isPending ? undefined : setOpen}>
+        <DialogContent
+          className="max-h-screen w-96 max-w-[580px] overflow-y-auto overflow-x-hidden rounded-md md:w-[580px]"
+          onCloseAutoFocus={() => {
+            releaseBodyPointerLock();
+          }}
+        >
+          <DialogTitle className="mb-2">{t('transferAssignment')}</DialogTitle>
+          {isPending ? (
+            <div className="flex flex-col items-center gap-4 py-8">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
+              <p className="text-sm text-gray-600">{t('transferringAssignments')}</p>
+            </div>
+          ) : (
+            <>
+              <Form {...form}>
+                <form className="flex flex-col gap-4">
+                  <div className="flex gap-4">
+                    <div className="basis-full">
                       <SelectField
-                        name="frequency"
-                        label="Frequency"
-                        placeholder="Frequency"
-                        options={onlyOnceFrequencyOptions}
-                      />
-                    )}
-                    <SelectField
-                      label="Scheduled to"
-                      name="scheduledTo"
-                      placeholder="Scheduled to"
-                      options={scheduledToOptions.map((date) => ({
-                        key: date.key,
-                        name: date.name,
-                        value: date.value
-                      }))}
-                    />
-                  </div>
-                ) : (
-                  <div className="mt-1">
-                    <div className="flex flex-col gap-4 md:flex-row">
-                      <SelectField
-                        label="Start on"
-                        name="startOn"
-                        placeholder="Select start on date"
-                        options={next10WeekdaysStartOn.map((date) => ({
-                          key: date.key,
-                          name: date.name,
-                          value: date.value
+                        name="assignmentToId"
+                        placeholder={t('technicianPlaceholder')}
+                        label={t('technician')}
+                        options={uniqueMembers.map((m) => ({
+                          key: m.id,
+                          value: m.id,
+                          name: `${m.firstName} ${m.lastName}`
                         }))}
                       />
+                    </div>
+
+                    <WeekdaySelect
+                      value={form.watch('weekday')}
+                      onChange={(weekday: WeekdaysUppercase) => form.setValue('weekday', weekday)}
+                    />
+                  </div>
+
+                  {isOneTimeService ? (
+                    <div className="mt-4 flex flex-col gap-4">
+                      {onlyOnce && (
+                        <SelectField
+                          name="frequency"
+                          label={t('frequency')}
+                          placeholder={t('frequency')}
+                          options={onlyOnceFrequencyOptions}
+                        />
+                      )}
                       <SelectField
-                        label="End after"
-                        name="endAfter"
-                        placeholder="Select end after date"
-                        options={next10WeekdaysEndAfter.map((date) => ({
+                        label={t('scheduledTo')}
+                        name="scheduledTo"
+                        placeholder={t('scheduledTo')}
+                        options={scheduledToOptions.map((date) => ({
                           key: date.key,
                           name: date.name,
                           value: date.value
                         }))}
                       />
                     </div>
-                  </div>
-                )}
-              </form>
-            </Form>
-            <div className="flex justify-around gap-4 pt-4">
-              <Button onClick={transferRoute} className='w-full'>Transfer</Button>
+                  ) : (
+                    <div className="mt-1">
+                      <div className="flex flex-col gap-4 md:flex-row">
+                        <SelectField
+                          label={t('startOn')}
+                          name="startOn"
+                          placeholder={t('selectStartOnDate')}
+                          options={next10WeekdaysStartOn.map((date) => ({
+                            key: date.key,
+                            name: date.name,
+                            value: date.value
+                          }))}
+                        />
+                        <SelectField
+                          label={t('endAfter')}
+                          name="endAfter"
+                          placeholder={t('selectEndAfterDate')}
+                          options={next10WeekdaysEndAfter.map((date) => ({
+                            key: date.key,
+                            name: date.name,
+                            value: date.value
+                          }))}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </form>
+              </Form>
+              <div className="flex justify-around gap-4 pt-4">
+                <Button onClick={transferRoute} className="w-full">
+                  {t('transfer')}
+                </Button>
 
-              <Button
-                variant="outline"
-                className='w-full'
-                onClick={() => {
-                  form.reset();
-                  setOpen(false);
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    form.reset();
+                    setOpen(false);
+                  }}
+                >
+                  {t('cancel')}
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!errorMessage} onOpenChange={(shown) => !shown && setErrorMessage(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Error transferring assignment</AlertDialogTitle>
+            <AlertDialogTitle>{t('errorTransferringAssignment')}</AlertDialogTitle>
             <AlertDialogDescription className="text-red-600">{errorMessage}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setErrorMessage(null)}>Close</AlertDialogAction>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>{t('close')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

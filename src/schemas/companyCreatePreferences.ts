@@ -29,8 +29,8 @@ export const companyCreatePreferencesFormSchema = z.object({
   afterService: photoDefinitionPrefsSchema,
 
   // Equipment maintenance
-  filterCleaningIntervalDays: z.coerce.number().int().min(1),
-  filterReplacementIntervalDays: z.coerce.number().int().min(1),
+  filterCleaningIntervalDays: z.coerce.number().int().min(1, { message: 'settings.errors.intervalDaysMin' }),
+  filterReplacementIntervalDays: z.coerce.number().int().min(1, { message: 'settings.errors.intervalDaysMin' }),
   filterCleaningMustHavePhotos: z.boolean(),
 
   // Service preferences

@@ -1,3 +1,5 @@
+import { translateMessage } from '@/i18n/runtime';
+
 export enum LanguageOptions {
   English = 'English',
   Portuguese = 'Portuguese',
@@ -120,7 +122,12 @@ export enum RequestCategory {
 }
 
 export function formatRequestCategory(value: string): string {
-  return RequestCategory[value as keyof typeof RequestCategory] ?? value;
+  const entry = (Object.entries(RequestCategory) as [string, string][]).find(
+    ([key, label]) => key === value || label === value
+  );
+  const key = entry?.[0] ?? value;
+  const fallback = entry?.[1] ?? value;
+  return translateMessage(`options.categories.${key}`, fallback);
 }
 
 export const STATE_TIMEZONE_MAP: { [key: string]: IanaTimeZones } = {

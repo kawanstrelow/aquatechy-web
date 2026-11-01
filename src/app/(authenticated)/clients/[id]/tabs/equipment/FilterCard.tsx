@@ -1,7 +1,9 @@
 'use client';
 
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
+import { translateMessage } from '@/i18n/runtime';
 import { FilterType } from '@/ts/enums/enums';
 
 import { PoolFilterIcon } from './PoolFilterIcon';
@@ -14,8 +16,20 @@ interface FilterCardProps {
   onClick: () => void;
 }
 
+const filterTypeLabel = (value?: FilterType) => {
+  if (!value) return '';
+  const keys: Record<string, string> = {
+    Sand: 'clients.equipment.sand',
+    Cartridge: 'clients.equipment.cartridge',
+    DE: 'clients.equipment.de',
+    Other: 'clients.equipment.other'
+  };
+  return translateMessage(keys[value] ?? '', value);
+};
+
 export function FilterCard({ model, type, lastCleaningDate, maintenanceCount = 0, onClick }: FilterCardProps) {
-  const subtitle = model || type;
+  const t = useTranslations('clients');
+  const subtitle = model || filterTypeLabel(type);
 
   return (
     <button
@@ -25,20 +39,16 @@ export function FilterCard({ model, type, lastCleaningDate, maintenanceCount = 0
     >
       <PoolFilterIcon />
       <div>
-        <p className="text-lg font-semibold text-gray-900">Filter</p>
+        <p className="text-lg font-semibold text-gray-900">{t('equipment.filter')}</p>
         {subtitle && <p className="mt-0.5 text-sm text-gray-500">{subtitle}</p>}
       </div>
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-gray-500">
         {lastCleaningDate ? (
-          <span>Last cleaned {format(new Date(lastCleaningDate), 'MMM d, yyyy')}</span>
+          <span>{t('equipment.lastCleaned', { date: format(new Date(lastCleaningDate), 'MMM d, yyyy') })}</span>
         ) : (
-          <span>No cleaning recorded</span>
+          <span>{t('equipment.noCleaning')}</span>
         )}
-        {maintenanceCount > 0 && (
-          <span>
-            {maintenanceCount} record{maintenanceCount === 1 ? '' : 's'}
-          </span>
-        )}
+        {maintenanceCount > 0 && <span>{t('equipment.records', { count: maintenanceCount })}</span>}
       </div>
     </button>
   );

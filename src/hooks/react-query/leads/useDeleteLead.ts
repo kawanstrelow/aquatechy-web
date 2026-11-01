@@ -7,6 +7,8 @@ import { clientAxios } from '@/lib/clientAxios';
 
 import { getLeadErrorMessage } from './apiError';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export function useDeleteLead() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -29,7 +31,7 @@ export function useDeleteLead() {
       push('/clients/leads');
       toast({
         duration: 5000,
-        title: 'Lead deleted',
+        title: translateMessage('toasts.leadDeleted', 'Lead deleted'),
         variant: 'success'
       });
     },
@@ -37,8 +39,8 @@ export function useDeleteLead() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error deleting lead',
-        description: getLeadErrorMessage(error, 'Internal server error')
+        title: translateMessage('toasts.errorDeletingLead', 'Error deleting lead'),
+        description: getLeadErrorMessage(error, translateMessage('toasts.internalServerError', 'Internal server error'))
       });
     }
   });

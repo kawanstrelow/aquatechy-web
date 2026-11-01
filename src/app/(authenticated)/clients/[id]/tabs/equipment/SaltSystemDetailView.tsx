@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ArrowLeft, CircleOff, Droplets } from 'lucide-react';
 
@@ -23,15 +24,16 @@ interface SaltSystemDetailViewProps {
   onBack: () => void;
 }
 
-function getSubtitle(saltSystem: SaltSystem | null | undefined) {
-  if (!saltSystem) return 'No salt system';
+function getSubtitle(saltSystem: SaltSystem | null | undefined, emptyLabel: string) {
+  if (!saltSystem) return emptyLabel;
   return saltSystem.model || undefined;
 }
 
 export function SaltSystemDetailView({ saltSystem, poolId, clientId, onBack }: SaltSystemDetailViewProps) {
+  const t = useTranslations('clients');
   const [viewingPhoto, setViewingPhoto] = useState<ViewingPhoto | null>(null);
   const [tab, setTab] = useState<DetailTab>('detail');
-  const subtitle = getSubtitle(saltSystem);
+  const subtitle = getSubtitle(saltSystem, t('equipment.noSaltSystem'));
   const isInactive = Boolean(saltSystem) && saltSystem?.status === SaltSystemStatus.Inactive;
 
   return (
@@ -44,7 +46,7 @@ export function SaltSystemDetailView({ saltSystem, poolId, clientId, onBack }: S
             size="icon"
             onClick={onBack}
             className="-ml-2 shrink-0 text-gray-600 hover:text-gray-900"
-            aria-label="Back to equipment"
+            aria-label={t('equipment.back')}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -61,8 +63,8 @@ export function SaltSystemDetailView({ saltSystem, poolId, clientId, onBack }: S
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-900">Salt system</h3>
-              {isInactive && <span className="text-xs font-medium text-gray-500">Inactive</span>}
+              <h3 className="text-lg font-semibold text-gray-900">{t('equipment.saltSystem')}</h3>
+              {isInactive && <span className="text-xs font-medium text-gray-500">{t('equipment.inactive')}</span>}
             </div>
             {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
           </div>
@@ -75,14 +77,14 @@ export function SaltSystemDetailView({ saltSystem, poolId, clientId, onBack }: S
               onClick={() => setTab('detail')}
               className={`${tabStyles} ${tab === 'detail' ? activeTabStyles : 'text-gray-500'}`}
             >
-              Equipment Detail
+              {t('equipment.detail')}
             </button>
             <button
               type="button"
               onClick={() => setTab('maintenance')}
               className={`${tabStyles} ${tab === 'maintenance' ? activeTabStyles : 'text-gray-500'}`}
             >
-              Maintenance Records
+              {t('equipment.maintenance')}
             </button>
           </div>
         </div>

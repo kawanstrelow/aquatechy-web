@@ -4,10 +4,12 @@ import { format } from 'date-fns';
 import { ArrowRight, ImageIcon } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { accentButtonClassName, Surface } from '@/components/design';
+import { translateMessage } from '@/i18n/runtime';
 import { Button } from '@/components/ui/button';
 import { Service } from '@/ts/interfaces/Service';
 import { formatDurationMmSs, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
@@ -39,16 +41,23 @@ export function buildFirstServicePhotoItems(services: Service[] | undefined): { 
 function clientDisplayName(service: Service): string {
   const co = service.pool?.clientOwner;
   if (co) {
-    return [co.firstName, co.lastName].filter(Boolean).join(' ') || co.company || 'Client';
+    return (
+      [co.firstName, co.lastName].filter(Boolean).join(' ') ||
+      co.company ||
+      translateMessage('dashboard.clientFallback', 'Client')
+    );
   }
   if (service.clientOwner) {
-    return [service.clientOwner.firstName, service.clientOwner.lastName].filter(Boolean).join(' ') || 'Client';
+    return (
+      [service.clientOwner.firstName, service.clientOwner.lastName].filter(Boolean).join(' ') ||
+      translateMessage('dashboard.clientFallback', 'Client')
+    );
   }
-  return 'Client';
+  return translateMessage('dashboard.clientFallback', 'Client');
 }
 
 function serviceTypeDateSubtitle(service: Service): string {
-  const typeName = service.serviceType?.name ?? 'Service';
+  const typeName = service.serviceType?.name ?? translateMessage('dashboard.serviceFallback', 'Service');
   const secs = getServiceDurationTotalSeconds(service.startedAt, service.completedAt);
   const durationSeg = secs != null ? ` - ${formatDurationMmSs(secs)}` : '';
   const dateSeg = service.completedAt ? ` - ${format(new Date(service.completedAt), 'MMM d, yyyy')}` : '';
@@ -60,6 +69,7 @@ type Props = {
 };
 
 export function DashboardAfterServicePhotos({ services }: Props) {
+  const t = useTranslations('dashboard');
   const router = useRouter();
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
@@ -72,11 +82,11 @@ export function DashboardAfterServicePhotos({ services }: Props) {
   return (
     <>
       <Surface
-        title="Recent service photos"
+        title={t('recentServicePhotos')}
         icon={ImageIcon}
         action={
           <Button type="button" size="sm" className={accentButtonClassName} onClick={() => router.push('/services')}>
-            All services
+            {t('allServices')}
             <ArrowRight className="h-4 w-4" />
           </Button>
         }
@@ -88,12 +98,12 @@ export function DashboardAfterServicePhotos({ services }: Props) {
               type="button"
               onClick={() => setSelectedService(service)}
               className="group flex w-full max-w-[200px] shrink-0 flex-col overflow-hidden rounded-lg border border-line bg-canvas text-left transition hover:border-accent/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:max-w-none"
-              aria-label={`Open service report for ${clientDisplayName(service)}`}
+              aria-label={t('openServiceReport', { name: clientDisplayName(service) })}
             >
               <div className="relative aspect-[4/3] w-full bg-line">
                 <Image
                   src={url}
-                  alt={`Service photo — ${clientDisplayName(service)}`}
+                  alt={t('servicePhotoAlt', { name: clientDisplayName(service) })}
                   fill
                   unoptimized
                   className="object-cover transition duration-200 group-hover:scale-[1.02]"

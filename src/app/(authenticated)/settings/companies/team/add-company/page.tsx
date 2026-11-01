@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -23,58 +25,60 @@ import { FieldType } from '@/ts/enums/enums';
 const schema = z.object({
   name: z
     .string({
-      required_error: 'Name is required.',
-      invalid_type_error: 'Name must be a string.'
+      required_error: 'settings.errors.nameRequired',
+      invalid_type_error: 'settings.errors.nameInvalidType'
     })
     .trim()
-    .min(1, { message: 'Name must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.nameMin' }),
   email: z
     .string({
-      required_error: 'Email is required.',
-      invalid_type_error: 'Email must be a string.'
+      required_error: 'settings.errors.emailRequired',
+      invalid_type_error: 'settings.errors.emailInvalidType'
     })
-    .email({ message: 'Invalid e-mail.' }),
+    .email({ message: 'settings.errors.emailInvalid' }),
   phone: z
     .string({
-      required_error: 'Phone is required.',
-      invalid_type_error: 'Phone must be a string.'
+      required_error: 'settings.errors.phoneRequired',
+      invalid_type_error: 'settings.errors.phoneInvalidType'
     })
     .trim()
-    .min(1, { message: 'Phone must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.phoneMin' }),
   address: z
     .string({
-      required_error: 'Address is required.',
-      invalid_type_error: 'Address must be a string.'
+      required_error: 'settings.errors.addressRequired',
+      invalid_type_error: 'settings.errors.addressInvalidType'
     })
     .trim()
-    .min(1, { message: 'Address must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.addressMin' }),
   city: z
     .string({
-      required_error: 'City is required.',
-      invalid_type_error: 'City must be a string.'
+      required_error: 'settings.errors.cityRequired',
+      invalid_type_error: 'settings.errors.cityInvalidType'
     })
     .trim()
-    .min(1, { message: 'City must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.cityMin' }),
   state: z
     .string({
-      required_error: 'State is required.',
-      invalid_type_error: 'State must be a string.'
+      required_error: 'settings.errors.stateRequired',
+      invalid_type_error: 'settings.errors.stateInvalidType'
     })
     .trim()
-    .min(1, { message: 'State must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.stateMin' }),
   zip: z
     .string({
-      required_error: 'Zip is required.',
-      invalid_type_error: 'Zip must be a string.'
+      required_error: 'settings.errors.zipRequired',
+      invalid_type_error: 'settings.errors.zipInvalidType'
     })
     .trim()
-    .min(1, { message: 'Zip must be at least 1 character.' }),
-    addressLine2: z.optional(z.string().trim())
+    .min(1, { message: 'settings.errors.zipMin' }),
+  addressLine2: z.optional(z.string().trim())
 });
 
 export type CreateCompanyData = z.infer<typeof schema>;
 
 export default function AddCompanyPage() {
+  const t = useTranslations('settings');
+
   const router = useRouter();
   const { mutate: createCompany, isPending: isPendingCreate } = useCreateCompany();
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -111,50 +115,34 @@ export default function AddCompanyPage() {
     <div className="flex flex-col gap-6 p-6 lg:p-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="h-8 w-8"
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
           <ArrowLeftIcon className="h-4 w-4" />
         </Button>
         <Typography element="h1" className="text-2xl font-semibold">
-          Create New Company
+          {t('companies.createNew')}
         </Typography>
       </div>
 
       {/* Form */}
       <Form {...form}>
-        <form
-          className="flex flex-col gap-6"
-          onSubmit={form.handleSubmit(handleSubmit)}
-        >
+        <form className="flex flex-col gap-6" onSubmit={form.handleSubmit(handleSubmit)}>
           <div className="space-y-6">
             <div className="space-y-4">
               <Typography element="h2" className="text-lg font-medium">
-                Company profile
+                {t('companies.profile')}
               </Typography>
               <CompanyLogoPicker
                 value={logoFile}
                 onChange={setLogoFile}
-                companyName={form.watch('name') || 'Company'}
+                companyName={form.watch('name') || t('company')}
               />
-              <InputField
-                name="name"
-                label="Company Name"
-                placeholder="Enter company name"
-              />
+              <InputField name="name" label={t('fields.companyName')} placeholder={t('fields.enterCompanyName')} />
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <InputField
-                  name="email"
-                  label="Email"
-                  placeholder="Enter email address"
-                />
+                <InputField name="email" label={t('fields.email')} placeholder={t('fields.enterEmail')} />
                 <InputField
                   name="phone"
-                  label="Phone"
-                  placeholder="Enter phone number"
+                  label={t('phone')}
+                  placeholder={t('fields.enterPhone')}
                   type={FieldType.Phone}
                 />
               </div>
@@ -162,14 +150,14 @@ export default function AddCompanyPage() {
 
             <div className="space-y-4">
               <Typography element="h2" className="text-lg font-medium">
-                Address Information
+                {t('companies.addressInformation')}
               </Typography>
 
               <div className="space-y-4">
                 <AddressInput
                   name="address"
-                  label="Address"
-                  placeholder="Enter address"
+                  label={t('address')}
+                  placeholder={t('fields.enterAddress')}
                   onAddressSelect={({ state, city, zipCode }) => {
                     form.setValue('state', state, { shouldValidate: true });
                     setTimeout(() => {
@@ -178,47 +166,29 @@ export default function AddCompanyPage() {
                     }, 500);
                   }}
                 />
-                 <InputField
-                  name="addressLine2"
-                  label="Address Line 2"
-                  placeholder="Apt, suite, unit"
-                />
+                <InputField name="addressLine2" label={t('addressLine2')} placeholder={t('addressLine2Placeholder')} />
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <CompanyStateAndCitySelect stateName="state" cityName="city" />
-                  <InputField
-                    name="zip"
-                    label="Zip Code"
-                    placeholder="Enter zip code"
-                  />
+                  <InputField name="zip" label={t('zip')} placeholder={t('fields.enterZip')} />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col gap-4 mt-4 md:flex-row">
-
-            <Button
-              type="submit"
-              className="flex-1"
-              disabled={isPendingCreate}
-            >
+          <div className="mt-4 flex flex-col gap-4 md:flex-row">
+            <Button type="submit" className="flex-1" disabled={isPendingCreate}>
               {isPendingCreate ? (
                 <>
                   <LoadingSpinner />
-                  Creating...
+                  {t('companies.creating')}
                 </>
               ) : (
-                'Create Company'
+                t('companies.create')
               )}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex-1"
-            >
-              Cancel
+            <Button type="button" variant="outline" onClick={() => router.back()} className="flex-1">
+              {t('actions.cancel')}
             </Button>
           </div>
         </form>

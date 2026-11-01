@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertCircle, Check, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -32,8 +33,8 @@ const alertType: Record<
   AlertKey,
   {
     variant: 'destructive' | 'default' | null | undefined;
-    title: string;
-    description?: string;
+    titleKey: string;
+    descriptionKey?: string;
     CustomAlertIcon: React.FC<React.SVGProps<SVGSVGElement>>;
     customClassName?: string;
     iconClassName?: string;
@@ -41,32 +42,33 @@ const alertType: Record<
   }
 > = {
   success: {
-    title: 'Payment approved',
+    titleKey: 'subscription.alerts.paymentApproved',
     variant: undefined,
-    description: 'Your subscription is active. Enjoy your upgraded features.',
+    descriptionKey: 'subscription.alerts.paymentApprovedDescription',
     CustomAlertIcon: Check,
     customClassName: 'border-emerald-200 bg-emerald-50 text-emerald-900',
     iconColor: '#059669',
     iconClassName: ''
   },
   pending: {
-    title: 'Payment processing',
+    titleKey: 'subscription.alerts.paymentProcessing',
     variant: undefined,
-    description: 'We are confirming your payment with Stripe. This usually takes a few seconds.',
+    descriptionKey: 'subscription.alerts.paymentProcessingDescription',
     CustomAlertIcon: Loader2,
     customClassName: 'border-blue-200 bg-blue-50 text-blue-900',
     iconClassName: 'animate-spin',
     iconColor: Colors.blue[500]
   },
   cancelled: {
-    title: 'Payment failed',
-    description: 'We could not process your payment. Please try again or use a different card.',
+    titleKey: 'subscription.alerts.paymentFailed',
+    descriptionKey: 'subscription.alerts.paymentFailedDescription',
     variant: 'destructive',
     CustomAlertIcon: AlertCircle
   }
 };
 
 function SubscriptionPage() {
+  const t = useTranslations('settings');
   const searchParams = useSearchParams();
   const status = searchParams.get('status');
   const session_id = searchParams.get('session_id');
@@ -118,7 +120,7 @@ function SubscriptionPage() {
           if (response.data.paymentStatus === 'unpaid') {
             push('/settings/subscription?status=cancelled');
             toast({
-              title: 'Failed to process payment',
+              title: t('subscription.alerts.failedToProcess'),
               variant: 'error'
             });
             return;
@@ -129,8 +131,8 @@ function SubscriptionPage() {
             await queryClient.invalidateQueries({ queryKey: ['subscription-status'] });
             push('/settings/subscription?status=success');
             toast({
-              title: 'Payment processed successfully',
-              description: 'You can now enjoy your new subscription',
+              title: t('subscription.alerts.paymentProcessed'),
+              description: t('subscription.alerts.paymentProcessedDescription'),
               variant: 'success'
             });
           }
@@ -175,8 +177,8 @@ function SubscriptionPage() {
       {alertData && (
         <Alert className={alertData.customClassName} variant={alertData.variant}>
           <alertData.CustomAlertIcon className={alertData.iconClassName} color={alertData.iconColor} />
-          <AlertTitle>{alertData.title}</AlertTitle>
-          <AlertDescription>{alertData.description}</AlertDescription>
+          <AlertTitle>{t(alertData.titleKey)}</AlertTitle>
+          {alertData.descriptionKey ? <AlertDescription>{t(alertData.descriptionKey)}</AlertDescription> : null}
         </Alert>
       )}
 
@@ -209,18 +211,18 @@ function SubscriptionPage() {
 
           <TabsContent value="billing" className="mt-0">
             <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900">{getPlanLabel(user.subscription)} billing</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                {t('subscription.planBilling', { plan: getPlanLabel(user.subscription) })}
+              </h2>
               <p className="mt-1 text-sm text-slate-600">
-                {isStatusError
-                  ? 'We could not load your billing details. You can still open the billing portal to update your card or view invoices.'
-                  : 'Open the billing portal to update your card or view invoices.'}
+                {isStatusError ? t('subscription.billingLoadError') : t('subscription.billingPortalHint')}
               </p>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <Button onClick={() => openPortal('payment_method_update')} disabled={isPortalPending}>
-                  Update card
+                  {t('subscription.updateCard')}
                 </Button>
                 <Button variant="outline" onClick={() => openPortal('default')} disabled={isPortalPending}>
-                  View invoices
+                  {t('subscription.viewInvoices')}
                 </Button>
               </div>
             </section>

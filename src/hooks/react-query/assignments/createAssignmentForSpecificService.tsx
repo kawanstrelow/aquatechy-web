@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 const createBodySchema = z.object({
   assignmentToId: z
     .string({
@@ -59,8 +61,10 @@ export const useCreateAssignmentForSpecificService = () => {
     ) => {
       toast({
         variant: 'error',
-        title: 'Error creating assignment',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorCreatingAssignment', 'Error creating assignment'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     },
 
@@ -71,11 +75,10 @@ export const useCreateAssignmentForSpecificService = () => {
       toast({
         variant: 'success',
         duration: 2000,
-        title: 'Assignment created successfully'
+        title: translateMessage('toasts.assignmentCreatedSuccessfully', 'Assignment created successfully')
       });
     }
   });
 
   return { mutate, isPending };
 };
-

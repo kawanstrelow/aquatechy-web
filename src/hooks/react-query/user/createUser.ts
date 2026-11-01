@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { clientAxios } from '@/lib/clientAxios';
 import { useRouter } from 'next/navigation';
 
+import { translateMessage } from '@/i18n/runtime';
+
 const formSchema = z
   .object({
     email: z.string().email(),
@@ -15,7 +17,7 @@ const formSchema = z
       return data.password === data.confirmPassword;
     },
     {
-      message: 'Passwords do not match',
+      message: translateMessage('toasts.passwordsDoNotMatch', 'Passwords do not match'),
       path: ['confirmPassword']
     }
   );
@@ -32,9 +34,11 @@ export const useSignup = () => {
         return response.data;
       } catch (error) {
         if (isAxiosError(error) && error.response?.status === 409) {
-          throw new Error('User with this e-mail already exists.');
+          throw new Error(
+            translateMessage('toasts.userWithThisEMailAlreadyExists', 'User with this e-mail already exists.')
+          );
         }
-        throw new Error('Error creating user');
+        throw new Error(translateMessage('toasts.errorCreatingUser', 'Error creating user'));
       }
     }
   });

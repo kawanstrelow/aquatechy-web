@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useEditCompanyMember = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -26,14 +28,17 @@ export const useEditCompanyMember = () => {
       queryClient.invalidateQueries({ queryKey: ['companyMembers'] });
       toast({
         duration: 5000,
-        title: 'Company member was updated successfully.',
+        title: translateMessage(
+          'toasts.companyMemberWasUpdatedSuccessfully',
+          'Company member was updated successfully.'
+        ),
         variant: 'success'
       });
     },
     onError: () => {
       toast({
         duration: 5000,
-        title: 'Error updating company member.',
+        title: translateMessage('toasts.errorUpdatingCompanyMember', 'Error updating company member.'),
         variant: 'error'
       });
     }

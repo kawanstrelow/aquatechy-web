@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeftIcon, CalendarClock, Camera, Filter, Loader2Icon, Mail } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { ReactNode, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
@@ -31,13 +32,15 @@ type SwitchRowProps = {
 };
 
 function SwitchRow({ name, label, description, className, disabled, growOnly }: SwitchRowProps) {
+  const t = useTranslations('shell');
+
   return (
     <div className={cn('flex items-start justify-between gap-4 py-3', disabled && 'opacity-60', className)}>
       <div className="min-w-0 flex-1 space-y-0.5">
         <p className="text-sm font-medium text-gray-900">
           {label}
           {growOnly && disabled && (
-            <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
+            <span className="ml-1.5 text-xs font-medium text-blue-600">{t('upgradeYourPlan')}</span>
           )}
         </p>
         <p className="text-sm text-gray-500">{description}</p>
@@ -85,6 +88,8 @@ type PhotoPrefsBlockProps = {
 };
 
 function PhotoPrefsBlock({ title, helper, prefix, showSendOnEmail }: PhotoPrefsBlockProps) {
+  const t = useTranslations('shell');
+
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4">
       <div className="mb-2">
@@ -94,19 +99,19 @@ function PhotoPrefsBlock({ title, helper, prefix, showSendOnEmail }: PhotoPrefsB
       <div className="divide-y divide-gray-200">
         <SwitchRow
           name={`${prefix}.isRequired`}
-          label="Required on every visit"
-          description="Technician must take this photo before finishing the service"
+          label={t('requiredOnEveryVisit')}
+          description={t('requiredOnEveryVisitDescription')}
         />
         <SwitchRow
           name={`${prefix}.allowGallery`}
-          label="Allow gallery upload"
-          description="Technician can pick an existing photo instead of using the camera"
+          label={t('allowGalleryUpload')}
+          description={t('allowGalleryUploadDescription')}
         />
         {showSendOnEmail && (
           <SwitchRow
             name={`${prefix}.sendOnEmail`}
-            label="Attach to client email"
-            description="Include this photo when service report emails are sent"
+            label={t('attachToClientEmail')}
+            description={t('attachToClientEmailDescription')}
           />
         )}
       </div>
@@ -127,6 +132,7 @@ export function CompanyCreatePreferencesForm({
   onBack,
   onSubmit
 }: CompanyCreatePreferencesFormProps) {
+  const t = useTranslations('shell');
   const { isFreePlan } = useUserStore(
     useShallow((state) => ({
       isFreePlan: state.isFreePlan
@@ -181,47 +187,44 @@ export function CompanyCreatePreferencesForm({
         <div className="space-y-6">
           <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-5 py-4">
             <Typography element="h2" className="text-xl font-semibold text-gray-900">
-              Set your defaults
+              {t('setYourDefaults')}
             </Typography>
             <Typography element="p" className="mt-1 text-sm text-gray-600">
-              We pre-filled recommended settings for most pool companies. Review them below — you can always change
-              these later in company settings.
+              {t('setYourDefaultsHint')}
             </Typography>
             {isFreePlan && (
               <Typography element="p" className="mt-2 text-sm text-blue-800">
-                Some email and filter options stay disabled until you upgrade your plan.
+                {t('freePlanDisabledHint')}
               </Typography>
             )}
           </div>
 
           <SectionCard
             icon={<Mail className="h-4 w-4" />}
-            title="Client emails"
-            description="Choose when clients (and your office) get notified by email."
+            title={t('clientEmails')}
+            description={t('clientEmailsDescription')}
           >
             <div className="space-y-4 py-3">
               <div>
-                <InputField name="ccEmail" label="Office CC email" placeholder="office@example.com" />
-                <p className="mt-1.5 text-xs text-gray-500">
-                  Receives a copy of service-related emails so your team stays in the loop.
-                </p>
+                <InputField name="ccEmail" label={t('officeCcEmail')} placeholder="office@example.com" />
+                <p className="mt-1.5 text-xs text-gray-500">{t('officeCcHint')}</p>
               </div>
 
               <div className="divide-y divide-gray-100 rounded-lg border border-gray-200 px-4">
                 <SwitchRow
                   name="sendAutomaticEmails"
-                  label="Send service report after Pool Cleaning"
-                  description="When a Pool Cleaning visit is completed, email the client a service report"
+                  label={t('sendServiceReportAfterPoolCleaning')}
+                  description={t('sendServiceReportAfterPoolCleaningDescription')}
                 />
                 <SwitchRow
                   name="sendSkippedServiceEmails"
-                  label="Notify clients when a visit is skipped"
-                  description="For example weather, locked gate, unsecured pet, or too much debris"
+                  label={t('notifySkippedVisit')}
+                  description={t('notifySkippedVisitDescription')}
                 />
                 <SwitchRow
                   name="sendFilterCleaningEmails"
-                  label="Notify clients after filter cleaning"
-                  description="Email the client when filter cleaning work is finished"
+                  label={t('notifyFilterCleaning')}
+                  description={t('notifyFilterCleaningDescription')}
                   disabled={isFreePlan}
                   growOnly
                 />
@@ -231,43 +234,36 @@ export function CompanyCreatePreferencesForm({
             {sendAutomaticEmails && (
               <div className="border-t border-gray-100 py-4">
                 <div className="mb-2">
-                  <p className="text-sm font-semibold text-gray-900">What to include in the service report email</p>
-                  <p className="text-sm text-gray-500">
-                    On the Free plan only photos can be attached. Upgrade your plan to include readings, chemicals,
-                    notes, and checklist.
-                  </p>
+                  <p className="text-sm font-semibold text-gray-900">{t('reportEmailIncludeTitle')}</p>
+                  <p className="text-sm text-gray-500">{t('reportEmailIncludeHint')}</p>
                 </div>
                 <div className="divide-y divide-gray-100 rounded-lg border border-gray-200 px-4">
                   <SwitchRow
                     name="sendReadingsGroups"
-                    label="Water readings"
-                    description="Measurements taken at the pool, like chlorine, pH, and alkalinity"
+                    label={t('waterReadings')}
+                    description={t('waterReadingsDescription')}
                     disabled={isFreePlan}
                     growOnly
                   />
                   <SwitchRow
                     name="sendConsumablesGroups"
-                    label="Chemicals used"
-                    description="Products added during the visit, like chlorine tabs or acid"
+                    label={t('chemicalsUsed')}
+                    description={t('chemicalsUsedDescription')}
                     disabled={isFreePlan}
                     growOnly
                   />
-                  <SwitchRow
-                    name="sendPhotoGroups"
-                    label="Photos"
-                    description="Service photos taken during the visit"
-                  />
+                  <SwitchRow name="sendPhotoGroups" label={t('photos')} description={t('photosDescription')} />
                   <SwitchRow
                     name="technicianNotes"
-                    label="Technician notes"
-                    description="Written notes the technician left about the visit"
+                    label={t('technicianNotes')}
+                    description={t('technicianNotesDescription')}
                     disabled={isFreePlan}
                     growOnly
                   />
                   <SwitchRow
                     name="sendChecklist"
-                    label="Checklist"
-                    description="Completed checklist items from the visit"
+                    label={t('checklist')}
+                    description={t('checklistDescription')}
                     disabled={isFreePlan}
                     growOnly
                   />
@@ -278,19 +274,19 @@ export function CompanyCreatePreferencesForm({
 
           <SectionCard
             icon={<Camera className="h-4 w-4" />}
-            title="Service photos"
-            description="Rules for the default before and after photos on Pool Cleaning visits."
+            title={t('servicePhotos')}
+            description={t('servicePhotosDescription')}
           >
             <div className="grid grid-cols-1 gap-4 py-3 lg:grid-cols-2">
               <PhotoPrefsBlock
-                title="Before service"
-                helper="Usually a snapshot of the pool when the tech arrives"
+                title={t('beforeService')}
+                helper={t('beforeServiceHelper')}
                 prefix="beforeService"
                 showSendOnEmail={sendAutomaticEmails && sendPhotoGroups}
               />
               <PhotoPrefsBlock
-                title="After service"
-                helper="Usually a snapshot of the pool when the tech finishes"
+                title={t('afterService')}
+                helper={t('afterServiceHelper')}
                 prefix="afterService"
                 showSendOnEmail={sendAutomaticEmails && sendPhotoGroups}
               />
@@ -299,20 +295,20 @@ export function CompanyCreatePreferencesForm({
 
           <SectionCard
             icon={<Filter className="h-4 w-4" />}
-            title="Filter maintenance"
-            description="How often filters should be cleaned or replaced, and whether photos are required."
+            title={t('filterMaintenance')}
+            description={t('filterMaintenanceDescription')}
           >
             <div className="space-y-4 py-3">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <InputField
                   name="filterCleaningIntervalDays"
-                  label="Clean every (days)"
+                  label={t('cleanEveryDays')}
                   type={FieldType.Number}
                   placeholder="28"
                 />
                 <InputField
                   name="filterReplacementIntervalDays"
-                  label="Replace every (days)"
+                  label={t('replaceEveryDays')}
                   type={FieldType.Number}
                   placeholder="365"
                 />
@@ -321,8 +317,8 @@ export function CompanyCreatePreferencesForm({
               <div className="rounded-lg border border-gray-200 px-4">
                 <SwitchRow
                   name="filterCleaningMustHavePhotos"
-                  label="Require photos for filter work"
-                  description="Technicians must photograph filter cleaning or replacement before marking it done"
+                  label={t('requireFilterPhotos')}
+                  description={t('requireFilterPhotosDescription')}
                   disabled={isFreePlan}
                   growOnly
                 />
@@ -332,14 +328,14 @@ export function CompanyCreatePreferencesForm({
 
           <SectionCard
             icon={<CalendarClock className="h-4 w-4" />}
-            title="Scheduling"
-            description="Control whether services can be completed ahead of schedule."
+            title={t('scheduling')}
+            description={t('schedulingDescription')}
           >
             <div className="my-3 rounded-lg border border-gray-200 px-4">
               <SwitchRow
                 name="allowAnticipatedServices"
-                label="Allow anticipated services"
-                description="Let technicians complete a visit before its scheduled date when it makes sense"
+                label={t('allowAnticipatedServices')}
+                description={t('allowAnticipatedServicesDescription')}
               />
             </div>
           </SectionCard>
@@ -347,16 +343,16 @@ export function CompanyCreatePreferencesForm({
           <div className="flex justify-between rounded-xl border border-gray-200 bg-white px-5 py-4">
             <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting}>
               <ArrowLeftIcon className="mr-2 h-4 w-4" />
-              Previous
+              {t('previous')}
             </Button>
             <Button type="submit" disabled={isSubmitting} className="min-w-[140px]">
               {isSubmitting ? (
                 <>
                   <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  {t('creating')}
                 </>
               ) : (
-                'Save & continue'
+                t('saveAndContinue')
               )}
             </Button>
           </div>

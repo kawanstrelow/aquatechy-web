@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -179,6 +180,7 @@ const convertStateToAbbreviation = (state: string): string => {
 };
 
 export default function ImportFromSkimmer() {
+  const t = useTranslations('clients');
   const { data: companies = [], isLoading: isCompaniesLoading, isSuccess: isCompaniesSuccess } = useGetCompanies();
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string>('');
@@ -193,7 +195,7 @@ export default function ImportFromSkimmer() {
     const phoneRegex = /^\+1 \(\d{3}\) \d{3}-\d{4}$/;
 
     if (!phoneRegex.test(phone)) {
-      return <span className="text-red-500">Phone must be 10 digits.</span>;
+      return <span className="text-red-500">{t('shared.phoneTenDigits')}</span>;
     }
 
     return phone;
@@ -207,7 +209,7 @@ export default function ImportFromSkimmer() {
 
   const formatEmail = (email: string | undefined) => {
     if (!email) {
-      return <span className="text-red-500">E-mail required</span>;
+      return <span className="text-red-500">{t('shared.emailRequiredShort')}</span>;
     }
     return email;
   };
@@ -303,8 +305,8 @@ export default function ImportFromSkimmer() {
         console.error('Error processing file:', error);
         toast({
           duration: 5000,
-          title: 'Error processing file',
-          description: 'Please make sure you are using a valid Skimmer Excel file (.xlsx)',
+          title: t('import.processError'),
+          description: t('import.skimmerFileError'),
           variant: 'error'
         });
       }
@@ -317,8 +319,8 @@ export default function ImportFromSkimmer() {
     const companyOwnerId = form.getValues('companyOwnerId');
     if (!companyOwnerId) {
       toast({
-        title: 'Error',
-        description: 'Please select a company first',
+        title: t('shared.error'),
+        description: t('import.selectCompanyFirst'),
         variant: 'error'
       });
       return;
@@ -333,7 +335,7 @@ export default function ImportFromSkimmer() {
       router.push('/clients');
     } catch (error: unknown) {
       toast({
-        title: 'Error',
+        title: t('shared.error'),
         description: getCreateManyClientsErrorMessage(error),
         variant: 'error'
       });
@@ -362,62 +364,55 @@ export default function ImportFromSkimmer() {
     <>
       <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
         <div className="border-b border-line px-5 py-5 lg:px-8">
-          <Typography element="h1">Import Clients from Skimmer</Typography>
+          <Typography element="h1">{t('import.skimmerTitle')}</Typography>
         </div>
 
         <div className="border-b border-line px-5 py-5 lg:px-8">
           <Typography element="h2" className="mb-4 text-lg font-semibold">
-            How to Import Clients from Skimmer
+            {t('import.skimmerHowTo')}
           </Typography>
           <ol className="list-decimal space-y-3 pl-4">
             <li>
-              Export your customer data from Skimmer:
+              {t('import.skimmerExport')}
               <ul className="mt-2 list-disc pl-4 text-slate-600">
-                <li>Open your Skimmer application</li>
-                <li>Go to your settings and click on "Export"</li>
-                <li>
-                  The first option is "Export Customers". Click on "Export to Excel" and export the data as an Excel
-                  file (.xlsx format)
-                </li>
-                <li>Make sure the export includes all customer and location fields</li>
+                <li>{t('import.skimmerOpen')}</li>
+                <li>{t('import.skimmerSettings')}</li>
+                <li>{t('import.skimmerExportCustomers')}</li>
+                <li>{t('import.skimmerAllFields')}</li>
               </ul>
             </li>
             <li>
-              Prepare your Skimmer Excel file:
+              {t('import.skimmerPrepare')}
               <ul className="mt-2 list-disc pl-4 text-slate-600">
-                <li>Ensure the file contains the standard Skimmer columns (FullName, Email1, BillingAddress, etc.)</li>
-                <li>Keep the original column headers from Skimmer</li>
-                <li>Keep the file in Excel (.xlsx) format</li>
+                <li>{t('import.skimmerColumns')}</li>
+                <li>{t('import.skimmerKeepHeaders')}</li>
+                <li>{t('import.skimmerKeepXlsx')}</li>
               </ul>
             </li>
             <li>
-              Complete the import process:
+              {t('import.skimmerComplete')}
               <ul className="mt-2 list-disc pl-4 text-slate-600">
-                <li>Select your company from the dropdown below</li>
-                <li>Click "Choose File" and select your Skimmer Excel file</li>
-                <li>Review the imported data in the preview table</li>
+                <li>{t('import.selectCompany')}</li>
+                <li>{t('import.skimmerChooseFile')}</li>
+                <li>{t('import.skimmerReview')}</li>
               </ul>
             </li>
             <li>
-              Click <span className="font-medium">Import Clients</span> when ready
+              {t.rich('import.skimmerClickImport', {
+                emphasis: (chunks) => <span className="font-medium">{chunks}</span>
+              })}
             </li>
           </ol>
           <div className="mt-6 rounded-md bg-blue-50 p-4">
             <Typography element="p" className="text-sm text-blue-800">
-              <strong>Note:</strong> The import process will automatically:
+              <strong>{t('shared.note')}</strong> {t('import.skimmerAuto')}
               <ul className="mt-2 list-disc pl-4">
-                <li>Create a pool for each client using location data</li>
-                <li>Map Skimmer fields to Aquatechy format</li>
-                <li>Set animal danger based on DogsName field</li>
-                <li>Convert phone numbers to the correct format</li>
-                <li>
-                  It will create a client for each service location from Skimmer, so you'll have to check each client if
-                  they are not duplicates.
-                </li>
-                <li>
-                  You'll have to create assignments for each client after the import, as Skimmer doesn't bring it on the
-                  import.
-                </li>
+                <li>{t('import.skimmerCreatePool')}</li>
+                <li>{t('import.skimmerMap')}</li>
+                <li>{t('import.skimmerDogs')}</li>
+                <li>{t('import.skimmerPhones')}</li>
+                <li>{t('import.skimmerDuplicates')}</li>
+                <li>{t('import.skimmerAssignments')}</li>
               </ul>
             </Typography>
           </div>
@@ -427,9 +422,9 @@ export default function ImportFromSkimmer() {
           <Form {...form}>
             <div className="mb-6">
               <SelectField
-                placeholder="Company owner"
+                placeholder={t('shared.companyOwner')}
                 name="companyOwnerId"
-                label="Company owner"
+                label={t('shared.companyOwner')}
                 options={
                   companies
                     .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
@@ -444,7 +439,7 @@ export default function ImportFromSkimmer() {
 
             <div className="mb-6 flex items-center gap-2">
               <label className={cn(buttonVariants({ variant: 'default' }), 'cursor-pointer')}>
-                Choose File
+                {t('shared.chooseFile')}
                 <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} className="hidden" />
               </label>
               {selectedFile && <span className="text-sm text-slate-500">{selectedFile}</span>}
@@ -458,23 +453,23 @@ export default function ImportFromSkimmer() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Client Address</TableHead>
-                      <TableHead>Client City</TableHead>
-                      <TableHead>Client State</TableHead>
-                      <TableHead>Client Zip</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Pool Address</TableHead>
-                      <TableHead>Pool City</TableHead>
-                      <TableHead>Pool State</TableHead>
-                      <TableHead>Pool Zip</TableHead>
-                      <TableHead>Salt system</TableHead>
-                      <TableHead>Animal Danger</TableHead>
-                      <TableHead>Gate/Location Code</TableHead>
-                      <TableHead>Monthly Payment</TableHead>
+                      <TableHead>{t('columns.name')}</TableHead>
+                      <TableHead>{t('columns.company')}</TableHead>
+                      <TableHead>{t('fields.clientAddress')}</TableHead>
+                      <TableHead>{t('fields.clientCity')}</TableHead>
+                      <TableHead>{t('fields.clientState')}</TableHead>
+                      <TableHead>{t('fields.clientZip')}</TableHead>
+                      <TableHead>{t('columns.phone')}</TableHead>
+                      <TableHead>{t('columns.email')}</TableHead>
+                      <TableHead>{t('fields.type')}</TableHead>
+                      <TableHead>{t('fields.poolAddressTitle')}</TableHead>
+                      <TableHead>{t('fields.poolCity')}</TableHead>
+                      <TableHead>{t('fields.poolState')}</TableHead>
+                      <TableHead>{t('fields.poolZip')}</TableHead>
+                      <TableHead>{t('fields.saltSystem')}</TableHead>
+                      <TableHead>{t('fields.animalDangerTitle')}</TableHead>
+                      <TableHead>{t('fields.gateLocationCode')}</TableHead>
+                      <TableHead>{t('fields.monthlyPaymentTitle')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -493,8 +488,8 @@ export default function ImportFromSkimmer() {
                         <TableCell>{client.poolCity}</TableCell>
                         <TableCell>{client.poolState}</TableCell>
                         <TableCell>{client.poolZip}</TableCell>
-                        <TableCell>{client.hasSaltSystem ? 'Yes' : 'No'}</TableCell>
-                        <TableCell>{client.animalDanger ? 'Yes' : 'No'}</TableCell>
+                        <TableCell>{client.hasSaltSystem ? t('shared.yes') : t('shared.no')}</TableCell>
+                        <TableCell>{client.animalDanger ? t('shared.yes') : t('shared.no')}</TableCell>
                         <TableCell>{client.lockerCode}</TableCell>
                         <TableCell>{formatMonthlyPayment(client.monthlyPayment)}</TableCell>
                       </TableRow>
@@ -506,7 +501,7 @@ export default function ImportFromSkimmer() {
               <div className="mt-6">
                 <Button onClick={handleImport} type="button" disabled={isPending || !areAllPhonesValid(parsedData)}>
                   {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-                  Import {parsedData.length} Clients
+                  {t('shared.importClientsCount', { count: parsedData.length })}
                 </Button>
               </div>
             </>
@@ -520,11 +515,11 @@ export default function ImportFromSkimmer() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center">No Companies Available</DialogTitle>
-            <DialogDescription>Please create a company before importing clients.</DialogDescription>
+            <DialogTitle className="text-center">{t('shared.noCompaniesTitle')}</DialogTitle>
+            <DialogDescription>{t('shared.createCompanyBeforeImport')}</DialogDescription>
           </DialogHeader>
           <Button type="button" onClick={() => router.push('/settings/companies')}>
-            Create Company
+            {t('shared.createCompanyTitle')}
           </Button>
         </DialogContent>
       </Dialog>

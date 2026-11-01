@@ -1,6 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -34,6 +35,7 @@ type Props = {
 type ClientTab = 'client_info' | 'pools' | 'invoices' | 'estimates' | 'payments' | 'messages' | 'email_preferences';
 
 export default function ShowClient({ client }: Props) {
+  const t = useTranslations('clients');
   const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { mutate: updateClient, isPending } = useUpdateClient<{ isActive: boolean }>();
@@ -121,11 +123,13 @@ export default function ShowClient({ client }: Props) {
                 <div className="flex flex-col items-center gap-0.5 text-wrap text-xl font-semibold leading-[30px] text-gray-800">
                   <span>
                     {client.fullName}{' '}
-                    {!client.isActive ? <span className="text-sm font-medium text-red-500">Inactive</span> : null}
+                    {!client.isActive ? (
+                      <span className="text-sm font-medium text-red-500">{t('shared.inactive')}</span>
+                    ) : null}
                   </span>
                   {!client.isActive && client.deactivatedAt ? (
                     <span className="text-xs font-normal text-gray-500">
-                      Inactive since {format(new Date(client.deactivatedAt), 'MMMM d, yyyy')}
+                      {t('profile.inactiveSince', { date: format(new Date(client.deactivatedAt), 'MMMM d, yyyy') })}
                     </span>
                   ) : null}
                 </div>
@@ -144,47 +148,47 @@ export default function ShowClient({ client }: Props) {
               <div className="flex flex-row flex-wrap items-start justify-start gap-[18px] self-start lg:flex-col lg:flex-nowrap">
                 <div className="inline-flex w-fit items-start justify-start gap-2">
                   <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                    <div className="self-stretch text-sm font-medium text-gray-500">Email</div>
+                    <div className="self-stretch text-sm font-medium text-gray-500">{t('profile.email')}</div>
                     <div className="self-stretch text-sm font-medium text-gray-800">{client.email}</div>
                   </div>
                 </div>
                 <div className="inline-flex w-fit items-start justify-start gap-2">
                   <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                    <div className="self-stretch text-sm font-medium text-gray-500">Company Owner</div>
+                    <div className="self-stretch text-sm font-medium text-gray-500">{t('profile.companyOwner')}</div>
                     <div className="self-stretch text-sm font-medium text-gray-800">{client.companyOwner.name}</div>
                   </div>
                 </div>
                 <div className="inline-flex w-fit items-start justify-start gap-2">
                   <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                    <div className="self-stretch text-sm font-medium text-gray-500">Phone Number</div>
+                    <div className="self-stretch text-sm font-medium text-gray-500">{t('profile.phoneNumber')}</div>
                     <div className="self-stretch text-sm font-medium text-gray-800">{client.phone}</div>
                   </div>
                 </div>
                 <div className="inline-flex w-fit items-start justify-start gap-2">
                   <div className="Text inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                    <div className="self-stretch text-sm font-medium text-gray-500">Locations</div>
+                    <div className="self-stretch text-sm font-medium text-gray-500">{t('profile.locations')}</div>
                     <div className="self-stretch text-sm font-medium text-gray-800">
                       {client.pools.length > 0
                         ? client.pools.length === 1
-                          ? '1 Pool'
-                          : `${client.pools.length} Pools`
-                        : 'No Pools'}
+                          ? t('profile.onePool')
+                          : t('profile.poolCount', { count: client.pools.length })
+                        : t('profile.noPools')}
                     </div>
                   </div>
                 </div>
                 <div className="inline-flex w-fit items-start justify-start gap-2">
                   <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                    <div className="self-stretch text-sm font-medium text-gray-500">Last Service</div>
+                    <div className="self-stretch text-sm font-medium text-gray-500">{t('profile.lastService')}</div>
                     <div className="self-stretch text-sm font-medium text-gray-800">
                       {client.lastServiceDate != undefined
                         ? format(new Date(client.lastServiceDate), 'MMMM, dd, yyyy')
-                        : 'No Services'}
+                        : t('profile.noServices')}
                     </div>
                   </div>
                 </div>
                 <div className="inline-flex w-fit items-start justify-start gap-2">
                   <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                    <div className="text-sm font-medium text-gray-500">Joined</div>
+                    <div className="text-sm font-medium text-gray-500">{t('profile.joined')}</div>
                     <div className="text-sm font-medium text-gray-800">
                       {format(new Date(client.createdAt), 'MMMM, dd, yyyy')}
                     </div>
@@ -194,14 +198,14 @@ export default function ShowClient({ client }: Props) {
               <div className="flex w-full flex-col items-center gap-2">
                 <a href={`mailto:${client.email}`} className="w-full">
                   <Button variant={'outline'} className="w-full">
-                    E-mail
+                    {t('fields.emailHyphen')}
                   </Button>
                 </a>
                 <Button onClick={handleAddPool} className="w-full" variant={'default'} disabled={shouldDisableNewPools}>
-                  Add pool
+                  {t('profile.addPool')}
                 </Button>
                 {shouldDisableNewPools && (
-                  <p className="text-center text-xs font-normal text-slate-500">Upgrade your plan to add more pools.</p>
+                  <p className="text-center text-xs font-normal text-slate-500">{t('list.upgradePlan')}</p>
                 )}
                 <Separator className="w-full bg-gray-200 opacity-50" />
                 <div className="flex w-full justify-center gap-2">
@@ -210,10 +214,10 @@ export default function ShowClient({ client }: Props) {
                     className="w-full"
                     variant={client.isActive ? 'destructive' : 'default'}
                   >
-                    {client.isActive ? 'Deactivate' : 'Activate'}
+                    {client.isActive ? t('shared.deactivate') : t('shared.activate')}
                   </Button>
                   <Button onClick={() => setDeleteModalOpen(true)} variant={'destructive'} className="w-full">
-                    Delete
+                    {t('shared.delete')}
                   </Button>
                 </div>
               </div>
@@ -227,7 +231,7 @@ export default function ShowClient({ client }: Props) {
                 <div className="inline-flex items-start justify-start gap-4 self-stretch">
                   <div className="inline-flex shrink grow basis-0 flex-col items-start justify-start gap-2">
                     <div className="self-stretch text-base font-medium leading-normal text-gray-500">
-                      Monthly payment
+                      {t('profile.monthlyPayment')}
                     </div>
                     <div className="self-stretch text-[28px] font-semibold text-gray-800">
                       ${calculateTotalMonthlyOfAllPools(client.pools)}
@@ -241,7 +245,9 @@ export default function ShowClient({ client }: Props) {
               <div className="RightBadgeStatisticCard inline-flex shrink grow basis-0 flex-col items-start justify-start gap-4 rounded-lg border border-gray-200 bg-gray-50 p-5">
                 <div className="TitleNumbers inline-flex items-start justify-start gap-4 self-stretch">
                   <div className="TitleNumbers inline-flex shrink grow basis-0 flex-col items-start justify-start gap-2">
-                    <div className="self-stretch text-base font-medium leading-normal text-gray-500">Services</div>
+                    <div className="self-stretch text-base font-medium leading-normal text-gray-500">
+                      {t('profile.services')}
+                    </div>
                     <div className="self-stretch text-[28px] font-semibold text-gray-800">
                       {calculateTotalAssignmentsOfAllPools(client.pools)}
                     </div>
@@ -260,13 +266,13 @@ export default function ShowClient({ client }: Props) {
                 <div
                   className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'client_info' && selectedTabStyles}`}
                 >
-                  Basic Information
+                  {t('fields.basicInformationTitle')}
                 </div>
                 {tab === 'client_info' && <div className="Rectangle2 h-0.5 self-stretch bg-gray-800" />}
               </div>
               <div onClick={() => setTab('pools')} className="inline-flex flex-col items-start justify-start gap-2.5">
                 <div className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'pools' && selectedTabStyles}`}>
-                  Pools
+                  {t('profile.pools')}
                 </div>
                 {tab === 'pools' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
@@ -278,7 +284,7 @@ export default function ShowClient({ client }: Props) {
                   <div
                     className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'invoices' && selectedTabStyles}`}
                   >
-                    Invoices
+                    {t('profile.invoices')}
                   </div>
                   {tab === 'invoices' && <div className="h-0.5 self-stretch bg-gray-800" />}
                 </div>
@@ -291,7 +297,7 @@ export default function ShowClient({ client }: Props) {
                   <div
                     className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'estimates' && selectedTabStyles}`}
                   >
-                    Estimates
+                    {t('profile.estimates')}
                   </div>
                   {tab === 'estimates' && <div className="h-0.5 self-stretch bg-gray-800" />}
                 </div>
@@ -304,7 +310,7 @@ export default function ShowClient({ client }: Props) {
                   <div
                     className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'payments' && selectedTabStyles}`}
                   >
-                    Payments
+                    {t('profile.payments')}
                   </div>
                   {tab === 'payments' && <div className="h-0.5 self-stretch bg-gray-800" />}
                 </div>
@@ -317,7 +323,7 @@ export default function ShowClient({ client }: Props) {
                   <div
                     className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'messages' && selectedTabStyles}`}
                   >
-                    Messages
+                    {t('profile.messages')}
                   </div>
                   {tab === 'messages' && <div className="h-0.5 self-stretch bg-gray-800" />}
                 </div>
@@ -331,7 +337,7 @@ export default function ShowClient({ client }: Props) {
                     tab === 'email_preferences' && selectedTabStyles
                   }`}
                 >
-                  Preferences
+                  {t('profile.preferences')}
                 </div>
                 {tab === 'email_preferences' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
@@ -344,13 +350,11 @@ export default function ShowClient({ client }: Props) {
               ) : (
                 <div className="flex w-full flex-col items-center justify-center gap-4 py-12">
                   <div className="text-center">
-                    <h3 className="mb-2 text-lg font-semibold text-gray-900">No Pools Found</h3>
-                    <p className="mb-4 text-gray-500">
-                      This client doesn't have any pools yet. Add a pool to get started with services.
-                    </p>
+                    <h3 className="mb-2 text-lg font-semibold text-gray-900">{t('profile.noPoolsFound')}</h3>
+                    <p className="mb-4 text-gray-500">{t('profile.noPoolsDescription')}</p>
                   </div>
                   <Button onClick={handleAddPool} className="px-6">
-                    Create Pool
+                    {t('list.createPool')}
                   </Button>
                 </div>
               )

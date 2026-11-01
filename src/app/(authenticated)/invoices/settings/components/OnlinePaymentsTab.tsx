@@ -1,6 +1,9 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
+
+import { translateMessage } from '@/i18n/runtime';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { isAxiosError } from 'axios';
@@ -13,37 +16,25 @@ import { useConnectOnboard } from '@/hooks/react-query/payments/useConnectOnboar
 import { useConnectDashboardLink } from '@/hooks/react-query/payments/useConnectDashboardLink';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import type { StripeAccountStatus } from '@/ts/interfaces/StripeConnect';
-import { COMPANY_PLAN_DENIED_DESCRIPTION, isCompanyPlanDeniedMessage } from '@/utils/subscriptionDenied';
+import { isCompanyPlanDeniedMessage } from '@/utils/subscriptionDenied';
 
 interface OnlinePaymentsTabProps {
   selectedCompany: CompanyWithMyRole;
 }
 
 function statusLabel(status: StripeAccountStatus): string {
-  const map: Record<StripeAccountStatus, string> = {
-    not_started: 'Not started',
-    onboarding: 'Onboarding in progress',
-    restricted: 'Restricted',
-    active: 'Active',
-    rejected: 'Rejected'
-  };
-  return map[status];
+  return translateMessage(`invoices.payments.status.${status}`, status);
 }
 
 export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
+  const t = useTranslations('invoices');
   const searchParams = useSearchParams();
   const companyId = selectedCompany.id;
   const role = selectedCompany.role;
   const canManageConnect = role === 'Owner' || role === 'Admin';
   const canUpgradePlan = role === 'Owner';
 
-  const {
-    data: status,
-    isLoading,
-    refetch,
-    isFetching,
-    error
-  } = useConnectStatus(companyId);
+  const { data: status, isLoading, refetch, isFetching, error } = useConnectStatus(companyId);
   const onboard = useConnectOnboard();
   const dashboardLink = useConnectDashboardLink();
 
@@ -81,31 +72,28 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
             <CreditCard className="h-6 w-6 text-slate-700" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Stripe payouts & online invoices</h2>
-            <p className="mt-1 max-w-xl text-sm text-gray-600">
-              Connect your company&apos;s Stripe account so clients can pay invoices online with Checkout and save cards
-              for future charges (when enabled).
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('payments.title')}</h2>
+            <p className="mt-1 max-w-xl text-sm text-gray-600">{t('payments.description')}</p>
           </div>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading || isFetching}>
           {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-          Refresh status
+          {t('payments.refreshStatus')}
         </Button>
       </div>
 
       {deniedByPlan && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Plan required</AlertTitle>
+          <AlertTitle>{t('payments.planRequired')}</AlertTitle>
           <AlertDescription>
-            <p>{COMPANY_PLAN_DENIED_DESCRIPTION}</p>
+            <p>{t('payments.planDenied')}</p>
             {canUpgradePlan ? (
               <Button asChild className="mt-3" size="sm">
-                <Link href="/settings/subscription">View plans</Link>
+                <Link href="/settings/subscription">{t('payments.viewPlans')}</Link>
               </Button>
             ) : (
-              <p className="mt-2">The company owner needs to upgrade.</p>
+              <p className="mt-2">{t('payments.ownerMustUpgrade')}</p>
             )}
           </AlertDescription>
         </Alert>
@@ -114,15 +102,15 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
       {is403 && !deniedByPlan && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Access denied</AlertTitle>
-          <AlertDescription>Your role cannot view Stripe Connect settings for this company.</AlertDescription>
+          <AlertTitle>{t('payments.accessDenied')}</AlertTitle>
+          <AlertDescription>{t('payments.accessDeniedDescription')}</AlertDescription>
         </Alert>
       )}
 
       {!is403 && isLoading && (
         <div className="flex items-center gap-2 py-12 text-gray-600">
           <Loader2 className="h-5 w-5 animate-spin" />
-          Loading connection status…
+          {t('payments.loadingStatus')}
         </div>
       )}
 
@@ -130,7 +118,9 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Stripe status</div>
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                {t('payments.stripeStatus')}
+              </div>
               <div className="mt-1 flex items-center gap-2">
                 <span className="text-base font-semibold text-slate-900">
                   {statusLabel(status.stripeAccountStatus)}
@@ -139,16 +129,20 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
                   <ShieldCheck className="h-5 w-5 text-emerald-600" aria-hidden />
                 )}
               </div>
-              {!status.stripeAccountId && <p className="mt-2 text-sm text-slate-600">No connected account yet.</p>}
+              {!status.stripeAccountId && <p className="mt-2 text-sm text-slate-600">{t('payments.noAccount')}</p>}
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Capabilities</div>
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                {t('payments.capabilities')}
+              </div>
               <ul className="mt-2 space-y-1 text-sm text-slate-800">
                 <li>
-                  Charges enabled: <strong>{status.chargesEnabled ? 'Yes' : 'No'}</strong>
+                  {t('payments.chargesEnabled')}{' '}
+                  <strong>{status.chargesEnabled ? t('actions.yes') : t('actions.no')}</strong>
                 </li>
                 <li>
-                  Payouts enabled: <strong>{status.payoutsEnabled ? 'Yes' : 'No'}</strong>
+                  {t('payments.payoutsEnabled')}{' '}
+                  <strong>{status.payoutsEnabled ? t('actions.yes') : t('actions.no')}</strong>
                 </li>
               </ul>
             </div>
@@ -157,14 +151,14 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
           {showRequirements && status.requirements && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Stripe needs more information</AlertTitle>
+              <AlertTitle>{t('payments.needsInfo')}</AlertTitle>
               <AlertDescription className="space-y-2">
                 {status.requirements.disabledReason ? (
                   <p className="text-sm">{status.requirements.disabledReason}</p>
                 ) : null}
                 {status.requirements.pastDue.length > 0 && (
                   <div>
-                    <span className="font-medium">Past due:</span>
+                    <span className="font-medium">{t('payments.pastDue')}</span>
                     <ul className="list-inside list-disc text-sm">
                       {status.requirements.pastDue.map((r) => (
                         <li key={r}>{r}</li>
@@ -174,7 +168,7 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
                 )}
                 {status.requirements.currentlyDue.length > 0 && (
                   <div>
-                    <span className="font-medium">Currently due:</span>
+                    <span className="font-medium">{t('payments.currentlyDue')}</span>
                     <ul className="list-inside list-disc text-sm">
                       {status.requirements.currentlyDue.map((r) => (
                         <li key={r}>{r}</li>
@@ -199,7 +193,7 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
                   ) : (
                     <ExternalLink className="mr-2 h-4 w-4" />
                   )}
-                  {status.stripeAccountStatus === 'not_started' ? 'Connect with Stripe' : 'Continue in Stripe'}
+                  {status.stripeAccountStatus === 'not_started' ? t('payments.connect') : t('payments.continue')}
                 </Button>
                 <Button
                   type="button"
@@ -214,16 +208,11 @@ export function OnlinePaymentsTab({ selectedCompany }: OnlinePaymentsTabProps) {
                   ) : (
                     <ExternalLink className="mr-2 h-4 w-4" />
                   )}
-                  Open Stripe Dashboard
+                  {t('payments.openDashboard')}
                 </Button>
               </>
             )}
-            {!canManageConnect && (
-              <p className="text-sm text-slate-600">
-                Only owners and admins can start Stripe onboarding or open the Express dashboard. You can still see
-                connection status here.
-              </p>
-            )}
+            {!canManageConnect && <p className="text-sm text-slate-600">{t('payments.managersOnly')}</p>}
           </div>
         </div>
       )}

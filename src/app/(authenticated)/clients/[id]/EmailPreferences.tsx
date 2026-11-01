@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -59,6 +60,8 @@ function isGrowOnlyField(name: string): name is GrowOnlyField {
 }
 
 export default function EmailPreferences({ client }: { client: Client }) {
+  const t = useTranslations('clients');
+  const labelText = (key: string) => t(key as never);
   const { isPending, mutate } = useUpdateClientPreferences(client.id);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { isFreePlan } = useUserStore(
@@ -174,20 +177,19 @@ export default function EmailPreferences({ client }: { client: Client }) {
           {isFreePlan && (
             <div className="mb-6 space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
               <p className="text-sm text-amber-900">
-                On the Free plan you can turn on service emails for this client. Only <strong>photos</strong> will be
-                sent in those emails—readings, consumables, selectors, checklist, technician notes, SMS, and filter
-                cleaning notifications require you to upgrade your plan.
+                {t.rich('preferences.freePlanPhotos', { strong: (chunks) => <strong>{chunks}</strong> })}
               </p>
               <p className="text-sm text-amber-900">
-                Service emails must also be enabled and configured in your{' '}
-                <Link
-                  href={companyTeamHref}
-                  className="font-medium text-blue-700 underline underline-offset-4 hover:text-blue-900"
-                >
-                  company email preferences
-                </Link>{' '}
-                (open your company, go to the Preferences tab, then Email notifications). Match those settings so emails
-                send the way you expect.
+                {t.rich('preferences.freePlanCompany', {
+                  link: (chunks) => (
+                    <Link
+                      href={companyTeamHref}
+                      className="font-medium text-blue-700 underline underline-offset-4 hover:text-blue-900"
+                    >
+                      {chunks}
+                    </Link>
+                  )
+                })}
               </p>
             </div>
           )}
@@ -198,13 +200,13 @@ export default function EmailPreferences({ client }: { client: Client }) {
                 <div className="col-span-8 row-auto flex flex-col">
                   <label htmlFor={field.label} className="flex flex-col space-y-1">
                     <span className="text-sm font-semibold text-gray-800">
-                      {field.label}
+                      {labelText(field.label)}
                       {isFreePlan && field.growOnly && (
-                        <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
+                        <span className="ml-1.5 text-xs font-medium text-blue-600">{t('preferences.upgradePlan')}</span>
                       )}
                     </span>
                   </label>
-                  <span className="text-muted-foreground text-sm font-normal">{field.description}</span>
+                  <span className="text-muted-foreground text-sm font-normal">{labelText(field.description)}</span>
                 </div>
                 <div className="col-span-4 flex flex-col gap-2">
                   {field.itens.map((item) => {
@@ -222,16 +224,18 @@ export default function EmailPreferences({ client }: { client: Client }) {
                             key={item.name}
                             name={item.name}
                             type={field.type}
-                            placeholder={field.type === FieldType.Default ? item.label : ''}
+                            placeholder={field.type === FieldType.Default ? labelText(item.label) : ''}
                           />
                         </div>
                         {field.type === FieldType.Switch && (
                           <label htmlFor={item.label}>
                             <div>
                               <span className="text-sm font-semibold text-gray-800">
-                                {item.label}
+                                {labelText(item.label)}
                                 {isFreePlan && growOnly && !field.growOnly && (
-                                  <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
+                                  <span className="ml-1.5 text-xs font-medium text-blue-600">
+                                    {t('preferences.upgradePlan')}
+                                  </span>
                                 )}
                               </span>
                             </div>
@@ -244,7 +248,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
               </div>
             ))}
             <Button disabled={!form.formState.isDirty} className="mt-2">
-              Save
+              {t('shared.save')}
             </Button>
           </div>
         </form>
@@ -253,21 +257,20 @@ export default function EmailPreferences({ client }: { client: Client }) {
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent>
           <DialogHeader className="text-left">
-            <DialogTitle className="mb-4 text-xl">Update Notification Preferences</DialogTitle>
+            <DialogTitle className="mb-4 text-xl">{t('preferences.confirmTitle')}</DialogTitle>
             <DialogDescription className="mt-4 text-left">
               <>
-                This action will update the service notification preferences for this specific client.
+                {t('preferences.confirmBody')}
                 <br />
                 <br />
-                <strong>Note:</strong> In order to send service emails, SMS messages, or filter cleaning emails, both
-                the client preferences AND company preferences must be enabled.
+                <strong>{t('shared.note')}</strong> {t('preferences.confirmNote')}
               </>
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="mt-6">
             <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
-              Cancel
+              {t('shared.cancel')}
             </Button>
             <Button onClick={handleConfirmSave} disabled={isPending}>
               {isPending ? (
@@ -276,7 +279,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
                   role="status"
                 />
               ) : (
-                'Save Changes'
+                t('shared.saveChanges')
               )}
             </Button>
           </DialogFooter>
@@ -305,12 +308,12 @@ const fields: Fields = [
   {
     inputClassName: 'flex justify-center items-center gap-4',
     type: FieldType.Switch,
-    description: 'Send e-mails when a service is done.',
-    label: 'Send service e-mails',
+    description: 'preferences.sendServiceEmailsDescription',
+    label: 'preferences.sendServiceEmails',
     itens: [
       {
-        label: 'Send service e-mails',
-        description: 'Send e-mails when a service is done.',
+        label: 'preferences.sendServiceEmails',
+        description: 'preferences.sendServiceEmailsDescription',
         name: 'sendEmails'
       }
     ]
@@ -318,13 +321,13 @@ const fields: Fields = [
   {
     inputClassName: 'flex justify-center items-center gap-4',
     type: FieldType.Switch,
-    description: 'Send SMS when a service is done. Requires a valid client phone number.',
-    label: 'Send service SMS',
+    description: 'preferences.sendServiceSmsDescription',
+    label: 'preferences.sendServiceSms',
     growOnly: true,
     itens: [
       {
-        label: 'Send service SMS',
-        description: 'Send SMS when a service is done.',
+        label: 'preferences.sendServiceSms',
+        description: 'preferences.sendServiceSmsItemDescription',
         name: 'sendSMS',
         growOnly: true
       }
@@ -333,41 +336,41 @@ const fields: Fields = [
   {
     inputClassName: 'flex justify-center items-center gap-4',
     type: FieldType.Switch,
-    description: 'Select the information you want to send in the service e-mails.',
-    label: 'Include in service e-mails',
+    description: 'preferences.includeInEmailsDescription',
+    label: 'preferences.includeInEmails',
     itens: [
       {
-        label: 'Readings',
-        description: 'Send service e-mails with readings.',
+        label: 'preferences.readings',
+        description: 'preferences.readingsDescription',
         name: 'attachReadingsGroups',
         growOnly: true
       },
       {
-        label: 'Consumables',
-        description: 'Send service e-mails with consumables.',
+        label: 'preferences.consumables',
+        description: 'preferences.consumablesDescription',
         name: 'attachConsumablesGroups',
         growOnly: true
       },
       {
-        label: 'Photos',
-        description: 'Send service e-mails with photos.',
+        label: 'preferences.photos',
+        description: 'preferences.photosDescription',
         name: 'attachPhotoGroups'
       },
       {
-        label: 'Selectors',
-        description: 'Send service e-mails with selectors.',
+        label: 'preferences.selectors',
+        description: 'preferences.selectorsDescription',
         name: 'attachSelectorsGroups',
         growOnly: true
       },
       {
-        label: 'Checklist',
-        description: 'Send service e-mails with checklist.',
+        label: 'preferences.checklist',
+        description: 'preferences.checklistDescription',
         name: 'attachCustomChecklist',
         growOnly: true
       },
       {
-        label: 'Technician Notes',
-        description: 'Send service e-mails with technician notes.',
+        label: 'preferences.technicianNotes',
+        description: 'preferences.technicianNotesDescription',
         name: 'attachTechnicianNotes',
         growOnly: true
       }
@@ -376,13 +379,13 @@ const fields: Fields = [
   {
     inputClassName: 'flex justify-center items-center gap-4',
     type: FieldType.Switch,
-    description: 'Send e-mails when filter cleaning is completed.',
-    label: 'Filter cleaning notifications',
+    description: 'preferences.filterCleaningDescription',
+    label: 'preferences.filterCleaning',
     growOnly: true,
     itens: [
       {
-        label: 'Send filter cleaning e-mails',
-        description: 'Send e-mails when filter cleaning is completed.',
+        label: 'preferences.sendFilterCleaning',
+        description: 'preferences.sendFilterCleaningDescription',
         name: 'sendFilterCleaningEmails',
         growOnly: true
       }

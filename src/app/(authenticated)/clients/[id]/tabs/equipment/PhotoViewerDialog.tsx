@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -45,6 +46,7 @@ interface PhotoViewerDialogProps {
 }
 
 export function PhotoViewerDialog({ photo, onClose }: PhotoViewerDialogProps) {
+  const t = useTranslations('clients');
   const [photoDisplaySize, setPhotoDisplaySize] = useState<{ width: number; height: number } | null>(null);
   const [isDownloadingPhoto, setIsDownloadingPhoto] = useState(false);
 
@@ -88,7 +90,7 @@ export function PhotoViewerDialog({ photo, onClose }: PhotoViewerDialogProps) {
         style={photoDisplaySize ? { width: photoDisplaySize.width + PHOTO_DIALOG_PADDING } : undefined}
       >
         <DialogHeader className="sr-only">
-          <DialogTitle>Photo</DialogTitle>
+          <DialogTitle>{t('equipment.photo')}</DialogTitle>
         </DialogHeader>
         {photo && (
           <div className="flex flex-col items-center gap-4">
@@ -100,9 +102,7 @@ export function PhotoViewerDialog({ photo, onClose }: PhotoViewerDialogProps) {
                 onLoad={handlePhotoLoad}
                 className={photoDisplaySize ? 'rounded-md' : 'invisible absolute h-0 w-0'}
                 style={
-                  photoDisplaySize
-                    ? { width: photoDisplaySize.width, height: photoDisplaySize.height }
-                    : undefined
+                  photoDisplaySize ? { width: photoDisplaySize.width, height: photoDisplaySize.height } : undefined
                 }
               />
             </div>
@@ -113,7 +113,7 @@ export function PhotoViewerDialog({ photo, onClose }: PhotoViewerDialogProps) {
               onClick={handleDownloadPhoto}
             >
               {isDownloadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              {isDownloadingPhoto ? 'Downloading...' : 'Download Photo'}
+              {isDownloadingPhoto ? t('shared.downloading') : t('equipment.downloadPhoto')}
             </Button>
           </div>
         )}

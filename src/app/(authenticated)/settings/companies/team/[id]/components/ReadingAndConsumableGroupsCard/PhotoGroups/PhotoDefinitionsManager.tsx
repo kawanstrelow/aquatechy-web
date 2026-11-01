@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,24 +16,30 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
+  DragEndEvent
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useGetPhotoDefinitions } from '@/hooks/react-query/photo-definitions/useGetPhotoDefinitions';
 import { useBatchUpdatePhotoGroup } from '@/hooks/react-query/photo-groups/useBatchUpdatePhotoGroup';
 
-import { PhotoGroup, PhotoDefinition, CreatePhotoDefinitionRequest, UpdatePhotoDefinitionRequest, CrudPhotoGroupRequest, BatchPhotoDefinitionUpdate, BatchPhotoDefinitionCreate } from '@/ts/interfaces/PhotoGroups';
+import {
+  PhotoGroup,
+  PhotoDefinition,
+  CreatePhotoDefinitionRequest,
+  UpdatePhotoDefinitionRequest,
+  CrudPhotoGroupRequest,
+  BatchPhotoDefinitionUpdate,
+  BatchPhotoDefinitionCreate
+} from '@/ts/interfaces/PhotoGroups';
 import { CreatePhotoDefinitionDialog } from './CreatePhotoDefinitionDialog';
 import { EditPhotoDefinitionDialog } from './EditPhotoDefinitionDialog';
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
@@ -56,19 +64,14 @@ function DraggablePhotoDefinitionRow({
   isUpdating,
   pendingChanges
 }: DraggablePhotoDefinitionRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: definition.id });
+  const t = useTranslations('settings');
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: definition.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : 1
   };
 
   // Determine row styling based on pending changes
@@ -84,38 +87,34 @@ function DraggablePhotoDefinitionRow({
   return (
     <TableRow ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''} ${rowClassName}`}>
       <TableCell {...attributes} {...listeners}>
-        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+        <GripVertical className="text-muted-foreground h-4 w-4 cursor-grab active:cursor-grabbing" />
       </TableCell>
       <TableCell>
         <div>
           <div className="flex items-center gap-2">
             <div className="font-medium">{definition.name}</div>
             {definition.id.startsWith('temp-') && (
-              <Badge variant="default" className="bg-green-600 text-white text-xs">
+              <Badge variant="default" className="bg-green-600 text-xs text-white">
                 New
               </Badge>
             )}
             {pendingChanges.updates.has(definition.id) && !definition.id.startsWith('temp-') && (
-              <Badge variant="default" className="bg-blue-600 text-white text-xs">
+              <Badge variant="default" className="bg-blue-600 text-xs text-white">
                 Modified
               </Badge>
             )}
             {pendingChanges.deletes.has(definition.id) && (
               <Badge variant="destructive" className="text-xs">
-                Deleted
+                {t('fields.deleted')}
               </Badge>
             )}
           </div>
-          {definition.description && (
-            <div className="text-sm text-muted-foreground">
-              {definition.description}
-            </div>
-          )}
+          {definition.description && <div className="text-muted-foreground text-sm">{definition.description}</div>}
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={definition.isRequired ? "default" : "secondary"} className="text-xs">
-          {definition.isRequired ? "Yes" : "No"}
+        <Badge variant={definition.isRequired ? 'default' : 'secondary'} className="text-xs">
+          {definition.isRequired ? 'Yes' : 'No'}
         </Badge>
       </TableCell>
       <TableCell>
@@ -134,7 +133,7 @@ function DraggablePhotoDefinitionRow({
             size="sm"
             onClick={() => onDelete(definition)}
             disabled={isUpdating}
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+            className="text-destructive hover:text-destructive h-8 w-8 p-0"
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -150,6 +149,8 @@ interface PhotoDefinitionsManagerProps {
 }
 
 export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefinitionsManagerProps) {
+  const t = useTranslations('settings');
+
   const [editingDefinition, setEditingDefinition] = useState<PhotoDefinition | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showSaveConfirmationDialog, setShowSaveConfirmationDialog] = useState(false);
@@ -167,12 +168,13 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
   const { data: photoDefinitionsData, isLoading } = useGetPhotoDefinitions(photoGroup.id);
   const { mutate: batchUpdatePhotoGroup, isPending: isBulkUpdating } = useBatchUpdatePhotoGroup(companyId);
 
-  const photoDefinitions = localDefinitions.length > 0 ? localDefinitions : (photoDefinitionsData?.photoDefinitions || []);
+  const photoDefinitions =
+    localDefinitions.length > 0 ? localDefinitions : photoDefinitionsData?.photoDefinitions || [];
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates
     })
   );
 
@@ -185,7 +187,6 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
   }, [photoDefinitionsData?.photoDefinitions]);
 
   const handleCreateDefinition = (data: CreatePhotoDefinitionRequest) => {
-
     // Add to pending creates instead of immediately creating
     const newDefinition: BatchPhotoDefinitionCreate = {
       name: data.name,
@@ -196,12 +197,9 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
       order: localDefinitions.length + 1 // Add at the end
     };
 
-    setPendingChanges(prev => {
-
+    setPendingChanges((prev) => {
       // Check if a definition with the same name already exists in creates
-      const existingCreate = prev.creates.find(create =>
-        create.name === newDefinition.name
-      );
+      const existingCreate = prev.creates.find((create) => create.name === newDefinition.name);
 
       if (existingCreate) {
         return prev;
@@ -229,17 +227,16 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
       updatedAt: new Date().toISOString()
     };
 
-    setLocalDefinitions(prev => [...prev, tempDefinition]);
+    setLocalDefinitions((prev) => [...prev, tempDefinition]);
     setShowCreateDialog(false);
   };
 
   const handleUpdateDefinition = (data: UpdatePhotoDefinitionRequest) => {
     if (editingDefinition) {
-
       // If it's a temporary definition, update the create entry
       if (editingDefinition.id.startsWith('temp-')) {
         const tempIndex = editingDefinition.id.split('-')[1];
-        setPendingChanges(prev => ({
+        setPendingChanges((prev) => ({
           ...prev,
           creates: prev.creates.map((create, index) => {
             if (index === parseInt(tempIndex)) {
@@ -250,7 +247,7 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
         }));
       } else {
         // Update existing definition in pending changes
-        setPendingChanges(prev => {
+        setPendingChanges((prev) => {
           const newUpdates = new Map(prev.updates);
           const existingUpdate = newUpdates.get(editingDefinition.id) || {};
           newUpdates.set(editingDefinition.id, { ...existingUpdate, ...data });
@@ -259,31 +256,28 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
       }
 
       // Update local state immediately for UI feedback
-      setLocalDefinitions(prev => prev.map(def =>
-        def.id === editingDefinition.id ? { ...def, ...data } : def
-      ));
+      setLocalDefinitions((prev) => prev.map((def) => (def.id === editingDefinition.id ? { ...def, ...data } : def)));
 
       setEditingDefinition(null);
     }
   };
 
   const handleDeleteDefinition = (definition: PhotoDefinition) => {
-
     if (definition.id.startsWith('temp-')) {
       // Remove from creates and local state
       const tempIndex = parseInt(definition.id.split('-')[1]);
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
         creates: prev.creates.filter((_, index) => index !== tempIndex)
       }));
-      setLocalDefinitions(prev => prev.filter(def => def.id !== definition.id));
+      setLocalDefinitions((prev) => prev.filter((def) => def.id !== definition.id));
     } else {
       // Add to deletes and remove from local state
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
         deletes: new Set(Array.from(prev.deletes).concat(definition.id))
       }));
-      setLocalDefinitions(prev => prev.filter(def => def.id !== definition.id));
+      setLocalDefinitions((prev) => prev.filter((def) => def.id !== definition.id));
     }
   };
 
@@ -291,8 +285,8 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = localDefinitions.findIndex(def => def.id === active.id);
-      const newIndex = localDefinitions.findIndex(def => def.id === over?.id);
+      const oldIndex = localDefinitions.findIndex((def) => def.id === active.id);
+      const newIndex = localDefinitions.findIndex((def) => def.id === over?.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newDefinitions = arrayMove(localDefinitions, oldIndex, newIndex);
@@ -310,7 +304,7 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
           if (def.id.startsWith('temp-')) {
             // Update order in creates array
             const tempIndex = parseInt(def.id.split('-')[1]);
-            setPendingChanges(prev => ({
+            setPendingChanges((prev) => ({
               ...prev,
               creates: prev.creates.map((create, idx) => {
                 if (idx === tempIndex) {
@@ -321,7 +315,7 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
             }));
           } else {
             // Update order in updates map
-            setPendingChanges(prev => {
+            setPendingChanges((prev) => {
               const newUpdates = new Map(prev.updates);
               const existingUpdate = newUpdates.get(def.id) || {};
               newUpdates.set(def.id, { ...existingUpdate, order: newOrder });
@@ -334,13 +328,10 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
   };
 
   const hasPendingChanges = () => {
-    return pendingChanges.updates.size > 0 ||
-           pendingChanges.deletes.size > 0 ||
-           pendingChanges.creates.length > 0;
+    return pendingChanges.updates.size > 0 || pendingChanges.deletes.size > 0 || pendingChanges.creates.length > 0;
   };
 
   const handleSaveAllChanges = () => {
-
     // Build the batch data
     const batchData: CrudPhotoGroupRequest = {};
 
@@ -358,19 +349,19 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
     }
 
     // Smart optimization: filter creates and deletes
-    const optimizedCreates = pendingChanges.creates.filter(create => {
+    const optimizedCreates = pendingChanges.creates.filter((create) => {
       // Don't create if there's a delete with the same name (smart optimization)
-      const hasMatchingDelete = Array.from(pendingChanges.deletes).some(deleteId => {
-        const deletedDefinition = photoDefinitionsData?.photoDefinitions?.find(def => def.id === deleteId);
+      const hasMatchingDelete = Array.from(pendingChanges.deletes).some((deleteId) => {
+        const deletedDefinition = photoDefinitionsData?.photoDefinitions?.find((def) => def.id === deleteId);
         return deletedDefinition?.name === create.name;
       });
       return !hasMatchingDelete;
     });
 
-    const optimizedDeletes = Array.from(pendingChanges.deletes).filter(deleteId => {
+    const optimizedDeletes = Array.from(pendingChanges.deletes).filter((deleteId) => {
       // Don't delete if there's a create with the same name (smart optimization)
-      const deletedDefinition = photoDefinitionsData?.photoDefinitions?.find(def => def.id === deleteId);
-      const hasMatchingCreate = pendingChanges.creates.some(create => create.name === deletedDefinition?.name);
+      const deletedDefinition = photoDefinitionsData?.photoDefinitions?.find((def) => def.id === deleteId);
+      const hasMatchingCreate = pendingChanges.creates.some((create) => create.name === deletedDefinition?.name);
       return !hasMatchingCreate;
     });
 
@@ -383,18 +374,21 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
     if (optimizedDeletes.length > 0) {
       batchData.photoDefinitionsDeletes = optimizedDeletes;
     }
-    
-    batchUpdatePhotoGroup({ photoGroupId: photoGroup.id, data: batchData }, {
-      onSuccess: () => {
-        // Reset pending changes
-        setPendingChanges({
-          updates: new Map(),
-          deletes: new Set(),
-          creates: []
-        });
-        setShowSaveConfirmationDialog(false);
+
+    batchUpdatePhotoGroup(
+      { photoGroupId: photoGroup.id, data: batchData },
+      {
+        onSuccess: () => {
+          // Reset pending changes
+          setPendingChanges({
+            updates: new Map(),
+            deletes: new Set(),
+            creates: []
+          });
+          setShowSaveConfirmationDialog(false);
+        }
       }
-    });
+    );
   };
 
   const handleDiscardChanges = () => {
@@ -418,32 +412,32 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h4 className="text-md font-semibold">Photo Definitions</h4>
-          <p className="text-sm text-muted-foreground">
+          <h4 className="text-md font-semibold">{t('photos.definitionsTitle')}</h4>
+          <p className="text-muted-foreground text-sm">
             Manage the specific photo types that can be captured for this group
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} size="sm" disabled={isBulkUpdating}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Definition
+          <Plus className="mr-2 h-4 w-4" />
+          {t('fields.addDefinition')}
         </Button>
       </div>
 
       {/* Pending Changes Summary */}
       {hasPendingChanges() && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <span className="text-sm font-medium text-amber-800">Pending Changes:</span>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+              <span className="text-sm font-medium text-amber-800">{t('fields.pendingChanges')}</span>
               <span className="text-sm text-amber-700">
-                {pendingChanges.creates.length} new, {pendingChanges.updates.size} modified, {pendingChanges.deletes.size} deleted
+                {pendingChanges.creates.length} new, {pendingChanges.updates.size} modified,{' '}
+                {pendingChanges.deletes.size} deleted
               </span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <Button
                 onClick={handleDiscardChanges}
                 size="sm"
@@ -457,13 +451,12 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
                 onClick={() => setShowSaveConfirmationDialog(true)}
                 size="sm"
                 disabled={isBulkUpdating}
-                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
+                className="w-full bg-green-600 text-white hover:bg-green-700 sm:w-auto"
               >
-                <Save className="h-4 w-4 mr-2" />
-                {isBulkUpdating ? 'Saving...' : 'Save All'}
+                <Save className="mr-2 h-4 w-4" />
+                {isBulkUpdating ? t('actions.saving') : t('actions.saveAll')}
               </Button>
             </div>
-
           </div>
         </div>
       )}
@@ -471,36 +464,27 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
       {photoDefinitions.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-6">
-            <div className="text-muted-foreground mb-2">No photo definitions</div>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Create photo definitions to specify what types of photos can be captured for this group.
-            </p>
+            <div className="text-muted-foreground mb-2">{t('photos.noDefinitions')}</div>
+            <p className="text-muted-foreground mb-4 text-center text-sm">{t('photos.definitionsHint')}</p>
             <Button onClick={() => setShowCreateDialog(true)} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add First Definition
+              <Plus className="mr-2 h-4 w-4" />
+              {t('fields.addFirstDefinition')}
             </Button>
           </CardContent>
         </Card>
       ) : (
         <Card>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-8"></TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Required</TableHead>
-                  <TableHead className="w-20">Actions</TableHead>
+                  <TableHead>{t('fields.name')}</TableHead>
+                  <TableHead>{t('fields.required')}</TableHead>
+                  <TableHead className="w-20">{t('fields.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
-              <SortableContext
-                items={photoDefinitions.map(def => def.id)}
-                strategy={verticalListSortingStrategy}
-              >
+              <SortableContext items={photoDefinitions.map((def) => def.id)} strategy={verticalListSortingStrategy}>
                 <TableBody>
                   {photoDefinitions.map((definition) => {
                     return (
@@ -542,7 +526,7 @@ export function PhotoDefinitionsManager({ photoGroup, companyId }: PhotoDefiniti
       <ConfirmActionDialog
         open={showSaveConfirmationDialog}
         onOpenChange={setShowSaveConfirmationDialog}
-        title="Save Photo Definition Changes"
+        title={t('photos.saveDefinitions')}
         description={`You are about to save changes to photo definitions. This action will update all open services scheduled from today onwards, expire all user sessions (users will need to log in again), and apply changes to ${pendingChanges.creates.length} new, ${pendingChanges.updates.size} modified, and ${pendingChanges.deletes.size} deleted definitions. This operation cannot be undone.`}
         onConfirm={async () => {
           setShowSaveConfirmationDialog(false);

@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -19,14 +21,17 @@ export const useDeleteChecklistTemplate = () => {
       queryClient.invalidateQueries({ queryKey: ['checklist-templates'] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Checklist template deleted successfully',
+        title: translateMessage(
+          'toasts.checklistTemplateDeletedSuccessfully',
+          'Checklist template deleted successfully'
+        ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error deleting checklist template',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorDeletingChecklistTemplate', 'Error deleting checklist template'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

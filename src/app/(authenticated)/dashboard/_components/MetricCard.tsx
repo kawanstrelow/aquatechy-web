@@ -1,4 +1,5 @@
 import { Eye, EyeOff, DollarSign, Users, TrendingUp, Building2, Activity, AlertCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface MetricCardProps {
   title: string;
@@ -38,16 +39,28 @@ const getIcon = (type?: MetricCardProps['icon']) => {
   }
 };
 
-export function MetricCard({ title, value, subValue, isBlurred, showEyeIcon, onToggleBlur, trend, icon }: MetricCardProps) {
+export function MetricCard({
+  title,
+  value,
+  subValue,
+  isBlurred,
+  showEyeIcon,
+  onToggleBlur,
+  trend,
+  icon
+}: MetricCardProps) {
+  const t = useTranslations('dashboard');
   const hasData = value !== undefined && value !== null && value !== '';
-  const displayValue = hasData ? value : 'No data available';
+  const displayValue = hasData ? value : t('noData');
 
   return (
     <div className="flex flex-1 flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
       <div className="flex justify-between">
         <div className="flex items-center gap-2">
           {getIcon(icon)}
-          <h3 className="text-sm font-medium text-gray-500 truncate" title={title}>{truncateText(title)}</h3>
+          <h3 className="truncate text-sm font-medium text-gray-500" title={title}>
+            {truncateText(title)}
+          </h3>
         </div>
         {showEyeIcon && (
           <div className="cursor-pointer text-gray-400" onClick={onToggleBlur}>
@@ -56,11 +69,16 @@ export function MetricCard({ title, value, subValue, isBlurred, showEyeIcon, onT
         )}
       </div>
       <div className={`mt-2 ${isBlurred ? 'blur-md' : ''}`}>
-        <p className={`text-2xl font-semibold ${hasData ? 'text-gray-900' : 'text-gray-400'} truncate`} title={displayValue.toString()}>
+        <p
+          className={`text-2xl font-semibold ${hasData ? 'text-gray-900' : 'text-gray-400'} truncate`}
+          title={displayValue.toString()}
+        >
           {truncateText(displayValue.toString())}
         </p>
         {subValue && hasData && (
-          <p className="text-sm text-gray-600 truncate" title={subValue}>{truncateText(subValue)}</p>
+          <p className="truncate text-sm text-gray-600" title={subValue}>
+            {truncateText(subValue)}
+          </p>
         )}
       </div>
       {trend && hasData && (
@@ -72,4 +90,4 @@ export function MetricCard({ title, value, subValue, isBlurred, showEyeIcon, onT
       )}
     </div>
   );
-} 
+}

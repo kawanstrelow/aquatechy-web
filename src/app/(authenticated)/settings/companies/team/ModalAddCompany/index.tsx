@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { useEffect, useState } from 'react';
@@ -22,57 +24,59 @@ import { FieldType } from '@/ts/enums/enums';
 const schema = z.object({
   name: z
     .string({
-      required_error: 'name is required.',
-      invalid_type_error: 'name must be a string.'
+      required_error: 'settings.errors.nameRequired',
+      invalid_type_error: 'settings.errors.nameInvalidType'
     })
     .trim()
-    .min(1, { message: 'name must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.nameMin' }),
   email: z
     .string({
-      required_error: 'email is required.',
-      invalid_type_error: 'email must be a string.'
+      required_error: 'settings.errors.emailRequired',
+      invalid_type_error: 'settings.errors.emailInvalidType'
     })
-    .email({ message: 'Invalid e-mail.' }),
+    .email({ message: 'settings.errors.emailInvalid' }),
   phone: z
     .string({
-      required_error: 'Phone is required.',
-      invalid_type_error: 'Phone must be a string.'
+      required_error: 'settings.errors.phoneRequired',
+      invalid_type_error: 'settings.errors.phoneInvalidType'
     })
     .trim()
-    .min(1, { message: 'phone1 must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.phoneMin' }),
   address: z
     .string({
-      required_error: 'address is required.',
-      invalid_type_error: 'address must be a string.'
+      required_error: 'settings.errors.addressRequired',
+      invalid_type_error: 'settings.errors.addressInvalidType'
     })
     .trim()
-    .min(1, { message: 'address must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.addressMin' }),
   city: z
     .string({
-      required_error: 'city is required.',
-      invalid_type_error: 'city must be a string.'
+      required_error: 'settings.errors.cityRequired',
+      invalid_type_error: 'settings.errors.cityInvalidType'
     })
     .trim()
-    .min(1, { message: 'city must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.cityMin' }),
   state: z
     .string({
-      required_error: 'state is required.',
-      invalid_type_error: 'state must be a string.'
+      required_error: 'settings.errors.stateRequired',
+      invalid_type_error: 'settings.errors.stateInvalidType'
     })
     .trim()
-    .min(1, { message: 'state must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.stateMin' }),
   zip: z
     .string({
-      required_error: 'zip is required.',
-      invalid_type_error: 'zip must be a string.'
+      required_error: 'settings.errors.zipRequired',
+      invalid_type_error: 'settings.errors.zipInvalidType'
     })
     .trim()
-    .min(1, { message: 'zip must be at least 1 character.' })
+    .min(1, { message: 'settings.errors.zipMin' })
 });
 
 export type CreateRequest = z.infer<typeof schema>;
 
 export function ModalAddCompany() {
+  const t = useTranslations('settings');
+
   const [open, setOpen] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const { mutate: createCompany, isPending: isPendingCreate } = useCreateCompany();
@@ -114,34 +118,34 @@ export function ModalAddCompany() {
       <DialogTrigger asChild>
         <Button>
           <PlusIcon className="mr-2" />
-          Create company
+          {t('companies.createCompany')}
         </Button>
       </DialogTrigger>
       <DialogContent className="w-96 rounded-md md:w-[680px]">
         <Form {...form}>
           <form className="flex flex-col gap-4" onSubmit={form.handleSubmit((data) => handleSubmit(data))}>
-            <DialogTitle>New company</DialogTitle>
+            <DialogTitle>{t('companies.newCompany')}</DialogTitle>
 
             <CompanyLogoPicker
               value={logoFile}
               onChange={setLogoFile}
-              companyName={form.watch('name') || 'Company'}
+              companyName={form.watch('name') || t('company')}
               className="bg-white"
             />
 
             <div className="flex gap-4">
-              <InputField name="name" placeholder="Name" />
+              <InputField name="name" placeholder={t('fields.name')} />
             </div>
             <div className="flex gap-4">
-              <InputField name="email" placeholder="Email" />
+              <InputField name="email" placeholder={t('fields.email')} />
             </div>
             <div className="flex gap-4">
-              <InputField name="phone" placeholder="Phone" type={FieldType.Phone} />
+              <InputField name="phone" placeholder={t('phone')} type={FieldType.Phone} />
             </div>
             <div className="flex gap-4">
               <AddressInput
                 name="address"
-                placeholder="Enter address"
+                placeholder={t('fields.enterAddress')}
                 onAddressSelect={({ state, city, zipCode }) => {
                   form.setValue('state', state, { shouldValidate: true });
                   form.setValue('city', city, { shouldValidate: true });
@@ -153,11 +157,11 @@ export function ModalAddCompany() {
               <CompanyStateAndCitySelect stateName="state" cityName="city" showLabels={false} />
             </div>
             <div className="flex gap-4">
-              <InputField name="zip" placeholder="Zip" />
+              <InputField name="zip" placeholder={t('fields.zip')} />
             </div>
 
             <Button className="w-full" type="submit">
-              Create
+              {t('actions.create')}
             </Button>
           </form>
         </Form>

@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,9 +24,9 @@ import { Switch } from '@/components/ui/switch';
 import { PhotoGroup, UpdatePhotoGroupRequest } from '@/ts/interfaces/PhotoGroups';
 
 const updatePhotoGroupSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
-  isActive: z.boolean().optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
+  isActive: z.boolean().optional()
 });
 
 type UpdatePhotoGroupFormData = z.infer<typeof updatePhotoGroupSchema>;
@@ -35,15 +44,17 @@ export function EditPhotoGroupDialog({
   onOpenChange,
   photoGroup,
   onSubmit,
-  isLoading = false,
+  isLoading = false
 }: EditPhotoGroupDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<UpdatePhotoGroupFormData>({
     resolver: zodResolver(updatePhotoGroupSchema),
     defaultValues: {
       name: '',
       description: '',
-      isActive: true,
-    },
+      isActive: true
+    }
   });
 
   useEffect(() => {
@@ -51,7 +62,7 @@ export function EditPhotoGroupDialog({
       form.reset({
         name: photoGroup.name,
         description: photoGroup.description || '',
-        isActive: photoGroup.isActive,
+        isActive: photoGroup.isActive
       });
     }
   }, [photoGroup, form]);
@@ -60,7 +71,7 @@ export function EditPhotoGroupDialog({
     onSubmit({
       name: data.name,
       description: data.description || undefined,
-      isActive: data.isActive,
+      isActive: data.isActive
     });
   };
 
@@ -68,10 +79,8 @@ export function EditPhotoGroupDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Photo Group</DialogTitle>
-          <DialogDescription>
-            Update the photo group details.
-          </DialogDescription>
+          <DialogTitle>{t('photos.editGroup')}</DialogTitle>
+          <DialogDescription>{t('photos.editGroupDescription')}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -80,9 +89,9 @@ export function EditPhotoGroupDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t('fields.name')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Before Photos, Equipment Photos" {...field} />
+                    <Input placeholder={t('photos.groupPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -93,10 +102,10 @@ export function EditPhotoGroupDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Optional description for this photo group"
+                      placeholder={t('photos.groupDescriptionPlaceholder')}
                       className="resize-none"
                       {...field}
                     />
@@ -111,7 +120,7 @@ export function EditPhotoGroupDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel>Active</FormLabel>
+                    <FormLabel>{t('statuses.Active')}</FormLabel>
                     <div className="text-sm text-muted-foreground">
                       Enable or disable this photo group
                     </div>
@@ -125,12 +134,12 @@ export function EditPhotoGroupDialog({
                 </FormItem>
               )}
             /> */}
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end w-full">
+            <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Photo Group'}
+                {isLoading ? t('actions.updating') : t('photos.updateGroup')}
               </Button>
             </DialogFooter>
           </form>

@@ -1,9 +1,11 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import 'quill/dist/quill.snow.css';
 
 import React, { useEffect, useRef } from 'react';
 
 const QuillEditor = () => {
+  const t = useTranslations('clients');
   const editorRef = useRef<HTMLDivElement>(null);
   const quillInstanceRef = useRef<any>(null); // Usando apenas useRef para a instância
   const isInitialized = useRef(false); // Controla a inicialização para garantir que Quill só seja inicializado uma vez
@@ -59,7 +61,7 @@ const QuillEditor = () => {
           const htmlContent = quillInstanceRef.current?.root.innerHTML;
         }}
       >
-        Obter conteúdo HTML
+        {t('editors.getHtml')}
       </button>
     </div>
   );

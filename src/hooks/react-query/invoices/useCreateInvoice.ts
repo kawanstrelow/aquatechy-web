@@ -6,6 +6,8 @@ import { CreateInvoiceAsDraftRequest, CreateInvoiceAsDraftResponse } from '@/ts/
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useCreateInvoice = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -33,7 +35,7 @@ export const useCreateInvoice = () => {
 
       toast({
         duration: 2000,
-        title: 'Invoice created successfully',
+        title: translateMessage('toasts.invoiceCreatedSuccessfully', 'Invoice created successfully'),
         variant: 'success'
       });
     },
@@ -45,12 +47,12 @@ export const useCreateInvoice = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to create invoice';
+        : errorMessage || translateMessage('toasts.failedToCreateInvoice', 'Failed to create invoice');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating invoice',
+        title: translateMessage('toasts.errorCreatingInvoice', 'Error creating invoice'),
         description: message
       });
     }

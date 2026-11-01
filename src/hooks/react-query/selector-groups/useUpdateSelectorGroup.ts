@@ -3,6 +3,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { UpdateSelectorGroupRequest, SelectorGroupResponse } from '@/ts/interfaces/SelectorGroups';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface UpdateSelectorGroupParams {
   selectorGroupId: string;
   data: UpdateSelectorGroupRequest;
@@ -24,7 +26,7 @@ export function useUpdateSelectorGroup() {
       queryClient.invalidateQueries({ queryKey: ['selectorOptions'] });
       toast({
         duration: 2000,
-        title: 'Selector group updated successfully',
+        title: translateMessage('toasts.selectorGroupUpdatedSuccessfully', 'Selector group updated successfully'),
         variant: 'success'
       });
     },
@@ -32,9 +34,10 @@ export function useUpdateSelectorGroup() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating selector group',
-        description: error.response?.data?.message || 'Internal server error'
+        title: translateMessage('toasts.errorUpdatingSelectorGroup', 'Error updating selector group'),
+        description:
+          error.response?.data?.message || translateMessage('toasts.internalServerError', 'Internal server error')
       });
-    },
+    }
   });
 }

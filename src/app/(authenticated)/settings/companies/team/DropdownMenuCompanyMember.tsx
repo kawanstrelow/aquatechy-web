@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 
@@ -31,6 +32,8 @@ export default function DropdownMenuCompanyMember({
   role,
   actorRole
 }: Props) {
+  const t = useTranslations('settings');
+  const common = useTranslations('common');
   const { isPending, mutate } = useDeleteCompanyMember();
 
   const handleDelete = () => {
@@ -66,29 +69,29 @@ export default function DropdownMenuCompanyMember({
               actorRole={actorRole}
             >
               <div className="flex w-full cursor-pointer items-center rounded p-1 text-gray-700 hover:bg-blue-50">
-                Edit
+                {common('edit')}
               </div>
             </ModalEditCompanyMember>
 
             <DialogTrigger asChild>
               <div className="flex w-full cursor-pointer items-center rounded p-1 text-red-500 hover:bg-blue-50">
-                Delete
+                {common('delete')}
               </div>
             </DialogTrigger>
           </DropdownMenuContent>
         </DropdownMenu>
 
         <DialogContent>
-          <DialogTitle className="text-center">Are you sure?</DialogTitle>
-          <DialogDescription>Once you remove this member, you will lose all the information.</DialogDescription>
+          <DialogTitle className="text-center">{t('companies.areYouSure')}</DialogTitle>
+          <DialogDescription>{t('companies.removeMemberDescription')}</DialogDescription>
           <div className="flex justify-around">
             <DialogTrigger asChild>
               <Button variant={'destructive'} onClick={handleDelete}>
-                Delete
+                {common('delete')}
               </Button>
             </DialogTrigger>
             <DialogTrigger asChild>
-              <Button variant={'outline'}>Cancel</Button>
+              <Button variant={'outline'}>{common('cancel')}</Button>
             </DialogTrigger>
           </div>
         </DialogContent>

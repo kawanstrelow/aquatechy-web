@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl';
+
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -9,16 +11,18 @@ type Props = {
 };
 
 export function ModalDeactivateClient({ open, setOpen, handleSubmit, isActive }: Props) {
+  const t = useTranslations('clients');
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="mb-2">Are you sure?</DialogTitle>
+          <DialogTitle className="mb-2">{t('shared.areYouSure')}</DialogTitle>
           <DialogDescription className="text-start">
-            This action will {isActive ? 'mark the client as inactive' : 'activate the client'}.{' '}
-            {isActive
-              ? 'The client will no longer be active but their data will be preserved.'
-              : 'The client will be active again.'}
+            {t('list.deactivateLead', {
+              action: isActive ? t('list.deactivateMark') : t('list.deactivateActivate'),
+              detail: isActive ? t('list.deactivatePreserved') : t('list.deactivateAgain')
+            })}
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-around">
@@ -29,16 +33,13 @@ export function ModalDeactivateClient({ open, setOpen, handleSubmit, isActive }:
             }}
             variant={isActive ? 'destructive' : 'default'}
           >
-            {isActive ? 'Deactivate' : 'Activate'}
+            {isActive ? t('shared.deactivate') : t('shared.activate')}
           </Button>
-          <Button
-            onClick={() => setOpen(false)}
-            variant={'outline'}
-          >
-            Cancel
+          <Button onClick={() => setOpen(false)} variant={'outline'}>
+            {t('shared.cancel')}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
-} 
+}

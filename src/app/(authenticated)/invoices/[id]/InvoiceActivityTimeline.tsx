@@ -2,7 +2,9 @@
 
 import { useMemo } from 'react';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
+import { translateMessage } from '@/i18n/runtime';
 import type { Invoice } from '@/ts/interfaces/Invoice';
 
 function formatMoneyFromCents(cents: number): string {
@@ -36,9 +38,9 @@ function buildTimelineRows(inv: Invoice): TimelineRow[] {
     rows.push({ id, at: d, title, detail });
   };
 
-  push('created', 'Created', inv.createdAt);
-  push('paid', 'Paid', inv.paidAt);
-  push('cancelled', 'Cancelled', inv.cancelledAt);
+  push('created', translateMessage('invoices.timeline.created', 'Created'), inv.createdAt);
+  push('paid', translateMessage('invoices.timeline.paid', 'Paid'), inv.paidAt);
+  push('cancelled', translateMessage('invoices.timeline.cancelled', 'Cancelled'), inv.cancelledAt);
 
   const refundedAt = parseDate(inv.refundedAt);
   if (refundedAt) {
@@ -49,16 +51,22 @@ function buildTimelineRows(inv: Invoice): TimelineRow[] {
     let detail: string | undefined;
 
     if (status === 'full') {
-      title = 'Full refund';
+      title = translateMessage('invoices.timeline.fullRefund', 'Full refund');
     } else if (status === 'partial') {
-      title = 'Partial refund';
+      title = translateMessage('invoices.timeline.partialRefund', 'Partial refund');
       if (refundedCents > 0) {
-        detail = `${formatMoneyFromCents(refundedCents)} refunded`;
+        detail = translateMessage('invoices.timeline.amountRefunded', '{amount} refunded').replace(
+          '{amount}',
+          formatMoneyFromCents(refundedCents)
+        );
       }
     } else {
-      title = 'Refunded';
+      title = translateMessage('invoices.timeline.refunded', 'Refunded');
       if (refundedCents > 0) {
-        detail = `${formatMoneyFromCents(refundedCents)} refunded`;
+        detail = translateMessage('invoices.timeline.amountRefunded', '{amount} refunded').replace(
+          '{amount}',
+          formatMoneyFromCents(refundedCents)
+        );
       }
     }
 
@@ -75,6 +83,7 @@ type Props = {
 };
 
 export function InvoiceActivityTimeline({ invoice }: Props) {
+  const t = useTranslations('invoices');
   const rows = useMemo(() => buildTimelineRows(invoice), [invoice]);
 
   if (rows.length === 0) {
@@ -83,10 +92,10 @@ export function InvoiceActivityTimeline({ invoice }: Props) {
 
   return (
     <section
-      aria-label="Invoice activity"
+      aria-label={t('timeline.invoiceActivity')}
       className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
     >
-      <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-500">Timeline</h3>
+      <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('timeline.title')}</h3>
       <ol className="flex flex-col">
         {rows.map(({ id, at, title, detail }, idx) => {
           const last = idx === rows.length - 1;
@@ -99,11 +108,9 @@ export function InvoiceActivityTimeline({ invoice }: Props) {
                 />
                 {!last ? <span className="mt-2 min-h-14 w-px grow bg-gray-200" aria-hidden /> : null}
               </div>
-              <div className={`min-w-0 flex-1 flex flex-col gap-1 ${last ? '' : 'pb-6'}`}>
+              <div className={`flex min-w-0 flex-1 flex-col gap-1 ${last ? '' : 'pb-6'}`}>
                 <span className="text-sm font-medium text-gray-900">{title}</span>
-                {detail ? (
-                  <span className="text-xs text-gray-600">{detail}</span>
-                ) : null}
+                {detail ? <span className="text-xs text-gray-600">{detail}</span> : null}
                 <time className="text-xs tabular-nums text-gray-600" dateTime={at.toISOString()}>
                   {format(at, 'MMM d, yyyy · h:mm a')}
                 </time>

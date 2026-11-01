@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Loader2Icon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -11,19 +12,19 @@ type Props = {
 };
 
 export function ModalDeleteClient({ open, setOpen, handleSubmit, isPending = false }: Props) {
+  const t = useTranslations('clients');
+
   return (
     <Dialog open={open} onOpenChange={(next) => !isPending && setOpen(next)}>
       <DialogContent>
         <DialogHeader className="space-y-3">
-          <DialogTitle>Are you sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. Once you delete the client, you will lose all the information related.
-          </DialogDescription>
+          <DialogTitle>{t('list.deleteClientTitle')}</DialogTitle>
+          <DialogDescription>{t('list.deleteClientDescription')}</DialogDescription>
         </DialogHeader>
         <div className="flex w-full gap-3">
           <Button onClick={handleSubmit} disabled={isPending} variant="destructive" className="flex-1">
             {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-            Delete
+            {t('shared.delete')}
           </Button>
           <Button
             onClick={() => setOpen(false)}
@@ -31,7 +32,7 @@ export function ModalDeleteClient({ open, setOpen, handleSubmit, isPending = fal
             variant="outline"
             className="flex-1 border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50"
           >
-            Cancel
+            {t('shared.cancel')}
           </Button>
         </div>
       </DialogContent>

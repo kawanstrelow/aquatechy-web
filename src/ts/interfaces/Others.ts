@@ -16,11 +16,16 @@ export type SelectOption = {
   key: string;
 };
 
-export type Menu = {
+export type MenuLink = {
+  i18nKey: string;
   text: string;
   href: string;
-  submenu?: Record<string, { text: string; href: string; title: string; description?: string; icon?: React.FC }>;
-  icon: React.FC;
   title: string;
   description?: string;
+  icon?: React.FC;
+};
+
+export type Menu = MenuLink & {
+  submenu?: Record<string, MenuLink>;
+  icon: React.FC;
 };

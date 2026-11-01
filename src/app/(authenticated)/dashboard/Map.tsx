@@ -1,14 +1,17 @@
 'use client';
 
-import { DirectionsRenderer, GoogleMap, InfoBox, Marker } from '@react-google-maps/api';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Colors } from '@/constants/colors';
-import { Assignment } from '@/ts/interfaces/Assignments';
-import { useState } from 'react';
-import { Typography } from '@/components/Typography';
+import { GoogleMap, InfoBox, Marker } from '@react-google-maps/api';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Typography } from '@/components/Typography';
+import { Button } from '@/components/ui/button';
+import { Weekdays } from '@/constants';
+import { translateOptionLabel } from '@/i18n/runtime';
+import { Assignment } from '@/ts/interfaces/Assignments';
 
 type DirectionsResult = google.maps.DirectionsResult | null;
 
@@ -40,21 +43,27 @@ type Props = {
   loadError: Error | undefined;
 };
 
-const weekdayOptions: { [key: string]: { iconColor: string; textColor: string; label: string } } = {
-  MONDAY: { iconColor: '#FF0000', textColor: '#FFFFFF', label: 'Monday' }, // Red
-  TUESDAY: { iconColor: '#FFA500', textColor: '#FFFFFF', label: 'Tuesday' }, // Orange
-  WEDNESDAY: { iconColor: '#FFE201', textColor: '#000000', label: 'Wednesday' }, // Yellow
-  THURSDAY: { iconColor: '#008000', textColor: '#FFFFFF', label: 'Thursday' }, // Green
-  FRIDAY: { iconColor: '#0000FF', textColor: '#FFFFFF', label: 'Friday' }, // Blue
-  SATURDAY: { iconColor: '#4B0082', textColor: '#FFFFFF', label: 'Saturday' }, // Indigo
-  SUNDAY: { iconColor: '#EE82EE', textColor: '#000000', label: 'Sunday' } // Violet
+const weekdayOptions: { [key: string]: { iconColor: string; textColor: string } } = {
+  MONDAY: { iconColor: '#FF0000', textColor: '#FFFFFF' },
+  TUESDAY: { iconColor: '#FFA500', textColor: '#FFFFFF' },
+  WEDNESDAY: { iconColor: '#FFE201', textColor: '#000000' },
+  THURSDAY: { iconColor: '#008000', textColor: '#FFFFFF' },
+  FRIDAY: { iconColor: '#0000FF', textColor: '#FFFFFF' },
+  SATURDAY: { iconColor: '#4B0082', textColor: '#FFFFFF' },
+  SUNDAY: { iconColor: '#EE82EE', textColor: '#000000' }
 };
 
+function weekdayLabel(weekday: string) {
+  const option = Weekdays.find((day) => day.value === weekday);
+  return option ? translateOptionLabel(option) : weekday;
+}
+
 const Map = ({ assignments, isLoaded, loadError }: Props) => {
+  const t = useTranslations('dashboard');
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
 
   if (loadError) {
-    return <div>Error loading maps</div>;
+    return <div>{t('mapError')}</div>;
   }
 
   if (!isLoaded) {
@@ -131,7 +140,7 @@ const Map = ({ assignments, isLoaded, loadError }: Props) => {
                     style={{ backgroundColor: weekdayOptions[selectedAssignment.weekday].iconColor }}
                   />
                   <Typography element="h3" className="font-semibold">
-                    {weekdayOptions[selectedAssignment.weekday].label}
+                    {weekdayLabel(selectedAssignment.weekday)}
                   </Typography>
                 </div>
                 <Button
@@ -144,23 +153,23 @@ const Map = ({ assignments, isLoaded, loadError }: Props) => {
               </div>
               <div className="space-y-1">
                 <Typography element="p" className="text-sm">
-                  <span className="font-semibold">Owner </span>
+                  <span className="font-semibold">{t('owner')} </span>
                   {selectedAssignment.pool.name.trim().split('-')[0]}
                 </Typography>
                 <Typography element="p" className="text-sm">
-                  <span className="font-semibold">Address </span>
+                  <span className="font-semibold">{t('addressLabel')} </span>
                   {`${selectedAssignment.pool.address}, ${selectedAssignment.pool.city}, ${selectedAssignment.pool.zip}`}
                 </Typography>
                 <div>
                   <Typography element="p" className="text-sm font-semibold">
-                    Hour
+                    {t('hour')}
                   </Typography>
                   <Typography element="p" className="text-sm">
-                    <span>Start </span>
+                    <span>{t('start')} </span>
                     {format(selectedAssignment.startOn, 'hh:mm a')}
                   </Typography>
                   <Typography element="p" className="text-sm">
-                    <span>End </span> {format(selectedAssignment.endAfter, 'hh:mm a')}
+                    <span>{t('end')} </span> {format(selectedAssignment.endAfter, 'hh:mm a')}
                   </Typography>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { DirectionsRenderer, GoogleMap, Marker } from '@react-google-maps/api';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -69,6 +70,7 @@ const Map = ({
   fitBoundsPadding,
   compact
 }: Props) => {
+  const t = useTranslations('routes');
   const { width } = useWindowDimensions();
   const mapRef = useRef<google.maps.Map | null>(null);
   const hasZoomedRef = useRef(false);
@@ -114,7 +116,7 @@ const Map = ({
   }, [height, serviceIds, isLoaded]);
 
   if (loadError) {
-    return <div>Error loading maps</div>;
+    return <div>{t('errorLoadingMaps')}</div>;
   }
 
   if (!isLoaded) {
@@ -142,9 +144,9 @@ const Map = ({
             compact ? 'bottom-2 left-2 text-xs' : 'ml-2.5 mt-16 sm:right-24 sm:mt-2.5'
           )}
         >
-          <h3 className="py-1">Distance: {distance}</h3>
+          <h3 className="py-1">{t('distance', { value: distance })}</h3>
           <Separator />
-          <h3 className="py-1">Drive time: {duration}</h3>
+          <h3 className="py-1">{t('driveTime', { value: duration })}</h3>
         </div>
       )}
 

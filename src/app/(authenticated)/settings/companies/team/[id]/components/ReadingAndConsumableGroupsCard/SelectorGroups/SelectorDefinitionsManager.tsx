@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,7 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2, Settings, GripVertical, Save } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -15,11 +22,11 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useGetSelectorDefinitions } from '@/hooks/react-query/selector-definitions/useGetSelectorDefinitions';
 import { useBatchUpdateSelectorGroup } from '@/hooks/react-query/selector-groups/useBatchUpdateSelectorGroup';
 
-import { 
-  SelectorDefinition, 
-  SelectorOption, 
-  CrudSelectorGroupRequest, 
-  BatchSelectorDefinitionUpdate, 
+import {
+  SelectorDefinition,
+  SelectorOption,
+  CrudSelectorGroupRequest,
+  BatchSelectorDefinitionUpdate,
   BatchSelectorDefinitionCreate,
   BatchSelectorOptionUpdate,
   BatchSelectorOptionCreate
@@ -36,39 +43,33 @@ const SELECTOR_LIMITS = {
   definitionQuestion: { min: 1, max: 200 },
   definitionDescription: { max: 500 },
   optionText: { min: 1, max: 50 },
-  optionValue: { min: 1, max: 50 },
+  optionValue: { min: 1, max: 50 }
 } as const;
 
 const selectorDefinitionQuestionSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.definitionQuestion.min, 'Question is required')
-  .max(
-    SELECTOR_LIMITS.definitionQuestion.max,
-    `Question must be at most ${SELECTOR_LIMITS.definitionQuestion.max} characters`
-  );
+  .min(SELECTOR_LIMITS.definitionQuestion.min, 'settings.errors.questionRequired')
+  .max(SELECTOR_LIMITS.definitionQuestion.max, 'settings.errors.questionMax');
 
 const selectorDefinitionDescriptionSchema = z
   .string()
   .trim()
-  .max(
-    SELECTOR_LIMITS.definitionDescription.max,
-    `Description must be at most ${SELECTOR_LIMITS.definitionDescription.max} characters`
-  );
+  .max(SELECTOR_LIMITS.definitionDescription.max, 'settings.errors.descriptionMaxDynamic');
 
 const selectorOptionTextSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.optionText.min, 'Display text is required')
-  .max(SELECTOR_LIMITS.optionText.max, `Display text must be at most ${SELECTOR_LIMITS.optionText.max} characters`);
+  .min(SELECTOR_LIMITS.optionText.min, 'settings.errors.displayTextRequired')
+  .max(SELECTOR_LIMITS.optionText.max, 'settings.errors.displayTextMax');
 
 const selectorOptionValueSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.optionValue.min, 'Value is required')
-  .max(SELECTOR_LIMITS.optionValue.max, `Value must be at most ${SELECTOR_LIMITS.optionValue.max} characters`);
+  .min(SELECTOR_LIMITS.optionValue.min, 'settings.errors.valueRequired')
+  .max(SELECTOR_LIMITS.optionValue.max, 'settings.errors.valueMax');
 
-const nonNegativeOrderSchema = z.number().int().min(0, 'Order must be 0 or greater');
+const nonNegativeOrderSchema = z.number().int().min(0, 'settings.errors.orderMin');
 
 function getSelectorDefinitionQuestionError(question: string): string | undefined {
   const r = selectorDefinitionQuestionSchema.safeParse(question);
@@ -135,11 +136,7 @@ function validateBatchOptionCreate(row: BatchSelectorOptionCreate): string | und
   return undefined;
 }
 
-function validateBatchOptionUpdate(update: {
-  text?: string;
-  value?: string;
-  order?: number;
-}): string | undefined {
+function validateBatchOptionUpdate(update: { text?: string; value?: string; order?: number }): string | undefined {
   if (update.text !== undefined) {
     const t = getSelectorOptionTextError(update.text);
     if (t) return t;
@@ -203,27 +200,22 @@ interface DraggableSelectorDefinitionRowProps {
   };
 }
 
-function DraggableSelectorDefinitionRow({ 
-  definition, 
-  onEdit, 
-  onDelete, 
-  onManageOptions, 
-  isUpdating, 
-  pendingChanges 
+function DraggableSelectorDefinitionRow({
+  definition,
+  onEdit,
+  onDelete,
+  onManageOptions,
+  isUpdating,
+  pendingChanges
 }: DraggableSelectorDefinitionRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: definition.id });
+  const t = useTranslations('settings');
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: definition.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : 1
   };
 
   // Determine row styling based on pending changes
@@ -239,44 +231,38 @@ function DraggableSelectorDefinitionRow({
   return (
     <TableRow ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''} ${rowClassName}`}>
       <TableCell {...attributes} {...listeners}>
-        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+        <GripVertical className="text-muted-foreground h-4 w-4 cursor-grab active:cursor-grabbing" />
       </TableCell>
       <TableCell>
         <div>
           <div className="flex items-center gap-2">
             <div className="font-medium">{definition.question}</div>
             {definition.id.startsWith('temp-') && (
-              <Badge variant="default" className="bg-green-600 text-white text-xs">
+              <Badge variant="default" className="bg-green-600 text-xs text-white">
                 New
               </Badge>
             )}
             {pendingChanges.definitionUpdates.has(definition.id) && !definition.id.startsWith('temp-') && (
-              <Badge variant="default" className="bg-blue-600 text-white text-xs">
+              <Badge variant="default" className="bg-blue-600 text-xs text-white">
                 Modified
               </Badge>
             )}
             {pendingChanges.definitionDeletes.has(definition.id) && (
               <Badge variant="destructive" className="text-xs">
-                Deleted
+                {t('fields.deleted')}
               </Badge>
             )}
           </div>
-          {definition.description && (
-            <div className="text-sm text-muted-foreground mt-1">
-              {definition.description}
-            </div>
-          )}
+          {definition.description && <div className="text-muted-foreground mt-1 text-sm">{definition.description}</div>}
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={definition.isRequired ? "default" : "secondary"} className="text-xs">
-          {definition.isRequired ? "Required" : "Optional"}
+        <Badge variant={definition.isRequired ? 'default' : 'secondary'} className="text-xs">
+          {definition.isRequired ? 'Required' : 'Optional'}
         </Badge>
       </TableCell>
       <TableCell>
-        <div className="text-sm text-muted-foreground">
-          {definition.options?.length || 0} options
-        </div>
+        <div className="text-muted-foreground text-sm">{definition.options?.length || 0} options</div>
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
@@ -286,7 +272,7 @@ function DraggableSelectorDefinitionRow({
             onClick={() => onManageOptions(definition)}
             disabled={isUpdating}
             className="h-8 w-8 p-0"
-            title="Manage Options"
+            title={t('selectors.manageOptions')}
           >
             <Settings className="h-3 w-3" />
           </Button>
@@ -296,7 +282,7 @@ function DraggableSelectorDefinitionRow({
             onClick={() => onEdit(definition)}
             disabled={isUpdating}
             className="h-8 w-8 p-0"
-            title="Edit Question"
+            title={t('selectors.editQuestion')}
           >
             <Edit className="h-3 w-3" />
           </Button>
@@ -305,8 +291,8 @@ function DraggableSelectorDefinitionRow({
             size="sm"
             onClick={() => onDelete(definition)}
             disabled={isUpdating}
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-            title="Delete Question"
+            className="text-destructive hover:text-destructive h-8 w-8 p-0"
+            title={t('selectors.deleteQuestion')}
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -322,7 +308,12 @@ interface SelectorDefinitionsManagerProps {
   companyId: string;
 }
 
-export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName, companyId }: SelectorDefinitionsManagerProps) {
+export function SelectorDefinitionsManager({
+  selectorGroupId,
+  selectorGroupName,
+  companyId
+}: SelectorDefinitionsManagerProps) {
+  const t = useTranslations('settings');
   const [editingDefinition, setEditingDefinition] = useState<SelectorDefinition | null>(null);
   const [managingOptionsForDefinition, setManagingOptionsForDefinition] = useState<SelectorDefinition | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -348,7 +339,7 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
   const { mutate: batchUpdateSelectorGroup, isPending: isBulkUpdating } = useBatchUpdateSelectorGroup(companyId);
   const { toast } = useToast();
 
-  const definitions = localDefinitions.length > 0 ? localDefinitions : (definitionsData?.selectorDefinitions || []);
+  const definitions = localDefinitions.length > 0 ? localDefinitions : definitionsData?.selectorDefinitions || [];
 
   // Initialize local definitions when data loads
   useEffect(() => {
@@ -362,16 +353,14 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates
     })
   );
 
   const handleCreateDefinition = (data: any) => {
     // Check if a definition with the same question already exists in creates
-    const existingCreate = pendingChanges.definitionCreates.find(create => 
-      create.question === data.question
-    );
-    
+    const existingCreate = pendingChanges.definitionCreates.find((create) => create.question === data.question);
+
     if (existingCreate) {
       return; // Prevent duplicate creation
     }
@@ -384,7 +373,7 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
     };
 
     // Add to pending creates
-    setPendingChanges(prev => ({
+    setPendingChanges((prev) => ({
       ...prev,
       definitionCreates: [...prev.definitionCreates, newDefinition]
     }));
@@ -402,7 +391,7 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
       options: []
     };
 
-    setLocalDefinitions(prev => [...prev, tempDefinition]);
+    setLocalDefinitions((prev) => [...prev, tempDefinition]);
     setShowCreateDialog(false);
   };
 
@@ -411,17 +400,15 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
       // Don't update temporary definitions in pending changes
       if (editingDefinition.id.startsWith('temp-')) {
         // Update the create in pending changes
-        setPendingChanges(prev => ({
+        setPendingChanges((prev) => ({
           ...prev,
-          definitionCreates: prev.definitionCreates.map(create => 
-            create.question === editingDefinition.question
-              ? { ...create, ...data }
-              : create
+          definitionCreates: prev.definitionCreates.map((create) =>
+            create.question === editingDefinition.question ? { ...create, ...data } : create
           )
         }));
       } else {
         // Update existing definition in pending changes
-        setPendingChanges(prev => {
+        setPendingChanges((prev) => {
           const updates = new Map(prev.definitionUpdates);
           const existingUpdate = updates.get(editingDefinition.id) || {};
           updates.set(editingDefinition.id, { ...existingUpdate, ...data });
@@ -430,13 +417,7 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
       }
 
       // Update local state
-      setLocalDefinitions(prev =>
-        prev.map(def =>
-          def.id === editingDefinition.id
-            ? { ...def, ...data }
-            : def
-        )
-      );
+      setLocalDefinitions((prev) => prev.map((def) => (def.id === editingDefinition.id ? { ...def, ...data } : def)));
 
       setEditingDefinition(null);
     }
@@ -446,36 +427,32 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
     // Don't delete temporary (new) definitions - just remove them from creates and local state
     if (definition.id.startsWith('temp-')) {
       // Remove from pending creates
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
-        definitionCreates: prev.definitionCreates.filter(create =>
-          create.question !== definition.question
-        )
+        definitionCreates: prev.definitionCreates.filter((create) => create.question !== definition.question)
       }));
     } else {
       // Add real definitions to pending deletes
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
         definitionDeletes: new Set(prev.definitionDeletes).add(definition.id)
       }));
     }
 
     // Remove from local state immediately for UI feedback
-    setLocalDefinitions(prev =>
-      prev.filter(def => def.id !== definition.id)
-    );
+    setLocalDefinitions((prev) => prev.filter((def) => def.id !== definition.id));
   };
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {
-      const oldIndex = definitions.findIndex(item => item.id === active.id);
-      const newIndex = definitions.findIndex(item => item.id === over.id);
+      const oldIndex = definitions.findIndex((item) => item.id === active.id);
+      const newIndex = definitions.findIndex((item) => item.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newDefinitions = arrayMove(definitions, oldIndex, newIndex);
-        
+
         // Update order for each definition
         const updatedDefinitions = newDefinitions.map((def, index) => ({
           ...def,
@@ -488,17 +465,15 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
         updatedDefinitions.forEach((def, index) => {
           if (def.id.startsWith('temp-')) {
             // Update order in creates array
-            setPendingChanges(prev => ({
+            setPendingChanges((prev) => ({
               ...prev,
-              definitionCreates: prev.definitionCreates.map(create => 
-                create.question === def.question
-                  ? { ...create, order: index }
-                  : create
+              definitionCreates: prev.definitionCreates.map((create) =>
+                create.question === def.question ? { ...create, order: index } : create
               )
             }));
           } else {
             // Add to updates map
-            setPendingChanges(prev => {
+            setPendingChanges((prev) => {
               const updates = new Map(prev.definitionUpdates);
               const existingUpdate = updates.get(def.id) || {};
               updates.set(def.id, { ...existingUpdate, order: index });
@@ -516,7 +491,7 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
     optionDeletes: Set<string>,
     optionCreates: BatchSelectorOptionCreate[]
   ) => {
-    setPendingChanges(prev => ({
+    setPendingChanges((prev) => ({
       ...prev,
       optionUpdates: new Map([...Array.from(prev.optionUpdates.entries()), ...Array.from(optionUpdates.entries())]),
       optionDeletes: new Set([...Array.from(prev.optionDeletes), ...Array.from(optionDeletes)]),
@@ -525,12 +500,14 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
   };
 
   const hasPendingChanges = () => {
-    return pendingChanges.definitionUpdates.size > 0 || 
-           pendingChanges.definitionDeletes.size > 0 || 
-           pendingChanges.definitionCreates.length > 0 ||
-           pendingChanges.optionUpdates.size > 0 ||
-           pendingChanges.optionDeletes.size > 0 ||
-           pendingChanges.optionCreates.length > 0;
+    return (
+      pendingChanges.definitionUpdates.size > 0 ||
+      pendingChanges.definitionDeletes.size > 0 ||
+      pendingChanges.definitionCreates.length > 0 ||
+      pendingChanges.optionUpdates.size > 0 ||
+      pendingChanges.optionDeletes.size > 0 ||
+      pendingChanges.optionCreates.length > 0
+    );
   };
 
   const handleSaveAllChanges = () => {
@@ -539,13 +516,13 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
         definitionCreates: pendingChanges.definitionCreates,
         definitionUpdates: pendingChanges.definitionUpdates,
         optionCreates: pendingChanges.optionCreates,
-        optionUpdates: pendingChanges.optionUpdates,
+        optionUpdates: pendingChanges.optionUpdates
       });
       if (validationError) {
         toast({
           variant: 'error',
-          title: 'Cannot save',
-          description: validationError,
+          title: t('selectors.cannotSave'),
+          description: validationError
         });
         return;
       }
@@ -596,28 +573,31 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
       }
 
       // Remove empty arrays to clean up the request
-      Object.keys(batchData).forEach(key => {
+      Object.keys(batchData).forEach((key) => {
         const value = batchData[key as keyof CrudSelectorGroupRequest];
         if (Array.isArray(value) && value.length === 0) {
           delete batchData[key as keyof CrudSelectorGroupRequest];
         }
       });
 
-      batchUpdateSelectorGroup({
-        selectorGroupId: selectorGroupId,
-        data: batchData
-      }, {
-        onSuccess: () => {
-          setPendingChanges({
-            definitionUpdates: new Map(),
-            definitionDeletes: new Set(),
-            definitionCreates: [],
-            optionUpdates: new Map(),
-            optionDeletes: new Set(),
-            optionCreates: []
-          });
+      batchUpdateSelectorGroup(
+        {
+          selectorGroupId: selectorGroupId,
+          data: batchData
+        },
+        {
+          onSuccess: () => {
+            setPendingChanges({
+              definitionUpdates: new Map(),
+              definitionDeletes: new Set(),
+              definitionCreates: [],
+              optionUpdates: new Map(),
+              optionDeletes: new Set(),
+              optionCreates: []
+            });
+          }
         }
-      });
+      );
     }
   };
 
@@ -627,7 +607,7 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
       const sortedDefinitions = [...definitionsData.selectorDefinitions].sort((a, b) => a.order - b.order);
       setLocalDefinitions(sortedDefinitions);
     }
-    
+
     // Clear pending changes
     setPendingChanges({
       definitionUpdates: new Map(),
@@ -645,48 +625,41 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Selector Definitions</h3>
-          <p className="text-sm text-muted-foreground">
-            Manage questions for "{selectorGroupName}"
-          </p>
+          <h3 className="text-lg font-semibold">{t('selectors.definitionsTitle')}</h3>
+          <p className="text-muted-foreground text-sm">{t('selectors.manageQuestions', { name: selectorGroupName })}</p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} disabled={isBulkUpdating}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Question
+          <Plus className="mr-2 h-4 w-4" />
+          {t('selectors.addQuestion')}
         </Button>
       </div>
 
       {/* Pending Changes Summary */}
       {hasPendingChanges() && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-amber-800">
-                Pending Changes:
-              </span>
+              <span className="text-sm font-medium text-amber-800">{t('fields.pendingChanges')}</span>
               <span className="text-sm text-amber-700">
-                {pendingChanges.definitionCreates.length + pendingChanges.optionCreates.length} new, {pendingChanges.definitionUpdates.size + pendingChanges.optionUpdates.size} modified, {pendingChanges.definitionDeletes.size + pendingChanges.optionDeletes.size} deleted
+                {pendingChanges.definitionCreates.length + pendingChanges.optionCreates.length} new,{' '}
+                {pendingChanges.definitionUpdates.size + pendingChanges.optionUpdates.size} modified,{' '}
+                {pendingChanges.definitionDeletes.size + pendingChanges.optionDeletes.size} deleted
               </span>
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={handleDiscardChanges}
-                size="sm"
-                variant="outline"
-                disabled={isBulkUpdating}
-              >
+              <Button onClick={handleDiscardChanges} size="sm" variant="outline" disabled={isBulkUpdating}>
                 Discard Changes
               </Button>
-              <Button 
-                onClick={() => setShowSaveConfirmationDialog(true)} 
-                size="sm" 
+              <Button
+                onClick={() => setShowSaveConfirmationDialog(true)}
+                size="sm"
                 disabled={isBulkUpdating}
                 className="bg-green-600 hover:bg-green-700"
               >
-                <Save className="h-4 w-4 mr-2" />
-                {isBulkUpdating ? 'Saving...' : 'Save All'}
+                <Save className="mr-2 h-4 w-4" />
+                {isBulkUpdating ? t('actions.saving') : t('actions.saveAll')}
               </Button>
             </div>
           </div>
@@ -696,38 +669,29 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
       {definitions.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="text-muted-foreground mb-2">No questions</div>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Create questions with multiple choice answers for this selector group.
-            </p>
+            <div className="text-muted-foreground mb-2">{t('selectors.noQuestions')}</div>
+            <p className="text-muted-foreground mb-4 text-center text-sm">{t('selectors.questionsHint')}</p>
             <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Question
+              <Plus className="mr-2 h-4 w-4" />
+              {t('selectors.createFirstQuestion')}
             </Button>
           </CardContent>
         </Card>
       ) : (
         <Card>
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-8"></TableHead>
-                  <TableHead>Question</TableHead>
-                  <TableHead>Required</TableHead>
-                  <TableHead>Options</TableHead>
-                  <TableHead className="w-32">Actions</TableHead>
+                  <TableHead>{t('fields.question')}</TableHead>
+                  <TableHead>{t('fields.required')}</TableHead>
+                  <TableHead>{t('fields.options')}</TableHead>
+                  <TableHead className="w-32">{t('fields.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <SortableContext
-                  items={definitions.map(def => def.id)}
-                  strategy={verticalListSortingStrategy}
-                >
+                <SortableContext items={definitions.map((def) => def.id)} strategy={verticalListSortingStrategy}>
                   {definitions.map((definition) => (
                     <DraggableSelectorDefinitionRow
                       key={definition.id}
@@ -778,7 +742,7 @@ export function SelectorDefinitionsManager({ selectorGroupId, selectorGroupName,
       <ConfirmActionDialog
         open={showSaveConfirmationDialog}
         onOpenChange={setShowSaveConfirmationDialog}
-        title="Save Selector Definition Changes"
+        title={t('selectors.saveDefinitions')}
         description={`You are about to save changes to selector definitions and options. This action will update all open services scheduled from today onwards, expire all user sessions (users will need to log in again), and apply changes to ${pendingChanges.definitionCreates.length + pendingChanges.optionCreates.length} new, ${pendingChanges.definitionUpdates.size + pendingChanges.optionUpdates.size} modified, and ${pendingChanges.definitionDeletes.size + pendingChanges.optionDeletes.size} deleted items. This operation cannot be undone.`}
         onConfirm={async () => {
           setShowSaveConfirmationDialog(false);

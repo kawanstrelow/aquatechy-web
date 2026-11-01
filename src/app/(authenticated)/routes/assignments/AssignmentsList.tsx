@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { addDays, addMinutes, differenceInDays, format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { toZonedTime } from 'date-fns-tz';
 import { useMemo, useState } from 'react';
 import { MdDragIndicator } from 'react-icons/md';
@@ -47,6 +48,7 @@ type Props = {
 };
 
 export function AssignmentsList({ handleDragEnd }: Props) {
+  const t = useTranslations('routes');
   const user = useUserStore((state) => state.user);
 
   const { assignments } = useAssignmentsContext();
@@ -79,7 +81,7 @@ export function AssignmentsList({ handleDragEnd }: Props) {
   if (assignments.current.length === 0) {
     return (
       <div className="flex w-full justify-center">
-        <span>No assignments found for this weekday</span>
+        <span>{t('noAssignments')}</span>
       </div>
     );
   }
@@ -138,7 +140,14 @@ type AssignmentItemProps = {
   currentIndex: number;
 };
 
-export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAssignments, currentIndex }: AssignmentItemProps) {
+export function AssignmentItem({
+  id,
+  assignment,
+  shouldPermitChangeOrder,
+  allAssignments,
+  currentIndex
+}: AssignmentItemProps) {
+  const t = useTranslations('routes');
   const name = formatPoolNameWithBodyOfWater(assignment.pool);
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -147,32 +156,31 @@ export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAss
   const startsOn = format(zonedStartOn, 'LLL, do, y');
 
   const zonedEndAfter = toZonedTime(assignment.endAfter, 'UTC');
-  const endsAfter = zonedEndAfter.getFullYear() > 2030 ? 'No end' : format(zonedEndAfter, 'LLL, do, y');
-
+  const endsAfter = zonedEndAfter.getFullYear() > 2030 ? t('noEnd') : format(zonedEndAfter, 'LLL, do, y');
 
   // Here I want to check how many days are between the start and end date, considering they are more than 10 years apart, bringuing for example 3650 days
   const daysBetween = differenceInDays(new Date(zonedEndAfter), new Date(zonedStartOn));
-  
+
   const isOneServiceOnly = daysBetween < 7;
   // Check if assignment is expired (endAfter + 1 day is in the past and not "No end")
   const isExpired = zonedEndAfter.getFullYear() <= 2100 && addDays(zonedEndAfter, 1) < new Date();
 
-  const frequencyMap = {
-    WEEKLY: 'Weekly',
-    E2WEEKS: 'Each 2 weeks',
-    E3WEEKS: 'Each 3 weeks',
-    E4WEEKS: 'Each 4 weeks',
-    ONCE: 'Once'
-  };
+  const frequencyKeys = {
+    WEEKLY: 'weekly',
+    E2WEEKS: 'each2Weeks',
+    E3WEEKS: 'each3Weeks',
+    E4WEEKS: 'each4Weeks',
+    ONCE: 'once'
+  } as const;
+  const frequencyKey = frequencyKeys[assignment.frequency as keyof typeof frequencyKeys];
+  const frequencyLabel = frequencyKey ? t(`frequencyLabels.${frequencyKey}`) : assignment.frequency;
 
   // Check if we have valid route data (distance/time has been calculated)
   // If data is missing (e.g., after manual reordering before save), don't show ETA
   const hasRouteData = useMemo(() => {
     // Check if any assignment has distance/time data (not all null)
     return allAssignments.some(
-      (assignment) =>
-        assignment.timeInMinutesToNextStop !== null ||
-        assignment.distanceInMilesToNextStop !== null
+      (assignment) => assignment.timeInMinutesToNextStop !== null || assignment.distanceInMilesToNextStop !== null
     );
   }, [allAssignments]);
 
@@ -186,9 +194,9 @@ export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAss
 
     const startTime = new Date();
     startTime.setHours(8, 0, 0, 0); // 8:00 AM
-    
+
     let accumulatedMinutes = 0;
-    
+
     // Sum up all the time before the current assignment
     for (let i = 0; i < currentIndex; i++) {
       const prevAssignment = allAssignments[i];
@@ -199,7 +207,7 @@ export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAss
         accumulatedMinutes += prevAssignment.timeInMinutesToNextStop;
       }
     }
-    
+
     const arrivalTime = addMinutes(startTime, accumulatedMinutes);
     return format(arrivalTime, 'h:mm a');
   }, [allAssignments, currentIndex, hasRouteData]);
@@ -214,7 +222,7 @@ export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAss
   };
   return (
     <div
-      className={`inline-flex w-full items-center justify-start self-stretch border-b border-gray-100 py-2 px-1 ${isMobile ? 'py-2' : ''} ${
+      className={`inline-flex w-full items-center justify-start self-stretch border-b border-gray-100 px-1 py-2 ${isMobile ? 'py-2' : ''} ${
         isExpired ? 'bg-red-50 opacity-75' : 'bg-gray-50'
       }`}
       ref={setNodeRef}
@@ -222,8 +230,10 @@ export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAss
       {...attributes}
       {...listeners}
     >
-      <div className={`flex h-[75px] shrink grow basis-0 items-center justify-start gap-2 border-b border-gray-100 px-1 py-4`}>
-        <div className="flex items-center justify-start gap-2 ">
+      <div
+        className={`flex h-[75px] shrink grow basis-0 items-center justify-start gap-2 border-b border-gray-100 px-1 py-4`}
+      >
+        <div className="flex items-center justify-start gap-2">
           {!shouldPermitChangeOrder && (
             <div className="min-w-4">
               <MdDragIndicator size={16} />
@@ -236,40 +246,47 @@ export function AssignmentItem({ id, assignment, shouldPermitChangeOrder, allAss
             </Avatar>
           )}
           <div className="inline-flex flex-col items-start justify-center gap-1">
-            <div className={`flex flex-wrap items-center gap-x-1 text-pretty text-sm font-medium ${isExpired ? 'text-gray-600' : ''}`}>
+            <div
+              className={`flex flex-wrap items-center gap-x-1 text-pretty text-sm font-medium ${isExpired ? 'text-gray-600' : ''}`}
+            >
               <span>{name}</span>
               <ServiceTypeLabel name={assignment.serviceType?.name} />
-              {isExpired && <span className="ml-2 text-xs font-semibold text-red-600">(EXPIRED)</span>}
+              {isExpired && <span className="ml-2 text-xs font-semibold text-red-600">{t('expired')}</span>}
             </div>
             {isOneServiceOnly ? (
-              <div className={`text-xs text-blue-500'`}><span className="font-semibold">One service only</span></div>
+              <div className={`text-blue-500' text-xs`}>
+                <span className="font-semibold">{t('oneServiceOnly')}</span>
+              </div>
             ) : (
               <div className={`text-xs ${isExpired ? 'text-red-600' : 'text-gray-500'} truncate`}>
-                {startsOn} - {endsAfter} - {frequencyMap[assignment.frequency as keyof typeof frequencyMap]}
+                {startsOn} - {endsAfter} - {frequencyLabel}
               </div>
             )}
           </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {allAssignments.length > 1 && (
-          estimatedArrivalTime ? (
+        {allAssignments.length > 1 &&
+          (estimatedArrivalTime ? (
             <div className={`text-xs font-medium ${isExpired ? 'text-red-600' : 'text-gray-600'}`}>
-              ETA: {estimatedArrivalTime}
+              {t('eta', { time: estimatedArrivalTime })}
             </div>
           ) : (
-            <div className="text-xs font-medium text-gray-400 italic">
-              ETA: Save to see
-            </div>
-          )
-        )}
-        <div className={`flex h-8 w-8 items-center justify-center gap-1 rounded-lg border ${
-          isExpired ? 'border-red-200 bg-red-100' : 'border-gray-100'
-        }`}>
-          <div className={`shrink grow basis-0 text-center text-sm font-semibold ${
-            isExpired ? 'text-red-700' : 'text-gray-800'
-          // }`}>{assignment.order}</div>
-          }`}>{currentIndex + 1}</div>
+            <div className="text-xs font-medium italic text-gray-400">{t('etaSaveToSee')}</div>
+          ))}
+        <div
+          className={`flex h-8 w-8 items-center justify-center gap-1 rounded-lg border ${
+            isExpired ? 'border-red-200 bg-red-100' : 'border-gray-100'
+          }`}
+        >
+          <div
+            className={`shrink grow basis-0 text-center text-sm font-semibold ${
+              isExpired ? 'text-red-700' : 'text-gray-800'
+              // }`}>{assignment.order}</div>
+            }`}
+          >
+            {currentIndex + 1}
+          </div>
         </div>
       </div>
     </div>

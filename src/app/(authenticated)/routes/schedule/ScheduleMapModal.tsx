@@ -1,6 +1,7 @@
 'use client';
 
 import { DragEndEvent } from '@dnd-kit/core';
+import { useTranslations } from 'next-intl';
 import { arrayMove } from '@dnd-kit/sortable';
 import { format } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
@@ -51,6 +52,7 @@ function formatMobileScheduleDate(dayIso: string) {
 }
 
 export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId, dayIso }: Props) {
+  const t = useTranslations('routes');
   const { directions, isLoaded, loadError } = useMapServicesUtils();
   const { allAssignments } = useAssignmentsContext();
   const { user } = useUserStore();
@@ -91,8 +93,8 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
   const { totalDistance, totalDuration } = useMemo(() => getRouteTotals(localAssignments), [localAssignments]);
   const routableAssignments = useMemo(() => getRoutableAssignments(localAssignments), [localAssignments]);
   const stopLabel = isLoadingServices
-    ? 'Loading stops…'
-    : `${orderedServices.length} ${orderedServices.length === 1 ? 'stop' : 'stops'}`;
+    ? t('loadingStops')
+    : `${orderedServices.length} ${orderedServices.length === 1 ? t('stop') : t('stops')}`;
   const isBusy = isSaving || isRouting || isLoadingServices;
 
   function resetLocalState() {
@@ -143,8 +145,8 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
     if (!user.addressCoords) {
       toast({
         variant: 'error',
-        title: 'Missing technician location',
-        description: 'Add an address to your account before optimizing this route.'
+        title: t('errors.missingTechnicianLocation'),
+        description: t('errors.missingTechnicianLocationDescription')
       });
       return null;
     }
@@ -220,8 +222,8 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
     } catch (error) {
       toast({
         variant: 'error',
-        title: 'Could not optimize route',
-        description: error instanceof Error ? error.message : 'Internal server error'
+        title: t('errors.couldNotOptimizeRoute'),
+        description: error instanceof Error ? error.message : t('errors.internalServerError')
       });
     } finally {
       setIsRouting(false);
@@ -241,8 +243,8 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
       } catch (error) {
         toast({
           variant: 'error',
-          title: 'Could not recalculate route',
-          description: error instanceof Error ? error.message : 'Internal server error'
+          title: t('errors.couldNotRecalculateRoute'),
+          description: error instanceof Error ? error.message : t('errors.internalServerError')
         });
       } finally {
         setIsRouting(false);
@@ -288,8 +290,8 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
                 {mdScreen
                   ? `${formatMobileScheduleDate(dayIso)}${
                       isLoadingServices
-                        ? ' (…)'
-                        : ` (${orderedServices.length} ${orderedServices.length === 1 ? 'stop' : 'stops'})`
+                        ? ` ${t('loadingEllipsis')}`
+                        : ` (${orderedServices.length} ${orderedServices.length === 1 ? t('stop') : t('stops')})`
                     }`
                   : stopLabel}
               </DialogDescription>
@@ -305,7 +307,7 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
                     onClick={() => setIsOptimizeModalOpen(true)}
                     disabled={isBusy}
                   >
-                    Optimize Route
+                    {t('optimizeRoute')}
                   </Button>
                 )}
                 {mdScreen ? (
@@ -338,7 +340,7 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
                     onClick={handleSave}
                     disabled={isBusy}
                   >
-                    Save
+                    {t('save')}
                   </Button>
                 )}
               </div>
@@ -355,13 +357,11 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
                     <div className="flex flex-col items-center gap-4 py-8">
                       <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
                       <p className="text-sm text-gray-600">
-                        {isSaving ? 'Saving route...' : isRouting ? 'Calculating route...' : 'Loading services...'}
+                        {isSaving ? t('savingRoute') : isRouting ? t('calculatingRoute') : t('loadingServices')}
                       </p>
                     </div>
                   ) : isServicesError ? (
-                    <div className="px-4 py-8 text-center text-sm text-slate-500">
-                      Could not load this day's services. Try again.
-                    </div>
+                    <div className="px-4 py-8 text-center text-sm text-slate-500">{t('couldNotLoadDayServices')}</div>
                   ) : (
                     <ServicesList
                       services={orderedServices}

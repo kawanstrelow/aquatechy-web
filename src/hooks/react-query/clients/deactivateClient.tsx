@@ -6,6 +6,8 @@ import Cookies from 'js-cookie';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeactivateClient = () => {
   const queryClient = useQueryClient();
   const { push } = useRouter();
@@ -24,7 +26,7 @@ export const useDeactivateClient = () => {
       push('/clients');
       toast({
         duration: 5000,
-        title: 'Client is now inactive',
+        title: translateMessage('toasts.clientIsNowInactive', 'Client is now inactive'),
         variant: 'success'
       });
     },
@@ -36,8 +38,10 @@ export const useDeactivateClient = () => {
       toast({
         duration: 5000,
         variant: 'error',
-        title: 'Error marking client as inactive',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorMarkingClientAsInactive', 'Error marking client as inactive'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

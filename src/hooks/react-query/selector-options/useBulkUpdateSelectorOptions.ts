@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type BulkUpdateSelectorOptionItem = {
   selectorOptionId: string;
   order: number;
@@ -22,7 +24,7 @@ export const useBulkUpdateSelectorOptions = (companyId: string) => {
       const updatePromises = data.map(({ selectorOptionId, order }) =>
         clientAxios.patch(`/selector-options/${selectorOptionId}`, { order })
       );
-      
+
       await Promise.all(updatePromises);
     },
     onSuccess: () => {
@@ -31,14 +33,17 @@ export const useBulkUpdateSelectorOptions = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['selector-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Selector options order updated successfully',
+        title: translateMessage(
+          'toasts.selectorOptionsOrderUpdatedSuccessfully',
+          'Selector options order updated successfully'
+        ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating selector options order',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingSelectorOptionsOrder', 'Error updating selector options order'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

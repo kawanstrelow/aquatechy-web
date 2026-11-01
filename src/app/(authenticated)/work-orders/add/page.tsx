@@ -1,6 +1,7 @@
 'use client';
 
 import { addDays, format, getDay } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -28,48 +29,52 @@ import { useUserStore } from '@/store/user';
 import { formatPoolNameWithBodyOfWater, isEmpty } from '@/utils';
 
 // Define the work order schema
-const workOrderSchema = z.object({
-  client: z.string().min(1, 'Client is required'),
-  poolId: z.string().min(1, 'Pool is required'),
-  assignmentToId: z.string().min(1, 'Technician is required'),
-  serviceTypeId: z.string().min(1, 'Service type is required'),
-  instructions: z.string().min(1, 'Instructions are required'),
-  frequency: defaultSchemas.frequency,
-  weekday: defaultSchemas.weekday,
-  scheduledTo: z.string().optional(),
-  startOn: z.coerce.date().optional(),
-  endAfter: z.string().optional(),
-  cost: z.number().min(0, 'Cost must be a positive number'),
-  price: z.number().min(0, 'Price must be a positive number')
-}).refine(
-  (data) => {
-    // If frequency is ONCE, scheduledTo is required
-    if (data.frequency === 'ONCE') {
-      return !!data.scheduledTo;
+const workOrderSchema = z
+  .object({
+    client: z.string().min(1, 'workOrders.validation.clientRequired'),
+    poolId: z.string().min(1, 'workOrders.validation.poolRequired'),
+    assignmentToId: z.string().min(1, 'workOrders.validation.technicianRequired'),
+    serviceTypeId: z.string().min(1, 'workOrders.validation.serviceTypeRequired'),
+    instructions: z.string().min(1, 'workOrders.validation.instructionsRequired'),
+    frequency: defaultSchemas.frequency,
+    weekday: defaultSchemas.weekday,
+    scheduledTo: z.string().optional(),
+    startOn: z.coerce.date().optional(),
+    endAfter: z.string().optional(),
+    cost: z.number().min(0, 'workOrders.validation.costPositive'),
+    price: z.number().min(0, 'workOrders.validation.pricePositive')
+  })
+  .refine(
+    (data) => {
+      // If frequency is ONCE, scheduledTo is required
+      if (data.frequency === 'ONCE') {
+        return !!data.scheduledTo;
+      }
+      return true;
+    },
+    {
+      message: 'workOrders.validation.scheduledRequired',
+      path: ['scheduledTo']
     }
-    return true;
-  },
-  {
-    message: 'Scheduled date is required for one-time work orders',
-    path: ['scheduledTo']
-  }
-).refine(
-  (data) => {
-    // If frequency is NOT ONCE, startOn and endAfter are required
-    if (data.frequency !== 'ONCE') {
-      return !!data.startOn && !!data.endAfter;
+  )
+  .refine(
+    (data) => {
+      // If frequency is NOT ONCE, startOn and endAfter are required
+      if (data.frequency !== 'ONCE') {
+        return !!data.startOn && !!data.endAfter;
+      }
+      return true;
+    },
+    {
+      message: 'workOrders.validation.dateRangeRequired',
+      path: ['startOn']
     }
-    return true;
-  },
-  {
-    message: 'Start date and end date are required for recurring work orders',
-    path: ['startOn']
-  }
-);
+  );
 
 type WorkOrderSchema = z.infer<typeof workOrderSchema>;
 
 export default function AddWorkOrderPage() {
+  const t = useTranslations('workOrders');
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,10 +87,11 @@ export default function AddWorkOrderPage() {
 
   const { data: clients = [], isLoading: isClientsLoading } = useGetAllClients();
   const { data: members = [] } = useGetMembersOfAllCompaniesByUserId(user.id);
-  
+
   // Assignment creation hooks
   const { mutate: createAssignment, isPending: isCreatingAssignment } = useCreateAssignment();
-  const { mutate: createSpecificAssignment, isPending: isCreatingSpecificAssignment } = useCreateAssignmentForSpecificService();
+  const { mutate: createSpecificAssignment, isPending: isCreatingSpecificAssignment } =
+    useCreateAssignmentForSpecificService();
 
   // State for managing date options based on frequency
   const [next10WeekdaysStartOn, setNext10WeekdaysStartOn] = useState<
@@ -134,7 +140,7 @@ export default function AddWorkOrderPage() {
   const clientId = form.watch('client');
   const selectedClient = clients.find((c: Client) => c.id === clientId);
   const isOnlyOnce = frequency === Frequency.ONCE;
-  
+
   // Get service types based on the selected client's company
   const { data: serviceTypesData, isLoading: isServiceTypesLoading } = useGetServiceTypes(
     selectedClient?.companyOwner?.id || ''
@@ -192,7 +198,7 @@ export default function AddWorkOrderPage() {
     const targetWeekday = weekdays.indexOf(weekday.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('add.invalidWeekday'));
     }
 
     const today = new Date();
@@ -231,7 +237,7 @@ export default function AddWorkOrderPage() {
     const dates: { name: string; key: string; value: string }[] = [];
 
     dates.push({
-      name: 'No end',
+      name: t('add.noEnd'),
       key: 'No end',
       value: 'No end'
     });
@@ -288,7 +294,7 @@ export default function AddWorkOrderPage() {
 
   const onSubmit = async (data: WorkOrderSchema) => {
     setIsSubmitting(true);
-    
+
     try {
       const isValid = await validateForm();
       if (!isValid) {
@@ -340,7 +346,6 @@ export default function AddWorkOrderPage() {
           }
         );
       }
-      
     } catch (error) {
       console.error('Error creating work order:', error);
     } finally {
@@ -364,20 +369,14 @@ export default function AddWorkOrderPage() {
 
   return (
     <div className="w-full p-5 lg:p-8">
-      <div 
-        className="mb-6 flex items-center cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
+      <div
+        className="mb-6 flex cursor-pointer items-center rounded-lg transition-colors hover:bg-gray-50"
         onClick={() => router.back()}
       >
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-        >
+        <Button variant="ghost" size="icon" className="h-8 w-8">
           <ArrowLeftIcon className="h-4 w-4" />
         </Button>
-        <span className="text-sm font-normal text-gray-600">
-          Add Work Order
-        </span>
+        <span className="text-sm font-normal text-gray-600">{t('add.title')}</span>
       </div>
 
       <Form {...form}>
@@ -392,8 +391,8 @@ export default function AddWorkOrderPage() {
                   name: `${c.firstName} ${c.lastName}`,
                   value: c.id
                 }))}
-              label="Client"
-              placeholder={clients.length > 0 ? 'Select client' : 'No clients available'}
+              label={t('add.client')}
+              placeholder={clients.length > 0 ? t('add.selectClient') : t('add.noClients')}
               name="client"
             />
 
@@ -407,8 +406,10 @@ export default function AddWorkOrderPage() {
                     name: formatPoolNameWithBodyOfWater(pool),
                     value: pool.id
                   }))}
-                label="Pool"
-                placeholder={isPoolsLoading ? 'Loading pools...' : pools.length > 0 ? 'Select pool' : 'No pools available'}
+                label={t('add.pool')}
+                placeholder={
+                  isPoolsLoading ? t('add.loadingPools') : pools.length > 0 ? t('add.selectPool') : t('add.noPools')
+                }
                 name="poolId"
               />
             )}
@@ -420,23 +421,27 @@ export default function AddWorkOrderPage() {
                 name: `${m.firstName} ${m.lastName}`,
                 value: m.id
               }))}
-              label="Technician"
-              placeholder="Select technician"
+              label={t('add.technician')}
+              placeholder={t('add.selectTechnician')}
               name="assignmentToId"
             />
 
             {/* Service Type Selection */}
             {clientId && (
               <SelectField
-                options={serviceTypesData?.serviceTypes
-                  ?.filter((serviceType) => serviceType.isActive && serviceType.name !== "Pool Cleaning")
-                  .map((serviceType) => ({
-                    key: serviceType.id,
-                    name: serviceType.name,
-                    value: serviceType.id
-                  })) || []}
-                label="Service Type"
-                placeholder={serviceTypesData?.serviceTypes?.length ? "Select service type" : "No service types available"}
+                options={
+                  serviceTypesData?.serviceTypes
+                    ?.filter((serviceType) => serviceType.isActive && serviceType.name !== 'Pool Cleaning')
+                    .map((serviceType) => ({
+                      key: serviceType.id,
+                      name: serviceType.name,
+                      value: serviceType.id
+                    })) || []
+                }
+                label={t('add.serviceType')}
+                placeholder={
+                  serviceTypesData?.serviceTypes?.length ? t('add.selectServiceType') : t('add.noServiceTypes')
+                }
                 name="serviceTypeId"
               />
             )}
@@ -444,48 +449,47 @@ export default function AddWorkOrderPage() {
             {/* Instructions */}
             <InputField
               name="instructions"
-              label="Instructions"
-              placeholder="Enter detailed instructions for the work order"
+              label={t('add.instructions')}
+              placeholder={t('add.instructionsPlaceholder')}
               type={FieldType.TextArea}
             />
 
             {/* Frequency */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <SelectField 
-                name="frequency" 
-                placeholder="Frequency" 
-                label="Frequency" 
+              <SelectField
+                name="frequency"
+                placeholder={t('add.frequency')}
+                label={t('add.frequency')}
                 options={Frequencies}
               />
               {!isOnlyOnce ? (
                 <SelectField
                   name="weekday"
-                  label="Weekday"
-                  placeholder="Weekday"
+                  label={t('add.weekday')}
+                  placeholder={t('add.weekday')}
                   options={Weekdays}
                 />
-              ) : 
+              ) : (
                 <SelectField
-                    label="Scheduled to"
-                    name="scheduledTo"
-                    placeholder="Scheduled to"
-                    options={scheduledToOptions.map((date) => ({
+                  label={t('add.scheduledTo')}
+                  name="scheduledTo"
+                  placeholder={t('add.scheduledTo')}
+                  options={scheduledToOptions.map((date) => ({
                     key: date.key,
                     name: date.name,
                     value: date.value
-                    }))}
+                  }))}
                 />
-            
-                }
+              )}
             </div>
 
             {/* Date Selection based on frequency */}
             {!isOnlyOnce && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <SelectField
-                  label="Start on"
+                  label={t('add.startOn')}
                   name="startOn"
-                  placeholder="Start on"
+                  placeholder={t('add.startOn')}
                   options={next10WeekdaysStartOn.map((date) => ({
                     key: date.key,
                     name: date.name,
@@ -493,9 +497,9 @@ export default function AddWorkOrderPage() {
                   }))}
                 />
                 <SelectField
-                  label="End after"
+                  label={t('add.endAfter')}
                   name="endAfter"
-                  placeholder="End after"
+                  placeholder={t('add.endAfter')}
                   options={next10WeekdaysEndAfter.map((date) => ({
                     key: date.key,
                     name: date.name,
@@ -507,13 +511,9 @@ export default function AddWorkOrderPage() {
           </div>
 
           <div className="flex gap-4 pt-6">
-            <Button
-              type="submit"
-              disabled={isSubmitting || isCreating}
-              className="flex-1"
-            >
+            <Button type="submit" disabled={isSubmitting || isCreating} className="flex-1">
               {(isSubmitting || isCreating) && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-              Create Work Order
+              {t('add.create')}
             </Button>
             <Button
               type="button"

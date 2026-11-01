@@ -2,6 +2,8 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+
+import { translateMessage } from '@/i18n/runtime';
 import { RecurringInvoiceTemplate } from '@/hooks/react-query/invoices/useGetRecurringInvoiceTemplates';
 import { RecurringInvoiceActions } from './components/RecurringInvoiceActions';
 
@@ -38,21 +40,17 @@ export const createColumns = (
 ): ColumnDef<RecurringInvoiceTemplate>[] => [
   {
     accessorKey: 'referenceNumber',
-    header: 'Reference Number',
-    cell: ({ row }) => (
-      <div className="font-semibold text-gray-900">
-        {row.original.referenceNumber || '-'}
-      </div>
-    ),
+    header: () => translateMessage('invoices.columns.referenceNumber', 'Reference Number'),
+    cell: ({ row }) => <div className="font-semibold text-gray-900">{row.original.referenceNumber || '-'}</div>,
     enableGlobalFilter: true
   },
   {
     accessorKey: 'clientName',
-    header: 'Client',
+    header: () => translateMessage('invoices.columns.client', 'Client'),
     cell: ({ row }) => {
-      const clientName = row.original.client 
+      const clientName = row.original.client
         ? `${row.original.client.firstName} ${row.original.client.lastName}`.trim()
-        : 'N/A';
+        : translateMessage('invoices.empty.notAvailable', 'N/A');
       return (
         <div>
           <div className="font-medium text-gray-900">{clientName}</div>
@@ -69,19 +67,18 @@ export const createColumns = (
   },
   {
     accessorKey: 'startOn',
-    header: 'Start Date',
-    cell: ({ row }) => (
-      <div className="text-gray-700">
-        {format(new Date(row.original.startOn), 'MMM dd, yyyy')}
-      </div>
-    )
+    header: () => translateMessage('invoices.columns.startDate', 'Start Date'),
+    cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.startOn), 'MMM dd, yyyy')}</div>
   },
   {
     accessorKey: 'frequency',
-    header: 'Frequency',
+    header: () => translateMessage('invoices.columns.frequency', 'Frequency'),
     cell: ({ row }) => (
       <div className="text-gray-700">
-        {frequencyLabels[row.original.frequency] || row.original.frequency}
+        {translateMessage(
+          `invoices.frequency.${row.original.frequency}`,
+          frequencyLabels[row.original.frequency] || row.original.frequency
+        )}
       </div>
     ),
     filterFn: (row, _, filter) => {
@@ -93,17 +90,17 @@ export const createColumns = (
   },
   {
     accessorKey: 'delivery',
-    header: 'Delivery',
+    header: () => translateMessage('invoices.columns.delivery', 'Delivery'),
     cell: ({ row }) => {
-      const deliveryConfig = deliveryLabels[row.original.delivery] || { 
+      const deliveryConfig = deliveryLabels[row.original.delivery] || {
         className: 'bg-gray-100 text-gray-600',
-        label: row.original.delivery 
+        label: row.original.delivery
       };
       return (
         <div
           className={`inline-flex max-w-28 items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold ${deliveryConfig.className}`}
         >
-          {deliveryConfig.label}
+          {translateMessage(`invoices.delivery.${row.original.delivery}`, deliveryConfig.label)}
         </div>
       );
     },
@@ -117,27 +114,23 @@ export const createColumns = (
 
   {
     accessorKey: 'total',
-    header: 'Total Amount',
-    cell: ({ row }) => (
-      <div className="font-semibold text-gray-900">
-        ${(row.original.total || 0).toFixed(2)}
-      </div>
-    )
+    header: () => translateMessage('invoices.columns.totalAmount', 'Total Amount'),
+    cell: ({ row }) => <div className="font-semibold text-gray-900">${(row.original.total || 0).toFixed(2)}</div>
   },
   {
     accessorKey: 'isActive',
-    header: 'Status',
+    header: () => translateMessage('invoices.columns.status', 'Status'),
     cell: ({ row }) => {
       const isActive = row.original.isActive;
       return (
         <div
           className={`inline-flex max-w-20 items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold ${
-            isActive
-              ? 'bg-green-100 text-green-600'
-              : 'bg-gray-100 text-gray-600'
+            isActive ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
           }`}
         >
-          {isActive ? 'Active' : 'Paused'}
+          {isActive
+            ? translateMessage('invoices.status.active', 'Active')
+            : translateMessage('invoices.status.paused', 'Paused')}
         </div>
       );
     },
@@ -157,14 +150,7 @@ export const createColumns = (
   },
   {
     id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) => (
-      <RecurringInvoiceActions
-        template={row.original}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
-    )
+    header: () => translateMessage('invoices.columns.actions', 'Actions'),
+    cell: ({ row }) => <RecurringInvoiceActions template={row.original} onEdit={onEdit} onDelete={onDelete} />
   }
 ];
-

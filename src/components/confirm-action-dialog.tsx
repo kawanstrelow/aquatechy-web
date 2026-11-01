@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { Button, buttonVariants } from './ui/button';
 import {
@@ -30,15 +31,19 @@ export type ConfirmActionDialogProps = {
 export default function ConfirmActionDialog({
   open = false,
   trigger: TriggerElement,
-  title = 'Are you sure?',
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  title,
+  confirmText,
+  cancelText,
   description,
   onConfirm,
   onOpenChange,
   variant = 'default',
   size = 'default'
 }: ConfirmActionDialogProps) {
+  const t = useTranslations('shell');
+  const resolvedTitle = title ?? t('areYouSure');
+  const resolvedConfirm = confirmText ?? t('confirm');
+  const resolvedCancel = cancelText ?? t('cancel');
   const [_open, _setOpen] = useState(open);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -87,16 +92,16 @@ export default function ConfirmActionDialog({
       {TriggerElement ? <AlertDialogTrigger asChild>{TriggerElement}</AlertDialogTrigger> : null}
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogTitle>{resolvedTitle}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-2">
+        <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <Button variant={variant} size={size} onClick={handleConfirm} disabled={isLoading}>
             {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-            <span>{confirmText}</span>
+            <span>{resolvedConfirm}</span>
           </Button>
           <Button type="button" variant="outline" size={size} onClick={() => handleOpenChange(false)}>
-            {cancelText}
+            {resolvedCancel}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

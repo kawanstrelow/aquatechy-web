@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useShallow } from 'zustand/react/shallow';
 
 import InputField from '@/components/InputField';
@@ -19,41 +21,41 @@ interface FilterMaintenanceCardProps {
 
 const filterFields = [
   {
-    description: 'Set the interval in days for filter cleaning maintenance.',
+    description: 'filters.cleaningIntervalDescription',
     itens: [
       {
-        label: 'days',
-        description: 'Number of days between filter cleanings',
+        label: 'filters.days',
+        description: 'filters.cleaningDays',
         name: 'filterCleaningIntervalDays',
         type: FieldType.Number
       }
     ],
-    label: 'Filter Cleaning Interval',
+    label: 'filters.cleaningInterval',
     type: FieldType.Number
   },
   {
-    description: 'Set the interval in days for filter replacement.',
+    description: 'filters.replacementIntervalDescription',
     itens: [
       {
-        label: 'days',
-        description: 'Number of days between filter replacements',
+        label: 'filters.days',
+        description: 'filters.replacementDays',
         name: 'filterReplacementIntervalDays',
         type: FieldType.Number
       }
     ],
-    label: 'Filter Replacement Interval',
+    label: 'filters.replacementInterval',
     type: FieldType.Number
   },
   {
     inputClassName: 'flex justify-center items-center gap-4',
     type: FieldType.Switch,
-    description: 'Require technicians to take photos when cleaning or replacing filters.',
-    label: 'Filter Maintenance Photos',
+    description: 'filters.photosDescription',
+    label: 'filters.photos',
     growOnly: true,
     itens: [
       {
-        label: 'Require photo to every filter cleaned or replaced',
-        description: 'Technicians must take photos when cleaning or replacing filters',
+        label: 'filters.requirePhoto',
+        description: 'filters.requirePhotoDescription',
         name: 'filterCleaningMustHavePhotos'
       }
     ]
@@ -61,13 +63,13 @@ const filterFields = [
   {
     inputClassName: 'flex justify-center items-center gap-4',
     type: FieldType.Switch,
-    description: 'Send e-mails when filter cleaning is completed.',
-    label: 'Filter Cleaning Notifications',
+    description: 'filters.notificationsDescription',
+    label: 'filters.notifications',
     growOnly: true,
     itens: [
       {
-        label: 'Send filter cleaning e-mails',
-        description: 'Send e-mails when filter cleaning is completed.',
+        label: 'filters.sendEmails',
+        description: 'filters.notificationsDescription',
         name: 'sendFilterCleaningEmails'
       }
     ]
@@ -80,6 +82,8 @@ export function FilterMaintenanceCard({
   onFilterSubmit,
   filterFieldsChanged
 }: FilterMaintenanceCardProps) {
+  const t = useTranslations('settings');
+
   const { isPending: isEmailPending } = useUpdateCompanyPreferences(company.id);
   const { isFreePlan } = useUserStore(
     useShallow((state) => ({
@@ -98,13 +102,13 @@ export function FilterMaintenanceCard({
               <div className="col-span-8 flex flex-col gap-1">
                 <label htmlFor={field.label} className="flex flex-col">
                   <span className="text-sm font-semibold text-gray-800">
-                    {field.label}
+                    {t(field.label)}
                     {isFreePlan && isGrowOnlySection ? (
-                      <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
+                      <span className="ml-1.5 text-xs font-medium text-blue-600">{t('actions.upgradePlan')}</span>
                     ) : null}
                   </span>
                 </label>
-                <span className="text-muted-foreground text-sm font-normal">{field.description}</span>
+                <span className="text-muted-foreground text-sm font-normal">{t(field.description)}</span>
               </div>
               <div className="col-span-4 flex items-center md:justify-end">
                 {field.itens.map((item) => {
@@ -142,7 +146,7 @@ export function FilterMaintenanceCard({
             {isEmailPending ? (
               <div className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
             ) : (
-              'Save Filter Preferences'
+              t('filters.save')
             )}
           </Button>
         </div>

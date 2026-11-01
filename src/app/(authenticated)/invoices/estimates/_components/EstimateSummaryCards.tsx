@@ -1,6 +1,7 @@
 'use client';
 
 import { DollarSign, FileText, CheckCircle, Send, Clock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { EstimateListRow } from '../utils/estimateUiTypes';
 
@@ -9,44 +10,41 @@ interface EstimateSummaryCardsProps {
 }
 
 export function EstimateSummaryCards({ estimates }: EstimateSummaryCardsProps) {
+  const t = useTranslations('invoices');
   const totalEstimates = estimates.length;
   const totalAmount = estimates.reduce((sum, est) => sum + est.amount, 0);
   const draftCount = estimates.filter((est) => est.status === 'draft').length;
   const sentCount = estimates.filter((est) => est.status === 'sent').length;
   const acceptedCount = estimates.filter((est) => est.status === 'accepted').length;
 
-  const acceptedAmount = estimates
-    .filter((est) => est.status === 'accepted')
-    .reduce((sum, est) => sum + est.amount, 0);
+  const acceptedAmount = estimates.filter((est) => est.status === 'accepted').reduce((sum, est) => sum + est.amount, 0);
 
-  const sentAmount = estimates
-    .filter((est) => est.status === 'sent')
-    .reduce((sum, est) => sum + est.amount, 0);
+  const sentAmount = estimates.filter((est) => est.status === 'sent').reduce((sum, est) => sum + est.amount, 0);
 
   const cards = [
     {
-      title: 'Total Estimates',
+      title: t('summary.totalEstimates'),
       value: totalEstimates.toString(),
       icon: FileText,
       iconColor: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
-      title: 'Total Amount',
+      title: t('summary.totalAmount'),
       value: `$${totalAmount.toFixed(2)}`,
       icon: DollarSign,
       iconColor: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
-      title: 'Draft',
+      title: t('summary.draft'),
       value: draftCount.toString(),
       icon: Clock,
       iconColor: 'text-gray-600',
       bgColor: 'bg-gray-50'
     },
     {
-      title: 'Sent',
+      title: t('summary.sent'),
       value: sentCount.toString(),
       subValue: sentCount > 0 ? `$${sentAmount.toFixed(2)}` : undefined,
       icon: Send,
@@ -54,7 +52,7 @@ export function EstimateSummaryCards({ estimates }: EstimateSummaryCardsProps) {
       bgColor: 'bg-yellow-50'
     },
     {
-      title: 'Accepted',
+      title: t('summary.accepted'),
       value: acceptedCount.toString(),
       subValue: acceptedCount > 0 ? `$${acceptedAmount.toFixed(2)}` : undefined,
       icon: CheckCircle,
@@ -68,10 +66,7 @@ export function EstimateSummaryCards({ estimates }: EstimateSummaryCardsProps) {
       {cards.map((card, index) => {
         const Icon = card.icon;
         return (
-          <div
-            key={index}
-            className="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
-          >
+          <div key={index} className="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div className={`rounded-lg ${card.bgColor} p-2`}>
                 <Icon className={`h-5 w-5 ${card.iconColor}`} />

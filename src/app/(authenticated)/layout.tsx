@@ -1,6 +1,8 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import { resolveLocale } from '@/i18n/locale';
+import { loadMessages } from '@/i18n/loadMessages';
 import { getCurrentUser } from '@/lib/getCurrentUser';
 
 import AuthenticatedShell from './AuthenticatedShell';
@@ -17,6 +19,18 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
   }
 
   const initialData = await getCurrentUser();
+  const acceptLanguage = headers().get('accept-language');
+  const locale = resolveLocale(initialData?.user?.language, acceptLanguage);
+  const messages = await loadMessages(locale);
 
-  return <AuthenticatedShell initialData={initialData}>{children}</AuthenticatedShell>;
+  return (
+    <AuthenticatedShell
+      initialData={initialData}
+      locale={locale}
+      messages={messages}
+      acceptLanguage={acceptLanguage}
+    >
+      {children}
+    </AuthenticatedShell>
+  );
 }

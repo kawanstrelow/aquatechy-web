@@ -1,6 +1,7 @@
 'use client';
 
 import { CheckCircle2, XCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 const QUERY_KEY = 'payment-method-setup';
 
 function PaymentMethodSetupFeedbackInner() {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const searchParams = useSearchParams();
   const status = searchParams.get(QUERY_KEY);
@@ -33,20 +35,12 @@ function PaymentMethodSetupFeedbackInner() {
           : 'border-amber-200 bg-amber-50 text-amber-950 [&>svg]:text-amber-700'
       )}
     >
-      {isSuccess ? (
-        <CheckCircle2 className="h-4 w-4" aria-hidden />
-      ) : (
-        <XCircle className="h-4 w-4" aria-hidden />
-      )}
-      <AlertTitle>{isSuccess ? 'Payment method saved' : 'Payment method setup cancelled'}</AlertTitle>
+      {isSuccess ? <CheckCircle2 className="h-4 w-4" aria-hidden /> : <XCircle className="h-4 w-4" aria-hidden />}
+      <AlertTitle>{isSuccess ? t('paymentMethod.savedTitle') : t('paymentMethod.cancelledTitle')}</AlertTitle>
       <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span>
-          {isSuccess
-            ? 'The card can now be used for this client when charging invoices.'
-            : 'No changes were made. You can try adding a payment method again when you are ready.'}
-        </span>
+        <span>{isSuccess ? t('paymentMethod.savedDescription') : t('paymentMethod.cancelledDescription')}</span>
         <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={dismiss}>
-          Dismiss
+          {t('actions.dismiss')}
         </Button>
       </AlertDescription>
     </Alert>

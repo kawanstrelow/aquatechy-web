@@ -3,6 +3,8 @@ import { AxiosError } from 'axios';
 import { clientAxios } from '@/lib/clientAxios';
 import { toast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -20,14 +22,14 @@ export const useUpdateEquipmentMaintenancePreferences = (companyId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Preferences updated successfully',
+        title: translateMessage('toasts.preferencesUpdatedSuccessfully', 'Preferences updated successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating preferences',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingPreferences', 'Error updating preferences'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

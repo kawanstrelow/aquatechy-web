@@ -6,6 +6,8 @@ import { CreateInvoiceAndSendEmailRequest, CreateInvoiceAndSendEmailResponse } f
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useCreateInvoiceAndSendEmail = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -31,13 +33,13 @@ export const useCreateInvoiceAndSendEmail = () => {
     onSuccess: (response) => {
       // Invalidate invoices list queries
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      
+
       // Optionally, set the created invoice in cache
       queryClient.setQueryData(['invoices', response.invoice.id], response.invoice);
 
       toast({
         duration: 2000,
-        title: 'Invoice created and sent successfully',
+        title: translateMessage('toasts.invoiceCreatedAndSentSuccessfully', 'Invoice created and sent successfully'),
         variant: 'success'
       });
     },
@@ -49,12 +51,12 @@ export const useCreateInvoiceAndSendEmail = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to create and send invoice';
+        : errorMessage || translateMessage('toasts.failedToCreateAndSendInvoice', 'Failed to create and send invoice');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating and sending invoice',
+        title: translateMessage('toasts.errorCreatingAndSendingInvoice', 'Error creating and sending invoice'),
         description: message
       });
     }
@@ -62,4 +64,3 @@ export const useCreateInvoiceAndSendEmail = () => {
 
   return { mutate, isPending, isSuccess };
 };
-

@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { ShoppingItemResponse, UpdateShoppingItemStatusRequest } from '@/ts/interfaces/Shopping';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -26,14 +28,14 @@ export function useUpdateShoppingItemStatus(companyId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items', companyId] });
       toast({
-        title: 'Status updated',
+        title: translateMessage('toasts.statusUpdated', 'Status updated'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating status',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingStatus', 'Error updating status'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

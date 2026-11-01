@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 import { useUserStore } from '@/store/user';
 import { getInitials } from '@/utils/others';
@@ -20,6 +20,7 @@ type Props = {
 export function AccountDropdownMenu({ handleLogout }: Props) {
   const { user } = useUserStore();
   const router = useRouter();
+  const t = useTranslations('common');
   const isLoaded = Boolean(user.firstName && user.lastName);
 
   return (
@@ -35,13 +36,11 @@ export function AccountDropdownMenu({ handleLogout }: Props) {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        <DropdownMenuItem onClick={() => router.push('/quickstart')}>Quick Start</DropdownMenuItem>
-        <DropdownMenuItem>
-          <Link href="/settings/profile">Profile</Link>
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push('/quickstart')}>{t('quickStart')}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push('/settings/profile')}>{t('profile')}</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
-          <span className="text-red-500">Log out</span>
+          <span className="text-red-500">{t('logOut')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

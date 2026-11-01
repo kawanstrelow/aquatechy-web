@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { LinkSelectorGroupRequest, ServiceTypeSelectorGroupResponse } from '@/ts/interfaces/SelectorGroups';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -26,14 +28,14 @@ export function useLinkSelectorGroup() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-types'] });
       toast({
-        title: 'Selector group linked successfully',
+        title: translateMessage('toasts.selectorGroupLinkedSuccessfully', 'Selector group linked successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error linking selector group',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorLinkingSelectorGroup', 'Error linking selector group'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

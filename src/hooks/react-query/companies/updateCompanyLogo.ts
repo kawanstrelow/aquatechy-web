@@ -6,6 +6,8 @@ import { clientAxios } from '../../../lib/clientAxios';
 import { UpdateCompanyLogo } from '@/ts/interfaces/Company';
 import { createFormData } from '@/utils/formUtils';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useEditCompanyLogo = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -23,7 +25,7 @@ export const useEditCompanyLogo = () => {
 
       toast({
         duration: 5000,
-        title: 'Information updated with success.',
+        title: translateMessage('toasts.informationUpdatedWithSuccess', 'Information updated with success.'),
         variant: 'success'
       });
     },
@@ -35,8 +37,10 @@ export const useEditCompanyLogo = () => {
       toast({
         duration: 5000,
         variant: 'error',
-        title: 'Error editing company.',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorEditingCompany', 'Error editing company.'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

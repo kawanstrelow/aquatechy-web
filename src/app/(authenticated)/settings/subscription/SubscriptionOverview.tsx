@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { CalendarDays, CreditCard, Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isPortalPending }: Props) {
+  const t = useTranslations('settings');
   const badge = getStatusBadge(status);
   const stripe = status.stripe;
   const planLabel = getPlanLabel(status.plan);
@@ -40,13 +42,15 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
             {!isTopPlan && (
               <span className="inline-flex items-center gap-1.5 text-sm text-white/80">
                 <Sparkles className="size-4" />
-                Upgrade to unlock advanced features
+                {t('subscription.upgradeHint')}
               </span>
             )}
           </div>
 
           <div>
-            <p className="text-sm font-medium uppercase tracking-wider text-white/70">Current plan</p>
+            <p className="text-sm font-medium uppercase tracking-wider text-white/70">
+              {t('subscription.currentPlan')}
+            </p>
             <h2 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">{planLabel}</h2>
             {stripe ? (
               <p className="mt-2 text-lg text-white/90">
@@ -54,23 +58,23 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
                 <span className="text-white/70"> / {formatBillingCadence(stripe.interval, stripe.intervalCount)}</span>
               </p>
             ) : (
-              <p className="mt-2 text-white/80">Free forever — no credit card required</p>
+              <p className="mt-2 text-white/80">{t('subscription.freeForever')}</p>
             )}
           </div>
 
           {status.isPendingCancellation && (
             <p className="max-w-xl rounded-lg border border-amber-300/30 bg-amber-400/15 px-4 py-2.5 text-sm text-amber-50">
               {accessEndsAt
-                ? `Cancels on ${accessEndsAt}. You keep access to your ${planLabel} plan until then.`
-                : 'Your subscription is scheduled to cancel. You keep access until then.'}
-              {canceledAt ? ` Requested on ${canceledAt}.` : ''}
+                ? t('subscription.cancelsOn', { date: accessEndsAt, plan: planLabel })
+                : t('subscription.scheduledToCancel')}
+              {canceledAt ? ` ${t('subscription.requestedOn', { date: canceledAt })}` : ''}
             </p>
           )}
 
           {!status.isPendingCancellation && renewalDate && (
             <p className="inline-flex items-center gap-2 text-sm text-white/80">
               <CalendarDays className="size-4" />
-              Renews on {renewalDate}
+              {t('subscription.renewsOn', { date: renewalDate })}
             </p>
           )}
         </div>
@@ -84,7 +88,7 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
               onClick={onUpdateCard}
             >
               <CreditCard className="mr-2 size-4" />
-              Update card
+              {t('subscription.updateCard')}
             </Button>
             <Button
               variant="outline"
@@ -92,7 +96,7 @@ export function SubscriptionOverview({ status, onUpdateCard, onViewInvoices, isP
               disabled={isPortalPending}
               onClick={onViewInvoices}
             >
-              View invoices
+              {t('subscription.viewInvoices')}
             </Button>
           </div>
         )}

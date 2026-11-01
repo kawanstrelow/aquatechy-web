@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Building2, Calendar, CheckCircle2, Filter, Loader2, MapPin, Waves } from 'lucide-react';
 import { format } from 'date-fns';
@@ -83,6 +84,7 @@ function sortReportRows(rows: PoolFilterReplacementReportRow[]) {
 }
 
 export default function FilterReplacementReportPage() {
+  const t = useTranslations('reports');
   const { data: companies = [], isLoading: isLoadingCompanies } = useGetCompanies();
   const [selectedCompany, setSelectedCompany] = useState('');
 
@@ -104,12 +106,12 @@ export default function FilterReplacementReportPage() {
 
   const getStatusBadge = (row: PoolFilterReplacementReportRow) => {
     if (isFilterReplacementOverdue(row)) {
-      return <Badge variant="destructive">Overdue</Badge>;
+      return <Badge variant="destructive">{t('filterReplacement.overdue')}</Badge>;
     }
 
     return (
       <Badge variant="default" className="border border-success/20 bg-success-soft text-success">
-        On Time
+        {t('filterReplacement.onTime')}
       </Badge>
     );
   };
@@ -124,10 +126,10 @@ export default function FilterReplacementReportPage() {
   return (
     <div className="flex flex-col gap-6">
       <ReportHeader
-        title="Filter Replacement Interval"
-        description="Filter replacement schedule for all pools in the selected company"
+        title={t('filterReplacement.title')}
+        description={t('filterReplacement.description')}
         backHref="/reports/pools"
-        backLabel="Back to pool reports"
+        backLabel={t('back.poolReports')}
       />
 
       <Card className="overflow-hidden border-line bg-surface shadow-lift">
@@ -139,12 +141,12 @@ export default function FilterReplacementReportPage() {
               </div>
               <div className="min-w-0 space-y-2">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Company</p>
-                  <p className="text-sm text-gray-500">Choose which company pools to include in this report</p>
+                  <p className="text-sm font-medium text-gray-900">{t('filterReplacement.company')}</p>
+                  <p className="text-sm text-gray-500">{t('filterReplacement.companyHint')}</p>
                 </div>
                 <Select value={selectedCompany} onValueChange={setSelectedCompany}>
                   <SelectTrigger id="company" className={fieldControlClass}>
-                    <SelectValue placeholder="Select a company" />
+                    <SelectValue placeholder={t('filterReplacement.selectCompany')} />
                   </SelectTrigger>
                   <SelectContent>
                     {companies.map((company) => (
@@ -159,7 +161,9 @@ export default function FilterReplacementReportPage() {
 
             {selectedCompany && selectedCompanyName && (
               <div className="rounded-lg border border-line bg-canvas px-4 py-3 lg:min-w-[240px]">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Viewing</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  {t('filterReplacement.viewing')}
+                </p>
                 <p className="mt-1 truncate text-sm font-semibold text-gray-900">{selectedCompanyName}</p>
               </div>
             )}
@@ -171,14 +175,14 @@ export default function FilterReplacementReportPage() {
             {isLoadingReportData ? (
               <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-500">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Loading report summary...
+                {t('filterReplacement.loadingSummary')}
               </div>
             ) : error ? null : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <Waves className="h-4 w-4 text-accent" />
-                    <span className="text-sm font-medium text-gray-600">Total Pools</span>
+                    <span className="text-sm font-medium text-gray-600">{t('filterReplacement.totalPools')}</span>
                   </div>
                   <p className="text-3xl font-bold text-accent">{reportRows.length}</p>
                 </div>
@@ -186,7 +190,7 @@ export default function FilterReplacementReportPage() {
                 <div className="rounded-xl border border-success/20 bg-success-soft p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-gray-600">On Time</span>
+                    <span className="text-sm font-medium text-gray-600">{t('filterReplacement.onTime')}</span>
                   </div>
                   <p className="text-3xl font-bold text-green-600">{onTimeCount}</p>
                 </div>
@@ -194,7 +198,7 @@ export default function FilterReplacementReportPage() {
                 <div className="rounded-xl border border-danger/20 bg-danger-soft p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-medium text-gray-600">Overdue</span>
+                    <span className="text-sm font-medium text-gray-600">{t('filterReplacement.overdue')}</span>
                   </div>
                   <p className="text-3xl font-bold text-red-600">{overdueCount}</p>
                 </div>
@@ -207,7 +211,7 @@ export default function FilterReplacementReportPage() {
       {!selectedCompany || isLoadingReportData ? null : error ? (
         <Card className="border-line bg-surface shadow-lift">
           <CardContent className="py-8 text-center">
-            <p className="text-danger">Error loading filter replacement report</p>
+            <p className="text-danger">{t('filterReplacement.loadError')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -215,28 +219,34 @@ export default function FilterReplacementReportPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-accent" />
-              Filter Replacement Schedule
+              {t('filterReplacement.scheduleTitle')}
             </CardTitle>
-            <CardDescription>All pools for the selected company and their filter replacement status</CardDescription>
+            <CardDescription>{t('filterReplacement.scheduleDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             {sortedReportRows.length === 0 ? (
               <div className="py-8 text-center">
-                <p className="text-gray-500">No filter replacement data available for this company</p>
+                <p className="text-gray-500">{t('filterReplacement.empty')}</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead className="bg-surface">
                     <tr className="border-b border-line bg-surface">
-                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Client</th>
-                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Address</th>
-                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Filter Model</th>
-                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Condition</th>
-                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Last Replacement</th>
-                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Next Replacement</th>
-                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Days Until</th>
-                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">Status</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.client')}</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.address')}</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">
+                        {t('columns.filterModel')}
+                      </th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.condition')}</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">
+                        {t('columns.lastReplacement')}
+                      </th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">
+                        {t('columns.nextReplacement')}
+                      </th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.daysUntil')}</th>
+                      <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.status')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -268,13 +278,17 @@ export default function FilterReplacementReportPage() {
                           <td className="p-3">
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-gray-400" />
-                              <span className="text-sm">{formatDate(row.lastFilterReplacementDate, 'Not set')}</span>
+                              <span className="text-sm">
+                                {formatDate(row.lastFilterReplacementDate, t('filterReplacement.notSet'))}
+                              </span>
                             </div>
                           </td>
                           <td className="p-3">
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-gray-400" />
-                              <span className="text-sm">{formatDate(row.nextFilterReplacementDate, 'Unknown')}</span>
+                              <span className="text-sm">
+                                {formatDate(row.nextFilterReplacementDate, t('filterReplacement.unknown'))}
+                              </span>
                             </div>
                           </td>
                           <td className="p-3">
@@ -288,10 +302,14 @@ export default function FilterReplacementReportPage() {
                                       : 'text-green-600'
                                 }`}
                               >
-                                {overdueDays > 0 ? `${overdueDays} days overdue` : `${daysUntil} days`}
+                                {overdueDays > 0
+                                  ? t('filterReplacement.daysOverdue', { count: overdueDays })
+                                  : t('filterReplacement.daysCount', { count: daysUntil })}
                               </span>
                             ) : (
-                              <span className="text-sm font-medium text-gray-500">Unknown</span>
+                              <span className="text-sm font-medium text-gray-500">
+                                {t('filterReplacement.unknown')}
+                              </span>
                             )}
                           </td>
                           <td className="p-3">{getStatusBadge(row)}</td>

@@ -1,6 +1,7 @@
 'use client';
 
 import { TrashIcon } from '@radix-ui/react-icons';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -11,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useDeleteUser } from '@/hooks/react-query/user/deleteUser';
 
 export function ModalDeleteAccount() {
+  const t = useTranslations('account');
   const [open, setOpen] = useState(false);
 
   const [inputConfirm, setInputConfirm] = useState('');
@@ -23,19 +25,19 @@ export function ModalDeleteAccount() {
       <DialogTrigger asChild>
         <Button className="h-10 bg-red-500 hover:bg-red-500/90">
           <TrashIcon className="mr-2 h-6 w-6" />
-          Delete account
+          {t('deleteAccount')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <div className="flex flex-col items-center gap-2 text-center">
           <Typography>
-            Deleting your account will remove all your information from our database. <br />
-            <b className="font-semibold">This action cannot be undone.</b>
+            {t('deleteWarning')} <br />
+            <b className="font-semibold">{t('deleteWarningIrreversible')}</b>
           </Typography>
           <Input
             onChange={(e) => setInputConfirm(e.target.value)}
             className="w-48"
-            placeholder="Type DELETE to confirm"
+            placeholder={t('typeDeleteToConfirm')}
           />
           <Button
             type="button"
@@ -44,7 +46,7 @@ export function ModalDeleteAccount() {
             variant="destructive"
             className="h-10w mt-2 w-fit"
           >
-            Delete account
+            {t('deleteAccount')}
           </Button>
         </div>
       </DialogContent>

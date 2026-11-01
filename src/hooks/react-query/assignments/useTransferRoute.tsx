@@ -7,6 +7,8 @@ import { useAssignmentsContext } from '@/context/assignments';
 import { clientAxios } from '@/lib/clientAxios';
 import { Assignment, TransferAssignment } from '@/ts/interfaces/Assignments';
 
+import { translateMessage } from '@/i18n/runtime';
+
 /** Backend sometimes returns `{ message }`, a string, or a JSON array of strings */
 function messageFromAxiosResponseData(data: unknown): string | undefined {
   if (data == null || typeof data === 'undefined') return undefined;
@@ -76,7 +78,7 @@ export const useTransferPermanentlyRoute = (
       const errorMessage =
         messageFromAxiosResponseData(error.response?.data) ||
         (typeof error.message === 'string' && error.message ? error.message : undefined) ||
-        'Internal server error';
+        translateMessage('toasts.internalServerError', 'Internal server error');
 
       // Necessary because it can return an error but some assignments may have been transferred successfully
       queryClient.invalidateQueries({ queryKey: ['assignments', userId] });
@@ -94,7 +96,7 @@ export const useTransferPermanentlyRoute = (
         toast({
           duration: 5000,
           variant: 'error',
-          title: 'Could not transfer assignment(s)',
+          title: translateMessage('toasts.couldNotTransferAssignmentS', 'Could not transfer assignment(s)'),
           description: errorMessage
         });
       }
@@ -114,14 +116,25 @@ export const useTransferPermanentlyRoute = (
       if (data.failureCount === 0) {
         toast({
           duration: 2000,
-          title: 'All assignments transferred successfully',
+          title: translateMessage(
+            'toasts.allAssignmentsTransferredSuccessfully',
+            'All assignments transferred successfully'
+          ),
           variant: 'success'
         });
       } else if (data.successCount > 0) {
         toast({
           duration: 3000,
-          title: `${data.successCount} of ${data.totalProcessed} assignments transferred`,
-          description: 'Some transfers failed. Check the details.',
+          title: translateMessage(
+            'toasts.successOfTotalAssignmentsTransferred',
+            '{success} of {total} assignments transferred'
+          )
+            .replace('{success}', String(data.successCount))
+            .replace('{total}', String(data.totalProcessed)),
+          description: translateMessage(
+            'toasts.someTransfersFailedCheckTheDetails',
+            'Some transfers failed. Check the details.'
+          ),
           variant: 'default'
         });
       }

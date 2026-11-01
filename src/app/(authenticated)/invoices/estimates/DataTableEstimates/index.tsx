@@ -8,6 +8,7 @@ import {
   getFilteredRowModel,
   useReactTable
 } from '@tanstack/react-table';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -33,6 +34,7 @@ export function DataTableEstimates<TValue>({
   onCompanyChange,
   onRowClick
 }: DataTableProps<TValue>) {
+  const t = useTranslations('invoices');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -81,17 +83,17 @@ export function DataTableEstimates<TValue>({
   });
 
   const statusOptions = [
-    { key: 'all', value: 'all', name: 'All Status' },
-    { key: 'draft', value: 'draft', name: 'Draft' },
-    { key: 'sent', value: 'sent', name: 'Sent' },
-    { key: 'accepted', value: 'accepted', name: 'Accepted' },
-    { key: 'declined', value: 'declined', name: 'Declined' },
-    { key: 'expired', value: 'expired', name: 'Expired' },
-    { key: 'cancelled', value: 'cancelled', name: 'Cancelled' }
+    { key: 'all', value: 'all', name: t('filters.allStatuses') },
+    { key: 'draft', value: 'draft', name: t('status.draft') },
+    { key: 'sent', value: 'sent', name: t('status.sent') },
+    { key: 'accepted', value: 'accepted', name: t('status.accepted') },
+    { key: 'declined', value: 'declined', name: t('status.declined') },
+    { key: 'expired', value: 'expired', name: t('status.expired') },
+    { key: 'cancelled', value: 'cancelled', name: t('status.cancelled') }
   ];
 
   const clientOptions = [
-    { key: 'all', value: 'all', name: 'All Clients' },
+    { key: 'all', value: 'all', name: t('filters.allClients') },
     ...clients.map((client) => ({
       key: client.id,
       value: client.id,
@@ -100,7 +102,7 @@ export function DataTableEstimates<TValue>({
   ];
 
   const companyOptions = [
-    { key: 'all', value: 'all', name: 'All Companies' },
+    { key: 'all', value: 'all', name: t('filters.allCompanies') },
     ...companies.map((company) => ({
       key: company.id,
       value: company.id,
@@ -113,7 +115,7 @@ export function DataTableEstimates<TValue>({
       <div className="flex w-full flex-col items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4 md:flex-row">
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <Input
-            placeholder="Search"
+            placeholder={t('filters.search')}
             value={globalFilter ?? ''}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="bg-surface md:max-w-xs"
@@ -123,7 +125,7 @@ export function DataTableEstimates<TValue>({
           <SelectField
             name="status"
             options={statusOptions}
-            placeholder="Status"
+            placeholder={t('filters.status')}
             onValueChange={(value) => {
               form.setValue('status', value);
               const statusColumn = table.getColumn('status');
@@ -137,7 +139,7 @@ export function DataTableEstimates<TValue>({
           <SelectField
             name="client"
             options={clientOptions}
-            placeholder="Client"
+            placeholder={t('filters.client')}
             onValueChange={(value) => {
               form.setValue('client', value);
               const clientColumn = table.getColumn('clientName');
@@ -152,7 +154,7 @@ export function DataTableEstimates<TValue>({
             <SelectField
               name="company"
               options={companyOptions}
-              placeholder="Company"
+              placeholder={t('filters.company')}
               onValueChange={(value) => {
                 form.setValue('company', value);
                 onCompanyChange(value);
@@ -161,61 +163,58 @@ export function DataTableEstimates<TValue>({
           )}
         </div>
       </div>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="h-12 bg-surface font-semibold text-ink-muted"
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id} className="h-12 bg-surface font-semibold text-ink-muted">
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+                className={`border-b border-gray-100 transition-colors hover:bg-gray-50/50${onRowClick ? 'cursor-pointer' : ''}`}
+                onClick={() => onRowClick?.(row.original)}
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onRowClick(row.original);
+                        }
+                      }
+                    : undefined
+                }
+                tabIndex={onRowClick ? 0 : undefined}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className="py-4 text-sm"
+                    onClick={cell.column.id === 'actions' ? (e) => e.stopPropagation() : undefined}
                   >
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
                 ))}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className={`border-b border-gray-100 transition-colors hover:bg-gray-50/50${onRowClick ? ' cursor-pointer' : ''}`}
-                  onClick={() => onRowClick?.(row.original)}
-                  onKeyDown={
-                    onRowClick
-                      ? (e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            onRowClick(row.original);
-                          }
-                        }
-                      : undefined
-                  }
-                  tabIndex={onRowClick ? 0 : undefined}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="py-4 text-sm"
-                      onClick={cell.column.id === 'actions' ? (e) => e.stopPropagation() : undefined}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
+                {t('empty.noResults')}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }

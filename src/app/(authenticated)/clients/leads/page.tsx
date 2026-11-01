@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -21,6 +22,7 @@ function leadAddress(lead: Lead) {
 }
 
 export default function Page() {
+  const t = useTranslations('clients');
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [companyOwnerId, setCompanyOwnerId] = useState('all');
@@ -50,7 +52,7 @@ export default function Page() {
   if (isCompaniesLoading || (companiesIManage.length > 0 && isLeadsLoading)) return <LoadingSpinner />;
 
   if (isLeadsError) {
-    return <p className="p-6 text-sm text-gray-500">Leads could not be loaded.</p>;
+    return <p className="p-6 text-sm text-gray-500">{t('leads.loadError')}</p>;
   }
 
   return (
@@ -63,11 +65,11 @@ export default function Page() {
                 <Button asChild>
                   <Link href="/clients/leads/new">
                     <PlusIcon className="mr-2" />
-                    New lead
+                    {t('leads.new')}
                   </Link>
                 </Button>
                 <Input
-                  placeholder="Search leads..."
+                  placeholder={t('leads.search')}
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   className="md:max-w-xs"
@@ -78,10 +80,10 @@ export default function Page() {
           {companiesIManage.length > 1 && (
             <Select value={companyOwnerId} onValueChange={setCompanyOwnerId}>
               <SelectTrigger className="md:max-w-xs">
-                <SelectValue placeholder="Company" />
+                <SelectValue placeholder={t('fields.company')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All companies</SelectItem>
+                <SelectItem value="all">{t('shared.allCompanies')}</SelectItem>
                 {companiesIManage.map((company) => (
                   <SelectItem key={company.id} value={company.id}>
                     {company.name}
@@ -92,17 +94,15 @@ export default function Page() {
           )}
         </div>
         {companiesIManage.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-gray-500">
-            Leads can be created by an owner, admin, or office member.
-          </p>
+          <p className="px-5 py-10 text-center text-sm text-gray-500">{t('leads.officeOnly')}</p>
         ) : (
           <Table>
             <TableHeader className="bg-surface">
               <TableRow className="border-line bg-surface hover:bg-surface">
-                <TableHead>Name</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Address</TableHead>
+                <TableHead>{t('columns.name')}</TableHead>
+                <TableHead>{t('columns.phone')}</TableHead>
+                <TableHead>{t('columns.email')}</TableHead>
+                <TableHead>{t('columns.address')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -124,7 +124,7 @@ export default function Page() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} className="h-24 text-center">
-                    No leads yet.
+                    {t('leads.empty')}
                   </TableCell>
                 </TableRow>
               )}

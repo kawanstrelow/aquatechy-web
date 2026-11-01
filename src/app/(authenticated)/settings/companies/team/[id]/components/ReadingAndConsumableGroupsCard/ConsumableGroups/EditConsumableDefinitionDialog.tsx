@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,24 +23,29 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 import { ConsumableDefinition, UpdateConsumableDefinitionRequest } from '@/ts/interfaces/ConsumableGroups';
 
-const updateConsumableDefinitionSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  unit: z.string().min(1, 'Unit is required').max(20, 'Unit must be less than 20 characters'),
-  minValue: z.coerce.number().optional(),
-  maxValue: z.coerce.number().optional(),
-  step: z.coerce.number().positive('Step must be positive').optional(),
-  isRequired: z.boolean(),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
-  pricePerUnit: z.coerce.number().min(0, 'Price must be non-negative').optional()
-}).refine((data) => {
-  if (data.minValue !== undefined && data.maxValue !== undefined) {
-    return data.minValue <= data.maxValue;
-  }
-  return true;
-}, {
-  message: 'Minimum value must be less than or equal to maximum value',
-  path: ['maxValue']
-});
+const updateConsumableDefinitionSchema = z
+  .object({
+    name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+    unit: z.string().min(1, 'settings.errors.unitRequired').max(20, 'settings.errors.unitMax'),
+    minValue: z.coerce.number().optional(),
+    maxValue: z.coerce.number().optional(),
+    step: z.coerce.number().positive('settings.errors.stepPositive').optional(),
+    isRequired: z.boolean(),
+    description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
+    pricePerUnit: z.coerce.number().min(0, 'settings.errors.priceNonNegative').optional()
+  })
+  .refine(
+    (data) => {
+      if (data.minValue !== undefined && data.maxValue !== undefined) {
+        return data.minValue <= data.maxValue;
+      }
+      return true;
+    },
+    {
+      message: 'settings.errors.minLteMax',
+      path: ['maxValue']
+    }
+  );
 
 interface EditConsumableDefinitionDialogProps {
   open: boolean;
@@ -41,7 +55,15 @@ interface EditConsumableDefinitionDialogProps {
   isLoading: boolean;
 }
 
-export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableDefinition, onSubmit, isLoading }: EditConsumableDefinitionDialogProps) {
+export function EditConsumableDefinitionDialog({
+  open,
+  onOpenChange,
+  consumableDefinition,
+  onSubmit,
+  isLoading
+}: EditConsumableDefinitionDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof updateConsumableDefinitionSchema>>({
     resolver: zodResolver(updateConsumableDefinitionSchema),
     defaultValues: {
@@ -96,12 +118,10 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Consumable Definition</DialogTitle>
-          <DialogDescription>
-            Update the consumable definition information and validation rules.
-          </DialogDescription>
+          <DialogTitle>{t('consumables.editDefinition')}</DialogTitle>
+          <DialogDescription>{t('consumables.editDefinitionDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -112,9 +132,9 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name *</FormLabel>
+                    <FormLabel>{t('fields.nameRequired')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Liquid Chlorine" {...field} />
+                      <Input placeholder={t('consumables.namePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -126,9 +146,9 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
                 name="unit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit *</FormLabel>
+                    <FormLabel>{t('fields.unitRequired')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., gallons" {...field} />
+                      <Input placeholder={t('consumables.unitPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -141,10 +161,10 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of this consumable..."
+                      placeholder={t('consumables.definitionDescriptionPlaceholder')}
                       className="resize-none"
                       rows={2}
                       {...field}
@@ -161,14 +181,9 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
                 name="minValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Minimum Value</FormLabel>
+                    <FormLabel>{t('fields.minimumValue')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="e.g., 0.0"
-                        {...field}
-                      />
+                      <Input type="number" step="any" placeholder={t('fields.exampleZero')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -180,14 +195,9 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
                 name="maxValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Maximum Value</FormLabel>
+                    <FormLabel>{t('fields.maximumValue')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="e.g., 10.0"
-                        {...field}
-                      />
+                      <Input type="number" step="any" placeholder={t('fields.exampleTen')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -201,14 +211,9 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
                 name="step"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Step Size</FormLabel>
+                    <FormLabel>{t('fields.stepSize')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="e.g., 0.25"
-                        {...field}
-                      />
+                      <Input type="number" step="any" placeholder={t('consumables.stepPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -220,14 +225,9 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
                 name="pricePerUnit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price per Unit</FormLabel>
+                    <FormLabel>{t('consumables.pricePerUnit')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="e.g., 15.00"
-                        {...field}
-                      />
+                      <Input type="number" step="0.01" placeholder={t('consumables.pricePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -241,16 +241,11 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Required consumable
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
+                    <FormLabel>{t('consumables.required')}</FormLabel>
+                    <p className="text-muted-foreground text-sm">
                       This consumable must be recorded for every service report
                     </p>
                   </div>
@@ -258,12 +253,12 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
               )}
             />
 
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end w-full">
+            <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Definition'}
+                {isLoading ? t('actions.updating') : t('actions.updateDefinition')}
               </Button>
             </DialogFooter>
           </form>
@@ -272,4 +267,3 @@ export function EditConsumableDefinitionDialog({ open, onOpenChange, consumableD
     </Dialog>
   );
 }
-

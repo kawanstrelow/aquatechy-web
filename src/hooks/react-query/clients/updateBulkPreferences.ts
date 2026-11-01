@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export interface BulkPreferenceUpdate {
   clientId: string;
   serviceEmailPreferences: {
@@ -43,15 +45,21 @@ export const useUpdateBulkPreferences = () => {
       queryClient.invalidateQueries({ queryKey: ['allClientsWithPreferences'] });
 
       // Invalidate specific client queries if we have client IDs
-      variables.clients.forEach(client => {
+      variables.clients.forEach((client) => {
         queryClient.invalidateQueries({ queryKey: ['clients', client.clientId] });
       });
 
       toast({
         duration: 5000,
-        title: 'Bulk preferences updated successfully',
+        title: translateMessage('toasts.bulkPreferencesUpdatedSuccessfully', 'Bulk preferences updated successfully'),
         variant: 'success',
-        description: `Updated preferences for ${variables.clients.length} client${variables.clients.length !== 1 ? 's' : ''}`
+        description:
+          variables.clients.length === 1
+            ? translateMessage('toasts.updatedPreferencesFor1Client', 'Updated preferences for 1 client')
+            : translateMessage(
+                'toasts.updatedPreferencesForCountClients',
+                'Updated preferences for {count} clients'
+              ).replace('{count}', String(variables.clients.length))
       });
     },
     onError: (
@@ -62,8 +70,9 @@ export const useUpdateBulkPreferences = () => {
       toast({
         duration: 5000,
         variant: 'error',
-        title: 'Error updating bulk preferences',
-        description: error.response?.data?.message || 'Internal server error'
+        title: translateMessage('toasts.errorUpdatingBulkPreferences', 'Error updating bulk preferences'),
+        description:
+          error.response?.data?.message || translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

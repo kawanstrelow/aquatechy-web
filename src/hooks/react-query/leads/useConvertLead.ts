@@ -10,6 +10,8 @@ import { API_SUBSCRIPTION_DENIED_MESSAGE } from '@/utils/subscriptionDenied';
 import { getLeadErrorMessage } from './apiError';
 import { asLead } from './leadResponse';
 
+import { translateMessage } from '@/i18n/runtime';
+
 const UPGRADE_POOL_MESSAGE = 'Upgrade your plan to add more pools.';
 
 export function useConvertLead() {
@@ -29,7 +31,7 @@ export function useConvertLead() {
       router.replace(`/clients/${client?.id || leadId}`);
       toast({
         duration: 5000,
-        title: 'Lead converted to a client',
+        title: translateMessage('toasts.leadConvertedToAClient', 'Lead converted to a client'),
         variant: 'success'
       });
     },
@@ -39,8 +41,10 @@ export function useConvertLead() {
       toast({
         duration: 4000,
         variant: 'error',
-        title: 'Unable to convert lead',
-        description: denied ? UPGRADE_POOL_MESSAGE : getLeadErrorMessage(error, 'Internal server error')
+        title: translateMessage('toasts.unableToConvertLead', 'Unable to convert lead'),
+        description: denied
+          ? UPGRADE_POOL_MESSAGE
+          : getLeadErrorMessage(error, translateMessage('toasts.internalServerError', 'Internal server error'))
       });
     }
   });

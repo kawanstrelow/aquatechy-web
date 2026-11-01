@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { COMPANY_PLAN_DENIED_DESCRIPTION, isCompanyPlanDeniedMessage } from '@/utils/subscriptionDenied';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface ResendServiceEmailRequest {
   serviceId: string;
 }
@@ -26,27 +28,34 @@ export const useResendServiceEmail = () => {
     onSuccess: () => {
       toast({
         duration: 5000,
-        title: 'Email resent successfully',
+        title: translateMessage('toasts.emailResentSuccessfully', 'Email resent successfully'),
         variant: 'success'
       });
       // You can add success handling here if needed
     },
-    onError: (error: AxiosError<{
-      message: string;
-    }>) => {
+    onError: (
+      error: AxiosError<{
+        message: string;
+      }>
+    ) => {
       if (error.response?.status === 403 && isCompanyPlanDeniedMessage(error.response?.data?.message)) {
         toast({
           duration: 5000,
-          title: 'Plan required',
+          title: translateMessage('toasts.planRequired', 'Plan required'),
           variant: 'error',
-          description: COMPANY_PLAN_DENIED_DESCRIPTION
+          description: translateMessage(
+            'toasts.thisCompanyIsNotOnThePlanRequiredForThisAction',
+            COMPANY_PLAN_DENIED_DESCRIPTION
+          )
         });
       } else {
         toast({
           duration: 5000,
-          title: 'Error resending service email',
+          title: translateMessage('toasts.errorResendingServiceEmail', 'Error resending service email'),
           variant: 'error',
-          description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+          description: error.response?.data?.message
+            ? error.response.data.message
+            : translateMessage('toasts.internalServerError', 'Internal server error')
         });
       }
     }

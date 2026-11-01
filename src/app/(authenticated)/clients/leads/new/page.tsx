@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -24,6 +25,7 @@ import { LeadVisitForm, LeadVisitValues } from '../_components/LeadVisitForm';
 import { managedCompanies } from '../managedCompanies';
 
 export default function Page() {
+  const t = useTranslations('clients');
   const router = useRouter();
   const [showNoCompaniesDialog, setShowNoCompaniesDialog] = useState(false);
   const savingRef = useRef(false);
@@ -32,8 +34,8 @@ export default function Page() {
   const createLead = useCreateLead();
   const createLeadAssignment = useCreateLeadAssignment();
   const steps = useSteps([
-    { index: 0, active: true, complete: false, title: 'Lead' },
-    { index: 1, active: false, complete: false, title: 'Visit' }
+    { index: 0, active: true, complete: false, title: t('fields.lead') },
+    { index: 1, active: false, complete: false, title: t('fields.visit') }
   ]);
   const form = useForm<CreateLeadFormValues>({
     resolver: zodResolver(createLeadSchema),
@@ -125,8 +127,8 @@ export default function Page() {
                 </Typography>
                 <SelectField
                   name="companyOwnerId"
-                  label="Company"
-                  placeholder="Company"
+                  label={t('fields.company')}
+                  placeholder={t('fields.company')}
                   options={companiesIManage.map((company) => ({
                     key: company.id,
                     name: company.name,
@@ -134,13 +136,13 @@ export default function Page() {
                   }))}
                 />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <InputField name="firstName" label="First name" placeholder="First name" />
-                  <InputField name="lastName" label="Last name" placeholder="Last name" />
+                  <InputField name="firstName" label={t('fields.firstName')} placeholder={t('fields.firstName')} />
+                  <InputField name="lastName" label={t('fields.lastName')} placeholder={t('fields.lastName')} />
                 </div>
                 <AddressInput
                   name="address"
-                  label="Address"
-                  placeholder="Street address"
+                  label={t('fields.address')}
+                  placeholder={t('fields.streetAddress')}
                   onAddressSelect={({ state, city, zipCode }) => {
                     form.setValue('state', state, { shouldValidate: true });
                     setTimeout(() => {
@@ -149,18 +151,27 @@ export default function Page() {
                     }, 500);
                   }}
                 />
-                <InputField name="addressLine2" label="Address line 2" placeholder="Apt, suite, unit" />
+                <InputField
+                  name="addressLine2"
+                  label={t('fields.addressLine2Sentence')}
+                  placeholder={t('fields.aptSuite')}
+                />
                 <div className="flex flex-col items-start justify-start gap-4 self-stretch sm:flex-row">
                   <StateAndCitySelect stateName="state" cityName="city" />
-                  <InputField name="zip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
+                  <InputField
+                    name="zip"
+                    label={t('fields.zipCode')}
+                    placeholder={t('fields.zipCode')}
+                    type={FieldType.Zip}
+                  />
                 </div>
                 <SelectField
                   name="contactMethod"
-                  label="Contact"
-                  placeholder="Phone or email"
+                  label={t('fields.contact')}
+                  placeholder={t('fields.phoneOrEmail')}
                   options={[
-                    { key: 'phone', value: 'phone', name: 'Phone' },
-                    { key: 'email', value: 'email', name: 'Email' }
+                    { key: 'phone', value: 'phone', name: t('fields.phone') },
+                    { key: 'email', value: 'email', name: t('fields.email') }
                   ]}
                   onValueChange={(value) => {
                     if (value === 'email') form.setValue('phone', '');
@@ -168,12 +179,25 @@ export default function Page() {
                   }}
                 />
                 {contactMethod === 'phone' && (
-                  <InputField name="phone" label="Phone" placeholder="Phone" type={FieldType.Phone} />
+                  <InputField
+                    name="phone"
+                    label={t('fields.phone')}
+                    placeholder={t('fields.phone')}
+                    type={FieldType.Phone}
+                  />
                 )}
-                {contactMethod === 'email' && <InputField name="email" label="Email" placeholder="Email" />}
-                <InputField name="notes" label="Notes" placeholder="Notes" type={FieldType.TextArea} className="h-28" />
+                {contactMethod === 'email' && (
+                  <InputField name="email" label={t('fields.email')} placeholder={t('fields.email')} />
+                )}
+                <InputField
+                  name="notes"
+                  label={t('fields.notes')}
+                  placeholder={t('fields.notes')}
+                  type={FieldType.TextArea}
+                  className="h-28"
+                />
                 <Button type="submit" className="self-end" disabled={isCompaniesLoading}>
-                  Next
+                  {t('shared.next')}
                 </Button>
               </form>
             </Form>
@@ -182,7 +206,7 @@ export default function Page() {
           {steps.currentStepIndex === 1 && (
             <div className="flex w-full flex-col gap-4">
               <Typography element="h2" className="text-base">
-                Visit
+                {t('fields.visit')}
               </Typography>
               <LeadVisitForm
                 companyOwnerId={companyOwnerId}
@@ -191,7 +215,7 @@ export default function Page() {
                 onSkip={saveLeadOnly}
                 onPrevious={steps.prevStep}
                 isSubmitting={isSaving}
-                submitLabel="Create lead"
+                submitLabel={t('leads.createLead')}
               />
             </div>
           )}
@@ -201,15 +225,15 @@ export default function Page() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-center">
-              {hasNoCompanies ? 'No companies available' : 'Leads are limited to office staff'}
+              {hasNoCompanies ? t('leads.noCompanies') : t('leads.limitedTitle')}
             </DialogTitle>
             <DialogDescription>
-              {hasNoCompanies
-                ? 'Please create a company before adding a lead.'
-                : 'Leads can be created by an owner, admin, or office member.'}
+              {hasNoCompanies ? t('leads.createCompanyFirst') : t('leads.officeOnly')}
             </DialogDescription>
           </DialogHeader>
-          {hasNoCompanies && <Button onClick={() => router.push('/settings/companies')}>Create company</Button>}
+          {hasNoCompanies && (
+            <Button onClick={() => router.push('/settings/companies')}>{t('shared.createCompany')}</Button>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -8,6 +8,8 @@ import { CreateLeadAssignmentRequest } from '@/ts/interfaces/Lead';
 import { getLeadErrorMessage } from './apiError';
 import { asLead } from './leadResponse';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export function useCreateLeadAssignment() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -24,7 +26,7 @@ export function useCreateLeadAssignment() {
       queryClient.invalidateQueries({ queryKey: ['services'] });
       toast({
         duration: 5000,
-        title: 'Lead and visit created',
+        title: translateMessage('toasts.leadAndVisitCreated', 'Lead and visit created'),
         variant: 'success'
       });
     },
@@ -32,8 +34,8 @@ export function useCreateLeadAssignment() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating lead',
-        description: getLeadErrorMessage(error, 'Internal server error')
+        title: translateMessage('toasts.errorCreatingLead', 'Error creating lead'),
+        description: getLeadErrorMessage(error, translateMessage('toasts.internalServerError', 'Internal server error'))
       });
     }
   });

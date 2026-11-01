@@ -3,6 +3,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { CreateSelectorOptionRequest, SelectorOptionResponse } from '@/ts/interfaces/SelectorGroups';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface CreateSelectorOptionParams {
   selectorDefinitionId: string;
   data: CreateSelectorOptionRequest;
@@ -23,7 +25,7 @@ export function useCreateSelectorOption() {
       queryClient.invalidateQueries({ queryKey: ['selectorGroups'] });
       toast({
         duration: 2000,
-        title: 'Option created successfully',
+        title: translateMessage('toasts.optionCreatedSuccessfully', 'Option created successfully'),
         variant: 'success'
       });
     },
@@ -31,9 +33,10 @@ export function useCreateSelectorOption() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating option',
-        description: error.response?.data?.message || 'Internal server error'
+        title: translateMessage('toasts.errorCreatingOption', 'Error creating option'),
+        description:
+          error.response?.data?.message || translateMessage('toasts.internalServerError', 'Internal server error')
       });
-    },
+    }
   });
 }

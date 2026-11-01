@@ -2,14 +2,7 @@
 
 import { format } from 'date-fns';
 import { DetailedInvoice } from '../utils/fakeData';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface InvoicePreviewProps {
   invoice: DetailedInvoice;
@@ -49,7 +42,8 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   // Format company address from invoice company owner only
   const companyAddress = companyOwner
     ? [
-        companyOwner.address, companyOwner.addressLine2,
+        companyOwner.address,
+        companyOwner.addressLine2,
         [companyOwner.city, companyOwner.state, companyOwner.zip].filter(Boolean).join(', ')
       ]
         .filter(Boolean)
@@ -67,9 +61,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
           {/* Header: Company Logo/Name and Invoice Title */}
           <div className="mb-8 flex items-start justify-between border-b border-gray-200 pb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {companyOwner?.name ?? 'Company Name'}
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">{companyOwner?.name ?? 'Company Name'}</h1>
             </div>
             <div className="text-right">
               <h2 className="text-3xl font-bold text-gray-900">INVOICE</h2>
@@ -83,9 +75,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
               <h3 className="mb-2 text-sm font-semibold uppercase text-gray-500">From</h3>
               <div className="space-y-1 text-sm text-gray-700">
                 <div className="font-semibold">{companyOwner?.name ?? 'Company Name'}</div>
-                {companyAddress && (
-                  <div className="whitespace-pre-line text-gray-600">{companyAddress}</div>
-                )}
+                {companyAddress && <div className="whitespace-pre-line text-gray-600">{companyAddress}</div>}
                 {companyOwner?.phone && <div>Phone: {companyOwner.phone}</div>}
                 {companyOwner?.email && <div>Email: {companyOwner.email}</div>}
               </div>
@@ -142,13 +132,13 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
                   invoice.lineItems.map((item, index) => (
                     <TableRow key={index} className="border-gray-200">
                       <TableCell className="font-medium text-gray-900">{item.description}</TableCell>
-                    <TableCell className="text-right text-gray-700">{Number(item.quantity) || 0}</TableCell>
-                    <TableCell className="text-right text-gray-700">
-                      ${(Number(item.unitPrice) || 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold text-gray-900">
-                      ${(Number(item.amount) || 0).toFixed(2)}
-                    </TableCell>
+                      <TableCell className="text-right text-gray-700">{Number(item.quantity) || 0}</TableCell>
+                      <TableCell className="text-right text-gray-700">
+                        ${(Number(item.unitPrice) || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold text-gray-900">
+                        ${(Number(item.amount) || 0).toFixed(2)}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -175,14 +165,15 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
                   <span className="font-semibold text-gray-900">${invoice.taxAmount.toFixed(2)}</span>
                 </div>
               )}
-              {invoice.discountRate && invoice.discountRate > 0 && invoice.discountAmount && invoice.discountAmount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    Discount ({invoice.discountRate.toFixed(2)}%):
-                  </span>
-                  <span className="font-semibold text-gray-900">-${(invoice.discountAmount || 0).toFixed(2)}</span>
-                </div>
-              )}
+              {invoice.discountRate &&
+                invoice.discountRate > 0 &&
+                invoice.discountAmount &&
+                invoice.discountAmount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Discount ({invoice.discountRate.toFixed(2)}%):</span>
+                    <span className="font-semibold text-gray-900">-${(invoice.discountAmount || 0).toFixed(2)}</span>
+                  </div>
+                )}
               <div className="flex justify-between border-t-2 border-gray-900 pt-2 text-lg font-bold">
                 <span className="text-gray-900">Total:</span>
                 <span className="text-gray-900">${invoice.total.toFixed(2)}</span>
@@ -202,7 +193,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
           {invoice.notes && (
             <div className="mb-6 border-t border-gray-200 pt-6">
               <h3 className="mb-2 text-sm font-semibold uppercase text-gray-500">Notes</h3>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{invoice.notes}</p>
+              <p className="whitespace-pre-line text-sm text-gray-700">{invoice.notes}</p>
             </div>
           )}
 
@@ -218,4 +209,3 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
     </div>
   );
 }
-

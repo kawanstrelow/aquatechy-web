@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
+import { useTranslations } from 'next-intl';
 import {
   addMonths,
   eachDayOfInterval,
@@ -29,7 +30,7 @@ import { ScheduleMapModal } from './ScheduleMapModal';
 import { getScheduleMonthWindow, isWithinScheduleMonthWindow, scheduledDayKey } from './scheduleDate';
 import { TechDayTag } from './TechDayTag';
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
 
 export type TechDayGroup = {
   techId: string;
@@ -80,6 +81,7 @@ type Props = {
 };
 
 export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
+  const t = useTranslations('routes');
   const { data, isLoading, isError } = useGetScheduledSummary();
   const { assignedToId, setAssignedToid } = useMembersStore(
     useShallow((state) => ({
@@ -137,7 +139,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
             <Button
               variant="outline"
               size="icon"
-              aria-label="Previous month"
+              aria-label={t('previousMonth')}
               disabled={isSameMonth(currentMonth, previousMonth)}
               onClick={() => setCurrentMonth((month) => subMonths(month, 1))}
             >
@@ -149,7 +151,7 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
             <Button
               variant="outline"
               size="icon"
-              aria-label="Next month"
+              aria-label={t('nextMonth')}
               disabled={isSameMonth(currentMonth, nextMonth)}
               onClick={() => setCurrentMonth((month) => addMonths(month, 1))}
             >
@@ -168,18 +170,18 @@ export function ScheduleCalendarView({ techFilter, onTechChange }: Props) {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
-            <p className="text-sm text-slate-500">Loading schedule…</p>
+            <p className="text-sm text-slate-500">{t('loadingSchedule')}</p>
           </div>
         ) : isError ? (
-          <div className="px-4 py-16 text-center text-sm text-slate-500">Could not load the schedule. Try again.</div>
+          <div className="px-4 py-16 text-center text-sm text-slate-500">{t('couldNotLoadSchedule')}</div>
         ) : (
           <div className="grid grid-cols-7 gap-px bg-slate-200">
-            {WEEKDAYS.map((weekday) => (
+            {WEEKDAY_KEYS.map((weekday) => (
               <div
                 key={weekday}
                 className="bg-slate-50 px-1 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500"
               >
-                {weekday}
+                {t(`weekdaysShort.${weekday}`)}
               </div>
             ))}
             {days.map((day) => {

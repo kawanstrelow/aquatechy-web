@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import React from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,25 +25,19 @@ import { SelectorGroup, UpdateSelectorGroupRequest } from '@/ts/interfaces/Selec
 
 const SELECTOR_LIMITS = {
   groupName: { min: 1, max: 100 },
-  groupDescription: { max: 500 },
+  groupDescription: { max: 500 }
 } as const;
 
 const selectorGroupNameSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.groupName.min, 'Name is required')
-  .max(SELECTOR_LIMITS.groupName.max, `Name must be at most ${SELECTOR_LIMITS.groupName.max} characters`);
+  .min(SELECTOR_LIMITS.groupName.min, 'settings.errors.nameRequiredShort')
+  .max(SELECTOR_LIMITS.groupName.max, 'settings.errors.nameMax');
 
 const updateSelectorGroupSchema = z.object({
   name: selectorGroupNameSchema,
-  description: z
-    .string()
-    .trim()
-    .max(
-      SELECTOR_LIMITS.groupDescription.max,
-      `Description must be at most ${SELECTOR_LIMITS.groupDescription.max} characters`
-    ),
-  isActive: z.boolean(),
+  description: z.string().trim().max(SELECTOR_LIMITS.groupDescription.max, 'settings.errors.descriptionMaxDynamic'),
+  isActive: z.boolean()
 });
 
 type UpdateSelectorGroupFormData = z.infer<typeof updateSelectorGroupSchema>;
@@ -52,15 +55,17 @@ export function EditSelectorGroupDialog({
   onOpenChange,
   selectorGroup,
   onSubmit,
-  isLoading = false,
+  isLoading = false
 }: EditSelectorGroupDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<UpdateSelectorGroupFormData>({
     resolver: zodResolver(updateSelectorGroupSchema),
     defaultValues: {
       name: selectorGroup?.name || '',
       description: selectorGroup?.description || '',
-      isActive: selectorGroup?.isActive ?? true,
-    },
+      isActive: selectorGroup?.isActive ?? true
+    }
   });
 
   // Update form when selectorGroup changes
@@ -69,7 +74,7 @@ export function EditSelectorGroupDialog({
       form.reset({
         name: selectorGroup.name,
         description: selectorGroup.description || '',
-        isActive: selectorGroup.isActive,
+        isActive: selectorGroup.isActive
       });
     }
   }, [selectorGroup, form]);
@@ -78,7 +83,7 @@ export function EditSelectorGroupDialog({
     onSubmit({
       name: data.name.trim(),
       description: data.description?.trim() ? data.description.trim() : undefined,
-      isActive: data.isActive,
+      isActive: data.isActive
     });
   };
 
@@ -90,10 +95,8 @@ export function EditSelectorGroupDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Selector Group</DialogTitle>
-          <DialogDescription>
-            Update the selector group information.
-          </DialogDescription>
+          <DialogTitle>{t('selectors.editGroup')}</DialogTitle>
+          <DialogDescription>{t('selectors.editGroupDescription')}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -102,10 +105,10 @@ export function EditSelectorGroupDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t('fields.name')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Basic Questions, Equipment Status"
+                      placeholder={t('selectors.groupPlaceholder')}
                       maxLength={SELECTOR_LIMITS.groupName.max}
                       {...field}
                     />
@@ -119,10 +122,10 @@ export function EditSelectorGroupDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Optional description for this selector group"
+                      placeholder={t('selectors.groupDescriptionPlaceholder')}
                       className="resize-none"
                       maxLength={SELECTOR_LIMITS.groupDescription.max}
                       {...field}
@@ -138,26 +141,21 @@ export function EditSelectorGroupDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel>Active</FormLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Enable or disable this selector group
-                    </div>
+                    <FormLabel>{t('statuses.Active')}</FormLabel>
+                    <div className="text-muted-foreground text-sm">{t('selectors.enableDisable')}</div>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
             />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Selector Group'}
+                {isLoading ? t('actions.updating') : t('selectors.updateGroup')}
               </Button>
             </DialogFooter>
           </form>

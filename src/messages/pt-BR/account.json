@@ -1,0 +1,26 @@
+{
+  "deleteAccount": "Excluir conta",
+  "deleteWarning": "Excluir sua conta remove todas as suas informações do nosso banco de dados.",
+  "deleteWarningIrreversible": "Esta ação não pode ser desfeita.",
+  "typeDeleteToConfirm": "Digite DELETE para confirmar",
+  "changePassword": "Alterar senha",
+  "changePasswordDescription": "Altere a senha da sua conta",
+  "currentPassword": "Senha atual",
+  "currentPasswordPlaceholder": "Sua senha atual",
+  "newPassword": "Nova senha",
+  "newPasswordPlaceholder": "Nova senha",
+  "confirmNewPassword": "Confirmar nova senha",
+  "confirmNewPasswordPlaceholder": "Confirme a nova senha",
+  "change": "Alterar",
+  "confirmPasswordTitle": "Alterar sua senha?",
+  "confirmPasswordDescription": "Sua senha atual será substituída.",
+  "passwordUpdated": "Senha atualizada com sucesso",
+  "errorUpdatingPassword": "Erro ao atualizar a senha",
+  "validation": {
+    "currentPasswordRequired": "A senha é obrigatória",
+    "newPasswordRequired": "A nova senha é obrigatória",
+    "newPasswordMin": "A nova senha deve ter pelo menos 8 caracteres",
+    "confirmPasswordRequired": "A confirmação da nova senha é obrigatória",
+    "passwordMismatch": "A nova senha e a confirmação não coincidem"
+  }
+}

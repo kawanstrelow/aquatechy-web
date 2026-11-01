@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Calendar, DollarSign, FileStack } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { RecurringInvoiceTemplate } from '@/hooks/react-query/invoices/useGetRecurringInvoiceTemplates';
 import { RecurringInvoiceFrequency } from '@/ts/interfaces/RecurringInvoiceTemplate';
@@ -32,6 +33,7 @@ interface RecurringInvoiceSummaryCardsProps {
 }
 
 export function RecurringInvoiceSummaryCards({ templates }: RecurringInvoiceSummaryCardsProps) {
+  const t = useTranslations('invoices');
   const { totalTemplates, totalMonthly, totalAnnual } = useMemo(() => {
     const totalTemplates = templates.length;
 
@@ -47,21 +49,21 @@ export function RecurringInvoiceSummaryCards({ templates }: RecurringInvoiceSumm
 
   const cards = [
     {
-      title: 'Total recurring templates',
+      title: t('summary.totalRecurringTemplates'),
       value: totalTemplates.toString(),
       icon: FileStack,
       iconColor: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
-      title: 'Total monthly payments',
+      title: t('summary.totalMonthlyPayments'),
       value: `$${totalMonthly.toFixed(2)}`,
       icon: DollarSign,
       iconColor: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
-      title: 'Total annual payments',
+      title: t('summary.totalAnnualPayments'),
       value: `$${totalAnnual.toFixed(2)}`,
       icon: Calendar,
       iconColor: 'text-violet-600',
@@ -74,10 +76,7 @@ export function RecurringInvoiceSummaryCards({ templates }: RecurringInvoiceSumm
       {cards.map((card, index) => {
         const Icon = card.icon;
         return (
-          <div
-            key={index}
-            className="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
-          >
+          <div key={index} className="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div className={`rounded-lg ${card.bgColor} p-2`}>
                 <Icon className={`h-5 w-5 ${card.iconColor}`} />

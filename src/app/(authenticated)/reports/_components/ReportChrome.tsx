@@ -1,4 +1,7 @@
+'use client';
+
 import { ArrowLeft, type LucideIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
@@ -48,6 +51,8 @@ export function ReportOptionCard({
   detail?: string;
   icon: LucideIcon;
 }) {
+  const t = useTranslations('reports');
+
   return (
     <div className="flex h-full flex-col rounded-xl border border-line bg-surface p-5 shadow-lift">
       <div className="flex items-start gap-3">
@@ -61,7 +66,7 @@ export function ReportOptionCard({
       </div>
       {detail ? <p className="mt-4 flex-1 text-sm text-ink-muted">{detail}</p> : <div className="flex-1" />}
       <Button variant="outline" className={cn(borderedButtonClass, 'mt-5 w-full')} asChild>
-        <Link href={href}>Open report</Link>
+        <Link href={href}>{t('openReport')}</Link>
       </Button>
     </div>
   );

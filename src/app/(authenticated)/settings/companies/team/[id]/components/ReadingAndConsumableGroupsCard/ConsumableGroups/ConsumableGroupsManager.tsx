@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +14,11 @@ import { useCreateConsumableGroup } from '@/hooks/react-query/consumable-groups/
 import { useUpdateConsumableGroup } from '@/hooks/react-query/consumable-groups/useUpdateConsumableGroup';
 import { useDeleteConsumableGroup } from '@/hooks/react-query/consumable-groups/useDeleteConsumableGroup';
 
-import { ConsumableGroup, CreateConsumableGroupRequest, UpdateConsumableGroupRequest } from '@/ts/interfaces/ConsumableGroups';
+import {
+  ConsumableGroup,
+  CreateConsumableGroupRequest,
+  UpdateConsumableGroupRequest
+} from '@/ts/interfaces/ConsumableGroups';
 import { ConsumableDefinitionsManager } from './ConsumableDefinitionsManager';
 import { CreateConsumableGroupDialog } from './CreateConsumableGroupDialog';
 import { EditConsumableGroupDialog } from './EditConsumableGroupDialog';
@@ -23,6 +29,8 @@ interface ConsumableGroupsManagerProps {
 }
 
 export function ConsumableGroupsManager({ companyId }: ConsumableGroupsManagerProps) {
+  const t = useTranslations('settings');
+
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingGroup, setEditingGroup] = useState<ConsumableGroup | null>(null);
@@ -36,7 +44,7 @@ export function ConsumableGroupsManager({ companyId }: ConsumableGroupsManagerPr
   const consumableGroups = consumableGroupsData?.consumableGroups || [];
 
   const toggleGroupExpansion = (groupId: string) => {
-    setExpandedGroups(prev => {
+    setExpandedGroups((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(groupId)) {
         newSet.delete(groupId);
@@ -57,11 +65,14 @@ export function ConsumableGroupsManager({ companyId }: ConsumableGroupsManagerPr
 
   const handleUpdateGroup = (data: UpdateConsumableGroupRequest) => {
     if (editingGroup) {
-      updateConsumableGroup({ consumableGroupId: editingGroup.id, data }, {
-        onSuccess: () => {
-          setEditingGroup(null);
+      updateConsumableGroup(
+        { consumableGroupId: editingGroup.id, data },
+        {
+          onSuccess: () => {
+            setEditingGroup(null);
+          }
         }
-      });
+      );
     }
   };
 
@@ -81,30 +92,28 @@ export function ConsumableGroupsManager({ companyId }: ConsumableGroupsManagerPr
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Consumable Groups</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-lg font-semibold">{t('consumables.groupsTitle')}</h3>
+          <p className="text-muted-foreground text-sm">
             Manage consumable groups and their definitions for service reports
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} disabled={isCreating}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Group
+          <Plus className="mr-2 h-4 w-4" />
+          {t('readings.addGroup')}
         </Button>
       </div>
 
       {consumableGroups.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <Package className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Consumable Groups</h3>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Create your first consumable group to start managing consumable definitions for your service reports.
-            </p>
+            <Package className="text-muted-foreground mb-4 h-12 w-12" />
+            <h3 className="mb-2 text-lg font-semibold">{t('consumables.noGroups')}</h3>
+            <p className="text-muted-foreground mb-4 text-center text-sm">{t('consumables.emptyHint')}</p>
             <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Consumable Group
+              <Plus className="mr-2 h-4 w-4" />
+              {t('consumables.createGroup')}
             </Button>
           </CardContent>
         </Card>
@@ -113,14 +122,14 @@ export function ConsumableGroupsManager({ companyId }: ConsumableGroupsManagerPr
           {consumableGroups.map((group) => (
             <Card key={group.id}>
               <CardHeader className="pb-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   {/* Mobile: Single row with arrow, text, and action buttons - centered */}
-                  <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleGroupExpansion(group.id)}
-                      className="h-8 w-8 p-0 flex-shrink-0"
+                      className="h-8 w-8 flex-shrink-0 p-0"
                     >
                       {expandedGroups.has(group.id) ? (
                         <ChevronDown className="h-4 w-4" />
@@ -129,28 +138,21 @@ export function ConsumableGroupsManager({ companyId }: ConsumableGroupsManagerPr
                       )}
                     </Button>
 
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base flex items-center justify-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="flex items-center justify-start gap-2 text-base">
                         {group.name}
                         {!group.isActive && (
                           <Badge variant="outline" className="text-xs">
-                            Inactive
+                            {t('statuses.Inactive')}
                           </Badge>
                         )}
                       </CardTitle>
-                      {group.description && (
-                        <CardDescription className="text-sm">{group.description}</CardDescription>
-                      )}
+                      {group.description && <CardDescription className="text-sm">{group.description}</CardDescription>}
                     </div>
 
                     {/* Action buttons - positioned on the right */}
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingGroup(group)}
-                        disabled={isUpdating}
-                      >
+                    <div className="flex flex-shrink-0 gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => setEditingGroup(group)} disabled={isUpdating}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
@@ -198,8 +200,8 @@ export function ConsumableGroupsManager({ companyId }: ConsumableGroupsManagerPr
       <ConfirmActionDialog
         open={!!deletingGroup}
         onOpenChange={() => setDeletingGroup(null)}
-        title="Delete Consumable Group"
-        description={`Are you sure you want to delete "${deletingGroup?.name}"? This will also delete all consumable definitions within this group. This action cannot be undone.`}
+        title={t('consumables.deleteGroup')}
+        description={t('confirm.deleteWithChildren', { name: deletingGroup?.name ?? '' })}
         onConfirm={handleDeleteGroup}
         variant="destructive"
       />

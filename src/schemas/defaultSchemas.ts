@@ -2,58 +2,58 @@ import { z } from 'zod';
 
 import { Frequency, IanaTimeZones } from '@/ts/enums/enums';
 
-function commonStringSchema(message: string, min: number = 1) {
+function commonStringSchema(field: string, min: number = 1) {
   return z
     .string({
-      required_error: `${message} is required.`,
-      invalid_type_error: `${message} must be a string.`
+      required_error: `validation.${field}.required`,
+      invalid_type_error: `validation.${field}.invalidType`
     })
     .trim()
-    .min(min, { message: `${message} must be at least ${min} character.` });
+    .min(min, { message: `validation.${field}.min` });
 }
 
 export const defaultSchemas = {
   stringOptional: z.string().optional(),
-  address: commonStringSchema('Address'),
+  address: commonStringSchema('address'),
   clientAddressLine2: z.string().trim().optional(),
   addressLine2: z.string().trim().optional(),
-  city: commonStringSchema('City'),
+  city: commonStringSchema('city'),
   email: z
     .string({
-      required_error: 'E-mail is required.'
+      required_error: 'validation.email.required'
     })
-    .email({ message: 'Invalid e-mail.' }),
-  password: z.string().min(8, { message: 'Password must be at least 8 characters long' }),
-  name: commonStringSchema('Name', 2),
-  firstName: commonStringSchema('First name', 2),
-  lastName: commonStringSchema('Last name', 2),
-  company: commonStringSchema('Company', 2),
+    .email({ message: 'validation.email.invalid' }),
+  password: z.string().min(8, { message: 'validation.password.min' }),
+  name: commonStringSchema('name', 2),
+  firstName: commonStringSchema('firstName', 2),
+  lastName: commonStringSchema('lastName', 2),
+  company: commonStringSchema('company', 2),
 
   notes: z.string().trim().optional(),
-  phone: z.string().length(17, { message: 'Phone number is incomplete' }),
-  state: commonStringSchema('State', 2),
+  phone: z.string().length(17, { message: 'validation.phone.incomplete' }),
+  state: commonStringSchema('state', 2),
   zipCode: z
     .string()
-    .min(5, { message: 'Zip code must be at least 5 characters long' })
-    .regex(/^\d{5}(?:[-\s]?\d{4})?$/, 'Invalid zip code')
-    .min(5, { message: 'Zip code must be at least 5 characters long' }),
+    .min(5, { message: 'validation.zipCode.min' })
+    .regex(/^\d{5}(?:[-\s]?\d{4})?$/, 'validation.zipCode.invalid')
+    .min(5, { message: 'validation.zipCode.min' }),
   language: z.enum(['English', 'Portuguese', 'Spanish'], {
-    required_error: 'Language is required.',
-    invalid_type_error: "Language must be 'English', 'Portuguese' or 'Spanish'."
+    required_error: 'validation.language.required',
+    invalid_type_error: 'validation.language.invalidType'
   }),
   monthlyPayment: z.number().nullable().optional(),
-  paymentUnit: z.coerce.number().min(1, { message: 'Payment unit must be 1 or higher.' }).optional(),
+  paymentUnit: z.coerce.number().min(1, { message: 'validation.paymentUnit.min' }).optional(),
   volumeInGallons: z.preprocess(
     (v) => (v === '' || v === null || v === undefined ? undefined : v),
-    z.coerce.number().int().min(1, { message: 'Volume must be greater than 0.' }).optional()
+    z.coerce.number().int().min(1, { message: 'validation.volume.min' }).optional()
   ),
   clientType: z.enum(['Residential', 'Commercial'], {
-    required_error: 'Client type is required.',
-    invalid_type_error: "Client type must be 'Residential' or 'Company'."
+    required_error: 'validation.clientType.required',
+    invalid_type_error: 'validation.clientType.invalidType'
   }),
   weekday: z.enum(['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'], {
-    required_error: 'Weekday is required.',
-    invalid_type_error: 'Weekday must be a string.'
+    required_error: 'validation.weekday.required',
+    invalid_type_error: 'validation.weekday.invalidType'
   }),
   csvFile: z
     .any()
@@ -65,7 +65,7 @@ export const defaultSchemas = {
         return false; // Invalid if not running in the browser or if file is invalid
       },
       {
-        message: 'Invalid file or file must be less than 7MB and in .csv format.'
+        message: 'validation.csvFile.invalid'
       }
     )
     .optional(),
@@ -78,18 +78,18 @@ export const defaultSchemas = {
         return false; // Invalid if not running in the browser or if file is invalid
       },
       {
-        message: 'Invalid image file or file must be less than 7MB and in .jpeg or .png format.'
+        message: 'validation.imageFile.invalid'
       }
     )
   ),
   poolType: z.enum(['Salt', 'Chlorine', 'Other'], {
-    required_error: 'Pool type is required.',
-    invalid_type_error: "Pool type must be 'Salt', 'Chlorine' or 'Other'."
+    required_error: 'validation.poolType.required',
+    invalid_type_error: 'validation.poolType.invalidType'
   }),
   date: z.coerce.date(),
   timezone: z.nativeEnum(IanaTimeZones, {
-    required_error: 'Timezone is required.',
-    invalid_type_error: 'Invalid timezone.'
+    required_error: 'validation.timezone.required',
+    invalid_type_error: 'validation.timezone.invalid'
   }),
   frequency: z.string(z.enum([Frequency.WEEKLY, Frequency.E2WEEKS, Frequency.E3WEEKS, Frequency.E4WEEKS])),
 };

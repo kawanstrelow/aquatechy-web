@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -47,6 +48,7 @@ interface FilterFormData {
 }
 
 export default function EstimatesPage() {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: allClients } = useGetAllClients();
@@ -165,8 +167,7 @@ export default function EstimatesPage() {
       page: 1,
       clientId: values.client && values.client !== 'all' ? values.client : null,
       companyOwnerId: values.company && values.company !== 'all' ? values.company : null,
-      status:
-        values.status && values.status !== 'all' ? (values.status as EstimateStatus) : null,
+      status: values.status && values.status !== 'all' ? (values.status as EstimateStatus) : null,
       fromDate: values.from ? values.from.toISOString().split('T')[0] : null,
       toDate: values.to ? new Date(values.to.setHours(23, 59, 59, 999)).toISOString() : null
     };
@@ -229,14 +230,14 @@ export default function EstimatesPage() {
         <ConfirmActionDialog
           open={cancelDialogOpen}
           onOpenChange={setCancelDialogOpen}
-          title="Cancel estimate"
+          title={t('list.cancelEstimateTitle')}
           description={
             estimateToCancel
-              ? `Cancel estimate #${estimateToCancel.estimateNumber}? It will remain in your records as cancelled.`
-              : 'Cancel this estimate? It will remain in your records as cancelled.'
+              ? t('list.cancelEstimateDescription', { number: estimateToCancel.estimateNumber })
+              : t('list.cancelEstimateFallback')
           }
-          confirmText={isCancelling ? 'Cancelling…' : 'Cancel estimate'}
-          cancelText="Close"
+          confirmText={isCancelling ? t('actions.cancelling') : t('list.cancelEstimateConfirm')}
+          cancelText={t('actions.close')}
           onConfirm={handleConfirmCancelEstimate}
           variant="destructive"
         />
@@ -245,17 +246,17 @@ export default function EstimatesPage() {
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button type="button" onClick={handleCreateEstimate}>
               <PlusIcon className="mr-2" />
-              New Estimate
+              {t('list.newEstimate')}
             </Button>
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <FormItem className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <FormLabel className="whitespace-nowrap">From</FormLabel>
+              <FormLabel className="whitespace-nowrap">{t('fields.from')}</FormLabel>
               <FormControl>
                 <DatePicker
                   className="w-full sm:w-fit"
-                  placeholder="Issued From"
+                  placeholder={t('fields.issuedFrom')}
                   value={watchedFrom || defaultDateFrom}
                   onChange={(date) => {
                     if (date) {
@@ -270,11 +271,11 @@ export default function EstimatesPage() {
               </FormControl>
             </FormItem>
             <FormItem className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <FormLabel className="whitespace-nowrap">To</FormLabel>
+              <FormLabel className="whitespace-nowrap">{t('fields.to')}</FormLabel>
               <FormControl>
                 <DatePicker
                   className="w-full sm:w-fit"
-                  placeholder="Issued To"
+                  placeholder={t('fields.issuedTo')}
                   value={watchedTo || defaultDateTo}
                   onChange={(date) => {
                     if (date) {
@@ -294,7 +295,7 @@ export default function EstimatesPage() {
                 <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
                   {appliedFilters}
                 </span>
-                <span>Clear</span>
+                <span>{t('actions.clear')}</span>
                 <X className="ml-2 h-4 w-4" />
               </Button>
             )}
@@ -304,7 +305,7 @@ export default function EstimatesPage() {
         <EstimateSummaryCards estimates={estimatesQuery.data?.estimates ?? []} />
 
         {estimatesQuery.isPending || estimatesQuery.isLoading ? (
-          <div>Loading...</div>
+          <div>{t('empty.loading')}</div>
         ) : (
           <div className="flex flex-col gap-4">
             <DataTableEstimates

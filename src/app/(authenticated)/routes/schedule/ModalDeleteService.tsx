@@ -1,4 +1,5 @@
 import { differenceInDays } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export function DialogDeleteService({ service, open, setOpen, clientId }: Props) {
+  const t = useTranslations('routes');
   const { mutate: deleteService, isPending: isDeletingService } = useDeleteService(clientId);
   const { mutate: deleteAssignment, isPending: isDeletingAssignment } = useDeleteAssignment();
   const [scope, setScope] = useState<DeleteScope>('this_service');
@@ -65,17 +67,17 @@ export function DialogDeleteService({ service, open, setOpen, clientId }: Props)
   return (
     <Dialog open={open} onOpenChange={isPending ? undefined : setOpen}>
       <DialogContent className="max-w-md">
-        <DialogTitle className="mb-4">Delete Service</DialogTitle>
+        <DialogTitle className="mb-4">{t('deleteServiceTitle')}</DialogTitle>
         <DialogDescription className="mb-4">
-          Choose whether to delete only this visit or all remaining open services on this recurring assignment.
+          {t('deleteServiceDescription')}
           <br />
-          This action cannot be undone.
+          {t('cannotBeUndone')}
         </DialogDescription>
         {isPending ? (
           <div className="flex flex-col items-center gap-4 py-8">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-red-600"></div>
             <p className="text-sm text-gray-600">
-              {scope === 'all_recurring' ? 'Deleting assignment...' : 'Deleting service...'}
+              {scope === 'all_recurring' ? t('deletingAssignment') : t('deletingService')}
             </p>
           </div>
         ) : (
@@ -94,9 +96,9 @@ export function DialogDeleteService({ service, open, setOpen, clientId }: Props)
                 <RadioGroupItem value="this_service" id="delete-scope-this-service" className="mt-1" />
                 <div className="grid gap-1">
                   <Label htmlFor="delete-scope-this-service" className="cursor-pointer font-normal">
-                    This service only
+                    {t('thisServiceOnly')}
                   </Label>
-                  <span className="text-muted-foreground text-xs">Delete just this scheduled visit.</span>
+                  <span className="text-muted-foreground text-xs">{t('deleteThisVisit')}</span>
                 </div>
               </div>
               <div className={`flex items-start gap-3 ${!canDeleteRecurring ? 'opacity-50' : ''}`}>
@@ -111,20 +113,18 @@ export function DialogDeleteService({ service, open, setOpen, clientId }: Props)
                     htmlFor="delete-scope-all-recurring"
                     className={!canDeleteRecurring ? 'cursor-not-allowed font-normal' : 'cursor-pointer font-normal'}
                   >
-                    All open recurring services
+                    {t('allOpenRecurring')}
                   </Label>
-                  <span className="text-muted-foreground text-xs">
-                    Delete the assignment and all remaining open services.
-                  </span>
+                  <span className="text-muted-foreground text-xs">{t('deleteAssignmentAndOpen')}</span>
                 </div>
               </div>
             </RadioGroup>
             <div className="flex gap-4 pt-4">
               <Button variant="destructive" className="w-full" onClick={handleDelete}>
-                Delete
+                {t('delete')}
               </Button>
               <Button variant="outline" className="w-full" onClick={() => setOpen(false)}>
-                Cancel
+                {t('cancel')}
               </Button>
             </div>
           </>

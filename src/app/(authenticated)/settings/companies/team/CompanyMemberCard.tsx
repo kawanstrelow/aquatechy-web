@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 import { getInitials } from '@/utils/others';
@@ -30,6 +32,7 @@ export function CompanyMemberCard({
   hideCompanyRow = false,
   actorRole
 }: Props) {
+  const t = useTranslations('settings');
   const canMutate = Boolean(id) && canMutateCompanyMember(actorRole, role);
 
   return (
@@ -70,31 +73,35 @@ export function CompanyMemberCard({
       <div className="flex w-full flex-col gap-2">
         {!hideCompanyRow && (
           <div className="flex w-full justify-between text-xs text-gray-500">
-            <span>Company</span>
+            <span>{t('company')}</span>
             <span className="truncate text-right text-gray-400">{company.name}</span>
           </div>
         )}
 
         <div className="flex w-full justify-between text-xs text-gray-500">
-          <span>Role</span>
-          <span className="truncate text-right text-gray-400">{role}</span>
+          <span>{t('companies.role')}</span>
+          <span className="truncate text-right text-gray-400">
+            {t.has(`roles.${role}`) ? t(`roles.${role}`) : role}
+          </span>
         </div>
 
         {firstName && (
           <div className="flex w-full justify-between text-xs text-gray-500">
-            <span>Name</span>
+            <span>{t('companies.name')}</span>
             <span className="truncate text-right text-gray-400">{`${firstName} ${lastName}`}</span>
           </div>
         )}
 
         <div className="flex w-full justify-between text-xs text-gray-500">
-          <span>Status</span>
-          <span className="truncate text-right text-gray-400">{status}</span>
+          <span>{t('companies.status')}</span>
+          <span className="truncate text-right text-gray-400">
+            {t.has(`statuses.${status}`) ? t(`statuses.${status}`) : status}
+          </span>
         </div>
 
         {status === 'Active' && (
           <div className="flex w-full justify-between text-xs text-gray-500">
-            <span>Phone</span>
+            <span>{t('phone')}</span>
             <span className="truncate text-right text-gray-400">{phone}</span>
           </div>
         )}
