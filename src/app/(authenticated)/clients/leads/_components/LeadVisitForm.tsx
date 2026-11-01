@@ -264,31 +264,43 @@ export function LeadVisitForm({
             {weekday && <SelectField name="startOn" label="Visit date" placeholder="Visit date" options={startDates} />}
           </div>
         )}
-        <div className={scheduleOnce ? 'flex items-center justify-between gap-4' : 'flex gap-4'}>
+        <div
+          className={
+            scheduleOnce
+              ? 'flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
+              : 'flex gap-4'
+          }
+        >
           {onPrevious && (
             <Button
               type="button"
               variant="outline"
-              className="border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50"
+              className="w-full border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50 sm:w-auto"
               onClick={onPrevious}
               disabled={pending}
             >
               Previous
             </Button>
           )}
-          <div className={scheduleOnce ? 'ml-auto flex items-center gap-4' : 'flex flex-1 gap-4'}>
+          <div
+            className={
+              scheduleOnce
+                ? 'flex w-full min-w-0 flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row sm:items-center'
+                : 'flex flex-1 gap-4'
+            }
+          >
             {onSkip && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onSkip}
-                className="h-9 whitespace-nowrap px-4"
+                className="h-9 w-full px-4 sm:w-auto"
                 disabled={pending}
               >
                 Skip visit for now
               </Button>
             )}
-            <Button type="submit" disabled={pending} className={scheduleOnce ? 'h-9 whitespace-nowrap px-4' : 'flex-1'}>
+            <Button type="submit" disabled={pending} className={scheduleOnce ? 'h-9 w-full px-4 sm:w-auto' : 'flex-1'}>
               {pending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
               {submitLabel}
             </Button>
