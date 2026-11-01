@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/
 import { MultiSelect } from '@/components/MultiSelect';
 import SelectField from '@/components/SelectField';
 import { Categories, RequestStatus } from '@/constants';
+import { translateOptionLabel } from '@/i18n/runtime';
 import useGetRequests, { UseGetRequestsParams } from '@/hooks/react-query/requests/getRequests';
 import { useUserStore } from '@/store/user';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
@@ -62,6 +64,7 @@ const countAppliedFilters = (filters: UseGetRequestsParams): number => {
 };
 
 export default function Page() {
+  const t = useTranslations('requests');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: clients } = useGetAllClients();
@@ -134,234 +137,208 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
-      <Form {...filtersForm}>
-        <form
-          className="flex w-full flex-col"
-          onSubmit={filtersForm.handleSubmit(onSubmit)}
-        >
-          <div className="flex flex-col flex-wrap items-start gap-2 border-b border-line bg-surface px-5 py-4 md:flex-row md:items-center">
-            <Input
-              className="w-full bg-surface md:w-[250px]"
-              placeholder="Filter requests..."
-              value={globalFilter}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-            />
+        <Form {...filtersForm}>
+          <form className="flex w-full flex-col" onSubmit={filtersForm.handleSubmit(onSubmit)}>
+            <div className="flex flex-col flex-wrap items-start gap-2 border-b border-line bg-surface px-5 py-4 md:flex-row md:items-center">
+              <Input
+                className="w-full bg-surface md:w-[250px]"
+                placeholder={t('filterPlaceholder')}
+                value={globalFilter}
+                onChange={(event) => setGlobalFilter(event.target.value)}
+              />
 
-            <FormItem className="flex flex-col md:flex-row items-start md:items-center gap-2 w-full md:w-auto">
-              <FormLabel className="whitespace-nowrap">From</FormLabel>
-              <FormControl className="w-full md:w-auto">
-                <DatePicker
-                  placeholder="Created From"
-                  value={
-                    filtersForm.watch('from')
-                      ? new Date(filtersForm.watch('from'))
-                      : undefined
-                  }
-                  onChange={(date) => {
-                    if (date) {
-                      const localDate = new Date(date.setHours(0, 0, 0, 0));
-                      filtersForm.setValue('from', localDate.toISOString(), { shouldDirty: true });
-                    } else {
-                      filtersForm.setValue('from', defaultValues.from, { shouldDirty: true });
-                    }
-                  }}
-                />
-              </FormControl>
-            </FormItem>
+              <FormItem className="flex w-full flex-col items-start gap-2 md:w-auto md:flex-row md:items-center">
+                <FormLabel className="whitespace-nowrap">{t('from')}</FormLabel>
+                <FormControl className="w-full md:w-auto">
+                  <DatePicker
+                    placeholder={t('createdFrom')}
+                    value={filtersForm.watch('from') ? new Date(filtersForm.watch('from')) : undefined}
+                    onChange={(date) => {
+                      if (date) {
+                        const localDate = new Date(date.setHours(0, 0, 0, 0));
+                        filtersForm.setValue('from', localDate.toISOString(), { shouldDirty: true });
+                      } else {
+                        filtersForm.setValue('from', defaultValues.from, { shouldDirty: true });
+                      }
+                    }}
+                  />
+                </FormControl>
+              </FormItem>
 
-            <FormItem className="flex flex-col md:flex-row items-start md:items-center gap-2 w-full md:w-auto">
-              <FormLabel className="whitespace-nowrap">To</FormLabel>
-              <FormControl className="w-full md:w-auto">
-                <DatePicker
-                  placeholder="Created To"
-                  value={
-                    filtersForm.watch('to')
-                      ? new Date(filtersForm.watch('to'))
-                      : undefined
-                  }
-                  onChange={(date) => {
-                    if (date) {
-                      const localDate = new Date(date.setHours(23, 59, 59, 999));
-                      filtersForm.setValue('to', localDate.toISOString(), { shouldDirty: true });
-                    } else {
-                      filtersForm.setValue('to', defaultValues.to, { shouldDirty: true });
-                    }
-                  }}
-                />
-              </FormControl>
-            </FormItem>
+              <FormItem className="flex w-full flex-col items-start gap-2 md:w-auto md:flex-row md:items-center">
+                <FormLabel className="whitespace-nowrap">{t('to')}</FormLabel>
+                <FormControl className="w-full md:w-auto">
+                  <DatePicker
+                    placeholder={t('createdTo')}
+                    value={filtersForm.watch('to') ? new Date(filtersForm.watch('to')) : undefined}
+                    onChange={(date) => {
+                      if (date) {
+                        const localDate = new Date(date.setHours(23, 59, 59, 999));
+                        filtersForm.setValue('to', localDate.toISOString(), { shouldDirty: true });
+                      } else {
+                        filtersForm.setValue('to', defaultValues.to, { shouldDirty: true });
+                      }
+                    }}
+                  />
+                </FormControl>
+              </FormItem>
 
-            <Dialog open={filtersDialogOpen} onOpenChange={setFiltersDialogOpen}>
-              <DialogTrigger asChild>
-                <Button type="button" className="flex items-center gap-2 w-full md:w-auto">
-                  More filters
-                  {filtersForm.formState.isDirty && (
-                    <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
-                      *
-                    </span>
-                  )}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-xl">
-                <DialogHeader>
-                  <DialogTitle>Requests filter</DialogTitle>
-                </DialogHeader>
-
-                <FormItem className="w-full">
-                  <FormLabel>Company</FormLabel>
-                  <FormControl>
-                    <FormField
-                      name="companyId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <SelectField
-                              placeholder="Select company"
-                              {...field}
-                              options={buildSelectOptions(companies, {
-                                key: 'id',
-                                name: 'name',
-                                value: 'id'
-                              })}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </FormControl>
-                </FormItem>
-
-                <FormItem className="w-full">
-                  <FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <FormField
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <MultiSelect
-                              placeholder="Select status"
-                              options={RequestStatus.map((s) => ({ label: s.name, value: s.value }))}
-                              selected={field.value ?? []}
-                              onChange={(value) => {
-                                field.onChange(value);
-                              }}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </FormControl>
-                </FormItem>
-
-                <FormItem className="w-full">
-                  <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <FormField
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <SelectField
-                              placeholder="Select category"
-                              {...field}
-                              options={Categories}
-                              itemClassName="whitespace-normal text-left"
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                              }}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </FormControl>
-                </FormItem>
-
-                <FormItem className="w-full">
-                  <FormLabel>Client</FormLabel>
-                  <FormControl>
-                    <FormField
-                      name="clientId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <SelectField
-                              placeholder={clients?.length || 0 > 0 ? 'Select client' : 'No clients available'}
-                              {...field}
-                              options={buildSelectOptions(
-                                clients?.filter((client: Client) => client.isActive),
-                                {
-                                  key: 'id',
-                                  name: 'fullName',
-                                  value: 'id'
-                                }
-                              )}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </FormControl>
-                </FormItem>
-
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    onClick={() => filtersForm.handleSubmit(onSubmit)()}
-                  >
-                    {requestsQuery.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Apply
+              <Dialog open={filtersDialogOpen} onOpenChange={setFiltersDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button type="button" className="flex w-full items-center gap-2 md:w-auto">
+                    {t('moreFilters')}
+                    {filtersForm.formState.isDirty && (
+                      <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                        *
+                      </span>
+                    )}
                   </Button>
-                  {appliedFilters > 0 && (
-                    <Button type="button" variant="outline" onClick={handleClearFilters}>
-                      Clear
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>{t('filterTitle')}</DialogTitle>
+                  </DialogHeader>
+
+                  <FormItem className="w-full">
+                    <FormLabel>{t('company')}</FormLabel>
+                    <FormControl>
+                      <FormField
+                        name="companyId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <SelectField
+                                placeholder={t('selectCompany')}
+                                {...field}
+                                options={buildSelectOptions(companies, {
+                                  key: 'id',
+                                  name: 'name',
+                                  value: 'id'
+                                })}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </FormControl>
+                  </FormItem>
+
+                  <FormItem className="w-full">
+                    <FormLabel>{t('status')}</FormLabel>
+                    <FormControl>
+                      <FormField
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <MultiSelect
+                                placeholder={t('selectStatus')}
+                                options={RequestStatus.map((s) => ({ label: translateOptionLabel(s), value: s.value }))}
+                                selected={field.value ?? []}
+                                onChange={(value) => {
+                                  field.onChange(value);
+                                }}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </FormControl>
+                  </FormItem>
+
+                  <FormItem className="w-full">
+                    <FormLabel>{t('category')}</FormLabel>
+                    <FormControl>
+                      <FormField
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <SelectField
+                                placeholder={t('selectCategory')}
+                                {...field}
+                                options={Categories}
+                                itemClassName="whitespace-normal text-left"
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                }}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </FormControl>
+                  </FormItem>
+
+                  <FormItem className="w-full">
+                    <FormLabel>{t('client')}</FormLabel>
+                    <FormControl>
+                      <FormField
+                        name="clientId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <SelectField
+                                placeholder={clients?.length || 0 > 0 ? t('selectClient') : t('noClients')}
+                                {...field}
+                                options={buildSelectOptions(
+                                  clients?.filter((client: Client) => client.isActive),
+                                  {
+                                    key: 'id',
+                                    name: 'fullName',
+                                    value: 'id'
+                                  }
+                                )}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </FormControl>
+                  </FormItem>
+
+                  <DialogFooter>
+                    <Button type="button" onClick={() => filtersForm.handleSubmit(onSubmit)()}>
+                      {requestsQuery.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {t('apply')}
                     </Button>
-                  )}
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                    {appliedFilters > 0 && (
+                      <Button type="button" variant="outline" onClick={handleClearFilters}>
+                        {t('clear')}
+                      </Button>
+                    )}
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-            <Button
-              type="submit"
-              size="sm"
-              className="w-full md:w-auto"
-              disabled={!filtersForm.formState.isDirty && appliedFilters === 0}
-            >
-              {requestsQuery.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Apply
-            </Button>
-
-            {appliedFilters > 0 && (
               <Button
-                variant="outline"
-                onClick={handleClearFilters}
+                type="submit"
                 size="sm"
                 className="w-full md:w-auto"
+                disabled={!filtersForm.formState.isDirty && appliedFilters === 0}
               >
-                <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
-                  {appliedFilters}
-                </span>
-                <span>Clear</span>
-                <X className="ml-2 h-4 w-4" />
+                {requestsQuery.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t('apply')}
               </Button>
-            )}
-          </div>
-        </form>
-      </Form>
 
+              {appliedFilters > 0 && (
+                <Button variant="outline" onClick={handleClearFilters} size="sm" className="w-full md:w-auto">
+                  <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                    {appliedFilters}
+                  </span>
+                  <span>{t('clear')}</span>
+                  <X className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </form>
+        </Form>
 
-      {requestsQuery.isPending || requestsQuery.isLoading ? (
-        <DataTableRequestsSkeleton />
-      ) : (
-        <DataTableRequests
-          columns={columns}
-          data={requestsQuery.data?.requests || []}
-          globalFilter={globalFilter}
-        />
-      )}
+        {requestsQuery.isPending || requestsQuery.isLoading ? (
+          <DataTableRequestsSkeleton />
+        ) : (
+          <DataTableRequests columns={columns} data={requestsQuery.data?.requests || []} globalFilter={globalFilter} />
+        )}
       </div>
 
       {!requestsQuery.isPending && !requestsQuery.isLoading && (

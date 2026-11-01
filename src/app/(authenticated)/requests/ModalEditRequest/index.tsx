@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { Download, Edit3, FileText, ImageIcon, ListChecks, Loader2, MapPin, Trash2, User } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
@@ -26,6 +27,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { RequestStatus } from '@/constants';
+import { translateOptionLabel } from '@/i18n/runtime';
 import { useDeleteRequest } from '@/hooks/react-query/requests/deleteRequest';
 import { useUpdateRequest } from '@/hooks/react-query/requests/updateRequest';
 import { formatRequestCategory } from '@/ts/enums/enums';
@@ -49,36 +51,20 @@ export type DeleteRequest = {
   id: string;
 };
 
-const statusOptions: Record<Request['status'], { label: string; className: string }> = {
-  Pending: {
-    label: 'Pending',
-    className: 'bg-red-100 text-red-600'
-  },
-  Processing: {
-    label: 'Processing',
-    className: 'bg-yellow-100 text-yellow-600'
-  },
-  Done: {
-    label: 'Done',
-    className: 'bg-green-100 text-green-600'
-  },
-  ClientNotified: {
-    label: 'Client Notified',
-    className: 'bg-blue-100 text-blue-600'
-  },
-  WaintingClientApproval: {
-    label: 'Waiting Client Approval',
-    className: 'bg-amber-100 text-amber-600'
-  },
-  ApprovedByClient: {
-    label: 'Approved by Client',
-    className: 'bg-emerald-100 text-emerald-600'
-  },
-  RejectedByClient: {
-    label: 'Rejected by Client',
-    className: 'bg-red-100 text-red-600'
-  }
+const statusClasses: Record<Request['status'], string> = {
+  Pending: 'bg-red-100 text-red-600',
+  Processing: 'bg-yellow-100 text-yellow-600',
+  Done: 'bg-green-100 text-green-600',
+  ClientNotified: 'bg-blue-100 text-blue-600',
+  WaintingClientApproval: 'bg-amber-100 text-amber-600',
+  ApprovedByClient: 'bg-emerald-100 text-emerald-600',
+  RejectedByClient: 'bg-red-100 text-red-600'
 };
+
+function requestStatusLabel(status: string) {
+  const option = RequestStatus.find((item) => item.value === status);
+  return option ? translateOptionLabel(option) : status;
+}
 
 type ViewingPhoto = {
   url: string;
@@ -114,6 +100,8 @@ type Props = {
 };
 
 export function ModalEditRequest({ request, open, setOpen }: Props) {
+  const t = useTranslations('requests');
+  const common = useTranslations('common');
   const { mutate: updateRequest, isPending: isPendingUpdate } = useUpdateRequest(request.id);
   const { mutate: deleteRequest, isPending: isPendingDelete } = useDeleteRequest(request.id);
 
@@ -206,7 +194,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
   };
 
   const clientFullName = request.client.fullName || `${request.client.firstName} ${request.client.lastName}`.trim();
-  const statusMeta = statusOptions[request.status];
+  const statusClassName = statusClasses[request.status];
   const photos = request.photos || [];
 
   return (
@@ -215,10 +203,12 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
         <DialogHeader>
           <div className="flex items-center gap-2">
             <ListChecks className="h-6 w-6 text-[#364D9D]" />
-            <DialogTitle className="text-xl font-semibold">Request Details</DialogTitle>
-            {statusMeta && (
-              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusMeta.className}`}>
-                {statusMeta.label}
+            <DialogTitle className="text-xl font-semibold">{t('details')}</DialogTitle>
+            {statusClassName && (
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClassName}`}
+              >
+                {requestStatusLabel(request.status)}
               </span>
             )}
           </div>
@@ -227,7 +217,9 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
             <div className="flex-1">
               {format(new Date(request.createdAt), "EEEE, MMMM do, yyyy 'at' h:mm a")}
               <span className="ml-1 font-medium">
-                by {request.createdByUser?.firstName} {request.createdByUser?.lastName}
+                {t('by', {
+                  name: `${request.createdByUser?.firstName ?? ''} ${request.createdByUser?.lastName ?? ''}`.trim()
+                })}
               </span>
             </div>
           </div>
@@ -245,23 +237,23 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                 <AccordionTrigger className="text-lg">
                   <div className="flex items-center gap-2">
                     <FileText className="h-5 w-5 text-[#364D9D]" />
-                    <span className="text-md">Request Details</span>
+                    <span className="text-md">{t('details')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
                   <Card>
                     <CardContent className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
                       <div className="rounded-lg bg-gray-50 p-3">
-                        <div className="text-sm text-gray-500">Category</div>
+                        <div className="text-sm text-gray-500">{t('category')}</div>
                         <div className="text-lg font-semibold">{formatRequestCategory(request.category)}</div>
                       </div>
                       <div className="rounded-lg bg-gray-50 p-3">
-                        <div className="text-sm text-gray-500">Pool</div>
+                        <div className="text-sm text-gray-500">{t('pool')}</div>
                         <div className="text-lg font-semibold">{request.pool?.name || '—'}</div>
                       </div>
 
                       <div className="rounded-lg bg-gray-50 p-3 sm:col-span-2">
-                        <div className="text-sm text-gray-500">Description</div>
+                        <div className="text-sm text-gray-500">{t('columns.description')}</div>
                         <div className="text-lg font-semibold">{request.description || '—'}</div>
                       </div>
 
@@ -272,10 +264,10 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                           <FormItem className="space-y-0 sm:col-span-2">
                             {isEditingOutcome ? (
                               <div className="rounded-lg bg-gray-50 p-3">
-                                <div className="text-sm text-gray-500">Outcome</div>
+                                <div className="text-sm text-gray-500">{t('outcome')}</div>
                                 <FormControl>
                                   <Textarea
-                                    placeholder="How was the outcome?"
+                                    placeholder={t('outcomePlaceholder')}
                                     className="mt-1 min-h-[100px] bg-white text-lg"
                                     autoFocus
                                     {...field}
@@ -290,7 +282,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                                 onClick={() => setIsEditingOutcome(true)}
                               >
                                 <div className="flex items-start justify-between gap-2">
-                                  <div className="text-sm text-gray-500">Outcome</div>
+                                  <div className="text-sm text-gray-500">{t('outcome')}</div>
                                   <Edit3 className="h-4 w-4 shrink-0 text-[#364D9D]" />
                                 </div>
                                 <div className="text-lg font-semibold">{field.value || '—'}</div>
@@ -307,17 +299,17 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                           <FormItem className="space-y-0 sm:col-span-2">
                             {isEditingStatus ? (
                               <div className="rounded-lg bg-gray-50 p-3">
-                                <div className="text-sm text-gray-500">Status</div>
+                                <div className="text-sm text-gray-500">{t('status')}</div>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                   <FormControl>
                                     <SelectTrigger className="mt-1 bg-white text-lg font-semibold">
-                                      <SelectValue placeholder="Status" />
+                                      <SelectValue placeholder={t('status')} />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
                                     {RequestStatus.map((option) => (
                                       <SelectItem key={option.key} value={option.value}>
-                                        {option.name}
+                                        {translateOptionLabel(option)}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
@@ -331,12 +323,10 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                                 onClick={() => setIsEditingStatus(true)}
                               >
                                 <div className="flex items-start justify-between gap-2">
-                                  <div className="text-sm text-gray-500">Status</div>
+                                  <div className="text-sm text-gray-500">{t('status')}</div>
                                   <Edit3 className="h-4 w-4 shrink-0 text-[#364D9D]" />
                                 </div>
-                                <div className="text-lg font-semibold">
-                                  {statusOptions[field.value]?.label || field.value}
-                                </div>
+                                <div className="text-lg font-semibold">{requestStatusLabel(field.value)}</div>
                               </button>
                             )}
                           </FormItem>
@@ -351,22 +341,22 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                 <AccordionTrigger className="text-lg">
                   <div className="flex items-center gap-2">
                     <User className="h-5 w-5 text-[#364D9D]" />
-                    <span className="text-md">Client Information</span>
+                    <span className="text-md">{t('clientInformation')}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
                   <Card>
                     <CardContent className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
                       <div className="rounded-lg bg-gray-50 p-3">
-                        <div className="text-sm text-gray-500">Client Name</div>
+                        <div className="text-sm text-gray-500">{t('clientName')}</div>
                         <div className="text-lg font-semibold">{clientFullName || '—'}</div>
                       </div>
                       <div className="rounded-lg bg-gray-50 p-3">
-                        <div className="text-sm text-gray-500">Email</div>
+                        <div className="text-sm text-gray-500">{t('email')}</div>
                         <div className="text-lg font-semibold">{request.client.email || '—'}</div>
                       </div>
                       <div className="rounded-lg bg-gray-50 p-3 sm:col-span-2">
-                        <div className="text-sm text-gray-500">Phone</div>
+                        <div className="text-sm text-gray-500">{t('phone')}</div>
                         <div className="text-lg font-semibold">{request.client.phone || '—'}</div>
                       </div>
                     </CardContent>
@@ -379,7 +369,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                   <AccordionTrigger className="text-lg">
                     <div className="flex items-center gap-2">
                       <ImageIcon className="h-5 w-5 text-[#364D9D]" />
-                      <span className="text-md">Photos</span>
+                      <span className="text-md">{t('photos')}</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
@@ -388,11 +378,11 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                         <div
                           key={`photo-${index}-${photo}`}
                           className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg"
-                          onClick={() => handleViewPhoto(photo, `Request photo ${index + 1}`, index)}
+                          onClick={() => handleViewPhoto(photo, t('requestPhoto', { index: index + 1 }), index)}
                         >
                           <Image
                             src={photo}
-                            alt={`Request photo ${index + 1}`}
+                            alt={t('requestPhoto', { index: index + 1 })}
                             fill
                             className="object-cover transition-transform hover:scale-105"
                           />
@@ -406,7 +396,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
 
             <div className="mt-6 flex flex-col justify-center gap-3 border-t pt-6 sm:flex-row">
               <Button type="submit" disabled={isPendingUpdate || isPendingDelete}>
-                {isPendingUpdate ? 'Updating...' : 'Update Request'}
+                {isPendingUpdate ? t('updating') : t('updateRequest')}
               </Button>
               <Button
                 type="button"
@@ -415,7 +405,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                 onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete Request
+                {t('deleteRequest')}
               </Button>
             </div>
           </form>
@@ -425,19 +415,17 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Request</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this request? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('deleteDescription')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPendingDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isPendingDelete}>{common('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
               disabled={isPendingDelete}
             >
-              {isPendingDelete ? 'Deleting...' : 'Delete'}
+              {isPendingDelete ? t('deleting') : common('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -448,7 +436,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
           className="w-auto max-w-[95vw] gap-3 overflow-hidden p-6"
           style={photoDisplaySize ? { width: photoDisplaySize.width + PHOTO_DIALOG_PADDING } : undefined}
         >
-          <DialogTitle className="sr-only">Request photo</DialogTitle>
+          <DialogTitle className="sr-only">{t('requestPhotoTitle')}</DialogTitle>
           {viewingPhoto && (
             <div className="flex flex-col items-center gap-4">
               <div className="relative flex min-h-[4rem] items-center justify-center">
@@ -459,9 +447,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                   onLoad={handlePhotoLoad}
                   className={photoDisplaySize ? 'rounded-md' : 'invisible absolute h-0 w-0'}
                   style={
-                    photoDisplaySize
-                      ? { width: photoDisplaySize.width, height: photoDisplaySize.height }
-                      : undefined
+                    photoDisplaySize ? { width: photoDisplaySize.width, height: photoDisplaySize.height } : undefined
                   }
                 />
               </div>
@@ -472,7 +458,7 @@ export function ModalEditRequest({ request, open, setOpen }: Props) {
                 onClick={() => handleDownloadPhoto(viewingPhoto.url, viewingPhoto.index)}
               >
                 {isDownloadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                {isDownloadingPhoto ? 'Downloading...' : 'Download Photo'}
+                {isDownloadingPhoto ? t('downloading') : t('downloadPhoto')}
               </Button>
             </div>
           )}

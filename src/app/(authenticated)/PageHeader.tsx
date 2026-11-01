@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { useLogout } from '@/utils/logout';
+import { useTranslations } from 'next-intl';
 
 import { AccountDropdownMenu } from './AccountDropdownMenu';
 import { PageTitle } from './PageTitle';
@@ -14,6 +15,7 @@ export default function PageHeader() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const logout = useLogout();
+  const t = useTranslations('common');
 
   const handleLogout = () => {
     logout(queryClient, router);
@@ -35,7 +37,7 @@ export default function PageHeader() {
           className="border-line bg-surface text-ink shadow-none hover:bg-canvas hover:text-ink"
         >
           <a href="https://www.aquatechyapp.com/tutorials" target="_blank" rel="noopener noreferrer">
-            Tutorials
+            {t('tutorials')}
           </a>
         </Button>
         <AccountDropdownMenu handleLogout={handleLogout} />

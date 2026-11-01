@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { SendAiMessageResponse } from '@/ts/interfaces/AiChat';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type SendMessageVariables = {
   /** Backend-issued conversation ObjectId — used only in the URL path */
   conversationId: string;
@@ -40,12 +42,17 @@ export function useSendMessage() {
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
         : errorMessage ||
-          (status === 503 ? 'AI assistant is not configured on the server.' : 'Failed to send message');
+          (status === 503
+            ? translateMessage(
+                'toasts.aiAssistantIsNotConfiguredOnTheServer',
+                'AI assistant is not configured on the server.'
+              )
+            : translateMessage('toasts.failedToSendMessage', 'Failed to send message'));
 
       toast({
         duration: 4000,
         variant: 'error',
-        title: 'Error sending message',
+        title: translateMessage('toasts.errorSendingMessage', 'Error sending message'),
         description: message
       });
     }

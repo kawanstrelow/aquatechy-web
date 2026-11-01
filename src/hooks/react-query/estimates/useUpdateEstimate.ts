@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { UpdateEstimateRequest, UpdateEstimateResponse } from '@/ts/interfaces/Estimate';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface UpdateEstimateParams {
   estimateId: string;
   data: UpdateEstimateRequest;
@@ -38,7 +40,7 @@ export const useUpdateEstimate = () => {
 
       toast({
         duration: 2000,
-        title: 'Estimate updated successfully',
+        title: translateMessage('toasts.estimateUpdatedSuccessfully', 'Estimate updated successfully'),
         variant: 'success'
       });
     },
@@ -46,12 +48,12 @@ export const useUpdateEstimate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to update estimate';
+        : errorMessage || translateMessage('toasts.failedToUpdateEstimate', 'Failed to update estimate');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating estimate',
+        title: translateMessage('toasts.errorUpdatingEstimate', 'Error updating estimate'),
         description: message
       });
     }

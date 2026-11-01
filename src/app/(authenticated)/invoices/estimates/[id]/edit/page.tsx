@@ -1,6 +1,7 @@
 'use client';
 
 import { addDays } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { notFound, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -47,6 +48,7 @@ const defaultValidUntil = () => addDays(new Date(), 30);
 type Props = { params: { id: string } };
 
 export default function EditEstimatePage({ params: { id } }: Props) {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: estimateData, isLoading: isLoadingEstimate, isError, error } = useGetEstimateById(id);
@@ -164,10 +166,10 @@ export default function EditEstimatePage({ params: { id } }: Props) {
     const taxAmount = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
-      return sum + Math.round((amount * taxRate) / 100 * 100) / 100;
+      return sum + Math.round(((amount * taxRate) / 100) * 100) / 100;
     }, 0);
     const discountRate = Number(watchedDiscountRate) || 0;
-    const discountAmount = Math.round((subtotal * discountRate) / 100 * 100) / 100;
+    const discountAmount = Math.round(((subtotal * discountRate) / 100) * 100) / 100;
     const total = Math.round((subtotal + taxAmount - discountAmount) * 100) / 100;
     return { subtotal, taxAmount, discountRate, discountAmount, total };
   }, [watchedLineItems, watchedDiscountRate, lineItemsVersion, form]);
@@ -216,8 +218,7 @@ export default function EditEstimatePage({ params: { id } }: Props) {
           unitPrice: Number(item.unitPrice) || 0,
           amount: Number(item.amount) || 0,
           taxRate: Number(item.taxRate) ?? 0,
-          taxAmount:
-            Math.round(((Number(item.amount) || 0) * (Number(item.taxRate) ?? 0)) / 100 * 100) / 100,
+          taxAmount: Math.round((((Number(item.amount) || 0) * (Number(item.taxRate) ?? 0)) / 100) * 100) / 100,
           sku: item.sku || undefined
         })),
       subtotal: estimateTotals.subtotal,
@@ -292,23 +293,20 @@ export default function EditEstimatePage({ params: { id } }: Props) {
     form.clearErrors();
 
     if (!formData.clientId) {
-      form.setError('clientId', { message: 'Client is required' }, { shouldFocus: true });
+      form.setError('clientId', { message: 'invoices.errors.clientRequired' }, { shouldFocus: true });
       return null;
     }
     if (!formData.issuedDate) {
-      form.setError('issuedDate', { message: 'Issued date is required' }, { shouldFocus: true });
+      form.setError('issuedDate', { message: 'invoices.errors.issuedDateRequired' }, { shouldFocus: true });
       return null;
     }
     if (!formData.validUntil) {
-      form.setError('validUntil', { message: 'Valid until date is required' }, { shouldFocus: true });
+      form.setError('validUntil', { message: 'invoices.errors.validUntilRequired' }, { shouldFocus: true });
       return null;
     }
 
     const validLineItems: EstimateLineItemInput[] = formData.lineItems
-      .filter(
-        (item) =>
-          item.description.trim() !== '' && Number(item.quantity) > 0 && Number(item.unitPrice) > 0
-      )
+      .filter((item) => item.description.trim() !== '' && Number(item.quantity) > 0 && Number(item.unitPrice) > 0)
       .map((item) => ({
         description: item.description.trim(),
         quantity: Number(item.quantity),
@@ -318,11 +316,7 @@ export default function EditEstimatePage({ params: { id } }: Props) {
       }));
 
     if (validLineItems.length === 0) {
-      form.setError(
-        'lineItems.0.description',
-        { message: 'At least one valid line item is required.' },
-        { shouldFocus: true }
-      );
+      form.setError('lineItems.0.description', { message: 'invoices.errors.lineItemRequired' }, { shouldFocus: true });
       return null;
     }
 
@@ -371,16 +365,20 @@ export default function EditEstimatePage({ params: { id } }: Props) {
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            {t('actions.back')}
           </Button>
-          <h1 className="text-2xl font-bold">Edit Estimate {form.getValues('estimateNumber')}</h1>
+          <h1 className="text-2xl font-bold">
+            {t('estimateForm.editTitle', { number: form.getValues('estimateNumber') })}
+          </h1>
         </div>
 
         {!isDraft && (
           <Alert>
-            <AlertTitle>Estimate is not editable</AlertTitle>
+            <AlertTitle>{t('estimateForm.notEditableTitle')}</AlertTitle>
             <AlertDescription>
-              Only draft estimates can be edited. This estimate is {watchedStatus}.
+              {t('estimateForm.notEditableDescription', {
+                status: t.has(`status.${watchedStatus}`) ? t(`status.${watchedStatus}`) : watchedStatus
+              })}
             </AlertDescription>
           </Alert>
         )}
@@ -388,29 +386,44 @@ export default function EditEstimatePage({ params: { id } }: Props) {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="flex flex-col gap-6">
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Estimate Details</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.estimateDetails')}</h2>
               <div className="space-y-4">
-                <SelectField name="clientId" label="Client" placeholder="Select client" options={clientOptions} />
+                <SelectField
+                  name="clientId"
+                  label={t('fields.client')}
+                  placeholder={t('placeholders.selectClient')}
+                  options={clientOptions}
+                />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <DatePickerField name="issuedDate" label="Issued Date" placeholder="Select issued date" />
-                  <DatePickerField name="validUntil" label="Valid Until" placeholder="Select valid until date" />
+                  <DatePickerField
+                    name="issuedDate"
+                    label={t('fields.issuedDate')}
+                    placeholder={t('placeholders.selectIssuedDate')}
+                  />
+                  <DatePickerField
+                    name="validUntil"
+                    label={t('fields.validUntil')}
+                    placeholder={t('placeholders.selectValidUntil')}
+                  />
                 </div>
               </div>
             </div>
 
             <div className="rounded-lg border bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Line Items</h2>
+                <h2 className="text-lg font-semibold">{t('fields.lineItems')}</h2>
                 <Button type="button" variant="outline" size="sm" onClick={handleAddLineItem}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Item
+                  {t('actions.addItem')}
                 </Button>
               </div>
               <div className="space-y-4">
                 {watchedLineItems.map((item, index) => (
                   <div key={index} className="rounded-lg border p-4">
                     <div className="mb-3 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Item {index + 1}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {t('fields.itemNumber', { number: index + 1 })}
+                      </span>
                       {watchedLineItems.length > 1 && (
                         <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveLineItem(index)}>
                           <Trash2 className="h-4 w-4 text-red-500" />
@@ -420,20 +433,20 @@ export default function EditEstimatePage({ params: { id } }: Props) {
                     <div className="space-y-3">
                       <InputField
                         name={`lineItems.${index}.description`}
-                        label="Description"
-                        placeholder="Item description"
+                        label={t('fields.description')}
+                        placeholder={t('placeholders.itemDescription')}
                         type={FieldType.TextArea}
                       />
                       <InputField
                         name={`lineItems.${index}.sku`}
-                        label="SKU (optional)"
-                        placeholder="SKU"
+                        label={t('fields.skuOptional')}
+                        placeholder={t('placeholders.sku')}
                         type={FieldType.Default}
                       />
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         <InputField
                           name={`lineItems.${index}.quantity`}
-                          label="Quantity"
+                          label={t('fields.quantity')}
                           placeholder="1"
                           type={FieldType.Number}
                           props={{
@@ -445,7 +458,7 @@ export default function EditEstimatePage({ params: { id } }: Props) {
                         />
                         <InputField
                           name={`lineItems.${index}.unitPrice`}
-                          label="Unit Price"
+                          label={t('fields.unitPrice')}
                           placeholder="0.00"
                           type={FieldType.Number}
                           props={{
@@ -457,7 +470,7 @@ export default function EditEstimatePage({ params: { id } }: Props) {
                         />
                         <InputField
                           name={`lineItems.${index}.taxRate`}
-                          label="Tax Rate (%)"
+                          label={t('fields.taxRate')}
                           placeholder="0"
                           type={FieldType.Number}
                           props={{
@@ -470,7 +483,7 @@ export default function EditEstimatePage({ params: { id } }: Props) {
                         />
                       </div>
                       <div className="text-right">
-                        <span className="text-sm text-gray-600">Amount: </span>
+                        <span className="text-sm text-gray-600">{t('fields.amount')} </span>
                         <span className="font-semibold">${(Number(item.amount) || 0).toFixed(2)}</span>
                       </div>
                     </div>
@@ -480,34 +493,34 @@ export default function EditEstimatePage({ params: { id } }: Props) {
             </div>
 
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Discount & Totals</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.discountAndTotals')}</h2>
               <div className="space-y-4">
                 <InputField
                   name="discountRate"
-                  label="Discount Rate (%)"
+                  label={t('fields.discountRate')}
                   placeholder="0"
                   type={FieldType.Number}
                   props={{ min: 0, max: 100, step: 0.01 }}
                 />
                 <div className="space-y-2 rounded-lg bg-gray-50 p-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="text-gray-600">{t('fields.subtotal')}</span>
                     <span className="font-semibold">${estimateTotals.subtotal.toFixed(2)}</span>
                   </div>
                   {estimateTotals.taxAmount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Tax:</span>
+                      <span className="text-gray-600">{t('fields.tax')}</span>
                       <span className="font-semibold">${estimateTotals.taxAmount.toFixed(2)}</span>
                     </div>
                   )}
                   {estimateTotals.discountAmount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Discount:</span>
+                      <span className="text-gray-600">{t('fields.discount')}</span>
                       <span className="font-semibold">-${estimateTotals.discountAmount.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between border-t border-gray-300 pt-2 text-lg font-bold">
-                    <span>Total:</span>
+                    <span>{t('fields.total')}</span>
                     <span>${estimateTotals.total.toFixed(2)}</span>
                   </div>
                 </div>
@@ -516,16 +529,26 @@ export default function EditEstimatePage({ params: { id } }: Props) {
 
             {selectedClient && (
               <div className="rounded-lg border bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold">Additional Information</h2>
+                <h2 className="mb-4 text-lg font-semibold">{t('fields.additionalInformation')}</h2>
                 <div className="space-y-4">
-                  <InputField name="terms" label="Terms" placeholder="Estimate terms" type={FieldType.TextArea} />
-                  <InputField name="notes" label="Notes" placeholder="Additional notes (optional)" type={FieldType.TextArea} />
+                  <InputField
+                    name="terms"
+                    label={t('fields.terms')}
+                    placeholder={t('placeholders.estimateTerms')}
+                    type={FieldType.TextArea}
+                  />
+                  <InputField
+                    name="notes"
+                    label={t('fields.notes')}
+                    placeholder={t('placeholders.notesOptional')}
+                    type={FieldType.TextArea}
+                  />
                 </div>
               </div>
             )}
 
             <Button onClick={handleSave} disabled={!isDraft || isUpdating || isLoadingCompany}>
-              {isUpdating ? 'Saving...' : 'Save Changes'}
+              {isUpdating ? t('actions.saving') : t('actions.saveChanges')}
             </Button>
           </div>
 
@@ -534,7 +557,7 @@ export default function EditEstimatePage({ params: { id } }: Props) {
               <EstimatePreview estimate={previewEstimate} />
             ) : (
               <div className="rounded-lg border bg-white p-12 text-center shadow-sm">
-                <p className="text-gray-500">Select a client to preview the estimate</p>
+                <p className="text-gray-500">{t('estimateForm.previewEmpty')}</p>
               </div>
             )}
           </div>

@@ -1,5 +1,8 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
+import { translateMessage } from '@/i18n/runtime';
 import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import {
@@ -151,6 +154,7 @@ const convertStateToAbbreviation = (state: string): string => {
 };
 
 export default function ImportFromQuickbooks() {
+  const t = useTranslations('clients');
   const { toast } = useToast();
   const router = useRouter();
   const [parsedData, setParsedData] = useState<CreateManyClientsInput>([]);
@@ -188,8 +192,8 @@ export default function ImportFromQuickbooks() {
     if (!companyOwnerId) {
       toast({
         duration: 5000,
-        title: 'Error importing clients',
-        description: 'Please select a company first',
+        title: t('import.qbError'),
+        description: t('import.selectCompanyFirst'),
         variant: 'error'
       });
       return;
@@ -207,9 +211,12 @@ export default function ImportFromQuickbooks() {
     } catch (error: unknown) {
       toast({
         duration: 5000,
-        title: 'Error importing clients',
+        title: t('import.qbError'),
         variant: 'error',
-        description: getCreateManyClientsErrorMessage(error, 'Internal server error')
+        description: getCreateManyClientsErrorMessage(
+          error,
+          translateMessage('toasts.internalServerError', 'Internal server error')
+        )
       });
     }
   };
@@ -307,42 +314,44 @@ export default function ImportFromQuickbooks() {
     <>
       <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
         <div className="border-b border-line px-5 py-5 lg:px-8">
-          <Typography element="h1">Import Clients from Quickbooks</Typography>
+          <Typography element="h1">{t('import.quickbooksTitle')}</Typography>
         </div>
 
         <div className="border-b border-line px-5 py-5 lg:px-8">
           <Typography element="h2" className="mb-4 text-lg font-semibold">
-            How to Import Clients from QuickBooks
+            {t('import.quickbooksHowTo')}
           </Typography>
           <ol className="list-decimal space-y-3 pl-4">
-            <li>Access your QuickBooks Online account</li>
+            <li>{t('import.qbAccess')}</li>
             <li>
-              Navigate to <span className="font-medium">Sales</span> and select{' '}
-              <span className="font-medium">Customers</span> from the left sidebar
+              {t.rich('import.qbNavigate', {
+                emphasis: (chunks) => <span className="font-medium">{chunks}</span>
+              })}
             </li>
             <li>
-              Look for the <span className="font-medium">Export</span> button in the top-right corner of the customers
-              list and click it to download the Excel file
+              {t.rich('import.qbExport', {
+                emphasis: (chunks) => <span className="font-medium">{chunks}</span>
+              })}
             </li>
             <li>
-              Return to this page and complete these steps:
+              {t('import.returnSteps')}
               <ul className="mt-2 list-disc pl-4 text-slate-600">
-                <li>Select your company from the dropdown below</li>
-                <li>Click "Choose File" and select the Excel file you just downloaded</li>
+                <li>{t('import.selectCompany')}</li>
+                <li>{t('import.qbChooseFile')}</li>
               </ul>
             </li>
             <li>
-              Review the imported data in the preview table and click{' '}
-              <span className="font-medium">Import Clients</span> when ready
+              {t.rich('import.reviewAndImport', {
+                emphasis: (chunks) => <span className="font-medium">{chunks}</span>
+              })}
             </li>
           </ol>
           <div className="mt-6 rounded-md bg-blue-50 p-4">
             <Typography element="p" className="text-sm text-blue-800">
-              <strong>Note:</strong> The import process will automatically create a pool for each client. After
-              importing, please remember to:
+              <strong>{t('shared.note')}</strong> {t('import.autoPool')}
               <ul className="mt-2 list-disc pl-4">
-                <li>Update each client's pool information</li>
-                <li>Set up service schedules in the Routes section</li>
+                <li>{t('import.updatePool')}</li>
+                <li>{t('import.setupRoutes')}</li>
               </ul>
             </Typography>
           </div>
@@ -352,9 +361,9 @@ export default function ImportFromQuickbooks() {
           <Form {...form}>
             <div className="mb-6">
               <SelectField
-                placeholder="Company owner"
+                placeholder={t('shared.companyOwner')}
                 name="companyOwnerId"
-                label="Company owner"
+                label={t('shared.companyOwner')}
                 options={
                   companies
                     .filter((c) => c.role === 'Owner' || c.role === 'Admin' || c.role === 'Office')
@@ -369,7 +378,7 @@ export default function ImportFromQuickbooks() {
 
             <div className="mb-6 flex items-center gap-2">
               <label className={cn(buttonVariants({ variant: 'default' }), 'cursor-pointer')}>
-                Choose File
+                {t('shared.chooseFile')}
                 <input type="file" accept=".xlsx,.xls" onChange={handleFileUpload} className="hidden" />
               </label>
               {selectedFile && <span className="text-sm text-slate-500">{selectedFile}</span>}
@@ -378,7 +387,7 @@ export default function ImportFromQuickbooks() {
             {isProcessing && (
               <div className="flex items-center gap-2">
                 <Loader2Icon className="h-4 w-4 animate-spin" />
-                Processing file...
+                {t('shared.processingFile')}
               </div>
             )}
 
@@ -388,15 +397,15 @@ export default function ImportFromQuickbooks() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>City</TableHead>
-                        <TableHead>State</TableHead>
-                        <TableHead>Zip</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Type</TableHead>
+                        <TableHead>{t('columns.name')}</TableHead>
+                        <TableHead>{t('columns.company')}</TableHead>
+                        <TableHead>{t('columns.address')}</TableHead>
+                        <TableHead>{t('fields.city')}</TableHead>
+                        <TableHead>{t('fields.state')}</TableHead>
+                        <TableHead>{t('fields.zip')}</TableHead>
+                        <TableHead>{t('columns.phone')}</TableHead>
+                        <TableHead>{t('columns.email')}</TableHead>
+                        <TableHead>{t('fields.type')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -420,7 +429,7 @@ export default function ImportFromQuickbooks() {
                 <div className="mt-6">
                   <Button onClick={handleImport} type="button" disabled={isPending}>
                     {isPending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-                    Import {parsedData.length} Clients
+                    {t('shared.importClientsCount', { count: parsedData.length })}
                   </Button>
                 </div>
               </>
@@ -435,11 +444,11 @@ export default function ImportFromQuickbooks() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center">No Companies Available</DialogTitle>
-            <DialogDescription>Please create a company before importing clients.</DialogDescription>
+            <DialogTitle className="text-center">{t('shared.noCompaniesTitle')}</DialogTitle>
+            <DialogDescription>{t('shared.createCompanyBeforeImport')}</DialogDescription>
           </DialogHeader>
           <Button type="button" onClick={() => router.push('/settings/companies')}>
-            Create Company
+            {t('shared.createCompanyTitle')}
           </Button>
         </DialogContent>
       </Dialog>

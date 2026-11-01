@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { DuplicateEstimateRequest, DuplicateEstimateResponse } from '@/ts/interfaces/Estimate';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface DuplicateEstimateParams {
   estimateId: string;
   data: DuplicateEstimateRequest;
@@ -16,10 +18,7 @@ export const useDuplicateEstimate = () => {
 
   const { mutate, mutateAsync, isPending, isSuccess } = useMutation({
     mutationFn: async ({ estimateId, data }: DuplicateEstimateParams): Promise<DuplicateEstimateResponse> => {
-      const response = await clientAxios.post<DuplicateEstimateResponse>(
-        `/estimates/${estimateId}/duplicate`,
-        data
-      );
+      const response = await clientAxios.post<DuplicateEstimateResponse>(`/estimates/${estimateId}/duplicate`, data);
       return response.data;
     },
     onSuccess: (response) => {
@@ -27,7 +26,7 @@ export const useDuplicateEstimate = () => {
 
       toast({
         duration: 2000,
-        title: 'Estimate duplicated successfully',
+        title: translateMessage('toasts.estimateDuplicatedSuccessfully', 'Estimate duplicated successfully'),
         variant: 'success'
       });
     },
@@ -35,12 +34,12 @@ export const useDuplicateEstimate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to duplicate estimate';
+        : errorMessage || translateMessage('toasts.failedToDuplicateEstimate', 'Failed to duplicate estimate');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error duplicating estimate',
+        title: translateMessage('toasts.errorDuplicatingEstimate', 'Error duplicating estimate'),
         description: message
       });
     }

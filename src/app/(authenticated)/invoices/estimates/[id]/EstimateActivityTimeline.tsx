@@ -1,8 +1,10 @@
 'use client';
 
 import { format, differenceInDays, isPast } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
+import { translateMessage } from '@/i18n/runtime';
 import type { Estimate } from '@/ts/interfaces/Estimate';
 import { DetailedEstimate } from '../utils/estimateUiTypes';
 
@@ -29,18 +31,30 @@ function buildTimelineRows(estimate: Estimate): TimelineRow[] {
     rows.push({ id, at: d, title, detail, href });
   };
 
-  push('created', 'Created', estimate.createdAt ?? estimate.issuedDate);
-  push('sent', 'Sent to client', estimate.sentAt);
-  push('accepted', 'Accepted', estimate.acceptedAt, estimate.convertedInvoice?.invoiceNumber
-    ? `Invoice #${estimate.convertedInvoice.invoiceNumber} created`
-    : undefined,
+  push('created', translateMessage('invoices.timeline.created', 'Created'), estimate.createdAt ?? estimate.issuedDate);
+  push('sent', translateMessage('invoices.timeline.sentToClient', 'Sent to client'), estimate.sentAt);
+  push(
+    'accepted',
+    translateMessage('invoices.timeline.accepted', 'Accepted'),
+    estimate.acceptedAt,
+    estimate.convertedInvoice?.invoiceNumber
+      ? translateMessage('invoices.timeline.invoiceCreated', 'Invoice #{number} created').replace(
+          '{number}',
+          estimate.convertedInvoice.invoiceNumber
+        )
+      : undefined,
     estimate.convertedInvoiceId ? `/invoices/${estimate.convertedInvoiceId}` : undefined
   );
-  push('declined', 'Declined', estimate.declinedAt, estimate.declineReason ?? undefined);
-  push('expired', 'Expired', estimate.expiredAt);
+  push(
+    'declined',
+    translateMessage('invoices.timeline.declined', 'Declined'),
+    estimate.declinedAt,
+    estimate.declineReason ?? undefined
+  );
+  push('expired', translateMessage('invoices.timeline.expired', 'Expired'), estimate.expiredAt);
 
   if (estimate.status === 'cancelled') {
-    push('cancelled', 'Cancelled', estimate.updatedAt);
+    push('cancelled', translateMessage('invoices.timeline.cancelled', 'Cancelled'), estimate.updatedAt);
   }
 
   rows.sort((a, b) => a.at.getTime() - b.at.getTime());
@@ -52,22 +66,27 @@ type Props = {
 };
 
 export function EstimateActivityTimeline({ estimate }: Props) {
+  const t = useTranslations('invoices');
   const rows = buildTimelineRows(estimate);
 
   const validUntil = parseDate(estimate.validUntil);
-  const showCountdown =
-    estimate.status === 'sent' && validUntil && !isPast(validUntil) && !estimate.expiredAt;
+  const showCountdown = estimate.status === 'sent' && validUntil && !isPast(validUntil) && !estimate.expiredAt;
 
   if (rows.length === 0 && !showCountdown) return null;
 
   return (
-    <section aria-label="Estimate activity" className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-500">Timeline</h3>
+    <section
+      aria-label={t('timeline.estimateActivity')}
+      className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+    >
+      <h3 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('timeline.title')}</h3>
 
       {showCountdown && validUntil && (
         <div className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
-          Client can respond for {differenceInDays(validUntil, new Date())} more day(s) (until{' '}
-          {format(validUntil, 'MMM d, yyyy')}).
+          {t('timeline.respondCountdown', {
+            days: differenceInDays(validUntil, new Date()),
+            date: format(validUntil, 'MMM d, yyyy')
+          })}
         </div>
       )}
 
@@ -84,12 +103,12 @@ export function EstimateActivityTimeline({ estimate }: Props) {
                   />
                   {!last ? <span className="mt-2 min-h-14 w-px grow bg-gray-200" aria-hidden /> : null}
                 </div>
-                <div className={`min-w-0 flex-1 flex flex-col gap-1 ${last ? '' : 'pb-6'}`}>
+                <div className={`flex min-w-0 flex-1 flex-col gap-1 ${last ? '' : 'pb-6'}`}>
                   <span className="text-sm font-medium text-gray-900">{title}</span>
                   {detail ? <span className="text-xs text-gray-600">{detail}</span> : null}
                   {href ? (
                     <Link href={href} className="text-xs text-blue-600 hover:underline">
-                      View invoice
+                      {t('timeline.viewInvoice')}
                     </Link>
                   ) : null}
                   <time className="text-xs tabular-nums text-gray-600" dateTime={at.toISOString()}>

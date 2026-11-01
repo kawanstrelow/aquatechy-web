@@ -1,4 +1,5 @@
 import { ICity, State } from 'country-state-city';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -22,6 +23,7 @@ export default function ClientStateAndCitySelect({
   ...props
 }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const t = useTranslations('shell');
   const form = useFormContext();
 
   const [hasCities, setHasCities] = useState(true);
@@ -55,9 +57,9 @@ export default function ClientStateAndCitySelect({
     <div className="inline-flex w-full items-start justify-start gap-4 self-stretch">
       <SelectField
         name={stateName}
-        label="State"
+        label={t('state')}
         value={state}
-        placeholder="State"
+        placeholder={t('state')}
         defaultValue={defaultStateValue}
         options={states.map((state) => {
           return {
@@ -71,10 +73,10 @@ export default function ClientStateAndCitySelect({
       {hasCities && (
         <SelectField
           // disabled={!state || cities.length === 0}
-          label="City"
+          label={t('city')}
           name={cityName}
           value={city}
-          placeholder={'City'}
+          placeholder={t('city')}
           options={buildCitySelectOptions(cities, city)}
           {...props}
         />

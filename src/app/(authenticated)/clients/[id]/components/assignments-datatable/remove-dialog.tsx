@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import { MdOutlineFreeCancellation } from 'react-icons/md';
@@ -18,6 +19,7 @@ type RemoveAssignmentDialogProps = {
 };
 
 export default function RemoveAssignmentDialog({ assignmentId }: RemoveAssignmentDialogProps) {
+  const t = useTranslations('clients');
   const { toast } = useToast();
 
   const removeAssignmentService = useRemoveAssignmentService();
@@ -31,16 +33,12 @@ export default function RemoveAssignmentDialog({ assignmentId }: RemoveAssignmen
   return (
     <ConfirmActionDialog
       trigger={
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8 bg-red-500 text-white"
-        >
+        <Button variant="outline" size="icon" className="h-8 w-8 bg-red-500 text-white">
           <MdDeleteOutline className="h-4 w-4 text-white" />
         </Button>
       }
       onConfirm={handleConfirm}
-      description="Do you really want to remove the assignment?"
+      description={t('service.removeAssignment')}
     />
   );
 }

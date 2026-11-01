@@ -1,6 +1,7 @@
 'use client';
 
 import { Check, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { cn } from '@/lib/utils';
 
@@ -34,20 +35,22 @@ function CellValue({ value }: { value: boolean | string }) {
 }
 
 export function PlanComparison() {
+  const t = useTranslations('settings');
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 px-6 py-5">
-        <h3 className="text-lg font-semibold text-slate-900">Compare features</h3>
-        <p className="mt-1 text-sm text-slate-600">Side-by-side look at what each plan includes</p>
+        <h3 className="text-lg font-semibold text-slate-900">{t('subscription.compareTitle')}</h3>
+        <p className="mt-1 text-sm text-slate-600">{t('subscription.compareSubtitle')}</p>
       </div>
 
       <div className="hidden overflow-x-auto lg:block">
         <div className="min-w-[880px]">
           <div className="grid grid-cols-[1.5fr_repeat(4,1fr)] border-b border-slate-100 bg-slate-50/80 px-6 py-3 text-sm font-medium text-slate-600">
-            <span>Feature</span>
+            <span>{t('subscription.feature')}</span>
             {COLUMNS.map((column) => (
               <span key={column.key} className={cn('text-center', column.accent && 'text-[#364D9D]')}>
-                {column.label}
+                {t(`subscription.planNames.${column.key}`)}
               </span>
             ))}
           </div>
@@ -59,10 +62,18 @@ export function PlanComparison() {
                 index !== FEATURE_COMPARISON.length - 1 && 'border-b border-slate-100'
               )}
             >
-              <span className="pr-4 text-sm font-medium text-slate-900">{row.feature}</span>
+              <span className="pr-4 text-sm font-medium text-slate-900">
+                {t(`subscription.comparison.${index}.feature`)}
+              </span>
               {COLUMNS.map((column) => (
                 <div key={column.key} className="flex justify-center px-2 text-center">
-                  <CellValue value={row[column.key]} />
+                  <CellValue
+                    value={
+                      typeof row[column.key] === 'string'
+                        ? t(`subscription.comparison.${index}.${column.key}`)
+                        : row[column.key]
+                    }
+                  />
                 </div>
               ))}
             </div>
@@ -71,9 +82,9 @@ export function PlanComparison() {
       </div>
 
       <div className="divide-y divide-slate-100 lg:hidden">
-        {FEATURE_COMPARISON.map((row) => (
+        {FEATURE_COMPARISON.map((row, index) => (
           <div key={row.feature} className="px-4 py-4">
-            <p className="mb-3 text-sm font-medium text-slate-900">{row.feature}</p>
+            <p className="mb-3 text-sm font-medium text-slate-900">{t(`subscription.comparison.${index}.feature`)}</p>
             <div className="grid grid-cols-2 gap-3">
               {COLUMNS.map((column) => (
                 <div
@@ -86,10 +97,16 @@ export function PlanComparison() {
                       column.accent ? 'text-[#364D9D]' : 'text-slate-500'
                     )}
                   >
-                    {column.label}
+                    {t(`subscription.planNames.${column.key}`)}
                   </p>
                   <div className="flex justify-center">
-                    <CellValue value={row[column.key]} />
+                    <CellValue
+                      value={
+                        typeof row[column.key] === 'string'
+                          ? t(`subscription.comparison.${index}.${column.key}`)
+                          : row[column.key]
+                      }
+                    />
                   </div>
                 </div>
               ))}

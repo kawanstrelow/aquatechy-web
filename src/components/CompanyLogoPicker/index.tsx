@@ -1,12 +1,20 @@
 'use client';
 
 import { ImagePlus, Trash2, Upload } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import AvatarEditor from 'react-avatar-editor';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
@@ -20,13 +28,10 @@ type CompanyLogoPickerProps = {
   className?: string;
 };
 
-export function CompanyLogoPicker({
-  value,
-  onChange,
-  companyName = 'Company',
-  label = 'Company logo',
-  className
-}: CompanyLogoPickerProps) {
+export function CompanyLogoPicker({ value, onChange, companyName, label, className }: CompanyLogoPickerProps) {
+  const t = useTranslations('shell');
+  const resolvedCompanyName = companyName ?? t('company');
+  const resolvedLabel = label ?? t('companyLogo');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -82,7 +87,7 @@ export function CompanyLogoPicker({
     }
   };
 
-  const initials = companyName
+  const initials = resolvedCompanyName
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
@@ -96,14 +101,12 @@ export function CompanyLogoPicker({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-medium text-gray-900">{label}</p>
+            <p className="text-sm font-medium text-gray-900">{resolvedLabel}</p>
             <span className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-200">
-              Optional
+              {t('optional')}
             </span>
           </div>
-          <p className="mt-1 text-xs text-gray-500">
-            Shown on invoices, reports, and client emails. Square images work best.
-          </p>
+          <p className="mt-1 text-xs text-gray-500">{t('logoUsageHint')}</p>
         </div>
       </div>
 
@@ -118,12 +121,16 @@ export function CompanyLogoPicker({
               ? 'border-transparent bg-white shadow-sm'
               : 'border-gray-300 bg-white hover:border-sky-400 hover:bg-sky-50/50'
           )}
-          aria-label={value ? 'Change company logo' : 'Upload company logo'}
+          aria-label={value ? t('changeCompanyLogo') : t('uploadCompanyLogo')}
         >
           {value && previewUrl ? (
             <>
               <Avatar className="h-full w-full">
-                <AvatarImage src={previewUrl} alt={`${companyName} logo`} className="object-cover" />
+                <AvatarImage
+                  src={previewUrl}
+                  alt={t('logoAlt', { name: resolvedCompanyName })}
+                  className="object-cover"
+                />
                 <AvatarFallback className="text-lg">{initials || 'CO'}</AvatarFallback>
               </Avatar>
               <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
@@ -133,7 +140,7 @@ export function CompanyLogoPicker({
           ) : (
             <span className="flex flex-col items-center gap-1 text-gray-400 transition-colors group-hover:text-sky-600">
               <ImagePlus className="h-6 w-6" />
-              <span className="text-[10px] font-medium uppercase tracking-wide">Upload</span>
+              <span className="text-[10px] font-medium uppercase tracking-wide">{t('upload')}</span>
             </span>
           )}
         </button>
@@ -143,27 +150,21 @@ export function CompanyLogoPicker({
             {value ? (
               <>
                 <p className="truncate text-sm font-medium text-gray-900">{value.name}</p>
-                <p className="text-xs text-gray-500">Click the logo or use Change to crop a different image.</p>
+                <p className="text-xs text-gray-500">{t('changeLogoHint')}</p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-gray-900">Add your company logo</p>
-                <p className="text-xs text-gray-500">JPG, PNG, GIF, or HEIC. You can crop and zoom before saving.</p>
+                <p className="text-sm font-medium text-gray-900">{t('addCompanyLogo')}</p>
+                <p className="text-xs text-gray-500">{t('logoFileHint')}</p>
               </>
             )}
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept={LOGO_ACCEPT}
-              onChange={handleFileChange}
-            />
+            <input type="file" ref={fileInputRef} className="hidden" accept={LOGO_ACCEPT} onChange={handleFileChange} />
             <Button type="button" variant="outline" size="sm" onClick={handlePickClick}>
               <Upload className="mr-2 h-3.5 w-3.5" />
-              {value ? 'Change logo' : 'Upload logo'}
+              {value ? t('changeLogo') : t('uploadLogo')}
             </Button>
             {value && (
               <Button
@@ -174,7 +175,7 @@ export function CompanyLogoPicker({
                 onClick={() => onChange(null)}
               >
                 <Trash2 className="mr-2 h-3.5 w-3.5" />
-                Remove
+                {t('remove')}
               </Button>
             )}
           </div>
@@ -184,10 +185,8 @@ export function CompanyLogoPicker({
       <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{value ? 'Adjust company logo' : 'Crop company logo'}</DialogTitle>
-            <DialogDescription>
-              Drag to reposition and use zoom so your logo fills the circle cleanly.
-            </DialogDescription>
+            <DialogTitle>{value ? t('adjustCompanyLogo') : t('cropCompanyLogo')}</DialogTitle>
+            <DialogDescription>{t('cropLogoHint')}</DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col items-center gap-5 py-2">
@@ -209,7 +208,7 @@ export function CompanyLogoPicker({
 
                 <div className="w-full space-y-2 px-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">Zoom</span>
+                    <span className="font-medium text-gray-700">{t('zoom')}</span>
                     <span className="tabular-nums text-gray-500">{zoomPercent}%</span>
                   </div>
                   <Slider value={[zoom]} onValueChange={(v) => setZoom(v[0])} min={1} max={3} step={0.05} />
@@ -220,10 +219,10 @@ export function CompanyLogoPicker({
 
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" type="button" onClick={() => handleDialogOpenChange(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="button" onClick={handleSaveLogo} disabled={!selectedImage}>
-              Use this logo
+              {t('useThisLogo')}
             </Button>
           </DialogFooter>
         </DialogContent>

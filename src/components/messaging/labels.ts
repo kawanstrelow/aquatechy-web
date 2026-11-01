@@ -1,3 +1,5 @@
+import { translateMessage } from '@/i18n/runtime';
+
 export function messagingPlanLabel(plan: string) {
   switch (plan) {
     case 'FREE':
@@ -14,21 +16,21 @@ export function messagingPlanLabel(plan: string) {
 }
 
 export function messagingChannelLabel(channel: string) {
-  if (channel === 'email') return 'Email';
-  if (channel === 'sms') return 'Text';
+  if (channel === 'email') return translateMessage('shell.email', 'Email');
+  if (channel === 'sms') return translateMessage('shell.text', 'Text');
   return channel;
 }
 
 export function messagingStatusLabel(status: string) {
   switch (status) {
     case 'queued':
-      return 'Queued';
+      return translateMessage('shell.queued', 'Queued');
     case 'sent':
-      return 'Sent';
+      return translateMessage('shell.sent', 'Sent');
     case 'blocked':
-      return 'Blocked';
+      return translateMessage('shell.blocked', 'Blocked');
     case 'failed':
-      return 'Failed';
+      return translateMessage('shell.failed', 'Failed');
     default:
       return status;
   }

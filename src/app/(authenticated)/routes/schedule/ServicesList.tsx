@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { formatInTimeZone } from 'date-fns-tz';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { MdDragIndicator } from 'react-icons/md';
 
@@ -30,6 +31,8 @@ import { useUserStore } from '@/store/user';
 import { STATE_TIMEZONE_MAP } from '@/ts/enums/enums';
 import { Assignment } from '@/ts/interfaces/Assignments';
 import { Service } from '@/ts/interfaces/Service';
+
+import { translateMessage } from '@/i18n/runtime';
 
 import { ServiceActions } from './components/ServiceActions';
 import { getAssignmentsForServices, getEstimatedArrivalTime } from './scheduleRouteTiming';
@@ -47,6 +50,7 @@ export function ServicesList({
   enableReorder = false,
   onReorder
 }: ServicesListProps) {
+  const t = useTranslations('routes');
   const { services: contextServices } = useServicesContext();
   const { allAssignments } = useAssignmentsContext();
   const userState = useUserStore((state) => state.user?.state);
@@ -69,7 +73,7 @@ export function ServicesList({
   if (services.length === 0) {
     return (
       <div className="flex w-full justify-center px-3 py-8">
-        <span className="text-sm text-slate-500">No services found for this day</span>
+        <span className="text-sm text-slate-500">{t('noServicesForDay')}</span>
       </div>
     );
   }
@@ -140,18 +144,36 @@ function isFinishedStatus(status: Service['status']): status is 'Completed' | 'S
   return status === 'Completed' || status === 'Skipped';
 }
 
+function statusName(status: Service['status']) {
+  switch (status) {
+    case 'Completed':
+      return translateMessage('routes.status.completed', 'Completed');
+    case 'InProgress':
+      return translateMessage('routes.status.inProgress', 'In progress');
+    case 'Skipped':
+      return translateMessage('routes.status.skipped', 'Skipped');
+    case 'Open':
+      return translateMessage('routes.status.open', 'Open');
+    default:
+      return status;
+  }
+}
+
 function formatFinishedStatus(status: 'Completed' | 'Skipped', completedAt: string | null, timeZone: string) {
-  if (!completedAt) return status;
+  const label = statusName(status);
+  if (!completedAt) return label;
 
   const finishedAt = new Date(completedAt);
-  if (Number.isNaN(finishedAt.getTime())) return status;
+  if (Number.isNaN(finishedAt.getTime())) return label;
 
   const when = formatInTimeZone(finishedAt, timeZone, 'EEEE, h:mmaaa');
-  return `${status} on ${when}`;
+  return translateMessage('routes.status.finishedOn', '{status} on {when}')
+    .replace('{status}', label)
+    .replace('{when}', when);
 }
 
 function formatServiceStatus(status: Service['status']) {
-  return status === 'InProgress' ? 'In progress' : status;
+  return statusName(status);
 }
 
 function serviceStatusClass(status: Service['status']) {
@@ -175,6 +197,7 @@ export function ServiceItem({
   enableReorder = false,
   timeZone
 }: ServiceItemProps) {
+  const t = useTranslations('routes');
   const { width = 0 } = useWindowDimensions();
   const name = `${service?.clientOwner?.firstName} ${service?.clientOwner?.lastName}`;
   const pool = service.pool;
@@ -198,9 +221,9 @@ export function ServiceItem({
     ? null
     : routeAssignments.length > 1
       ? estimatedArrivalTime
-        ? `ETA ${estimatedArrivalTime}`
+        ? t('etaTime', { time: estimatedArrivalTime })
         : enableReorder
-          ? 'ETA: Save to see'
+          ? t('etaSaveToSee')
           : null
       : null;
 
@@ -249,7 +272,7 @@ export function ServiceItem({
         <button
           type="button"
           className="flex shrink-0 cursor-grab items-center text-gray-400 hover:text-gray-600"
-          aria-label="Reorder service"
+          aria-label={t('reorderService')}
           {...attributes}
           {...listeners}
         >
@@ -276,9 +299,7 @@ export function ServiceItem({
           </div>
         )}
         <div className="flex h-8 min-w-16 items-center justify-center rounded-lg border border-gray-100 px-2">
-          <div className="whitespace-nowrap text-center text-sm font-semibold text-gray-800">
-            {finished ? statusLabel : service.status}
-          </div>
+          <div className="whitespace-nowrap text-center text-sm font-semibold text-gray-800">{statusLabel}</div>
         </div>
         <ServiceActions service={service} />
       </div>

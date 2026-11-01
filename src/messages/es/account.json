@@ -1,0 +1,26 @@
+{
+  "deleteAccount": "Eliminar cuenta",
+  "deleteWarning": "Eliminar tu cuenta quita toda tu información de nuestra base de datos.",
+  "deleteWarningIrreversible": "Esta acción no se puede deshacer.",
+  "typeDeleteToConfirm": "Escribe DELETE para confirmar",
+  "changePassword": "Cambiar contraseña",
+  "changePasswordDescription": "Cambia la contraseña de tu cuenta",
+  "currentPassword": "Contraseña actual",
+  "currentPasswordPlaceholder": "Tu contraseña actual",
+  "newPassword": "Nueva contraseña",
+  "newPasswordPlaceholder": "Nueva contraseña",
+  "confirmNewPassword": "Confirmar nueva contraseña",
+  "confirmNewPasswordPlaceholder": "Confirma la nueva contraseña",
+  "change": "Cambiar",
+  "confirmPasswordTitle": "¿Cambiar tu contraseña?",
+  "confirmPasswordDescription": "Tu contraseña actual será reemplazada.",
+  "passwordUpdated": "Contraseña actualizada correctamente",
+  "errorUpdatingPassword": "Error al actualizar la contraseña",
+  "validation": {
+    "currentPasswordRequired": "La contraseña es obligatoria",
+    "newPasswordRequired": "La nueva contraseña es obligatoria",
+    "newPasswordMin": "La nueva contraseña debe tener al menos 8 caracteres",
+    "confirmPasswordRequired": "La confirmación de la nueva contraseña es obligatoria",
+    "passwordMismatch": "La nueva contraseña y la confirmación no coinciden"
+  }
+}

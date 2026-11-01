@@ -1,6 +1,7 @@
 'use client';
 
 import { CreditCard, LayoutGrid } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -14,15 +15,17 @@ const triggerClassName = cn(
 );
 
 export function SubscriptionSectionTabs() {
+  const t = useTranslations('settings');
+
   return (
     <TabsList className="mb-8 grid h-auto w-full grid-cols-2 gap-1 rounded-2xl border border-[#DCE1F5] bg-[#F3F5FB] p-1.5 shadow-sm">
       <TabsTrigger value="billing" className={triggerClassName}>
         <CreditCard className="size-4 shrink-0" />
-        Billing
+        {t('subscription.billing')}
       </TabsTrigger>
       <TabsTrigger value="plans" className={triggerClassName}>
         <LayoutGrid className="size-4 shrink-0" />
-        Plans & pricing
+        {t('subscription.plansAndPricing')}
       </TabsTrigger>
     </TabsList>
   );

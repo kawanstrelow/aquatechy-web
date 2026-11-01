@@ -5,6 +5,8 @@ import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { InviteMember } from '@/ts/interfaces/Company';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useInviteMemberToACompany = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -19,8 +21,10 @@ export const useInviteMemberToACompany = () => {
     ) => {
       toast({
         variant: 'error',
-        title: 'Error inviting member to a company.',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorInvitingMemberToACompany', 'Error inviting member to a company.'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     },
 
@@ -29,7 +33,7 @@ export const useInviteMemberToACompany = () => {
       toast({
         variant: 'success',
         duration: 5000,
-        title: 'Member invited successfully.'
+        title: translateMessage('toasts.memberInvitedSuccessfully', 'Member invited successfully.')
       });
     }
   });

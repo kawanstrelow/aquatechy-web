@@ -7,6 +7,8 @@ import { CreatePool } from '@/ts/interfaces/Pool';
 
 import { useToast } from '../../../components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useAddPoolToClient = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -16,7 +18,7 @@ export const useAddPoolToClient = () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         duration: 5000,
-        title: 'Pool created successfully',
+        title: translateMessage('toasts.poolCreatedSuccessfully', 'Pool created successfully'),
         variant: 'success'
       });
     },
@@ -28,8 +30,10 @@ export const useAddPoolToClient = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating pool',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorCreatingPool', 'Error creating pool'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

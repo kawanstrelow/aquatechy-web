@@ -1,4 +1,5 @@
 import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,7 @@ function MultiSelect({
   popoverClassName,
   ...props
 }: MultiSelectProps) {
+  const t = useTranslations('shell');
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -79,7 +81,6 @@ function MultiSelect({
                   </Badge>
                 );
               })}
-
             </div>
             {!selected.length && <p className="w-full text-start text-slate-500">{placeholder}</p>}
             <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-500 opacity-50" />
@@ -91,9 +92,9 @@ function MultiSelect({
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <Command>
-            <CommandInput placeholder="Search ..." />
+            <CommandInput placeholder={t('search')} />
             <CommandList>
-              <CommandEmpty>No item found.</CommandEmpty>
+              <CommandEmpty>{t('noItemFound')}</CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (
                   <CommandItem

@@ -6,6 +6,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { Client } from '@/ts/interfaces/Client';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeactivatePool = (queryKey: string[], poolId: string) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -21,23 +23,19 @@ export const useDeactivatePool = (queryKey: string[], poolId: string) => {
       queryClient.setQueryData(queryKey, (old: Client) => {
         return {
           ...old,
-          pools: old.pools.map((pool) => 
-            pool.id === poolId 
-              ? { ...pool, isActive: false } 
-              : pool
-          )
+          pools: old.pools.map((pool) => (pool.id === poolId ? { ...pool, isActive: false } : pool))
         };
       });
-      
+
       // Invalidate related queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['pools'] });
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       queryClient.invalidateQueries({ queryKey: ['assignments', userId] });
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
-      
+
       toast({
         duration: 5000,
-        title: 'Pool is now inactive',
+        title: translateMessage('toasts.poolIsNowInactive', 'Pool is now inactive'),
         variant: 'success'
       });
     },
@@ -49,8 +47,10 @@ export const useDeactivatePool = (queryKey: string[], poolId: string) => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error marking pool as inactive',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorMarkingPoolAsInactive', 'Error marking pool as inactive'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

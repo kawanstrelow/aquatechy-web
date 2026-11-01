@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -17,6 +19,8 @@ type Props = {
 };
 
 export function CompanyTeamTab({ company, actorRole }: Props) {
+  const t = useTranslations('settings');
+
   const router = useRouter();
   const { data: members, isLoading } = useGetMembersOfACompany(company.id);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,11 +39,11 @@ export function CompanyTeamTab({ company, actorRole }: Props) {
           onClick={() => router.push(`/settings/companies/team/${company.id}/add-member`)}
         >
           <PlusIcon className="mr-2" />
-          Add member
+          {t('team.addMember')}
         </Button>
 
         <Input
-          placeholder="Filter by name"
+          placeholder={t('companies.filterByNameExact')}
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
           className="w-full min-w-0 md:flex-1"

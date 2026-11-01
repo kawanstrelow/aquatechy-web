@@ -9,6 +9,8 @@ import { useUserStore } from '@/store/user';
 import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useEditCompany = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -24,7 +26,7 @@ export const useEditCompany = () => {
 
       toast({
         duration: 5000,
-        title: 'Information updated with success.',
+        title: translateMessage('toasts.informationUpdatedWithSuccess', 'Information updated with success.'),
         variant: 'success'
       });
     },
@@ -36,8 +38,10 @@ export const useEditCompany = () => {
       toast({
         duration: 5000,
         variant: 'error',
-        title: 'Error editing company.',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorEditingCompany', 'Error editing company.'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

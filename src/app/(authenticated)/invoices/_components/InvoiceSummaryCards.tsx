@@ -1,6 +1,7 @@
 'use client';
 
 import { DollarSign, FileText, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import type { InvoiceListSummaryDollars } from '@/hooks/react-query/invoices/useGetInvoices';
 
@@ -9,6 +10,7 @@ interface InvoiceSummaryCardsProps {
 }
 
 export function InvoiceSummaryCards({ summary }: InvoiceSummaryCardsProps) {
+  const t = useTranslations('invoices');
   const totalInvoices = summary?.totalInvoices ?? 0;
   const totalAmount = summary?.totalAmount ?? 0;
   const paidCount = summary?.paid.count ?? 0;
@@ -19,21 +21,21 @@ export function InvoiceSummaryCards({ summary }: InvoiceSummaryCardsProps) {
 
   const cards = [
     {
-      title: 'Total Invoices',
+      title: t('summary.totalInvoices'),
       value: totalInvoices.toString(),
       icon: FileText,
       iconColor: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
-      title: 'Total Amount',
+      title: t('summary.totalAmount'),
       value: `$${totalAmount.toFixed(2)}`,
       icon: DollarSign,
       iconColor: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
-      title: 'Paid',
+      title: t('summary.paid'),
       value: paidCount.toString(),
       subValue: `$${paidAmount.toFixed(2)}`,
       icon: CheckCircle,
@@ -41,7 +43,7 @@ export function InvoiceSummaryCards({ summary }: InvoiceSummaryCardsProps) {
       bgColor: 'bg-green-50'
     },
     {
-      title: 'Unpaid',
+      title: t('summary.unpaid'),
       value: unpaidCount.toString(),
       subValue: `$${unpaidAmount.toFixed(2)}`,
       icon: Clock,
@@ -49,7 +51,7 @@ export function InvoiceSummaryCards({ summary }: InvoiceSummaryCardsProps) {
       bgColor: 'bg-yellow-50'
     },
     {
-      title: 'Overdue',
+      title: t('summary.overdue'),
       value: overdueCount.toString(),
       icon: AlertCircle,
       iconColor: 'text-red-600',
@@ -62,10 +64,7 @@ export function InvoiceSummaryCards({ summary }: InvoiceSummaryCardsProps) {
       {cards.map((card, index) => {
         const Icon = card.icon;
         return (
-          <div
-            key={index}
-            className="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
-          >
+          <div key={index} className="flex flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div className={`rounded-lg ${card.bgColor} p-2`}>
                 <Icon className={`h-5 w-5 ${card.iconColor}`} />
@@ -74,9 +73,7 @@ export function InvoiceSummaryCards({ summary }: InvoiceSummaryCardsProps) {
             <div className="mt-4">
               <p className="text-sm font-medium text-gray-500">{card.title}</p>
               <p className="mt-1 text-2xl font-semibold text-gray-900">{card.value}</p>
-              {card.subValue && (
-                <p className="mt-1 text-sm text-gray-600">{card.subValue}</p>
-              )}
+              {card.subValue && <p className="mt-1 text-sm text-gray-600">{card.subValue}</p>}
             </div>
           </div>
         );

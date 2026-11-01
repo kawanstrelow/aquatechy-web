@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -18,56 +19,56 @@ function createSchema(actorRole?: string | null) {
     company: z.object({
       id: z
         .string({
-          required_error: 'companyId is required.',
-          invalid_type_error: 'companyId must be a string.'
+          required_error: 'settings.errors.companyIdRequired',
+          invalid_type_error: 'settings.errors.companyIdInvalidType'
         })
         .trim()
-        .min(1, { message: 'companyId must be at least 1 character.' }),
+        .min(1, { message: 'settings.errors.companyIdMin' }),
       name: z
         .string({
-          required_error: 'name is required.',
-          invalid_type_error: 'name must be a string.'
+          required_error: 'settings.errors.nameRequired',
+          invalid_type_error: 'settings.errors.nameInvalidType'
         })
         .trim()
-        .min(1, { message: 'name must be at least 1 character.' })
+        .min(1, { message: 'settings.errors.nameMin' })
     }),
     id: z
       .string({
-        required_error: 'id is required.',
-        invalid_type_error: 'id must be a string.'
+        required_error: 'settings.errors.idRequired',
+        invalid_type_error: 'settings.errors.idInvalidType'
       })
       .trim()
-      .min(1, { message: 'id must be at least 1 character.' }),
+      .min(1, { message: 'settings.errors.idMin' }),
     firstName: z
       .string({
-        required_error: 'firstName is required.',
-        invalid_type_error: 'firstName must be a string.'
+        required_error: 'settings.errors.firstNameRequired',
+        invalid_type_error: 'settings.errors.firstNameInvalidType'
       })
       .trim()
-      .min(1, { message: 'firstName must be at least 1 character.' }),
+      .min(1, { message: 'settings.errors.firstNameMin' }),
     lastName: z
       .string({
-        required_error: 'lastName is required.',
-        invalid_type_error: 'lastName must be a string.'
+        required_error: 'settings.errors.lastNameRequired',
+        invalid_type_error: 'settings.errors.lastNameInvalidType'
       })
       .trim()
-      .min(1, { message: 'lastName must be at least 1 character.' }),
+      .min(1, { message: 'settings.errors.lastNameMin' }),
     email: z
       .string({
-        required_error: 'email is required.',
-        invalid_type_error: 'email must be a string.'
+        required_error: 'settings.errors.emailRequired',
+        invalid_type_error: 'settings.errors.emailInvalidType'
       })
-      .email({ message: 'Invalid email' }),
+      .email({ message: 'settings.errors.emailInvalid' }),
     phone: z
       .string({
-        required_error: 'phone is required.',
-        invalid_type_error: 'phone must be a string.'
+        required_error: 'settings.errors.phoneRequired',
+        invalid_type_error: 'settings.errors.phoneInvalidType'
       })
       .trim()
-      .min(1, { message: 'phone must be at least 1 character.' }),
+      .min(1, { message: 'settings.errors.phoneMin' }),
     role: z.enum(toAssignableRoleEnum(actorRole), {
-      required_error: 'role is required.',
-      invalid_type_error: 'You cannot assign this role.'
+      required_error: 'settings.errors.roleRequired',
+      invalid_type_error: 'settings.errors.roleNotAssignable'
     })
   });
 }
@@ -100,6 +101,8 @@ export function ModalEditCompanyMember({
   role,
   actorRole
 }: PropsEdit) {
+  const t = useTranslations('settings');
+
   const { handleSubmit } = useEditCompanyMember();
   const schema = useMemo(() => createSchema(actorRole), [actorRole]);
   const roleOptions = getMemberRoleSelectOptions(actorRole);
@@ -135,19 +138,24 @@ export function ModalEditCompanyMember({
       <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent>
-        <DialogTitle>Edit member</DialogTitle>
+        <DialogTitle>{t('companies.editMember')}</DialogTitle>
         <DialogHeader></DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((data) => handleEditCompanyMember(data))}>
             <div className="justify-start self-stretch">
               <div className="h-[10px]" />
-              <InputField name="email" label="E-mail" placeholder="E-mail" disabled className="mb-2" />
+              <InputField name="email" label={t('email')} placeholder={t('email')} disabled className="mb-2" />
             </div>
-            <SelectField name="role" placeholder="Select role" label="Role" options={roleOptions} />
+            <SelectField
+              name="role"
+              placeholder={t('companies.selectRole')}
+              label={t('companies.role')}
+              options={roleOptions}
+            />
 
             <DialogTrigger asChild>
               <Button className="mt-12 w-full" type="submit">
-                Save
+                {t('actions.save')}
               </Button>
             </DialogTrigger>
           </form>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,13 +28,13 @@ import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import { getClientCompanyOwnerId, isClientActive } from '@/utils/clientUtils';
 
 const schema = z.object({
-  companyId: z.string().min(1, 'Company is required'),
-  clientId: z.string().min(1, 'Client is required'),
-  poolId: z.string().min(1, 'Pool is required'),
+  companyId: z.string().min(1, 'shopping.validation.companyRequired'),
+  clientId: z.string().min(1, 'shopping.validation.clientRequired'),
+  poolId: z.string().min(1, 'shopping.validation.poolRequired'),
   categoryFilter: z.string().optional(),
-  productId: z.string().min(1, 'Product is required'),
-  quantity: z.coerce.number().min(0.01, 'Quantity must be greater than 0'),
-  notes: z.string().max(1000, 'Notes must be at most 1000 characters').optional()
+  productId: z.string().min(1, 'shopping.validation.productRequired'),
+  quantity: z.coerce.number().min(0.01, 'shopping.validation.quantityMin'),
+  notes: z.string().max(1000, 'shopping.validation.notesMax').optional()
 });
 
 interface AddShoppingItemDialogProps {
@@ -55,6 +56,8 @@ export function AddShoppingItemDialog({
   onSubmit,
   isLoading
 }: AddShoppingItemDialogProps) {
+  const t = useTranslations('shopping');
+  const common = useTranslations('common');
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -93,9 +96,7 @@ export function AddShoppingItemDialog({
     companyId: open ? effectiveCompanyId : '',
     activeOnly: true,
     categoryId:
-      categoryFilter && categoryFilter !== 'all' && categoryFilter !== 'uncategorized'
-        ? categoryFilter
-        : null,
+      categoryFilter && categoryFilter !== 'all' && categoryFilter !== 'uncategorized' ? categoryFilter : null,
     uncategorizedOnly: categoryFilter === 'uncategorized',
     categoryMap
   });
@@ -151,9 +152,7 @@ export function AddShoppingItemDialog({
 
   const clientsForCompany = useMemo(
     () =>
-      allClients.filter(
-        (client) => isClientActive(client) && getClientCompanyOwnerId(client) === effectiveCompanyId
-      ),
+      allClients.filter((client) => isClientActive(client) && getClientCompanyOwnerId(client) === effectiveCompanyId),
     [allClients, effectiveCompanyId]
   );
 
@@ -183,8 +182,8 @@ export function AddShoppingItemDialog({
 
   const categoryFilterOptions = useMemo(() => {
     const options = [
-      { key: 'all', value: 'all', name: 'All categories' },
-      { key: 'uncategorized', value: 'uncategorized', name: 'Uncategorized' }
+      { key: 'all', value: 'all', name: t('allCategories') },
+      { key: 'uncategorized', value: 'uncategorized', name: t('uncategorized') }
     ];
     categoriesQuery.data?.productCategories
       .filter((category) => category.isActive)
@@ -192,7 +191,7 @@ export function AddShoppingItemDialog({
         options.push({ key: category.id, value: category.id, name: category.name });
       });
     return options;
-  }, [categoriesQuery.data?.productCategories]);
+  }, [categoriesQuery.data?.productCategories, t]);
 
   const productOptions = products.map((product) => ({
     key: product.id,
@@ -224,76 +223,79 @@ export function AddShoppingItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Add to shopping list</DialogTitle>
-          <DialogDescription>
-            Select the client and pool, filter by category, then choose a product. Adding the same product again merges quantity.
-          </DialogDescription>
+          <DialogTitle>{t('addDialog.title')}</DialogTitle>
+          <DialogDescription>{t('addDialog.description')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             {showCompanySelect && (
-              <SelectField name="companyId" label="Company *" options={companyOptions} placeholder="Select company" />
+              <SelectField
+                name="companyId"
+                label={t('addDialog.company')}
+                options={companyOptions}
+                placeholder={t('addDialog.selectCompany')}
+              />
             )}
 
             {!showCompanySelect && <input type="hidden" {...form.register('companyId')} />}
 
             <SelectField
               name="clientId"
-              label="Client *"
+              label={t('addDialog.client')}
               options={clientOptions}
               placeholder={
                 !effectiveCompanyId
-                  ? 'Select a company first'
+                  ? t('addDialog.selectCompanyFirst')
                   : clientOptions.length === 0
-                    ? 'No clients for this company'
-                    : 'Select client'
+                    ? t('addDialog.noClientsForCompany')
+                    : t('addDialog.selectClient')
               }
               disabled={!effectiveCompanyId || clientOptions.length === 0}
             />
 
             <SelectField
               name="poolId"
-              label="Pool *"
+              label={t('addDialog.pool')}
               options={poolOptions}
               placeholder={
                 !clientId
-                  ? 'Select a client first'
+                  ? t('addDialog.selectClientFirst')
                   : isPoolsLoading
-                    ? 'Loading pools...'
+                    ? t('addDialog.loadingPools')
                     : poolOptions.length === 0
-                      ? 'No pools for this client'
-                      : 'Select pool'
+                      ? t('addDialog.noPoolsForClient')
+                      : t('addDialog.selectPool')
               }
               disabled={!clientId || isPoolsLoading || poolOptions.length === 0}
             />
 
             <SelectField
               name="categoryFilter"
-              label="Category"
+              label={t('addDialog.category')}
               options={categoryFilterOptions}
               placeholder={
                 !canSelectCategory
-                  ? 'Select client and pool first'
+                  ? t('addDialog.selectClientAndPoolFirst')
                   : categoriesQuery.isLoading
-                    ? 'Loading categories...'
-                    : 'Filter by category'
+                    ? t('addDialog.loadingCategories')
+                    : t('addDialog.filterByCategory')
               }
               disabled={!canSelectCategory || categoriesQuery.isLoading}
             />
 
             <SelectField
               name="productId"
-              label="Product *"
+              label={t('addDialog.product')}
               options={productOptions}
               placeholder={
                 !canSelectProduct
-                  ? 'Select client and pool first'
+                  ? t('addDialog.selectClientAndPoolFirst')
                   : productsQuery.isLoading
-                    ? 'Loading products...'
+                    ? t('addDialog.loadingProducts')
                     : productOptions.length === 0
-                      ? 'No products in this category'
-                      : 'Select product'
+                      ? t('addDialog.noProductsInCategory')
+                      : t('addDialog.selectProduct')
               }
               disabled={!canSelectProduct || productsQuery.isLoading || productOptions.length === 0}
             />
@@ -303,7 +305,7 @@ export function AddShoppingItemDialog({
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Quantity *</FormLabel>
+                  <FormLabel>{t('addDialog.quantity')}</FormLabel>
                   <FormControl>
                     <Input type="number" min={0.01} step="any" placeholder="1" {...field} />
                   </FormControl>
@@ -317,9 +319,14 @@ export function AddShoppingItemDialog({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>{t('addDialog.notes')}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Optional notes" className="resize-none" rows={3} {...field} />
+                    <Textarea
+                      placeholder={t('addDialog.notesPlaceholder')}
+                      className="resize-none"
+                      rows={3}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -328,13 +335,10 @@ export function AddShoppingItemDialog({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                Cancel
+                {common('cancel')}
               </Button>
-              <Button
-                type="submit"
-                disabled={isLoading || !canSelectProduct || productOptions.length === 0}
-              >
-                {isLoading ? 'Adding...' : 'Add shopping item'}
+              <Button type="submit" disabled={isLoading || !canSelectProduct || productOptions.length === 0}>
+                {isLoading ? t('addDialog.adding') : t('addDialog.submit')}
               </Button>
             </DialogFooter>
           </form>

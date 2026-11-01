@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,8 @@ export function MessageLogList({
   emptyDescription,
   errorDescription
 }: Props) {
+  const t = useTranslations('shell');
+
   if (isLoading) {
     return (
       <div className="flex w-full justify-center py-12">
@@ -63,7 +66,7 @@ export function MessageLogList({
   if (isError && messages.length === 0) {
     return (
       <div className="flex w-full flex-col items-center justify-center gap-2 py-12 text-center">
-        <h3 className="text-lg font-semibold text-gray-900">Unable to load messages</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{t('unableToLoadMessages')}</h3>
         <p className="text-sm text-gray-500">{errorDescription}</p>
       </div>
     );
@@ -83,12 +86,12 @@ export function MessageLogList({
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
             <tr className="border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-500">
-              <th className="px-3 py-2 font-medium">Date</th>
-              {showClient ? <th className="px-3 py-2 font-medium">Client</th> : null}
-              {showChannel ? <th className="px-3 py-2 font-medium">Channel</th> : null}
-              <th className="px-3 py-2 font-medium">Type</th>
-              <th className="px-3 py-2 font-medium">Recipient</th>
-              <th className="px-3 py-2 font-medium">Status</th>
+              <th className="px-3 py-2 font-medium">{t('date')}</th>
+              {showClient ? <th className="px-3 py-2 font-medium">{t('client')}</th> : null}
+              {showChannel ? <th className="px-3 py-2 font-medium">{t('channel')}</th> : null}
+              <th className="px-3 py-2 font-medium">{t('type')}</th>
+              <th className="px-3 py-2 font-medium">{t('recipient')}</th>
+              <th className="px-3 py-2 font-medium">{t('status')}</th>
             </tr>
           </thead>
           <tbody>
@@ -99,10 +102,10 @@ export function MessageLogList({
                   <td className="px-3 py-3">
                     {message.clientId ? (
                       <Link href={`/clients/${message.clientId}`} className="font-medium text-sky-700 hover:underline">
-                        {message.clientName || 'Client'}
+                        {message.clientName || t('client')}
                       </Link>
                     ) : (
-                      <span className="font-medium text-gray-900">{message.clientName || 'Client'}</span>
+                      <span className="font-medium text-gray-900">{message.clientName || t('client')}</span>
                     )}
                   </td>
                 ) : null}
@@ -121,11 +124,11 @@ export function MessageLogList({
           </tbody>
         </table>
       </div>
-      {isError ? <p className="text-sm text-red-600">Could not load more messages.</p> : null}
+      {isError ? <p className="text-sm text-red-600">{t('couldNotLoadMore')}</p> : null}
       {hasNextPage ? (
         <div className="flex justify-center">
           <Button type="button" variant="outline" onClick={onLoadMore} disabled={isFetchingNextPage}>
-            {isFetchingNextPage ? 'Loading...' : 'Load more'}
+            {isFetchingNextPage ? t('loading') : t('loadMore')}
           </Button>
         </div>
       ) : null}

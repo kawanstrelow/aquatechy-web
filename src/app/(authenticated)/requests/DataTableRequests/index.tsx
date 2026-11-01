@@ -8,9 +8,12 @@ import {
   getFilteredRowModel,
   useReactTable
 } from '@tanstack/react-table';
+import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { RequestStatus } from '@/constants';
+import { translateOptionLabel } from '@/i18n/runtime';
 import { formatRequestCategory } from '@/ts/enums/enums';
 import { Request } from '@/ts/interfaces/Request';
 
@@ -21,21 +24,13 @@ interface DataTableProps<TData, TValue> {
   globalFilter?: string;
 }
 
-const statusLabels: Record<Request['status'], string> = {
-  Pending: 'Pending',
-  Processing: 'Processing',
-  Done: 'Done',
-  ClientNotified: 'Client Notified',
-  WaintingClientApproval: 'Waiting Client Approval',
-  ApprovedByClient: 'Approved by Client',
-  RejectedByClient: 'Rejected by Client'
-};
+function requestStatusLabel(status: string) {
+  const option = RequestStatus.find((item) => item.value === status);
+  return option ? translateOptionLabel(option) : status;
+}
 
-export function DataTableRequests<TData, TValue>({
-  columns,
-  data,
-  globalFilter = ''
-}: DataTableProps<TData, TValue>) {
+export function DataTableRequests<TData, TValue>({ columns, data, globalFilter = '' }: DataTableProps<TData, TValue>) {
+  const t = useTranslations('requests');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
 
@@ -55,7 +50,7 @@ export function DataTableRequests<TData, TValue>({
       const searchTerm = filterValue.toLowerCase();
       const request = row.original as Request;
       const categoryName = formatRequestCategory(request.category);
-      const statusLabel = statusLabels[request.status] ?? request.status;
+      const statusLabel = requestStatusLabel(request.status);
 
       const combinedSearchString = [
         request.client.fullName,
@@ -115,16 +110,14 @@ export function DataTableRequests<TData, TValue>({
                 data-state={row.getIsSelected() && 'selected'}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+                  <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                 ))}
               </TableRow>
             ))
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                {t('noResults')}
               </TableCell>
             </TableRow>
           )}

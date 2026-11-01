@@ -1,6 +1,7 @@
 'use client';
 
 import { Calendar, Filter, MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -11,6 +12,7 @@ import { useGetTechnicianPerformance } from '@/hooks/react-query/reports/useGetT
 import { ReportHeader } from '../../../../_components/ReportChrome';
 
 export default function TechnicianDetailsPage({ params }: { params: { id: string } }) {
+  const t = useTranslations('reports');
   const { data: performanceData, isLoading, error } = useGetTechnicianPerformance();
 
   // Filter data for the specific technician
@@ -46,13 +48,13 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
         }
       : {
           id: params.id,
-          name: 'Unknown Technician'
+          name: t('technicianDetails.unknownTechnician')
         };
 
   const getStatusBadge = (status: string, lastCleaningDate: string | null) => {
     // If lastCleaningDate is null, consider it overdue
     if (lastCleaningDate === null) {
-      return <Badge variant="destructive">Overdue</Badge>;
+      return <Badge variant="destructive">{t('technicianDetails.overdue')}</Badge>;
     }
 
     switch (status.toLowerCase()) {
@@ -60,14 +62,14 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
       case 'ontime':
         return (
           <Badge variant="default" className="border border-success/20 bg-success-soft text-success">
-            On Time
+            {t('technicianDetails.onTime')}
           </Badge>
         );
       case 'overdue':
-        return <Badge variant="destructive">Overdue</Badge>;
+        return <Badge variant="destructive">{t('technicianDetails.overdue')}</Badge>;
       default:
         // Everything else is considered overdue
-        return <Badge variant="destructive">Overdue</Badge>;
+        return <Badge variant="destructive">{t('technicianDetails.overdue')}</Badge>;
     }
   };
 
@@ -86,7 +88,7 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
   };
 
   const formatDate = (dateString: string | null) => {
-    if (dateString === null) return 'Not informed';
+    if (dateString === null) return t('technicianDetails.notInformed');
     return format(new Date(dateString), 'MMM dd, yyyy');
   };
 
@@ -97,7 +99,7 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
   if (error) {
     return (
       <div className="rounded-xl border border-line bg-surface px-5 py-8 text-center text-sm text-danger shadow-lift">
-        Error loading technician data
+        {t('technicians.loadError')}
       </div>
     );
   }
@@ -105,35 +107,35 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
   return (
     <div className="flex flex-col gap-6">
       <ReportHeader
-        title={`Filter cleaning details — ${technician.name}`}
-        description="Pools assigned to this technician and their filter cleaning status"
+        title={t('technicianDetails.title', { name: technician.name })}
+        description={t('technicianDetails.description')}
         backHref="/reports/team/technicians"
-        backLabel="Back to technicians"
+        backLabel={t('back.technicians')}
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="border-line bg-surface shadow-lift">
           <CardHeader>
-            <CardTitle className="text-base text-ink">Technician</CardTitle>
+            <CardTitle className="text-base text-ink">{t('technicianDetails.technician')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-ink-muted">Name</p>
+            <p className="text-sm text-ink-muted">{t('technicianDetails.name')}</p>
             <p className="font-medium text-ink">{technician.name}</p>
           </CardContent>
         </Card>
 
         <Card className="border-line bg-surface shadow-lift">
           <CardHeader>
-            <CardTitle className="text-base text-ink">Summary</CardTitle>
+            <CardTitle className="text-base text-ink">{t('technicianDetails.summary')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-ink-muted">Total pools</span>
+                <span className="text-ink-muted">{t('technicianDetails.totalPools')}</span>
                 <span className="font-medium text-ink">{technicianData.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-ink-muted">On time</span>
+                <span className="text-ink-muted">{t('technicianDetails.onTime')}</span>
                 <span className="font-medium text-success">
                   {
                     technicianData.filter(
@@ -145,7 +147,7 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-ink-muted">Overdue</span>
+                <span className="text-ink-muted">{t('technicianDetails.overdue')}</span>
                 <span className="font-medium text-danger">
                   {
                     technicianData.filter(
@@ -166,26 +168,26 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5 text-accent" />
-            Filter Cleaning Schedule
+            {t('technicianDetails.scheduleTitle')}
           </CardTitle>
-          <CardDescription>All pools assigned to {technician.name} and their filter cleaning status</CardDescription>
+          <CardDescription>{t('technicianDetails.scheduleDescription', { name: technician.name })}</CardDescription>
         </CardHeader>
         <CardContent>
           {sortedTechnicianData.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="text-gray-500">No filter cleaning data available for this technician</p>
+              <p className="text-gray-500">{t('technicianDetails.empty')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead className="bg-surface">
                   <tr className="border-b border-line bg-surface">
-                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">Client</th>
-                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">Address</th>
-                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">Last Cleaning</th>
-                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">Next Cleaning</th>
-                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">Days Until</th>
-                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">Status</th>
+                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.client')}</th>
+                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.address')}</th>
+                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.lastCleaning')}</th>
+                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.nextCleaning')}</th>
+                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.daysUntil')}</th>
+                    <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.status')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,11 +230,13 @@ export default function TechnicianDetailsPage({ params }: { params: { id: string
                             }`}
                           >
                             {item.overdueDays > 0
-                              ? `${item.overdueDays} days overdue`
-                              : `${getDaysUntilNext(item.nextCleaningDate)} days`}
+                              ? t('technicianDetails.daysOverdue', { count: item.overdueDays })
+                              : t('technicianDetails.daysCount', { count: getDaysUntilNext(item.nextCleaningDate) })}
                           </span>
                         ) : (
-                          <span className="text-sm font-medium text-gray-500">Not informed</span>
+                          <span className="text-sm font-medium text-gray-500">
+                            {t('technicianDetails.notInformed')}
+                          </span>
                         )}
                       </td>
                       <td className="p-3">{getStatusBadge(item.status, item.lastCleaningDate)}</td>

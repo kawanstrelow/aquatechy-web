@@ -1,11 +1,20 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,8 +23,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CreateReadingGroupRequest } from '@/ts/interfaces/ReadingGroups';
 
 const createReadingGroupSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isDefault: z.boolean().default(false)
 });
 
@@ -27,6 +36,8 @@ interface CreateReadingGroupDialogProps {
 }
 
 export function CreateReadingGroupDialog({ open, onOpenChange, onSubmit, isLoading }: CreateReadingGroupDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof createReadingGroupSchema>>({
     resolver: zodResolver(createReadingGroupSchema),
     defaultValues: {
@@ -49,10 +60,8 @@ export function CreateReadingGroupDialog({ open, onOpenChange, onSubmit, isLoadi
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Reading Group</DialogTitle>
-          <DialogDescription>
-            Create a new reading group to organize related reading definitions for your service reports.
-          </DialogDescription>
+          <DialogTitle>{t('readings.createGroup')}</DialogTitle>
+          <DialogDescription>{t('readings.createGroupDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -62,9 +71,9 @@ export function CreateReadingGroupDialog({ open, onOpenChange, onSubmit, isLoadi
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name *</FormLabel>
+                  <FormLabel>{t('fields.nameRequired')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Water Chemistry" {...field} />
+                    <Input placeholder={t('readings.groupPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -76,10 +85,10 @@ export function CreateReadingGroupDialog({ open, onOpenChange, onSubmit, isLoadi
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Brief description of what readings this group contains..."
+                    <Textarea
+                      placeholder={t('readings.groupDescriptionPlaceholder')}
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -115,10 +124,10 @@ export function CreateReadingGroupDialog({ open, onOpenChange, onSubmit, isLoadi
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Group'}
+                {isLoading ? t('actions.creating') : t('actions.createGroup')}
               </Button>
             </DialogFooter>
           </form>
@@ -127,4 +136,3 @@ export function CreateReadingGroupDialog({ open, onOpenChange, onSubmit, isLoadi
     </Dialog>
   );
 }
-

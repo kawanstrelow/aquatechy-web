@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { CrudSelectorGroupRequest, CrudSelectorGroupResponse } from '../../../ts/interfaces/SelectorGroups';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -18,7 +20,7 @@ export const useBatchUpdateSelectorGroup = (companyId: string) => {
       data
     }: {
       selectorGroupId: string;
-      data: CrudSelectorGroupRequest
+      data: CrudSelectorGroupRequest;
     }): Promise<CrudSelectorGroupResponse> => {
       const response = await clientAxios.patch(`/selector-groups/${selectorGroupId}/crud`, data);
       return response.data;
@@ -30,15 +32,20 @@ export const useBatchUpdateSelectorGroup = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['selectorGroups'] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Selector definitions updated successfully',
-        description: 'All changes have been saved',
+        title: translateMessage(
+          'toasts.selectorDefinitionsUpdatedSuccessfully',
+          'Selector definitions updated successfully'
+        ),
+        description: translateMessage('toasts.allChangesHaveBeenSaved', 'All changes have been saved'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating selector definitions',
-        description: error.response?.data?.message || 'An error occurred while saving changes',
+        title: translateMessage('toasts.errorUpdatingSelectorDefinitions', 'Error updating selector definitions'),
+        description:
+          error.response?.data?.message ||
+          translateMessage('toasts.anErrorOccurredWhileSavingChanges', 'An error occurred while saving changes'),
         variant: 'error'
       });
     }

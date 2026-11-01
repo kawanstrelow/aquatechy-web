@@ -125,6 +125,7 @@ export const PoolTypes = [
 
 export const routes: Menu[] = [
   {
+    i18nKey: 'quickstart',
     text: 'Quick Start',
     href: '/quickstart',
     icon: PlayCircle,
@@ -132,6 +133,7 @@ export const routes: Menu[] = [
     description: 'Get started with Aquatechy in a few simple steps'
   },
   {
+    i18nKey: 'dashboard',
     text: 'Dashboard',
     href: '/dashboard',
     icon: TabIcon,
@@ -139,6 +141,7 @@ export const routes: Menu[] = [
     description: 'Overview of your pools as a technician or a manager'
   },
   {
+    i18nKey: 'chat',
     text: 'Chat',
     href: '/chat',
     icon: MessageSquare,
@@ -146,17 +149,20 @@ export const routes: Menu[] = [
     description: 'Ask questions about your company data'
   },
   {
+    i18nKey: 'clients',
     title: 'Clients',
     text: 'Clients',
     href: '/clients',
     description: 'Manage your clients and edit their information',
     submenu: {
       clients: {
+        i18nKey: 'myClients',
         text: 'My Clients',
         href: '/clients',
         title: 'My Clients'
       },
       leads: {
+        i18nKey: 'leads',
         text: 'Leads',
         href: '/clients/leads',
         title: 'Leads',
@@ -164,6 +170,7 @@ export const routes: Menu[] = [
         icon: UserPlus
       },
       addClients: {
+        i18nKey: 'newClient',
         text: 'New Client',
         href: '/clients/new',
         title: 'New Client',
@@ -171,6 +178,7 @@ export const routes: Menu[] = [
         icon: UserPlus
       },
       importQuickbooks: {
+        i18nKey: 'quickbooksImport',
         text: 'QuickBooks Import',
         href: '/clients/import-quickbooks',
         title: 'Import Clients from QuickBooks',
@@ -178,6 +186,7 @@ export const routes: Menu[] = [
         description: 'Import clients from a QuickBooks file'
       },
       importFromFile: {
+        i18nKey: 'fileImport',
         text: 'Excel / CSV Import',
         href: '/clients/import-from-file',
         title: 'Import Clients from Excel or CSV',
@@ -185,6 +194,7 @@ export const routes: Menu[] = [
         description: 'Import clients using our Excel or CSV template'
       },
       importSkimmer: {
+        i18nKey: 'skimmerImport',
         text: 'Skimmer Import',
         href: '/clients/import-skimmer',
         title: 'Import Clients from Skimmer',
@@ -195,9 +205,11 @@ export const routes: Menu[] = [
     icon: Users
   },
   {
+    i18nKey: 'routes',
     text: 'Routes',
     submenu: {
       schedule: {
+        i18nKey: 'schedule',
         text: 'Schedule',
         href: '/routes/schedule',
         title: 'Schedule',
@@ -205,6 +217,7 @@ export const routes: Menu[] = [
         icon: UserPlus
       },
       routeFinder: {
+        i18nKey: 'routeFinder',
         text: 'Route Finder',
         href: '/routes/route-finder',
         title: 'Route Finder',
@@ -218,6 +231,7 @@ export const routes: Menu[] = [
     description: 'See your schedule and find the best route for a new pool location'
   },
   {
+    i18nKey: 'requests',
     text: 'Requests',
     href: '/requests',
     icon: CheckSquare,
@@ -225,6 +239,7 @@ export const routes: Menu[] = [
     description: 'Manage your requests and see their status'
   },
   {
+    i18nKey: 'services',
     text: 'Services',
     href: '/services',
     icon: ListChecks,
@@ -232,6 +247,7 @@ export const routes: Menu[] = [
     description: 'Look services made by your company'
   },
   {
+    i18nKey: 'invoices',
     text: 'Invoices',
     href: '/invoices',
     icon: FileText,
@@ -239,24 +255,28 @@ export const routes: Menu[] = [
     description: 'Manage your invoices and track payments',
     submenu: {
       overview: {
+        i18nKey: 'invoicesOverview',
         text: 'Overview',
         href: '/invoices',
         title: 'Invoices Overview',
         description: 'View and manage all your invoices'
       },
       estimates: {
+        i18nKey: 'estimates',
         text: 'Estimates',
         href: '/invoices/estimates',
         title: 'Estimates',
         description: 'Create and manage client estimates'
       },
       recurring: {
+        i18nKey: 'recurring',
         text: 'Recurring',
         href: '/invoices/recurring',
         title: 'Recurring Invoices',
         description: 'Manage recurring invoice templates'
       },
       settings: {
+        i18nKey: 'invoiceSettings',
         text: 'Settings',
         href: '/invoices/settings',
         title: 'Invoice Settings',
@@ -265,6 +285,7 @@ export const routes: Menu[] = [
     }
   },
   {
+    i18nKey: 'shopping',
     text: 'Shopping list',
     href: '/shopping-list/overview',
     icon: ShoppingCart,
@@ -272,12 +293,14 @@ export const routes: Menu[] = [
     description: 'Manage your product catalog and shopping lists',
     submenu: {
       overview: {
+        i18nKey: 'shoppingOverview',
         text: 'Overview',
         href: '/shopping-list/overview',
         title: 'Shopping list overview',
         description: 'Track shopping items across clients and pools'
       },
       products: {
+        i18nKey: 'products',
         text: 'Products',
         href: '/shopping-list/products',
         title: 'Products',
@@ -286,6 +309,7 @@ export const routes: Menu[] = [
     }
   },
   {
+    i18nKey: 'workOrders',
     text: 'Work Orders',
     href: '/work-orders',
     icon: CheckSquare,
@@ -293,6 +317,7 @@ export const routes: Menu[] = [
     description: 'Manage work orders and track their progress',
     submenu: {
       overview: {
+        i18nKey: 'workOrdersOverview',
         text: 'Overview',
         href: '/work-orders/schedule',
         title: 'Work Orders Overview',
@@ -300,6 +325,7 @@ export const routes: Menu[] = [
         icon: Calendar
       },
       add: {
+        i18nKey: 'addWorkOrder',
         text: 'Add Work Order',
         href: '/work-orders/add',
         title: 'Add Work Order',
@@ -309,6 +335,7 @@ export const routes: Menu[] = [
     }
   },
   {
+    i18nKey: 'reports',
     text: 'Reports',
     href: '/reports',
     icon: FileBarChartIcon,
@@ -316,6 +343,7 @@ export const routes: Menu[] = [
     description: 'Generate comprehensive reports and analytics',
     submenu: {
       clientReports: {
+        i18nKey: 'clientReports',
         text: 'Client Reports',
         href: '/reports/clients',
         title: 'Client Reports',
@@ -323,6 +351,7 @@ export const routes: Menu[] = [
         icon: Users
       },
       serviceReports: {
+        i18nKey: 'serviceReports',
         text: 'Service Reports',
         href: '/reports/services',
         title: 'Service Reports',
@@ -330,6 +359,7 @@ export const routes: Menu[] = [
         icon: ListChecks
       },
       teamReports: {
+        i18nKey: 'teamReports',
         text: 'Team Reports',
         href: '/reports/team',
         title: 'Team Reports',
@@ -337,6 +367,7 @@ export const routes: Menu[] = [
         icon: UserPlus
       },
       poolReports: {
+        i18nKey: 'poolReports',
         text: 'Pool Reports',
         href: '/reports/pools',
         title: 'Pool Reports',
@@ -347,29 +378,34 @@ export const routes: Menu[] = [
   },
 
   {
+    i18nKey: 'settings',
     text: 'Settings',
     href: '/settings',
     icon: Cog,
     title: 'Settings',
     submenu: {
       profile: {
+        i18nKey: 'profile',
         text: 'Profile',
         href: '/settings/profile',
         title: 'Profile'
       },
       subscription: {
+        i18nKey: 'subscription',
         text: 'Subscription',
         href: '/settings/subscription',
         title: 'Subscription',
         description: 'Manage your subscription and see our plans'
       },
       preferences: {
+        i18nKey: 'preferences',
         text: 'Preferences',
         href: '/settings/preferences',
         title: 'Preferences',
         description: 'Manage company preference settings.'
       },
       companies: {
+        i18nKey: 'companies',
         text: 'Companies',
         href: '/settings/companies',
         title: 'Companies',

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -52,10 +53,8 @@ function transformInvoiceToDetailed(apiInvoice: Invoice): DetailedInvoice {
     apiInvoice.client.state,
     apiInvoice.client.zip
   ].filter(Boolean);
-  
-  const clientAddress = clientAddressParts.length > 0
-    ? clientAddressParts.join(', ')
-    : undefined;
+
+  const clientAddress = clientAddressParts.length > 0 ? clientAddressParts.join(', ') : undefined;
 
   return {
     id: apiInvoice.id,
@@ -66,7 +65,7 @@ function transformInvoiceToDetailed(apiInvoice: Invoice): DetailedInvoice {
     dueDate: new Date(apiInvoice.dueDate),
     amount: apiInvoice.total,
     status: apiInvoice.status,
-    lineItems: apiInvoice.lineItems.map(item => ({
+    lineItems: apiInvoice.lineItems.map((item) => ({
       description: item.description,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
@@ -91,6 +90,7 @@ type Props = {
 };
 
 export default function EditInvoicePage({ params: { id } }: Props) {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: invoiceData, isLoading: isLoadingInvoice, isError, error } = useGetInvoiceById(id);
@@ -119,7 +119,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
       const invoice = invoiceData.invoice;
       const issuedDate = new Date(invoice.issuedDate);
       const dueDate = new Date(invoice.dueDate);
-      
+
       // Backend stores prices in cents; convert to dollars for form display
       const toDollars = (cents: number) => (cents ?? 0) / 100;
 
@@ -128,23 +128,24 @@ export default function EditInvoicePage({ params: { id } }: Props) {
         invoiceNumber: invoice.invoiceNumber,
         issuedDate,
         dueDate,
-        lineItems: invoice.lineItems.length > 0
-          ? invoice.lineItems.map(item => ({
-              description: item.description,
-              quantity: item.quantity,
-              unitPrice: toDollars(item.unitPrice),
-              amount: toDollars(item.amount),
-              taxRate: item.taxRate ?? 0
-            }))
-          : [
-              {
-                description: '',
-                quantity: 1,
-                unitPrice: 0,
-                amount: 0,
-                taxRate: 0
-              }
-            ],
+        lineItems:
+          invoice.lineItems.length > 0
+            ? invoice.lineItems.map((item) => ({
+                description: item.description,
+                quantity: item.quantity,
+                unitPrice: toDollars(item.unitPrice),
+                amount: toDollars(item.amount),
+                taxRate: item.taxRate ?? 0
+              }))
+            : [
+                {
+                  description: '',
+                  quantity: 1,
+                  unitPrice: 0,
+                  amount: 0,
+                  taxRate: 0
+                }
+              ],
         discountRate: invoice.discountRate || 0,
         paymentTerms: invoice.paymentTerms || '',
         notes: invoice.notes || '',
@@ -208,10 +209,10 @@ export default function EditInvoicePage({ params: { id } }: Props) {
       const unitPrice = Number(item.unitPrice) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
       const calculatedAmount = Math.round(quantity * unitPrice * 100) / 100;
-      
+
       return { ...item, amount: calculatedAmount, quantity, unitPrice, taxRate };
     });
-    
+
     const hasChanges = updatedItems.some((item, index) => {
       const currentItem = currentItems[index];
       if (!currentItem) return true;
@@ -226,7 +227,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
         item.taxRate !== currentTaxRate
       );
     });
-    
+
     if (hasChanges) {
       form.setValue('lineItems', updatedItems, { shouldDirty: false, shouldValidate: false });
     }
@@ -249,16 +250,16 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     const currentStatus = currentInvoice?.status;
     const canReturnToDraft = currentStatus === 'draft' || !currentStatus;
     const base = [
-      ...(canReturnToDraft ? [{ key: 'draft', value: 'draft', name: 'Draft' }] : []),
-      { key: 'unpaid', value: 'unpaid', name: 'Unpaid' },
-      { key: 'paid', value: 'paid', name: 'Paid' },
-      { key: 'overdue', value: 'overdue', name: 'Overdue' }
+      ...(canReturnToDraft ? [{ key: 'draft', value: 'draft', name: t('status.draft') }] : []),
+      { key: 'unpaid', value: 'unpaid', name: t('status.unpaid') },
+      { key: 'paid', value: 'paid', name: t('status.paid') },
+      { key: 'overdue', value: 'overdue', name: t('status.overdue') }
     ];
     if (currentStatus === 'cancelled') {
-      return [...base, { key: 'cancelled', value: 'cancelled', name: 'Cancelled' }];
+      return [...base, { key: 'cancelled', value: 'cancelled', name: t('status.cancelled') }];
     }
     return base;
-  }, [currentInvoice?.status]);
+  }, [currentInvoice?.status, t]);
 
   // Get selected client
   const selectedClient = useMemo(() => {
@@ -275,11 +276,11 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     const taxAmount = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
-      const itemTax = Math.round((amount * taxRate / 100) * 100) / 100;
+      const itemTax = Math.round(((amount * taxRate) / 100) * 100) / 100;
       return sum + itemTax;
     }, 0);
     const discountRate = Number(watchedDiscountRate) || 0;
-    const discountAmount = Math.round((subtotal * discountRate) / 100 * 100) / 100;
+    const discountAmount = Math.round(((subtotal * discountRate) / 100) * 100) / 100;
     const total = Math.round((subtotal + taxAmount - discountAmount) * 100) / 100;
     return { subtotal, taxAmount, discountAmount, total };
   }, [watchedLineItems, watchedDiscountRate, lineItemsVersion, form]);
@@ -322,7 +323,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
           unitPrice: Number(item.unitPrice) || 0,
           amount: Number(item.amount) || 0,
           taxRate: Number(item.taxRate) ?? 0,
-          taxAmount: Math.round((Number(item.amount) || 0) * (Number(item.taxRate) ?? 0) / 100 * 100) / 100
+          taxAmount: Math.round((((Number(item.amount) || 0) * (Number(item.taxRate) ?? 0)) / 100) * 100) / 100
         })),
       subtotal: invoiceTotals.subtotal,
       taxAmount: invoiceTotals.taxAmount,
@@ -362,8 +363,8 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error loading invoice</h2>
-          <p className="text-gray-600">{errorMessage || 'An unexpected error occurred'}</p>
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">{t('errors.loadInvoice')}</h2>
+          <p className="text-gray-600">{errorMessage || t('empty.unexpectedError')}</p>
         </div>
       </div>
     );
@@ -400,15 +401,16 @@ export default function EditInvoicePage({ params: { id } }: Props) {
   const handleLineItemChange = (index: number, field: keyof InvoiceLineItem, value: string | number) => {
     const currentItems = form.getValues('lineItems');
     const updatedItems = [...currentItems];
-    const numValue = (field === 'quantity' || field === 'unitPrice' || field === 'amount' || field === 'taxRate')
-      ? Number(value) ?? 0
-      : value;
+    const numValue =
+      field === 'quantity' || field === 'unitPrice' || field === 'amount' || field === 'taxRate'
+        ? Number(value) ?? 0
+        : value;
 
     updatedItems[index] = { ...updatedItems[index], [field]: numValue };
 
     if (field === 'quantity' || field === 'unitPrice') {
-      const quantity = field === 'quantity' ? (Number(value) || 0) : Number(updatedItems[index].quantity) || 0;
-      const unitPrice = field === 'unitPrice' ? (Number(value) || 0) : Number(updatedItems[index].unitPrice) || 0;
+      const quantity = field === 'quantity' ? Number(value) || 0 : Number(updatedItems[index].quantity) || 0;
+      const unitPrice = field === 'unitPrice' ? Number(value) || 0 : Number(updatedItems[index].unitPrice) || 0;
       updatedItems[index].amount = Math.round(quantity * unitPrice * 100) / 100;
     }
 
@@ -419,7 +421,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
   // Helper function to validate and prepare invoice data for update
   const prepareInvoiceData = (): UpdateInvoiceRequest | null => {
     const formData = form.getValues();
-    
+
     // Always include invoiceId and status
     const requestData: UpdateInvoiceRequest = {
       invoiceId: id,
@@ -430,17 +432,17 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     if (isDraft) {
       // Validate required fields
       if (!formData.clientId) {
-        form.setError('clientId', { message: 'Client is required' });
+        form.setError('clientId', { message: 'invoices.errors.clientRequired' });
         return null;
       }
 
       if (!formData.issuedDate) {
-        form.setError('issuedDate', { message: 'Issued date is required' });
+        form.setError('issuedDate', { message: 'invoices.errors.issuedDateRequired' });
         return null;
       }
 
       if (!formData.dueDate) {
-        form.setError('dueDate', { message: 'Due date is required' });
+        form.setError('dueDate', { message: 'invoices.errors.dueDateRequired' });
         return null;
       }
 
@@ -464,7 +466,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
         });
 
       if (validLineItems.length === 0) {
-        form.setError('lineItems', { message: 'At least one valid line item is required' });
+        form.setError('lineItems', { message: 'invoices.errors.lineItemRequiredShort' });
         return null;
       }
 
@@ -521,12 +523,12 @@ export default function EditInvoicePage({ params: { id } }: Props) {
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={() => router.push(`/invoices/${id}`)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+            {t('actions.back')}
           </Button>
-          <h1 className="text-2xl font-bold">Edit Invoice</h1>
+          <h1 className="text-2xl font-bold">{t('invoiceForm.editTitle')}</h1>
           {!isDraft && (
             <div className="ml-auto rounded-lg bg-yellow-50 px-4 py-2 text-sm text-yellow-800">
-              Only status can be edited for non-draft invoices. Other fields are disabled.
+              {t('invoiceForm.nonDraftNotice')}
             </div>
           )}
         </div>
@@ -537,47 +539,46 @@ export default function EditInvoicePage({ params: { id } }: Props) {
           <div className="flex flex-col gap-6">
             {/* Status Field - Always editable */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Invoice Status</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.invoiceStatus')}</h2>
               <SelectField
                 name="status"
-                label="Status"
-                placeholder="Select status"
+                label={t('fields.status')}
+                placeholder={t('placeholders.selectStatus')}
                 options={statusOptions}
               />
             </div>
 
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Invoice Details</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.invoiceDetails')}</h2>
               <div className="space-y-4">
                 <SelectField
                   name="clientId"
-                  label="Client"
-                  placeholder="Select client"
+                  label={t('fields.client')}
+                  placeholder={t('placeholders.selectClient')}
                   options={clientOptions}
                   disabled={!isDraft}
                 />
 
                 <InputField
                   name="invoiceNumber"
-                  label="Invoice Number"
-                  placeholder="Invoice number"
+                  label={t('fields.invoiceNumber')}
+                  placeholder={t('placeholders.invoiceNumber')}
                   disabled={!isDraft}
-                  
                 />
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className={!isDraft ? 'pointer-events-none opacity-50' : ''}>
                     <DatePickerField
                       name="issuedDate"
-                      label="Issued Date"
-                      placeholder="Select issued date"
+                      label={t('fields.issuedDate')}
+                      placeholder={t('placeholders.selectIssuedDate')}
                     />
                   </div>
                   <div className={!isDraft ? 'pointer-events-none opacity-50' : ''}>
                     <DatePickerField
                       name="dueDate"
-                      label="Due Date"
-                      placeholder="Select due date"
+                      label={t('fields.dueDate')}
+                      placeholder={t('placeholders.selectDueDate')}
                     />
                   </div>
                 </div>
@@ -588,24 +589,21 @@ export default function EditInvoicePage({ params: { id } }: Props) {
             {isDraft && (
               <div className="rounded-lg border bg-white p-6 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Line Items</h2>
+                  <h2 className="text-lg font-semibold">{t('fields.lineItems')}</h2>
                   <Button type="button" variant="outline" size="sm" onClick={handleAddLineItem}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Item
+                    {t('actions.addItem')}
                   </Button>
                 </div>
                 <div className="space-y-4">
                   {watchedLineItems.map((item, index) => (
                     <div key={index} className="rounded-lg border p-4">
                       <div className="mb-3 flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Item {index + 1}</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          {t('fields.itemNumber', { number: index + 1 })}
+                        </span>
                         {watchedLineItems.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveLineItem(index)}
-                          >
+                          <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveLineItem(index)}>
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         )}
@@ -613,14 +611,14 @@ export default function EditInvoicePage({ params: { id } }: Props) {
                       <div className="space-y-3">
                         <InputField
                           name={`lineItems.${index}.description`}
-                          label="Description"
-                          placeholder="Item description"
+                          label={t('fields.description')}
+                          placeholder={t('placeholders.itemDescription')}
                           type={FieldType.TextArea}
                         />
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                           <InputField
                             name={`lineItems.${index}.quantity`}
-                            label="Quantity"
+                            label={t('fields.quantity')}
                             placeholder="1"
                             type={FieldType.Number}
                             props={{
@@ -632,7 +630,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
                           />
                           <InputField
                             name={`lineItems.${index}.unitPrice`}
-                            label="Unit Price"
+                            label={t('fields.unitPrice')}
                             placeholder="0.00"
                             type={FieldType.Number}
                             props={{
@@ -644,7 +642,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
                           />
                           <InputField
                             name={`lineItems.${index}.taxRate`}
-                            label="Tax Rate (%)"
+                            label={t('fields.taxRate')}
                             placeholder="0"
                             type={FieldType.Number}
                             props={{
@@ -657,7 +655,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
                           />
                         </div>
                         <div className="text-right">
-                          <span className="text-sm text-gray-600">Amount: </span>
+                          <span className="text-sm text-gray-600">{t('fields.amount')} </span>
                           <span className="font-semibold">${(Number(item.amount) || 0).toFixed(2)}</span>
                         </div>
                       </div>
@@ -670,11 +668,11 @@ export default function EditInvoicePage({ params: { id } }: Props) {
             {/* Tax and Totals - Only editable when draft */}
             {isDraft && (
               <div className="rounded-lg border bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold">Tax & Totals</h2>
+                <h2 className="mb-4 text-lg font-semibold">{t('fields.taxAndTotals')}</h2>
                 <div className="space-y-4">
                   <InputField
                     name="discountRate"
-                    label="Discount Rate (%)"
+                    label={t('fields.discountRate')}
                     placeholder="0.00"
                     type={FieldType.Number}
                     props={{
@@ -685,23 +683,25 @@ export default function EditInvoicePage({ params: { id } }: Props) {
                   />
                   <div className="space-y-2 rounded-lg bg-gray-50 p-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="text-gray-600">{t('fields.subtotal')}</span>
                       <span className="font-semibold">${invoiceTotals.subtotal.toFixed(2)}</span>
                     </div>
                     {invoiceTotals.taxAmount > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Tax:</span>
+                        <span className="text-gray-600">{t('fields.tax')}</span>
                         <span className="font-semibold">${invoiceTotals.taxAmount.toFixed(2)}</span>
                       </div>
                     )}
                     {watchedDiscountRate > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Discount ({watchedDiscountRate}%):</span>
+                        <span className="text-gray-600">
+                          {t('fields.discountWithRate', { rate: watchedDiscountRate })}
+                        </span>
                         <span className="font-semibold">-${invoiceTotals.discountAmount.toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between border-t border-gray-300 pt-2 text-lg font-bold">
-                      <span>Total:</span>
+                      <span>{t('fields.total')}</span>
                       <span>${invoiceTotals.total.toFixed(2)}</span>
                     </div>
                   </div>
@@ -712,24 +712,24 @@ export default function EditInvoicePage({ params: { id } }: Props) {
             {/* Payment Terms and Notes - Only editable when draft */}
             {isDraft && (
               <div className="rounded-lg border bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold">Additional Information</h2>
+                <h2 className="mb-4 text-lg font-semibold">{t('fields.additionalInformation')}</h2>
                 <div className="space-y-4">
                   <InputField
                     name="paymentTerms"
-                    label="Payment Terms"
-                    placeholder="Payment terms"
+                    label={t('fields.paymentTerms')}
+                    placeholder={t('placeholders.paymentTerms')}
                     type={FieldType.TextArea}
                   />
                   <InputField
                     name="notes"
-                    label="Notes"
-                    placeholder="Additional notes (optional)"
+                    label={t('fields.notes')}
+                    placeholder={t('placeholders.notesOptional')}
                     type={FieldType.TextArea}
                   />
                   <InputField
                     name="paymentInstructions"
-                    label="Payment Instructions"
-                    placeholder="Payment instructions"
+                    label={t('fields.paymentInstructions')}
+                    placeholder={t('placeholders.paymentInstructions')}
                     type={FieldType.TextArea}
                   />
                 </div>
@@ -738,12 +738,8 @@ export default function EditInvoicePage({ params: { id } }: Props) {
 
             {/* Action Button */}
             <div className="flex gap-3">
-              <Button 
-                onClick={handleSave} 
-                className="flex-1"
-                disabled={isUpdating}
-              >
-                {isUpdating ? 'Saving...' : 'Save Changes'}
+              <Button onClick={handleSave} className="flex-1" disabled={isUpdating}>
+                {isUpdating ? t('actions.saving') : t('actions.saveChanges')}
               </Button>
             </div>
           </div>
@@ -754,7 +750,7 @@ export default function EditInvoicePage({ params: { id } }: Props) {
               <InvoicePreview invoice={previewInvoice} />
             ) : (
               <div className="rounded-lg border bg-white p-12 text-center shadow-sm">
-                <p className="text-gray-500">Select a client to preview the invoice</p>
+                <p className="text-gray-500">{t('invoiceForm.previewEmpty')}</p>
               </div>
             )}
           </div>
@@ -763,4 +759,3 @@ export default function EditInvoicePage({ params: { id } }: Props) {
     </FormProvider>
   );
 }
-

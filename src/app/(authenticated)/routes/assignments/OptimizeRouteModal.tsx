@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,6 +26,7 @@ type RouteOption = {
 };
 
 export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments, userAddress, technicianId }: Props) {
+  const t = useTranslations('routes');
   const { assignmentToId, members } = useMembersStore(
     useShallow((state) => ({
       assignmentToId: state.assignmentToId,
@@ -51,7 +54,7 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
   if (technicianAddress) {
     startingPointOptions.push({
       id: 'technician',
-      label: `Technician Address - ${technicianAddress}`,
+      label: t('technicianAddress', { address: technicianAddress }),
       address: technicianAddress
     });
   }
@@ -72,7 +75,7 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
   if (technicianAddress) {
     endingPointOptions.push({
       id: 'technician',
-      label: `Technician Address - ${technicianAddress}`,
+      label: t('technicianAddress', { address: technicianAddress }),
       address: technicianAddress
     });
   }
@@ -97,20 +100,19 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Optimize Route</DialogTitle>
+          <DialogTitle>{t('optimizeRoute')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> To optimize your route, first set your preferred first and last assignments on the
-              assignments list, then return to this modal to optimize the route.
+              <strong>{t('note')}</strong> {t('optimizeNote')}
             </p>
           </div>
           <div>
-            <Label className="mb-4 font-medium">Starting Point</Label>
+            <Label className="mb-4 font-medium">{t('startingPoint')}</Label>
             <Select value={origin} onValueChange={setOrigin}>
               <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select starting point" />
+                <SelectValue placeholder={t('selectStartingPoint')} />
               </SelectTrigger>
               <SelectContent>
                 {startingPointOptions.map((option) => (
@@ -123,10 +125,10 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
           </div>
 
           <div>
-            <Label className="mb-4 font-medium">End Point</Label>
+            <Label className="mb-4 font-medium">{t('endPoint')}</Label>
             <Select value={destination} onValueChange={setDestination}>
               <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select ending point" />
+                <SelectValue placeholder={t('selectEndingPoint')} />
               </SelectTrigger>
               <SelectContent>
                 {endingPointOptions.map((option) => (
@@ -140,7 +142,7 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               className="w-full sm:w-auto"
@@ -149,7 +151,7 @@ export function OptimizeRouteModal({ open, onOpenChange, onOptimize, assignments
                 onOpenChange(false);
               }}
             >
-              Optimize
+              {t('optimize')}
             </Button>
           </div>
         </div>

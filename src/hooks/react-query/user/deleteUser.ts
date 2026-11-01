@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeleteUser = () => {
   const router = useRouter();
   const { mutate, isPending, isError } = useMutation({
@@ -12,7 +14,7 @@ export const useDeleteUser = () => {
     onSuccess: async () => {
       toast({
         duration: 2000,
-        title: 'Your account has been deleted',
+        title: translateMessage('toasts.yourAccountHasBeenDeleted', 'Your account has been deleted'),
         variant: 'success'
       });
       router.push('/login');
@@ -25,8 +27,10 @@ export const useDeleteUser = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error deleting your account',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorDeletingYourAccount', 'Error deleting your account'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

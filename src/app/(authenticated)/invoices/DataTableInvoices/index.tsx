@@ -8,6 +8,7 @@ import {
   getFilteredRowModel,
   useReactTable
 } from '@tanstack/react-table';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -26,15 +27,16 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void;
 }
 
-export function DataTableInvoices<TValue>({ 
-  columns, 
-  data, 
+export function DataTableInvoices<TValue>({
+  columns,
+  data,
   onFiltersChange,
   clients = [],
   companies = [],
   onCompanyChange,
   onRowClick
 }: DataTableProps<InvoiceListRow, TValue>) {
+  const t = useTranslations('invoices');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -59,15 +61,15 @@ export function DataTableInvoices<TValue>({
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
       if (!filterValue || filterValue === '') return true;
-      
+
       const searchTerm = filterValue.toLowerCase();
       const invoice = row.original;
-      
+
       // Format amount for searching (include both numeric and formatted versions)
       const amount = typeof invoice.amount === 'number' ? invoice.amount : 0;
       const amountString = amount.toString();
       const formattedAmount = amount.toFixed(2);
-      
+
       // Create a combined search string from all relevant fields
       const combinedSearchString = [
         invoice.invoiceNumber || '',
@@ -76,23 +78,25 @@ export function DataTableInvoices<TValue>({
         amountString,
         formattedAmount,
         `$${formattedAmount}`.replace(/\./g, '') // Also search without decimal point
-      ].join(' ').toLowerCase();
-      
+      ]
+        .join(' ')
+        .toLowerCase();
+
       return combinedSearchString.includes(searchTerm);
     }
   });
 
   const statusOptions = [
-    { key: 'all', value: 'all', name: 'All Status' },
-    { key: 'paid', value: 'paid', name: 'Paid' },
-    { key: 'unpaid', value: 'unpaid', name: 'Unpaid' },
-    { key: 'draft', value: 'draft', name: 'Draft' },
-    { key: 'overdue', value: 'overdue', name: 'Overdue' },
-    { key: 'cancelled', value: 'cancelled', name: 'Cancelled' }
+    { key: 'all', value: 'all', name: t('filters.allStatuses') },
+    { key: 'paid', value: 'paid', name: t('status.paid') },
+    { key: 'unpaid', value: 'unpaid', name: t('status.unpaid') },
+    { key: 'draft', value: 'draft', name: t('status.draft') },
+    { key: 'overdue', value: 'overdue', name: t('status.overdue') },
+    { key: 'cancelled', value: 'cancelled', name: t('status.cancelled') }
   ];
 
   const clientOptions = [
-    { key: 'all', value: 'all', name: 'All Clients' },
+    { key: 'all', value: 'all', name: t('filters.allClients') },
     ...clients.map((client) => ({
       key: client.id,
       value: client.id,
@@ -101,7 +105,7 @@ export function DataTableInvoices<TValue>({
   ];
 
   const companyOptions = [
-    { key: 'all', value: 'all', name: 'All Companies' },
+    { key: 'all', value: 'all', name: t('filters.allCompanies') },
     ...companies.map((company) => ({
       key: company.id,
       value: company.id,
@@ -114,7 +118,7 @@ export function DataTableInvoices<TValue>({
       <div className="flex w-full flex-col items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4 md:flex-row">
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <Input
-            placeholder="Search"
+            placeholder={t('filters.search')}
             value={globalFilter ?? ''}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="bg-surface md:max-w-xs"
@@ -124,7 +128,7 @@ export function DataTableInvoices<TValue>({
           <SelectField
             name="status"
             options={statusOptions}
-            placeholder="Status"
+            placeholder={t('filters.status')}
             onValueChange={(value) => {
               form.setValue('status', value);
               const statusColumn = table.getColumn('status');
@@ -138,7 +142,7 @@ export function DataTableInvoices<TValue>({
           <SelectField
             name="client"
             options={clientOptions}
-            placeholder="Client"
+            placeholder={t('filters.client')}
             onValueChange={(value) => {
               form.setValue('client', value);
               const clientColumn = table.getColumn('clientName');
@@ -153,7 +157,7 @@ export function DataTableInvoices<TValue>({
             <SelectField
               name="company"
               options={companyOptions}
-              placeholder="Company"
+              placeholder={t('filters.company')}
               onValueChange={(value) => {
                 form.setValue('company', value);
                 onCompanyChange(value);
@@ -162,62 +166,58 @@ export function DataTableInvoices<TValue>({
           )}
         </div>
       </div>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="h-12 bg-surface font-semibold text-ink-muted"
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="border-line bg-surface hover:bg-surface">
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id} className="h-12 bg-surface font-semibold text-ink-muted">
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+                className={`border-b border-gray-100 transition-colors hover:bg-gray-50/50${onRowClick ? 'cursor-pointer' : ''}`}
+                onClick={() => onRowClick?.(row.original)}
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onRowClick(row.original);
+                        }
+                      }
+                    : undefined
+                }
+                tabIndex={onRowClick ? 0 : undefined}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className="py-4 text-sm"
+                    onClick={cell.column.id === 'actions' ? (e) => e.stopPropagation() : undefined}
                   >
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
                 ))}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className={`border-b border-gray-100 transition-colors hover:bg-gray-50/50${onRowClick ? ' cursor-pointer' : ''}`}
-                  onClick={() => onRowClick?.(row.original)}
-                  onKeyDown={
-                    onRowClick
-                      ? (e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            onRowClick(row.original);
-                          }
-                        }
-                      : undefined
-                  }
-                  tabIndex={onRowClick ? 0 : undefined}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell 
-                      key={cell.id}
-                      className="py-4 text-sm"
-                      onClick={cell.column.id === 'actions' ? (e) => e.stopPropagation() : undefined}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
+                {t('empty.noResults')}
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }
-

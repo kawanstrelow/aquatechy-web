@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addDays, format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { Calendar, List } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -46,6 +47,7 @@ function ScheduleListView({
   onChangeDay: (day: string) => void;
   onChangeMember: (memberId: string) => void;
 }) {
+  const t = useTranslations('routes');
   const { directions, distance, duration, isLoaded, loadError } = useMapServicesUtils();
   const { services } = useServicesContext();
 
@@ -57,7 +59,7 @@ function ScheduleListView({
             <div className="mb-4">
               <Select value={selectedDay || dateRange[7].date} onValueChange={onChangeDay}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a date" />
+                  <SelectValue placeholder={t('selectDate')} />
                 </SelectTrigger>
                 <SelectContent>
                   {dateRange.map((day) => (
@@ -96,6 +98,7 @@ function ScheduleListView({
 }
 
 export default function Page() {
+  const t = useTranslations('routes');
   const [view, setView] = useState<'list' | 'calendar'>('calendar');
   const [calendarTechId, setCalendarTechId] = useState('all');
 
@@ -173,14 +176,13 @@ export default function Page() {
       // Subtract 7 from index to start 7 days ago
       const dateAt12PMUTC = normalizeToUTC12(addDays(today, index - 7).toISOString());
       const isToday = index === 7; // Today is at index 7 (7 days ago + 7 = today)
-      const isPast = index < 7;
 
       const formattedDate = format(dateAt12PMUTC, 'EEEE, MMMM do');
 
       return {
         date: dateAt12PMUTC.toISOString(),
         formatted: formattedDate,
-        displayText: isToday ? `Today - ${formattedDate}` : isPast ? `${formattedDate}` : `${formattedDate}`
+        displayText: isToday ? t('todayDate', { date: formattedDate }) : formattedDate
       };
     });
   }
@@ -200,11 +202,11 @@ export default function Page() {
             <TabsList>
               <TabsTrigger value="list" className="gap-1.5">
                 <List className="h-4 w-4" />
-                List
+                {t('list')}
               </TabsTrigger>
               <TabsTrigger value="calendar" className="gap-1.5">
                 <Calendar className="h-4 w-4" />
-                Calendar
+                {t('calendar')}
               </TabsTrigger>
             </TabsList>
           </Tabs>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { RecurringInvoiceTemplate } from '@/hooks/react-query/invoices/useGetRecurringInvoiceTemplates';
@@ -17,11 +18,8 @@ interface RecurringInvoiceActionsProps {
   onDelete?: (template: RecurringInvoiceTemplate) => void;
 }
 
-export function RecurringInvoiceActions({
-  template,
-  onEdit,
-  onDelete
-}: RecurringInvoiceActionsProps) {
+export function RecurringInvoiceActions({ template, onEdit, onDelete }: RecurringInvoiceActionsProps) {
+  const t = useTranslations('invoices');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleActionSelect = (action: string) => {
@@ -46,26 +44,19 @@ export function RecurringInvoiceActions({
     <div onClick={handleDropdownClick}>
       <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={handleDropdownClick}>
+          <Button variant="ghost" size="icon" onClick={handleDropdownClick} aria-label={t('actions.openActions')}>
             <BsThreeDotsVertical className="text-stone-500" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {onEdit && (
             <DropdownMenuItem onSelect={() => handleActionSelect('edit')} className="cursor-pointer">
-              <div className="flex w-full items-center cursor-pointer">
-                Edit
-              </div>
+              <div className="flex w-full cursor-pointer items-center">{t('actions.edit')}</div>
             </DropdownMenuItem>
           )}
           {onDelete && (
-            <DropdownMenuItem 
-              onSelect={() => handleActionSelect('delete')} 
-              className="text-red-500 cursor-pointer"
-            >
-              <div className="flex w-full items-center cursor-pointer">
-                Delete
-              </div>
+            <DropdownMenuItem onSelect={() => handleActionSelect('delete')} className="cursor-pointer text-red-500">
+              <div className="flex w-full cursor-pointer items-center">{t('actions.delete')}</div>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
@@ -73,4 +64,3 @@ export function RecurringInvoiceActions({
     </div>
   );
 }
-

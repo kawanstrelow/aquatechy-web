@@ -13,12 +13,7 @@ interface ServiceTypesCardProps {
   generalFieldsChanged: () => boolean;
 }
 
-export function ServiceTypesCard({
-  company,
-  form,
-  onGeneralSubmit,
-  generalFieldsChanged
-}: ServiceTypesCardProps) {
+export function ServiceTypesCard({ company, form, onGeneralSubmit, generalFieldsChanged }: ServiceTypesCardProps) {
   return (
     <div className="w-full space-y-4">
       <GeneralPreferencesCard

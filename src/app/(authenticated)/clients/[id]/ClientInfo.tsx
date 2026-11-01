@@ -1,7 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from '@/components/ui/dialog';
 import { useState } from 'react';
 
 import { AddressInput } from '@/components/AddressInput';
@@ -25,8 +33,8 @@ const formSchema = z.object({
   state: defaultSchemas.state,
   zip: defaultSchemas.zipCode,
   email: defaultSchemas.email,
-  secondaryEmail: z.string().email().optional().or(z.literal('')),
-  invoiceEmail: z.string().email().optional().or(z.literal('')),
+  secondaryEmail: z.string().email({ message: 'validation.email.invalid' }).optional().or(z.literal('')),
+  invoiceEmail: z.string().email({ message: 'validation.email.invalid' }).optional().or(z.literal('')),
   phone: defaultSchemas.phone,
   notes: defaultSchemas.stringOptional,
   clientCompany: defaultSchemas.stringOptional,
@@ -40,6 +48,7 @@ type FormData = z.infer<typeof formSchema> & {
 };
 
 export default function ClientInfo({ client }: { client: Client }) {
+  const t = useTranslations('clients');
   const { mutate, isPending } = useUpdateClient<FormData>();
   const [showAddressChangeDialog, setShowAddressChangeDialog] = useState(false);
   const initialAddress = client.address || '';
@@ -97,15 +106,15 @@ export default function ClientInfo({ client }: { client: Client }) {
           className="flex flex-col items-start justify-start gap-2 self-stretch"
         >
           <div className="flex w-full flex-wrap gap-4 md:flex-nowrap [&>*]:flex-1">
-            <InputField name="firstName" label="First Name" placeholder="First Name" />
-            <InputField name="lastName" label="Last Name" placeholder="Last Name" />
+            <InputField name="firstName" label={t('fields.firstNameTitle')} placeholder={t('fields.firstNameTitle')} />
+            <InputField name="lastName" label={t('fields.lastNameTitle')} placeholder={t('fields.lastNameTitle')} />
           </div>
 
           <div className="inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
             <AddressInput
               name="address"
-              label="Billing address"
-              placeholder="Enter address"
+              label={t('fields.billingAddress')}
+              placeholder={t('fields.enterAddress')}
               onAddressSelect={({ state, city, zipCode, timezone }) => {
                 form.setValue('state', state, { shouldValidate: true });
                 form.setValue('city', city, { shouldValidate: true });
@@ -114,38 +123,34 @@ export default function ClientInfo({ client }: { client: Client }) {
               }}
             />
           </div>
-          <InputField
-            name="addressLine2"
-            label="Address Line 2"
-            placeholder="Apt, suite, unit"
-          />
+          <InputField name="addressLine2" label={t('fields.addressLine2')} placeholder={t('fields.aptSuite')} />
           <div className="flex w-full flex-wrap gap-4 md:flex-nowrap [&>*]:flex-1">
             <StateAndCitySelect cityName="city" stateName="state" />
-            <InputField name="zip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
+            <InputField name="zip" label={t('fields.zipCode')} placeholder={t('fields.zipCode')} type={FieldType.Zip} />
           </div>
           <div className="flex w-full flex-wrap gap-4 md:flex-nowrap [&>*]:flex-1">
-            <InputField name="clientCompany" label="Company" placeholder="Company" />
+            <InputField name="clientCompany" label={t('fields.company')} placeholder={t('fields.company')} />
             <SelectField
-              placeholder="Client Type"
+              placeholder={t('fields.clientTypePlaceholder')}
               name="type"
-              label="Type"
+              label={t('fields.type')}
               options={[
                 {
                   key: 'Residential',
-                  name: 'Residential',
+                  name: t('fields.residential'),
                   value: 'Residential'
                 },
                 {
                   key: 'Commercial',
-                  name: 'Commercial',
+                  name: t('fields.commercial'),
                   value: 'Commercial'
                 }
               ]}
             />
             <SelectField
-              placeholder="Select Time Zone"
+              placeholder={t('fields.selectTimeZone')}
               name="timezone"
-              label="Client Time zone"
+              label={t('fields.clientTimeZone')}
               options={Object.values(IanaTimeZones).map((tz) => ({
                 key: tz,
                 name: tz,
@@ -154,25 +159,29 @@ export default function ClientInfo({ client }: { client: Client }) {
             />
           </div>
           <Typography element="h4" className="mt-2">
-            Contact information
+            {t('fields.contactInformation')}
           </Typography>
           <div className="Form inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
-            <InputField type={FieldType.Phone} name="phone" placeholder="Phone" label="Phone" />
-            <InputField name="email" placeholder="E-mail" label="E-mail" />
-            <InputField name="secondaryEmail" placeholder="Secondary E-mail" label="Secondary E-mail" />
-            <InputField name="invoiceEmail" placeholder="Invoice e-mail" label="Invoice e-mail" />
+            <InputField type={FieldType.Phone} name="phone" placeholder={t('fields.phone')} label={t('fields.phone')} />
+            <InputField name="email" placeholder={t('fields.emailHyphen')} label={t('fields.emailHyphen')} />
+            <InputField
+              name="secondaryEmail"
+              placeholder={t('fields.secondaryEmail')}
+              label={t('fields.secondaryEmail')}
+            />
+            <InputField name="invoiceEmail" placeholder={t('fields.invoiceEmail')} label={t('fields.invoiceEmail')} />
           </div>
           <div className="mt-2 w-full">
             <InputField
-              placeholder="Type client notes here..."
-              label="Client Notes"
+              placeholder={t('fields.clientNotesPlaceholder')}
+              label={t('fields.clientNotes')}
               name="notes"
               type={FieldType.TextArea}
             />
           </div>
 
           <Button type="submit" className="mt-4 w-full">
-            Save
+            {t('shared.save')}
           </Button>
         </form>
       </Form>
@@ -180,18 +189,12 @@ export default function ClientInfo({ client }: { client: Client }) {
       <Dialog open={showAddressChangeDialog} onOpenChange={setShowAddressChangeDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Address</DialogTitle>
-            <DialogDescription className="pt-3">
-              You are about to change the client&apos;s address. You will also need to update the pool service address separately.
-            </DialogDescription>
+            <DialogTitle>{t('profile.updateAddress')}</DialogTitle>
+            <DialogDescription className="pt-3">{t('profile.updateAddressDescription')}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowAddressChangeDialog(false)}
-            >
-              Cancel
+            <Button type="button" variant="outline" onClick={() => setShowAddressChangeDialog(false)}>
+              {t('shared.cancel')}
             </Button>
             <Button
               type="button"
@@ -201,7 +204,7 @@ export default function ClientInfo({ client }: { client: Client }) {
                 setShowAddressChangeDialog(false);
               }}
             >
-              Update only client
+              {t('profile.updateOnlyClient')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { z } from 'zod';
-import Cookies from 'js-cookie';  
+import Cookies from 'js-cookie';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { editPoolSchema } from '@/schemas/pool';
+
+import { translateMessage } from '@/i18n/runtime';
 
 export const useUpdatePool = () => {
   const queryClient = useQueryClient();
@@ -21,7 +23,7 @@ export const useUpdatePool = () => {
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
       toast({
         duration: 5000,
-        title: 'Pool updated successfully',
+        title: translateMessage('toasts.poolUpdatedSuccessfully', 'Pool updated successfully'),
         variant: 'success'
       });
     },
@@ -33,8 +35,10 @@ export const useUpdatePool = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating pool',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorUpdatingPool', 'Error updating pool'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

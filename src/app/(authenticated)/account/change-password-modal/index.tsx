@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,17 +41,19 @@ type ChangePasswordOutput = {
 const ChangePasswordSchema = z
   .object({
     id: z.string().optional(),
-    currentPassword: z.string({ required_error: 'Password is required' }).min(1, { message: 'Password is required' }),
+    currentPassword: z
+      .string({ required_error: 'account.validation.currentPasswordRequired' })
+      .min(1, { message: 'account.validation.currentPasswordRequired' }),
     newPassword: z
-      .string({ required_error: 'New password is required' })
+      .string({ required_error: 'account.validation.newPasswordRequired' })
       .trim()
-      .min(8, { message: 'New password must be at least 8 characters' }),
+      .min(8, { message: 'account.validation.newPasswordMin' }),
     newPasswordConfirmation: z
-      .string({ required_error: 'New password confirmation is required' })
-      .min(1, { message: 'New password confirmation is required' })
+      .string({ required_error: 'account.validation.confirmPasswordRequired' })
+      .min(1, { message: 'account.validation.confirmPasswordRequired' })
   })
   .refine((data) => data.newPassword === data.newPasswordConfirmation, {
-    message: 'New password and new password confirmation do not match',
+    message: 'account.validation.passwordMismatch',
     path: ['newPasswordConfirmation']
   })
   .transform((data) => ({
@@ -65,12 +68,14 @@ async function changePasswordFn(data: ChangePasswordOutput) {
 
 const useChangePasswordService = () => {
   const { toast } = useToast();
+  const t = useTranslations('account');
+  const common = useTranslations('common');
   return useMutation({
     mutationFn: changePasswordFn,
     onSuccess: () => {
       toast({
         variant: 'success',
-        title: 'Password updated successfully'
+        title: t('passwordUpdated')
       });
     },
     onError: (
@@ -80,8 +85,8 @@ const useChangePasswordService = () => {
     ) => {
       toast({
         variant: 'error',
-        title: 'Error updating password',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: t('errorUpdatingPassword'),
+        description: error.response?.data?.message ? error.response.data.message : common('internalServerError')
       });
     }
   });
@@ -94,6 +99,8 @@ const defaultValues: ChangePasswordInput = {
 };
 
 export default function ChangePasswordDialog() {
+  const t = useTranslations('account');
+  const common = useTranslations('common');
   const user = useUserStore((state) => state.user);
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -140,13 +147,13 @@ export default function ChangePasswordDialog() {
       <AlertDialog open={open} defaultOpen={open} onOpenChange={handleOpenChange}>
         <AlertDialogTrigger asChild>
           <Button variant="default" className="h-10">
-            Change password
+            {t('changePassword')}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Change password</AlertDialogTitle>
-            <AlertDialogDescription>Change your account password</AlertDialogDescription>
+            <AlertDialogTitle>{t('changePassword')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('changePasswordDescription')}</AlertDialogDescription>
 
             <div className="fixed right-4 top-2">
               <AlertDialogTrigger asChild>
@@ -161,9 +168,9 @@ export default function ChangePasswordDialog() {
                 name="currentPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current password</FormLabel>
+                    <FormLabel>{t('currentPassword')}</FormLabel>
                     <FormControl>
-                      <InputField placeholder="Your current password" type={FieldType.Password} {...field} />
+                      <InputField placeholder={t('currentPasswordPlaceholder')} type={FieldType.Password} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -174,9 +181,9 @@ export default function ChangePasswordDialog() {
                 name="newPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New password</FormLabel>
+                    <FormLabel>{t('newPassword')}</FormLabel>
                     <FormControl>
-                      <InputField type={FieldType.Password} placeholder="New password" {...field} />
+                      <InputField type={FieldType.Password} placeholder={t('newPasswordPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -187,9 +194,13 @@ export default function ChangePasswordDialog() {
                 name="newPasswordConfirmation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm new password</FormLabel>
+                    <FormLabel>{t('confirmNewPassword')}</FormLabel>
                     <FormControl>
-                      <InputField type={FieldType.Password} placeholder="Confirm new password" {...field} />
+                      <InputField
+                        type={FieldType.Password}
+                        placeholder={t('confirmNewPasswordPlaceholder')}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -197,14 +208,22 @@ export default function ChangePasswordDialog() {
               />
               <AlertDialogFooter className="pt-4">
                 <Button type="submit" variant="default" size="default">
-                  Change
+                  {t('change')}
                 </Button>
               </AlertDialogFooter>
             </form>
           </Form>
         </AlertDialogContent>
       </AlertDialog>
-      <ConfirmActionDialog open={confirmOpen} onConfirm={handleConfirmAction} onOpenChange={handleConfirmOpenChange} />
+      <ConfirmActionDialog
+        open={confirmOpen}
+        onConfirm={handleConfirmAction}
+        onOpenChange={handleConfirmOpenChange}
+        title={t('confirmPasswordTitle')}
+        description={t('confirmPasswordDescription')}
+        confirmText={common('confirm')}
+        cancelText={common('cancel')}
+      />
     </>
   );
 }

@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { CreateServiceTypeRequest, ServiceTypeResponse } from '../../../ts/interfaces/ServiceTypes';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -21,14 +23,14 @@ export const useCreateServiceType = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['service-types', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Service type created successfully',
+        title: translateMessage('toasts.serviceTypeCreatedSuccessfully', 'Service type created successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error creating service type',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorCreatingServiceType', 'Error creating service type'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

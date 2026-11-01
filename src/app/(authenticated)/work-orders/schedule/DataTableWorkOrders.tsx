@@ -6,6 +6,7 @@ import {
   getFilteredRowModel,
   useReactTable
 } from '@tanstack/react-table';
+import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,6 +19,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTableWorkOrders<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+  const t = useTranslations('workOrders');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
@@ -34,7 +36,7 @@ export function DataTableWorkOrders<TData, TValue>({ columns, data }: DataTableP
     },
     initialState: {
       columnVisibility: {
-        deactivatedAt: false,
+        deactivatedAt: false
         // completedAt: false
       }
     }
@@ -72,7 +74,7 @@ export function DataTableWorkOrders<TData, TValue>({ columns, data }: DataTableP
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                {t('noResults')}
               </TableCell>
             </TableRow>
           )}
@@ -81,7 +83,11 @@ export function DataTableWorkOrders<TData, TValue>({ columns, data }: DataTableP
 
       {/* Modal for work orders */}
       {selectedService && (
-        <ModalViewWorkOrder service={selectedService} open={!!selectedService} setOpen={() => setSelectedService(null)} />
+        <ModalViewWorkOrder
+          service={selectedService}
+          open={!!selectedService}
+          setOpen={() => setSelectedService(null)}
+        />
       )}
     </>
   );

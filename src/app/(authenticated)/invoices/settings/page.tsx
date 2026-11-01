@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 
@@ -20,13 +21,18 @@ function buildPreferencesHref(companyId: string, invoiceTab: string | null): str
     tab: 'preferences',
     prefsTab: 'invoice-settings'
   });
-  if (invoiceTab && VALID_INVOICE_TABS.includes(invoiceTab as (typeof VALID_INVOICE_TABS)[number]) && invoiceTab !== 'company') {
+  if (
+    invoiceTab &&
+    VALID_INVOICE_TABS.includes(invoiceTab as (typeof VALID_INVOICE_TABS)[number]) &&
+    invoiceTab !== 'company'
+  ) {
     params.set('invoiceTab', invoiceTab);
   }
   return `/settings/companies/team/${companyId}?${params.toString()}`;
 }
 
 function InvoiceSettingsRedirectContent() {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: companies, isLoading } = useGetCompanies();
@@ -51,11 +57,9 @@ function InvoiceSettingsRedirectContent() {
   if (manageableCompanies.length === 0) {
     return (
       <div className="flex flex-col items-start gap-2 p-4">
-        <p className="text-sm text-gray-600">
-          You need to be an Owner or Admin of a company to manage invoice settings.
-        </p>
+        <p className="text-sm text-gray-600">{t('settings.noAccess')}</p>
         <Link href="/settings/companies" className="text-sm font-medium text-blue-600 hover:underline">
-          Go to Companies
+          {t('settings.goToCompanies')}
         </Link>
       </div>
     );
@@ -63,8 +67,8 @@ function InvoiceSettingsRedirectContent() {
 
   return (
     <div className="p-2">
-      <h1 className="mb-1 text-2xl font-bold">Invoice Settings</h1>
-      <p className="mb-3 text-sm text-gray-600">Select a company to manage its invoice settings.</p>
+      <h1 className="mb-1 text-2xl font-bold">{t('settings.title')}</h1>
+      <p className="mb-3 text-sm text-gray-600">{t('settings.selectCompany')}</p>
       <div className="flex w-full flex-col gap-2 md:flex-row md:flex-wrap md:justify-start">
         {manageableCompanies.map((company: CompanyWithMyRole) => (
           <CompanyCard

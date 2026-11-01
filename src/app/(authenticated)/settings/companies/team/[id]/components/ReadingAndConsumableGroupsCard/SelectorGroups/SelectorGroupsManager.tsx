@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,12 +20,13 @@ import { CreateSelectorGroupDialog } from './CreateSelectorGroupDialog';
 import { ComprehensiveSelectorGroupManager } from './ComprehensiveSelectorGroupManager';
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
 
-
 interface SelectorGroupsManagerProps {
   companyId: string;
 }
 
 export function SelectorGroupsManager({ companyId }: SelectorGroupsManagerProps) {
+  const t = useTranslations('settings');
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [managingDefinitionsForGroup, setManagingDefinitionsForGroup] = useState<SelectorGroup | null>(null);
   const [deletingGroup, setDeletingGroup] = useState<SelectorGroup | null>(null);
@@ -35,23 +38,29 @@ export function SelectorGroupsManager({ companyId }: SelectorGroupsManagerProps)
   const selectorGroups = selectorGroupsData?.selectorGroups || [];
 
   const handleCreateSelectorGroup = (data: CreateSelectorGroupRequest) => {
-    createSelectorGroup({ companyId, data }, {
-      onSuccess: () => {
-        setShowCreateDialog(false);
+    createSelectorGroup(
+      { companyId, data },
+      {
+        onSuccess: () => {
+          setShowCreateDialog(false);
+        }
       }
-    });
+    );
   };
 
   const handleDeleteGroup = async () => {
     if (deletingGroup) {
-      deleteSelectorGroup({
-        selectorGroupId: deletingGroup.id,
-        companyId
-      }, {
-        onSuccess: () => {
-          setDeletingGroup(null);
+      deleteSelectorGroup(
+        {
+          selectorGroupId: deletingGroup.id,
+          companyId
+        },
+        {
+          onSuccess: () => {
+            setDeletingGroup(null);
+          }
         }
-      });
+      );
     }
   };
 
@@ -61,29 +70,28 @@ export function SelectorGroupsManager({ companyId }: SelectorGroupsManagerProps)
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Selector Groups</h3>
-          <p className="text-sm text-muted-foreground">
-            Manage selector groups that can be used for service questions
-          </p>
+          <h3 className="text-lg font-semibold">{t('selectors.groupsTitle')}</h3>
+          <p className="text-muted-foreground text-sm">{t('selectors.manageHint')}</p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} disabled={isCreating}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Selector Group
+          <Plus className="mr-2 h-4 w-4" />
+          {t('selectors.addGroup')}
         </Button>
       </div>
 
       {selectorGroups.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="text-muted-foreground mb-2">No selector groups</div>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Create selector groups to define questions with multiple choice answers for your services (e.g., "Basic Questions", "Equipment Status", etc.).
+            <div className="text-muted-foreground mb-2">{t('selectors.noGroups')}</div>
+            <p className="text-muted-foreground mb-4 text-center text-sm">
+              Create selector groups to define questions with multiple choice answers for your services (e.g., "Basic
+              Questions", "Equipment Status", etc.).
             </p>
             <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Selector Group
+              <Plus className="mr-2 h-4 w-4" />
+              {t('selectors.createFirst')}
             </Button>
           </CardContent>
         </Card>
@@ -92,11 +100,11 @@ export function SelectorGroupsManager({ companyId }: SelectorGroupsManagerProps)
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="hidden md:table-cell">Questions</TableHead>
-                <TableHead className="hidden md:table-cell">Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('fields.name')}</TableHead>
+                <TableHead>{t('fields.description')}</TableHead>
+                <TableHead className="hidden md:table-cell">{t('fields.questions')}</TableHead>
+                <TableHead className="hidden md:table-cell">{t('companies.status')}</TableHead>
+                <TableHead className="text-right">{t('fields.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -106,18 +114,18 @@ export function SelectorGroupsManager({ companyId }: SelectorGroupsManagerProps)
                     <div className="font-medium">{selectorGroup.name}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-muted-foreground">
-                      {selectorGroup.description || 'No description'}
+                    <div className="text-muted-foreground text-sm">
+                      {selectorGroup.description || t('fields.noDescription')}
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-muted-foreground text-sm">
                       {selectorGroup.selectorDefinitions?.length || 0} questions
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <Badge variant={selectorGroup.isActive ? "default" : "outline"} className="text-xs">
-                      {selectorGroup.isActive ? "Active" : "Inactive"}
+                    <Badge variant={selectorGroup.isActive ? 'default' : 'outline'} className="text-xs">
+                      {selectorGroup.isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -127,7 +135,7 @@ export function SelectorGroupsManager({ companyId }: SelectorGroupsManagerProps)
                         size="sm"
                         onClick={() => setManagingDefinitionsForGroup(selectorGroup)}
                         className="h-8 w-8 p-0"
-                        title="Manage Selector Group"
+                        title={t('selectors.manageGroup')}
                       >
                         <Settings className="h-3 w-3" />
                       </Button>
@@ -135,8 +143,8 @@ export function SelectorGroupsManager({ companyId }: SelectorGroupsManagerProps)
                         variant="ghost"
                         size="sm"
                         onClick={() => setDeletingGroup(selectorGroup)}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        title="Delete Selector Group"
+                        className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        title={t('selectors.deleteGroup')}
                         disabled={selectorGroup.isDefault}
                       >
                         <Trash2 className="h-3 w-3" />
@@ -170,8 +178,8 @@ export function SelectorGroupsManager({ companyId }: SelectorGroupsManagerProps)
       <ConfirmActionDialog
         open={!!deletingGroup}
         onOpenChange={() => setDeletingGroup(null)}
-        title="Delete Selector Group"
-        description={`Are you sure you want to delete "${deletingGroup?.name}"? This will also delete all selector definitions within this group. This action cannot be undone.`}
+        title={t('selectors.deleteGroup')}
+        description={t('confirm.deleteWithChildren', { name: deletingGroup?.name ?? '' })}
         onConfirm={handleDeleteGroup}
       />
     </div>

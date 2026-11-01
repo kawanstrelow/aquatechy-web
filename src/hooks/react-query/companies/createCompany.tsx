@@ -7,6 +7,8 @@ import { CreateCompany } from '@/ts/interfaces/Company';
 import { useUserStore } from '@/store/user';
 import { useRouter } from 'next/navigation';
 
+import { translateMessage } from '@/i18n/runtime';
+
 function buildCreateCompanyFormData(data: CreateCompany): FormData {
   const formData = new FormData();
 
@@ -52,8 +54,10 @@ export const useCreateCompany = (options?: { skipRedirect?: boolean }) => {
     ) => {
       toast({
         variant: 'error',
-        title: 'Error creating company',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorCreatingCompany', 'Error creating company'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     },
 
@@ -63,7 +67,7 @@ export const useCreateCompany = (options?: { skipRedirect?: boolean }) => {
       toast({
         variant: 'success',
         duration: 5000,
-        title: 'Company created successfully'
+        title: translateMessage('toasts.companyCreatedSuccessfully', 'Company created successfully')
       });
       if (!options?.skipRedirect) {
         router.push('/settings/companies');

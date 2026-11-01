@@ -9,6 +9,8 @@ import {
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useCreateRecurringInvoiceTemplate = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -33,7 +35,10 @@ export const useCreateRecurringInvoiceTemplate = () => {
 
       toast({
         duration: 2000,
-        title: 'Recurring invoice template created successfully',
+        title: translateMessage(
+          'toasts.recurringInvoiceTemplateCreatedSuccessfully',
+          'Recurring invoice template created successfully'
+        ),
         variant: 'success'
       });
     },
@@ -45,12 +50,19 @@ export const useCreateRecurringInvoiceTemplate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to create recurring invoice template';
+        : errorMessage ||
+          translateMessage(
+            'toasts.failedToCreateRecurringInvoiceTemplate',
+            'Failed to create recurring invoice template'
+          );
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating recurring invoice template',
+        title: translateMessage(
+          'toasts.errorCreatingRecurringInvoiceTemplate',
+          'Error creating recurring invoice template'
+        ),
         description: message
       });
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -11,6 +12,7 @@ import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import { getManagementCompanies } from '@/utils/aiChatAccess';
 
 export default function PreferencesPage() {
+  const t = useTranslations('settings');
   const router = useRouter();
   const { data: companies, isLoading } = useGetCompanies();
 
@@ -31,11 +33,9 @@ export default function PreferencesPage() {
   if (manageableCompanies.length === 0) {
     return (
       <div className="flex flex-col items-start gap-2 p-4">
-        <p className="text-sm text-gray-600">
-          You need to be an Owner, Admin, or Office member of a company to manage preferences.
-        </p>
+        <p className="text-sm text-gray-600">{t('preferences.managementRequired')}</p>
         <Link href="/settings/companies" className="text-sm font-medium text-blue-600 hover:underline">
-          Go to Companies
+          {t('preferences.goToCompanies')}
         </Link>
       </div>
     );
@@ -43,7 +43,7 @@ export default function PreferencesPage() {
 
   return (
     <div className="p-2">
-      <p className="mb-3 text-sm text-gray-600">Select a company to manage its preferences.</p>
+      <p className="mb-3 text-sm text-gray-600">{t('preferences.selectCompany')}</p>
       <div className="flex w-full flex-col gap-2 md:flex-row md:flex-wrap md:justify-start">
         {manageableCompanies.map((company: CompanyWithMyRole) => (
           <CompanyCard

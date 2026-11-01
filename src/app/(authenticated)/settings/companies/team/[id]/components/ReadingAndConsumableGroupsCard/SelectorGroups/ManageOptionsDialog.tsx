@@ -1,8 +1,17 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2, GripVertical } from 'lucide-react';
@@ -14,25 +23,23 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
+  DragEndEvent
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useGetSelectorOptions } from '@/hooks/react-query/selector-options/useGetSelectorOptions';
 
-import { 
-  SelectorDefinition, 
-  SelectorOption, 
+import {
+  SelectorDefinition,
+  SelectorOption,
   BatchSelectorOptionUpdate,
   BatchSelectorOptionCreate
 } from '@/ts/interfaces/SelectorGroups';
@@ -53,26 +60,21 @@ interface DraggableSelectorOptionRowProps {
   };
 }
 
-function DraggableSelectorOptionRow({ 
-  option, 
-  onEdit, 
-  onDelete, 
+function DraggableSelectorOptionRow({
+  option,
+  onEdit,
+  onDelete,
   isUpdating,
   pendingChanges
 }: DraggableSelectorOptionRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: option.id });
+  const t = useTranslations('settings');
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: option.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : 1
   };
 
   // Determine row styling based on pending changes
@@ -88,24 +90,24 @@ function DraggableSelectorOptionRow({
   return (
     <TableRow ref={setNodeRef} style={style} className={`${isDragging ? 'z-50' : ''} ${rowClassName}`}>
       <TableCell {...attributes} {...listeners}>
-        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+        <GripVertical className="text-muted-foreground h-4 w-4 cursor-grab active:cursor-grabbing" />
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           <div className="font-medium">{option.text}</div>
           {option.id.startsWith('temp-') && (
-            <Badge variant="default" className="bg-green-600 text-white text-xs">
+            <Badge variant="default" className="bg-green-600 text-xs text-white">
               New
             </Badge>
           )}
           {pendingChanges.updates.has(option.id) && !option.id.startsWith('temp-') && (
-            <Badge variant="default" className="bg-blue-600 text-white text-xs">
+            <Badge variant="default" className="bg-blue-600 text-xs text-white">
               Modified
             </Badge>
           )}
           {pendingChanges.deletes.has(option.id) && (
             <Badge variant="destructive" className="text-xs">
-              Deleted
+              {t('fields.deleted')}
             </Badge>
           )}
         </div>
@@ -118,7 +120,7 @@ function DraggableSelectorOptionRow({
             onClick={() => onEdit(option)}
             disabled={isUpdating}
             className="h-8 w-8 p-0"
-            title="Edit Option"
+            title={t('selectors.editOptionAction')}
           >
             <Edit className="h-3 w-3" />
           </Button>
@@ -127,8 +129,8 @@ function DraggableSelectorOptionRow({
             size="sm"
             onClick={() => onDelete(option)}
             disabled={isUpdating}
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-            title="Delete Option"
+            className="text-destructive hover:text-destructive h-8 w-8 p-0"
+            title={t('selectors.deleteOptionAction')}
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -151,13 +153,15 @@ interface ManageOptionsDialogProps {
   isLoading: boolean;
 }
 
-export function ManageOptionsDialog({ 
-  open, 
-  onOpenChange, 
-  selectorDefinition, 
+export function ManageOptionsDialog({
+  open,
+  onOpenChange,
+  selectorDefinition,
   onOptionsChange,
   isLoading: parentLoading
 }: ManageOptionsDialogProps) {
+  const t = useTranslations('settings');
+
   const [editingOption, setEditingOption] = useState<SelectorOption | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [localOptions, setLocalOptions] = useState<SelectorOption[]>([]);
@@ -173,12 +177,12 @@ export function ManageOptionsDialog({
 
   const { data: optionsData, isLoading } = useGetSelectorOptions(selectorDefinition?.id || '');
 
-  const options = localOptions.length > 0 ? localOptions : (optionsData?.selectorOptions || []);
+  const options = localOptions.length > 0 ? localOptions : optionsData?.selectorOptions || [];
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates
     })
   );
 
@@ -206,10 +210,8 @@ export function ManageOptionsDialog({
     if (!selectorDefinition) return;
 
     // Check if an option with the same text already exists in creates
-    const existingCreate = pendingChanges.creates.find(create => 
-      create.text === data.text
-    );
-    
+    const existingCreate = pendingChanges.creates.find((create) => create.text === data.text);
+
     if (existingCreate) {
       return; // Prevent duplicate creation
     }
@@ -222,7 +224,7 @@ export function ManageOptionsDialog({
     };
 
     // Add to pending creates
-    setPendingChanges(prev => ({
+    setPendingChanges((prev) => ({
       ...prev,
       creates: [...prev.creates, newOption]
     }));
@@ -237,7 +239,7 @@ export function ManageOptionsDialog({
       createdAt: new Date().toISOString()
     };
 
-    setLocalOptions(prev => [...prev, tempOption]);
+    setLocalOptions((prev) => [...prev, tempOption]);
     setShowCreateDialog(false);
   };
 
@@ -246,17 +248,13 @@ export function ManageOptionsDialog({
       // Don't update temporary options in pending changes
       if (editingOption.id.startsWith('temp-')) {
         // Update the create in pending changes
-        setPendingChanges(prev => ({
+        setPendingChanges((prev) => ({
           ...prev,
-          creates: prev.creates.map(create => 
-            create.text === editingOption.text
-              ? { ...create, ...data }
-              : create
-          )
+          creates: prev.creates.map((create) => (create.text === editingOption.text ? { ...create, ...data } : create))
         }));
       } else {
         // Update existing option in pending changes
-        setPendingChanges(prev => {
+        setPendingChanges((prev) => {
           const updates = new Map(prev.updates);
           const existingUpdate = updates.get(editingOption.id) || {};
           updates.set(editingOption.id, { ...existingUpdate, ...data });
@@ -265,13 +263,7 @@ export function ManageOptionsDialog({
       }
 
       // Update local state
-      setLocalOptions(prev =>
-        prev.map(opt =>
-          opt.id === editingOption.id
-            ? { ...opt, ...data }
-            : opt
-        )
-      );
+      setLocalOptions((prev) => prev.map((opt) => (opt.id === editingOption.id ? { ...opt, ...data } : opt)));
 
       setEditingOption(null);
     }
@@ -281,32 +273,28 @@ export function ManageOptionsDialog({
     // Don't delete temporary (new) options - just remove them from creates and local state
     if (option.id.startsWith('temp-')) {
       // Remove from pending creates
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
-        creates: prev.creates.filter(create =>
-          create.text !== option.text
-        )
+        creates: prev.creates.filter((create) => create.text !== option.text)
       }));
     } else {
       // Add real options to pending deletes
-      setPendingChanges(prev => ({
+      setPendingChanges((prev) => ({
         ...prev,
         deletes: new Set(prev.deletes).add(option.id)
       }));
     }
 
     // Remove from local state immediately for UI feedback
-    setLocalOptions(prev =>
-      prev.filter(opt => opt.id !== option.id)
-    );
+    setLocalOptions((prev) => prev.filter((opt) => opt.id !== option.id));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = options.findIndex(opt => opt.id === active.id);
-      const newIndex = options.findIndex(opt => opt.id === over?.id);
+      const oldIndex = options.findIndex((opt) => opt.id === active.id);
+      const newIndex = options.findIndex((opt) => opt.id === over?.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newOptions = arrayMove(options, oldIndex, newIndex);
@@ -321,17 +309,13 @@ export function ManageOptionsDialog({
         updatedOptions.forEach((opt, index) => {
           if (opt.id.startsWith('temp-')) {
             // Update order in creates array
-            setPendingChanges(prev => ({
+            setPendingChanges((prev) => ({
               ...prev,
-              creates: prev.creates.map(create => 
-                create.text === opt.text
-                  ? { ...create, order: index }
-                  : create
-              )
+              creates: prev.creates.map((create) => (create.text === opt.text ? { ...create, order: index } : create))
             }));
           } else {
             // Add to updates map
-            setPendingChanges(prev => {
+            setPendingChanges((prev) => {
               const updates = new Map(prev.updates);
               const existingUpdate = updates.get(opt.id) || {};
               updates.set(opt.id, { ...existingUpdate, order: index });
@@ -345,20 +329,13 @@ export function ManageOptionsDialog({
 
   const handleApplyChanges = () => {
     if (selectorDefinition) {
-      onOptionsChange(
-        selectorDefinition.id,
-        pendingChanges.updates,
-        pendingChanges.deletes,
-        pendingChanges.creates
-      );
+      onOptionsChange(selectorDefinition.id, pendingChanges.updates, pendingChanges.deletes, pendingChanges.creates);
       onOpenChange(false);
     }
   };
 
   const hasPendingChanges = () => {
-    return pendingChanges.updates.size > 0 || 
-           pendingChanges.deletes.size > 0 || 
-           pendingChanges.creates.length > 0;
+    return pendingChanges.updates.size > 0 || pendingChanges.deletes.size > 0 || pendingChanges.creates.length > 0;
   };
 
   if (!selectorDefinition) {
@@ -367,37 +344,34 @@ export function ManageOptionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Manage Options</DialogTitle>
-          <DialogDescription>
-            Manage multiple choice options for: "{selectorDefinition?.question}"
-          </DialogDescription>
+          <DialogTitle>{t('selectors.manageOptions')}</DialogTitle>
+          <DialogDescription>Manage multiple choice options for: "{selectorDefinition?.question}"</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Multiple Choice Options</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-lg font-semibold">{t('selectors.multipleChoice')}</h3>
+              <p className="text-muted-foreground text-sm">
                 {options.length} options available. Drag and drop to reorder.
               </p>
             </div>
             <Button onClick={() => setShowCreateDialog(true)} disabled={parentLoading} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Option
+              <Plus className="mr-2 h-4 w-4" />
+              {t('selectors.addOption')}
             </Button>
           </div>
 
           {/* Pending Changes Summary */}
           {hasPendingChanges() && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-amber-800">
-                  Pending Changes:
-                </span>
+                <span className="text-sm font-medium text-amber-800">{t('fields.pendingChanges')}</span>
                 <span className="text-sm text-amber-700">
-                  {pendingChanges.creates.length} new, {pendingChanges.updates.size} modified, {pendingChanges.deletes.size} deleted
+                  {pendingChanges.creates.length} new, {pendingChanges.updates.size} modified,{' '}
+                  {pendingChanges.deletes.size} deleted
                 </span>
               </div>
             </div>
@@ -406,29 +380,22 @@ export function ManageOptionsDialog({
           {isLoading ? (
             <LoadingSpinner />
           ) : options.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <div className="text-sm mb-2">No options available</div>
-              <p className="text-xs">Add multiple choice options for this question</p>
+            <div className="text-muted-foreground py-8 text-center">
+              <div className="mb-2 text-sm">{t('selectors.noOptions')}</div>
+              <p className="text-xs">{t('selectors.addOptionsHint')}</p>
             </div>
           ) : (
-            <div className="border rounded-lg">
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
+            <div className="rounded-lg border">
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-8"></TableHead>
-                      <TableHead>Option Text</TableHead>
-                      <TableHead className="w-20">Actions</TableHead>
+                      <TableHead>{t('selectors.optionText')}</TableHead>
+                      <TableHead className="w-20">{t('fields.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <SortableContext
-                    items={options.map(option => option.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
+                  <SortableContext items={options.map((option) => option.id)} strategy={verticalListSortingStrategy}>
                     <TableBody>
                       {options.map((option) => (
                         <DraggableSelectorOptionRow
@@ -450,7 +417,7 @@ export function ManageOptionsDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={parentLoading}>
-            Cancel
+            {t('actions.cancel')}
           </Button>
           {hasPendingChanges() && (
             <Button onClick={handleApplyChanges} disabled={parentLoading}>

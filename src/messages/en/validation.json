@@ -1,0 +1,83 @@
+{
+  "address": {
+    "required": "Address is required.",
+    "invalidType": "Address must be a string.",
+    "min": "Address must be at least 1 character."
+  },
+  "city": {
+    "required": "City is required.",
+    "invalidType": "City must be a string.",
+    "min": "City must be at least 1 character."
+  },
+  "name": {
+    "required": "Name is required.",
+    "invalidType": "Name must be a string.",
+    "min": "Name must be at least 2 characters."
+  },
+  "firstName": {
+    "required": "First name is required.",
+    "invalidType": "First name must be a string.",
+    "min": "First name must be at least 2 characters."
+  },
+  "lastName": {
+    "required": "Last name is required.",
+    "invalidType": "Last name must be a string.",
+    "min": "Last name must be at least 2 characters."
+  },
+  "company": {
+    "required": "Company is required.",
+    "invalidType": "Company must be a string.",
+    "min": "Company must be at least 2 characters."
+  },
+  "state": {
+    "required": "State is required.",
+    "invalidType": "State must be a string.",
+    "min": "State must be at least 2 characters."
+  },
+  "email": {
+    "required": "E-mail is required.",
+    "invalid": "Invalid e-mail."
+  },
+  "password": {
+    "min": "Password must be at least 8 characters long"
+  },
+  "phone": {
+    "incomplete": "Phone number is incomplete"
+  },
+  "zipCode": {
+    "min": "Zip code must be at least 5 characters long",
+    "invalid": "Invalid zip code"
+  },
+  "language": {
+    "required": "Language is required.",
+    "invalidType": "Language must be English, Portuguese, or Spanish."
+  },
+  "paymentUnit": {
+    "min": "Payment unit must be 1 or higher."
+  },
+  "volume": {
+    "min": "Volume must be greater than 0."
+  },
+  "clientType": {
+    "required": "Client type is required.",
+    "invalidType": "Client type must be Residential or Company."
+  },
+  "weekday": {
+    "required": "Weekday is required.",
+    "invalidType": "Weekday must be a string."
+  },
+  "csvFile": {
+    "invalid": "Invalid file or file must be less than 7MB and in .csv format."
+  },
+  "imageFile": {
+    "invalid": "Invalid image file or file must be less than 7MB and in .jpeg or .png format."
+  },
+  "poolType": {
+    "required": "Pool type is required.",
+    "invalidType": "Pool type must be Salt, Chlorine, or Other."
+  },
+  "timezone": {
+    "required": "Timezone is required.",
+    "invalid": "Invalid timezone."
+  }
+}

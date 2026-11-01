@@ -1,11 +1,14 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useUserStore } from '@/store/user';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import useGetRecurringInvoiceTemplates, { RecurringInvoiceTemplate } from '@/hooks/react-query/invoices/useGetRecurringInvoiceTemplates';
+import useGetRecurringInvoiceTemplates, {
+  RecurringInvoiceTemplate
+} from '@/hooks/react-query/invoices/useGetRecurringInvoiceTemplates';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import { useDeleteRecurringInvoiceTemplate } from '@/hooks/react-query/invoices/useDeleteRecurringInvoiceTemplate';
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
@@ -14,6 +17,7 @@ import { DataTableRecurringInvoices } from './DataTableRecurringInvoices/index';
 import { createColumns } from './DataTableRecurringInvoices/columns';
 
 export default function RecurringInvoicesPage() {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: templatesData, isLoading: isLoadingTemplates } = useGetRecurringInvoiceTemplates();
@@ -36,12 +40,16 @@ export default function RecurringInvoicesPage() {
     templates.forEach((template: RecurringInvoiceTemplate) => {
       if (template.clientId && !clientMap.has(template.clientId)) {
         const client = clients.find((c) => c.id === template.clientId);
-        const clientName = client?.fullName || `${client?.firstName || ''} ${client?.lastName || ''}`.trim() || `${template.client.firstName} ${template.client.lastName}`.trim() || 'Unknown';
+        const clientName =
+          client?.fullName ||
+          `${client?.firstName || ''} ${client?.lastName || ''}`.trim() ||
+          `${template.client.firstName} ${template.client.lastName}`.trim() ||
+          t('empty.unknown');
         clientMap.set(template.clientId, { id: template.clientId, name: clientName });
       }
     });
     return Array.from(clientMap.values());
-  }, [templates, clients]);
+  }, [templates, clients, t]);
 
   // Action handlers
   const handleEdit = (template: RecurringInvoiceTemplate) => {
@@ -75,25 +83,27 @@ export default function RecurringInvoicesPage() {
     <div className="flex flex-col gap-6 p-2">
       <RecurringInvoiceSummaryCards templates={templates} />
 
-      <DataTableRecurringInvoices 
-        columns={columns} 
-        data={templates} 
+      <DataTableRecurringInvoices
+        columns={columns}
+        data={templates}
         clients={templateClients}
         onCreateTemplate={handleCreateTemplate}
       />
-      
+
       {/* Delete Confirmation Dialog */}
       <ConfirmActionDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Delete Recurring Invoice Template"
+        title={t('list.deleteTemplateTitle')}
         description={
           templateToDelete
-            ? `Are you sure you want to delete the recurring invoice template "${templateToDelete.referenceNumber || 'Untitled'}"? This action cannot be undone and will stop all future recurring invoices from being generated.`
-            : 'Are you sure you want to delete this recurring invoice template? This action cannot be undone.'
+            ? t('list.deleteTemplateDescription', {
+                name: templateToDelete.referenceNumber || t('empty.untitled')
+              })
+            : t('list.deleteTemplateFallback')
         }
-        confirmText={isDeleting ? 'Deleting...' : 'Delete'}
-        cancelText="Cancel"
+        confirmText={isDeleting ? t('actions.deleting') : t('actions.delete')}
+        cancelText={t('actions.cancel')}
         onConfirm={handleConfirmDelete}
         variant="destructive"
       />

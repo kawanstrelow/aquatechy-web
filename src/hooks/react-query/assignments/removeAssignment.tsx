@@ -8,6 +8,8 @@ import { z } from 'zod';
 import { QueryKeys } from '@/constants/query-keys';
 import Cookies from 'js-cookie';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export type RemoveAssignmentInput = {
   assignmentId: string;
 };
@@ -30,8 +32,11 @@ export const useRemoveAssignmentService = () => {
       toast({
         variant: 'success',
         duration: 2000,
-        title: 'Assignment removed successfully',
-        description: 'The assignment has been removed successfully'
+        title: translateMessage('toasts.assignmentRemovedSuccessfully', 'Assignment removed successfully'),
+        description: translateMessage(
+          'toasts.theAssignmentHasBeenRemovedSuccessfully',
+          'The assignment has been removed successfully'
+        )
       });
     },
     onError: (
@@ -41,8 +46,10 @@ export const useRemoveAssignmentService = () => {
     ) => {
       toast({
         variant: 'error',
-        title: 'Error removing assignment',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorRemovingAssignment', 'Error removing assignment'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

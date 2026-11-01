@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientAxios } from '@/lib/clientAxios';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface DeleteSelectorDefinitionParams {
   selectorDefinitionId: string;
   selectorGroupId: string;
@@ -22,7 +24,7 @@ export function useDeleteSelectorDefinition() {
       queryClient.invalidateQueries({ queryKey: ['selectorOptions'] });
       toast({
         duration: 2000,
-        title: 'Question deleted successfully',
+        title: translateMessage('toasts.questionDeletedSuccessfully', 'Question deleted successfully'),
         variant: 'success'
       });
     },
@@ -30,9 +32,10 @@ export function useDeleteSelectorDefinition() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error deleting question',
-        description: error.response?.data?.message || 'Internal server error'
+        title: translateMessage('toasts.errorDeletingQuestion', 'Error deleting question'),
+        description:
+          error.response?.data?.message || translateMessage('toasts.internalServerError', 'Internal server error')
       });
-    },
+    }
   });
 }

@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -33,11 +35,11 @@ import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServ
 import { CompanySmsSettingsCard } from '../CompanySmsSettingsCard/CompanySmsSettingsCard';
 
 const EMAIL_CONTENT_VARIABLES = [
-  { variable: '%client.firstName%', replacedWith: 'Client first name' },
-  { variable: '%client.lastName%', replacedWith: 'Client last name' },
-  { variable: '%poolAddress%', replacedWith: 'Pool address' },
-  { variable: '%company.name%', replacedWith: 'Company name' },
-  { variable: '%serviceDate%', replacedWith: 'Service date' }
+  { variable: '%client.firstName%', replacedWith: 'emailPrefs.clientFirstName' },
+  { variable: '%client.lastName%', replacedWith: 'emailPrefs.clientLastName' },
+  { variable: '%poolAddress%', replacedWith: 'emailPrefs.poolAddress' },
+  { variable: '%company.name%', replacedWith: 'emailPrefs.companyName' },
+  { variable: '%serviceDate%', replacedWith: 'emailPrefs.serviceDate' }
 ] as const;
 
 const serviceTypeEmailSchema = z.object({
@@ -61,84 +63,83 @@ const schema = z.object({
 
 const SKIPPED_SERVICE_EMAIL_REASONS = [
   {
-    title: 'Inclement Weather',
-    description: 'Severe rain, lightning, high winds, or other hazardous weather made service impossible or unsafe'
+    title: 'emailPrefs.skipped.weather',
+    description: 'emailPrefs.skipped.weatherDescription'
   },
   {
-    title: 'Gate/Entry Locked',
-    description: 'Main gate, side gate, or pool enclosure was locked, preventing access to the service area'
+    title: 'emailPrefs.skipped.gate',
+    description: 'emailPrefs.skipped.gateDescription'
   },
   {
-    title: 'Unsecured Animal',
-    description: 'A dog or other large pet was loose in the yard, preventing safe entry to the pool area'
+    title: 'emailPrefs.skipped.animal',
+    description: 'emailPrefs.skipped.animalDescription'
   },
   {
-    title: 'Client Unresponsive',
-    description: 'Contact was attempted via phone/doorbell to resolve an access issue, but no response was received'
+    title: 'emailPrefs.skipped.unresponsive',
+    description: 'emailPrefs.skipped.unresponsiveDescription'
   },
   {
-    title: 'Excess Debris / Post-Storm',
-    description:
-      'The volume of leaves, branches, or storm-related debris exceeds standard service capacity and requires a separate, specialized cleanup visit'
+    title: 'emailPrefs.skipped.debris',
+    description: 'emailPrefs.skipped.debrisDescription'
   }
 ] as const;
 
 const EMAIL_TEXT_FIELDS = [
   {
     key: 'header',
-    label: 'Email Header',
-    description: 'Custom header text for the email',
-    placeholder: 'Enter email header'
+    label: 'emailPrefs.header',
+    description: 'emailPrefs.headerDescription',
+    placeholder: 'emailPrefs.headerPlaceholder'
   },
   {
     key: 'body',
-    label: 'Email Body',
-    description: 'Main content of the email',
-    placeholder: 'Enter email body'
+    label: 'emailPrefs.body',
+    description: 'emailPrefs.bodyDescription',
+    placeholder: 'emailPrefs.bodyPlaceholder'
   },
   {
     key: 'footer',
-    label: 'Email Footer',
-    description: 'Footer text for the email',
-    placeholder: 'Enter email footer'
+    label: 'emailPrefs.footer',
+    description: 'emailPrefs.footerDescription',
+    placeholder: 'emailPrefs.footerPlaceholder'
   }
 ] as const;
 
 const EMAIL_INCLUDE_OPTIONS = [
   {
     key: 'technicianNotes',
-    label: 'Technician Notes',
-    description: 'Include technician notes in the email',
+    label: 'serviceTypes.technicianNotes',
+    description: 'serviceTypes.includeTechnicianNotes',
     growOnly: true
   },
   {
     key: 'sendReadingsGroups',
-    label: 'Reading Groups',
-    description: 'Include reading groups data in the email',
+    label: 'readings.groupsTitle',
+    description: 'serviceTypes.includeReadings',
     growOnly: true
   },
   {
     key: 'sendConsumablesGroups',
-    label: 'Consumable Groups',
-    description: 'Include consumable groups data in the email',
+    label: 'consumables.groupsTitle',
+    description: 'serviceTypes.includeConsumables',
     growOnly: true
   },
   {
     key: 'sendPhotoGroups',
-    label: 'Photo Groups',
-    description: 'Include photo groups in the email',
+    label: 'photos.groupsTitle',
+    description: 'serviceTypes.includePhotoGroups',
     growOnly: false
   },
   {
     key: 'sendSelectorsGroups',
-    label: 'Selector Groups',
-    description: 'Include selector groups data in the email',
+    label: 'selectors.groupsTitle',
+    description: 'serviceTypes.includeSelectors',
     growOnly: true
   },
   {
     key: 'sendChecklist',
-    label: 'Checklist',
-    description: 'Include checklist data in the email',
+    label: 'groups.checklist',
+    description: 'serviceTypes.includeChecklist',
     growOnly: true
   }
 ] as const;
@@ -152,12 +153,14 @@ function GrowPlanSwitchLabel({
   description: string;
   isFreePlan: boolean;
 }) {
+  const t = useTranslations('settings');
+
   return (
     <div className="col-span-8 row-auto flex flex-col">
       <label className="flex flex-col space-y-1">
         <span className="text-sm font-semibold text-gray-800">
           {label}
-          {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>}
+          {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">{t('actions.upgradePlan')}</span>}
         </span>
       </label>
       <span className="text-muted-foreground text-sm font-normal">{description}</span>
@@ -228,6 +231,8 @@ function EmailPreferencesContent({
   isEmailPending: boolean;
   isFreePlan: boolean;
 }) {
+  const t = useTranslations('settings');
+
   const { data: serviceTypesData, isLoading } = useGetServiceTypes(company.id);
   const [emailTextServiceTypeId, setEmailTextServiceTypeId] = useState<string | null>(null);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
@@ -249,8 +254,8 @@ function EmailPreferencesContent({
     },
     onError: (error: AxiosError<{ message: string }>) => {
       toast({
-        title: 'Error updating completed service emails',
-        description: error.response?.data?.message || 'An error occurred',
+        title: t('emailPrefs.errorCompleted'),
+        description: error.response?.data?.message || t('messages.errorOccurred'),
         variant: 'error'
       });
     }
@@ -271,15 +276,15 @@ function EmailPreferencesContent({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-types'] });
       toast({
-        title: 'Email preferences updated successfully',
+        title: t('emailPrefs.updated'),
         variant: 'success'
       });
       setEmailTextServiceTypeId(null);
     },
     onError: (error: AxiosError<{ message: string }>) => {
       toast({
-        title: 'Error updating email preferences',
-        description: error.response?.data?.message || 'An error occurred',
+        title: t('emailPrefs.errorUpdating'),
+        description: error.response?.data?.message || t('messages.errorOccurred'),
         variant: 'error'
       });
     }
@@ -339,7 +344,7 @@ function EmailPreferencesContent({
       <CardContent className="p-6">
         <div className="flex items-center justify-center">
           <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
-          <span className="ml-2 text-sm">Loading service types...</span>
+          <span className="ml-2 text-sm">{t('emailPrefs.loadingServiceTypes')}</span>
         </div>
       </CardContent>
     );
@@ -350,7 +355,7 @@ function EmailPreferencesContent({
       <CardContent className="p-6">
         <div className="text-center text-gray-500">
           <Mail className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-          <p>No service types found. Please create service types first.</p>
+          <p>{t('emailPrefs.noServiceTypes')}</p>
         </div>
       </CardContent>
     );
@@ -360,10 +365,7 @@ function EmailPreferencesContent({
     <CardContent className="p-6">
       {isFreePlan && (
         <div className="mb-8 space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <p className="text-center text-sm text-amber-900">
-            You are on the Free plan. You can set CC email, turn automatic service emails on or off, and choose whether
-            to include photo groups. Upgrade your plan to customize the rest.
-          </p>
+          <p className="text-center text-sm text-amber-900">{t('emailPrefs.freePlanHint')}</p>
           <div className="flex justify-center">
             <Button
               type="button"
@@ -372,7 +374,7 @@ function EmailPreferencesContent({
               className="border-amber-300 bg-white text-amber-950 hover:bg-amber-100"
               onClick={() => setUpgradeDialogOpen(true)}
             >
-              Customize everything? Upgrade your plan
+              {t('emailPrefs.upgradeEverything')}
             </Button>
           </div>
         </div>
@@ -384,10 +386,8 @@ function EmailPreferencesContent({
           <CardContent className="space-y-6 p-6">
             <div className="space-y-3">
               <div>
-                <span className="text-sm font-semibold text-gray-800">Send Completed Service Emails</span>
-                <p className="text-muted-foreground text-sm font-normal">
-                  Turn completed-service emails on or off for each service type
-                </p>
+                <span className="text-sm font-semibold text-gray-800">{t('emailPrefs.sendCompleted')}</span>
+                <p className="text-muted-foreground text-sm font-normal">{t('emailPrefs.sendCompletedHint')}</p>
               </div>
               <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200">
                 {serviceTypes.map((serviceType) => (
@@ -408,7 +408,7 @@ function EmailPreferencesContent({
                         size="sm"
                         onClick={() => setEmailTextServiceTypeId(serviceType.id)}
                       >
-                        Change email text
+                        {t('emailPrefs.changeEmailText')}
                       </Button>
                       <div className="w-fit shrink-0">
                         <InputField name={`${serviceType.id}.sendAutomaticEmails`} type={FieldType.Switch} />
@@ -422,17 +422,15 @@ function EmailPreferencesContent({
             <div className="grid w-full grid-cols-1 items-center space-y-4 md:grid-cols-12">
               <div className="col-span-8 row-auto flex flex-col">
                 <label className="flex flex-col space-y-1">
-                  <span className="text-sm font-semibold text-gray-800">CC Email Address</span>
+                  <span className="text-sm font-semibold text-gray-800">{t('emailPrefs.ccEmail')}</span>
                 </label>
-                <span className="text-muted-foreground text-sm font-normal">
-                  Email address to receive copies of service notifications
-                </span>
+                <span className="text-muted-foreground text-sm font-normal">{t('emailPrefs.ccEmailHint')}</span>
               </div>
               <div className="col-span-4">
                 <input
                   {...form.register('ccEmail')}
                   type="email"
-                  placeholder="Enter CC email address"
+                  placeholder={t('emailPrefs.ccPlaceholder')}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -442,22 +440,20 @@ function EmailPreferencesContent({
               <div className="col-span-8 row-auto flex flex-col">
                 <label className="flex flex-col space-y-1">
                   <span className="text-sm font-semibold text-gray-800">
-                    Send Skipped Service Emails{' '}
+                    {t('emailPrefs.sendSkipped')}{' '}
                     <button
                       type="button"
                       className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
                       onClick={() => setSkippedReasonsModalOpen(true)}
                     >
-                      (see skipped reasons list)
+                      {t('emailPrefs.seeSkippedReasons')}
                     </button>
                     {isFreePlan && (
-                      <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
+                      <span className="ml-1.5 text-xs font-medium text-blue-600">{t('actions.upgradePlan')}</span>
                     )}
                   </span>
                 </label>
-                <span className="text-muted-foreground text-sm font-normal">
-                  Send email notifications when services are skipped
-                </span>
+                <span className="text-muted-foreground text-sm font-normal">{t('emailPrefs.sendSkippedHint')}</span>
               </div>
               <div className="col-span-4 flex items-center gap-4">
                 <InputField disabled={isFreePlan} name="sendSkippedServiceEmails" type={FieldType.Switch} />
@@ -499,7 +495,7 @@ function EmailPreferencesContent({
                 {isEmailPending || saveCompletedServiceEmails.isPending ? (
                   <div className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
                 ) : (
-                  'Save Email Configuration'
+                  t('emailPrefs.save')
                 )}
               </Button>
             </div>
@@ -523,26 +519,24 @@ function EmailPreferencesContent({
           {editingServiceType ? (
             <>
               <DialogHeader>
-                <DialogTitle>{editingServiceType.name} email</DialogTitle>
-                <DialogDescription>
-                  Change the email text and choose what is included when this service is completed.
-                </DialogDescription>
+                <DialogTitle>{t('emailPrefs.serviceTypeEmail', { name: editingServiceType.name })}</DialogTitle>
+                <DialogDescription>{t('emailPrefs.editDialogDescription')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <h4 className="text-sm font-semibold text-gray-800">Email Content</h4>
+                  <h4 className="text-sm font-semibold text-gray-800">{t('emailPrefs.emailContent')}</h4>
                   {EMAIL_TEXT_FIELDS.map((field) => (
                     <div key={field.key} className="space-y-1">
                       <label className="text-sm font-semibold text-gray-800">
-                        {field.label} <EmailVariablesHelpLink onClick={() => setEmailVariablesModalOpen(true)} />
+                        {t(field.label)} <EmailVariablesHelpLink onClick={() => setEmailVariablesModalOpen(true)} />
                         {isFreePlan ? (
-                          <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>
+                          <span className="ml-1.5 text-xs font-medium text-blue-600">{t('actions.upgradePlan')}</span>
                         ) : null}
                       </label>
-                      <p className="text-muted-foreground text-sm">{field.description}</p>
+                      <p className="text-muted-foreground text-sm">{t(field.description)}</p>
                       <textarea
                         {...form.register(`${editingServiceType.id}.${field.key}`)}
-                        placeholder={field.placeholder}
+                        placeholder={t(field.placeholder)}
                         disabled={isFreePlan}
                         rows={3}
                         className={cn(
@@ -554,19 +548,19 @@ function EmailPreferencesContent({
                   ))}
                 </div>
                 <div className="space-y-4">
-                  <h4 className="text-sm font-semibold text-gray-800">Include in Emails</h4>
+                  <h4 className="text-sm font-semibold text-gray-800">{t('emailPrefs.includeInEmails')}</h4>
                   {EMAIL_INCLUDE_OPTIONS.map((option) => (
                     <div key={option.key} className="grid w-full grid-cols-1 items-center gap-2 md:grid-cols-12">
                       {option.growOnly ? (
                         <GrowPlanSwitchLabel
-                          label={option.label}
-                          description={option.description}
+                          label={t(option.label)}
+                          description={t(option.description)}
                           isFreePlan={isFreePlan}
                         />
                       ) : (
                         <div className="col-span-8 row-auto flex flex-col">
-                          <span className="text-sm font-semibold text-gray-800">{option.label}</span>
-                          <span className="text-muted-foreground text-sm font-normal">{option.description}</span>
+                          <span className="text-sm font-semibold text-gray-800">{t(option.label)}</span>
+                          <span className="text-muted-foreground text-sm font-normal">{t(option.description)}</span>
                         </div>
                       )}
                       <div className="col-span-4">
@@ -582,7 +576,7 @@ function EmailPreferencesContent({
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setEmailTextServiceTypeId(null)}>
-                  Cancel
+                  {t('actions.cancel')}
                 </Button>
                 <Button
                   type="button"
@@ -608,7 +602,7 @@ function EmailPreferencesContent({
                     });
                   }}
                 >
-                  {saveServiceTypeEmailText.isPending ? 'Saving...' : 'Save email text'}
+                  {saveServiceTypeEmailText.isPending ? t('actions.saving') : t('emailPrefs.saveText')}
                 </Button>
               </DialogFooter>
             </>
@@ -621,10 +615,9 @@ function EmailPreferencesContent({
       <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
         <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Unlock full email customization</DialogTitle>
+            <DialogTitle>{t('emailPrefs.unlockTitle')}</DialogTitle>
             <DialogDescription className="text-foreground text-left text-base">
-              To customize skipped-service notifications, email header, body, footer, and all inclusion options in
-              service emails, upgrade your plan.
+              {t('emailPrefs.unlockDescription')}
             </DialogDescription>
           </DialogHeader>
           <p className="text-muted-foreground text-sm">
@@ -633,13 +626,13 @@ function EmailPreferencesContent({
               className="font-medium text-blue-600 underline underline-offset-4 hover:text-blue-800"
               onClick={() => setUpgradeDialogOpen(false)}
             >
-              View subscription plans
+              {t('emailPrefs.viewPlans')}
             </Link>{' '}
             to compare plans and upgrade.
           </p>
           <DialogFooter>
             <Button type="button" onClick={() => setUpgradeDialogOpen(false)}>
-              Got it
+              {t('actions.gotIt')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -648,26 +641,23 @@ function EmailPreferencesContent({
       <Dialog open={skippedReasonsModalOpen} onOpenChange={setSkippedReasonsModalOpen}>
         <DialogContent className="sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>Skipped Service Email Reasons</DialogTitle>
-            <DialogDescription className="text-left">
-              When enabled, clients will receive email notifications when services are skipped for the following
-              reasons:
-            </DialogDescription>
+            <DialogTitle>{t('emailPrefs.skippedReasonsTitle')}</DialogTitle>
+            <DialogDescription className="text-left">{t('emailPrefs.skippedReasonsDescription')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {SKIPPED_SERVICE_EMAIL_REASONS.map((reason) => (
               <div key={reason.title} className="flex items-start gap-3">
                 <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{reason.title}</p>
-                  <p className="text-muted-foreground text-sm">{reason.description}</p>
+                  <p className="text-sm font-semibold text-gray-900">{t(reason.title)}</p>
+                  <p className="text-muted-foreground text-sm">{t(reason.description)}</p>
                 </div>
               </div>
             ))}
           </div>
           <DialogFooter>
             <Button type="button" onClick={() => setSkippedReasonsModalOpen(false)}>
-              Close
+              {t('actions.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -676,18 +666,15 @@ function EmailPreferencesContent({
       <Dialog open={emailVariablesModalOpen} onOpenChange={setEmailVariablesModalOpen}>
         <DialogContent className="sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
-            <DialogTitle>How to use client info on the e-mail</DialogTitle>
-            <DialogDescription className="text-left">
-              You can use the following variables in your email header, body, and footer. They will be replaced with
-              real values when the email is sent:
-            </DialogDescription>
+            <DialogTitle>{t('emailPrefs.variablesTitle')}</DialogTitle>
+            <DialogDescription className="text-left">{t('emailPrefs.variablesDescription')}</DialogDescription>
           </DialogHeader>
           <div className="overflow-hidden rounded-md border border-gray-200">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-3 py-2 text-left font-semibold text-gray-900">Variable</th>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-900">Replaced with</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-900">{t('emailPrefs.variable')}</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-900">{t('emailPrefs.replacedWith')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -698,7 +685,7 @@ function EmailPreferencesContent({
                         {variable}
                       </code>
                     </td>
-                    <td className="text-muted-foreground px-3 py-2">{replacedWith}</td>
+                    <td className="text-muted-foreground px-3 py-2">{t(replacedWith)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -706,7 +693,7 @@ function EmailPreferencesContent({
           </div>
           <DialogFooter>
             <Button type="button" onClick={() => setEmailVariablesModalOpen(false)}>
-              Close
+              {t('actions.close')}
             </Button>
           </DialogFooter>
         </DialogContent>

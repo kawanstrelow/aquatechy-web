@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -20,17 +22,16 @@ export const useDeleteConsumableGroup = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       queryClient.invalidateQueries({ queryKey: ['service-types'] });
       toast({
-        title: 'Consumable group deleted successfully',
+        title: translateMessage('toasts.consumableGroupDeletedSuccessfully', 'Consumable group deleted successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error deleting consumable group',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorDeletingConsumableGroup', 'Error deleting consumable group'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }
   });
 };
-

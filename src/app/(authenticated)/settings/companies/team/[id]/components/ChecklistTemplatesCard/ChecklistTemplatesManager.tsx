@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +16,11 @@ import { useUpdateChecklistTemplate } from '@/hooks/react-query/checklist-templa
 import { useDeleteChecklistTemplate } from '@/hooks/react-query/checklist-templates/useDeleteChecklistTemplate';
 import { useSetDefaultChecklistTemplate } from '@/hooks/react-query/checklist-templates/useSetDefaultChecklistTemplate';
 
-import { ChecklistTemplate, CreateChecklistTemplateRequest, UpdateChecklistTemplateRequest } from '@/ts/interfaces/ChecklistTemplates';
+import {
+  ChecklistTemplate,
+  CreateChecklistTemplateRequest,
+  UpdateChecklistTemplateRequest
+} from '@/ts/interfaces/ChecklistTemplates';
 
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
 import { CreateChecklistTemplateDialog } from './CreateChecklistTemplateDialog';
@@ -25,6 +31,8 @@ interface ChecklistTemplatesManagerProps {
 }
 
 export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManagerProps) {
+  const t = useTranslations('settings');
+
   const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
   const [editingTemplate, setEditingTemplate] = useState<ChecklistTemplate | null>(null);
   const [deletingTemplate, setDeletingTemplate] = useState<ChecklistTemplate | null>(null);
@@ -39,7 +47,7 @@ export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManag
   const templates = templatesData?.templates || [];
 
   const toggleTemplateExpansion = (templateId: string) => {
-    setExpandedTemplates(prev => {
+    setExpandedTemplates((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(templateId)) {
         newSet.delete(templateId);
@@ -60,11 +68,14 @@ export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManag
 
   const handleUpdateTemplate = (data: UpdateChecklistTemplateRequest) => {
     if (editingTemplate) {
-      updateTemplate({ templateId: editingTemplate.id, data }, {
-        onSuccess: () => {
-          setEditingTemplate(null);
+      updateTemplate(
+        { templateId: editingTemplate.id, data },
+        {
+          onSuccess: () => {
+            setEditingTemplate(null);
+          }
         }
-      });
+      );
     }
   };
 
@@ -83,8 +94,8 @@ export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManag
   };
 
   const getTemplateTypeLabel = (template: ChecklistTemplate) => {
-    if (template.poolId) return "Pool-specific";
-    return "Company-wide";
+    if (template.poolId) return 'Pool-specific';
+    return 'Company-wide';
   };
 
   if (isLoading) {
@@ -93,33 +104,25 @@ export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManag
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
         <div>
-          <h3 className="text-lg font-semibold">Checklist Templates</h3>
-          <p className="text-sm text-muted-foreground">
-            Create and manage checklist templates for your service reports
-          </p>
+          <h3 className="text-lg font-semibold">{t('checklists.title')}</h3>
+          <p className="text-muted-foreground text-sm">{t('checklists.managerDescription')}</p>
         </div>
-        <Button
-          onClick={() => setShowCreateDialog(true)}
-          disabled={isCreating}
-          className="w-full sm:w-auto"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Template
+        <Button onClick={() => setShowCreateDialog(true)} disabled={isCreating} className="w-full sm:w-auto">
+          <Plus className="mr-2 h-4 w-4" />
+          {t('checklists.addTemplate')}
         </Button>
       </div>
 
       {templates.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="text-muted-foreground mb-2">No checklist templates</div>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Create checklist templates to standardize your service reports with custom checklists.
-            </p>
+            <div className="text-muted-foreground mb-2">{t('checklists.empty')}</div>
+            <p className="text-muted-foreground mb-4 text-center text-sm">{t('checklists.emptyHint')}</p>
             <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Template
+              <Plus className="mr-2 h-4 w-4" />
+              {t('checklists.createFirst')}
             </Button>
           </CardContent>
         </Card>
@@ -127,10 +130,11 @@ export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManag
         <div className="space-y-4">
           {templates.map((template) => (
             <Card key={template.id}>
-              <CardHeader className="pb-6" >
-
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">                    <Button
+              <CardHeader className="pb-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+                    {' '}
+                    <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleTemplateExpansion(template.id)}
@@ -143,25 +147,21 @@ export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManag
                       )}
                     </Button>
                     <div>
-                      <CardTitle className="text-base flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-base">
                         {template.name}
 
                         {!template.isActive && (
                           <Badge variant="outline" className="text-xs">
-                            Inactive
+                            {t('statuses.Inactive')}
                           </Badge>
                         )}
                       </CardTitle>
                       {template.description && (
-                        <CardDescription className="text-sm">
-                          {template.description}
-                        </CardDescription>
+                        <CardDescription className="text-sm">{template.description}</CardDescription>
                       )}
-
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-
                     <Button
                       variant="ghost"
                       size="sm"
@@ -181,23 +181,20 @@ export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManag
                     </Button>
                   </div>
                 </div>
-
               </CardHeader>
               {expandedTemplates.has(template.id) && (
                 <CardContent>
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">Checklist Items:</h4>
+                    <h4 className="text-sm font-semibold">{t('checklists.items')}</h4>
                     {template.items.length === 0 ? (
-                      <p className="text-sm text-muted-foreground italic">No items in this template</p>
+                      <p className="text-muted-foreground text-sm italic">{t('checklists.noItems')}</p>
                     ) : (
                       <div className="space-y-1">
                         {template.items
                           .sort((a, b) => a.order - b.order)
                           .map((item, index) => (
-                            <div key={item.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
-                              <span className="text-xs text-muted-foreground min-w-[20px]">
-                                {index + 1}.
-                              </span>
+                            <div key={item.id} className="bg-muted/50 flex items-center gap-2 rounded p-2">
+                              <span className="text-muted-foreground min-w-[20px] text-xs">{index + 1}.</span>
                               <span className="text-sm">{item.label}</span>
                             </div>
                           ))}
@@ -233,8 +230,8 @@ export function ChecklistTemplatesManager({ companyId }: ChecklistTemplatesManag
       <ConfirmActionDialog
         open={!!deletingTemplate}
         onOpenChange={() => setDeletingTemplate(null)}
-        title="Delete Checklist Template"
-        description={`Are you sure you want to delete "${deletingTemplate?.name}"? This action cannot be undone and may affect existing services that use this template.`}
+        title={t('checklists.deleteTitle')}
+        description={t('confirm.deleteTemplate', { name: deletingTemplate?.name ?? '' })}
         onConfirm={handleDeleteTemplate}
         variant="destructive"
       />

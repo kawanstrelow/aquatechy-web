@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { SendEstimateResponse } from '@/ts/interfaces/Estimate';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useSendEstimate = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -20,7 +22,7 @@ export const useSendEstimate = () => {
 
       toast({
         duration: 2000,
-        title: 'Estimate sent successfully',
+        title: translateMessage('toasts.estimateSentSuccessfully', 'Estimate sent successfully'),
         variant: 'success'
       });
     },
@@ -28,12 +30,12 @@ export const useSendEstimate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to send estimate';
+        : errorMessage || translateMessage('toasts.failedToSendEstimate', 'Failed to send estimate');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error sending estimate',
+        title: translateMessage('toasts.errorSendingEstimate', 'Error sending estimate'),
         description: message
       });
     }

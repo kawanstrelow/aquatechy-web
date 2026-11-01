@@ -1,11 +1,20 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,11 +23,11 @@ import { Switch } from '@/components/ui/switch';
 import { CreatePhotoDefinitionRequest } from '@/ts/interfaces/PhotoGroups';
 
 const createPhotoDefinitionSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isRequired: z.boolean(),
   allowGallery: z.boolean(),
-  sendOnEmail: z.boolean(),
+  sendOnEmail: z.boolean()
 });
 
 interface CreatePhotoDefinitionDialogProps {
@@ -34,6 +43,8 @@ export function CreatePhotoDefinitionDialog({
   onSubmit,
   isLoading
 }: CreatePhotoDefinitionDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof createPhotoDefinitionSchema>>({
     resolver: zodResolver(createPhotoDefinitionSchema),
     defaultValues: {
@@ -41,7 +52,7 @@ export function CreatePhotoDefinitionDialog({
       description: '',
       isRequired: false,
       allowGallery: false,
-      sendOnEmail: false,
+      sendOnEmail: false
     }
   });
 
@@ -52,7 +63,7 @@ export function CreatePhotoDefinitionDialog({
       isRequired: data.isRequired,
       allowGallery: data.allowGallery,
       sendOnEmail: data.sendOnEmail,
-      order: 1, // Will be set by the backend
+      order: 1 // Will be set by the backend
     };
     onSubmit(requestData);
   };
@@ -66,10 +77,8 @@ export function CreatePhotoDefinitionDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create Photo Definition</DialogTitle>
-          <DialogDescription>
-            Add a new photo definition to specify what type of photo can be captured.
-          </DialogDescription>
+          <DialogTitle>{t('photos.createDefinition')}</DialogTitle>
+          <DialogDescription>{t('photos.createDefinitionDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -79,9 +88,9 @@ export function CreatePhotoDefinitionDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name *</FormLabel>
+                  <FormLabel>{t('fields.nameRequired')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Before Photo, Equipment Photo" {...field} />
+                    <Input placeholder={t('photos.definitionPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -93,10 +102,10 @@ export function CreatePhotoDefinitionDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of what this photo should capture..."
+                      placeholder={t('photos.definitionDescriptionPlaceholder')}
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -113,18 +122,11 @@ export function CreatePhotoDefinitionDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Required
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      Mark this photo as required for service completion
-                    </p>
+                    <FormLabel className="text-base">{t('fields.required')}</FormLabel>
+                    <p className="text-muted-foreground text-sm">{t('photos.requiredHint')}</p>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
@@ -136,18 +138,13 @@ export function CreatePhotoDefinitionDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Allow Gallery
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
+                    <FormLabel className="text-base">{t('photos.allowGallery')}</FormLabel>
+                    <p className="text-muted-foreground text-sm">
                       Allow users to select photos from gallery for this definition
                     </p>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
@@ -159,29 +156,24 @@ export function CreatePhotoDefinitionDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Send On Email
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
+                    <FormLabel className="text-base">{t('photos.sendOnEmail')}</FormLabel>
+                    <p className="text-muted-foreground text-sm">
                       Enable this option to send this photo when photo groups are enabled to be sent.
                     </p>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
             />
 
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end w-full">
+            <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Definition'}
+                {isLoading ? t('actions.creating') : t('actions.createDefinition')}
               </Button>
             </DialogFooter>
           </form>
@@ -190,4 +182,3 @@ export function CreatePhotoDefinitionDialog({
     </Dialog>
   );
 }
-

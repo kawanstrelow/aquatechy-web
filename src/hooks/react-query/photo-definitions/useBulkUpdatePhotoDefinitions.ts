@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type BulkUpdateRequest = {
   photoDefinitionId: string;
   order: number;
@@ -22,7 +24,7 @@ export const useBulkUpdatePhotoDefinitions = (companyId: string) => {
       const updatePromises = data.map(({ photoDefinitionId, order }) =>
         clientAxios.put(`/photo-definitions/${photoDefinitionId}`, { order })
       );
-      
+
       await Promise.all(updatePromises);
     },
     onSuccess: () => {
@@ -30,17 +32,19 @@ export const useBulkUpdatePhotoDefinitions = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['photo-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Photo definitions order updated successfully',
+        title: translateMessage(
+          'toasts.photoDefinitionsOrderUpdatedSuccessfully',
+          'Photo definitions order updated successfully'
+        ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating photo definitions order',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingPhotoDefinitionsOrder', 'Error updating photo definitions order'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }
   });
 };
-

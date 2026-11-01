@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { clientAxios } from '@/lib/clientAxios';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface DownloadEstimatePDFParams {
   estimateId: string;
 }
@@ -44,12 +46,12 @@ export const useDownloadEstimatePDF = () => {
     onSuccess: () => {
       toast({
         duration: 2000,
-        title: 'Estimate PDF downloaded successfully',
+        title: translateMessage('toasts.estimatePdfDownloadedSuccessfully', 'Estimate PDF downloaded successfully'),
         variant: 'success'
       });
     },
     onError: async (error: AxiosError) => {
-      let errorMessage = 'Failed to download estimate PDF';
+      let errorMessage = translateMessage('toasts.failedToDownloadEstimatePdf', 'Failed to download estimate PDF');
 
       if (error.response?.data instanceof Blob) {
         try {
@@ -61,9 +63,12 @@ export const useDownloadEstimatePDF = () => {
         } catch {
           errorMessage =
             error.response?.status === 403
-              ? 'Permission denied. You do not have access to download this estimate.'
+              ? translateMessage(
+                  'toasts.permissionDeniedYouDoNotHaveAccessToDownloadThisEstimate',
+                  'Permission denied. You do not have access to download this estimate.'
+                )
               : error.response?.status === 404
-                ? 'Estimate not found.'
+                ? translateMessage('toasts.estimateNotFound', 'Estimate not found.')
                 : errorMessage;
         }
       } else {
@@ -76,7 +81,7 @@ export const useDownloadEstimatePDF = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error downloading estimate PDF',
+        title: translateMessage('toasts.errorDownloadingEstimatePdf', 'Error downloading estimate PDF'),
         description: errorMessage
       });
     }

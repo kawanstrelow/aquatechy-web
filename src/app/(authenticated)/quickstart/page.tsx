@@ -2,6 +2,7 @@
 
 import Cookies from 'js-cookie';
 import { CheckCircle2, Circle, ExternalLink, PlayCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -51,6 +52,7 @@ function canAccessInvoiceSettings(role: string | undefined): boolean {
 }
 
 export default function QuickStartPage() {
+  const t = useTranslations('dashboard');
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
   const router = useRouter();
   const user = useUserStore((state) => state.user);
@@ -80,40 +82,39 @@ export default function QuickStartPage() {
     () => [
       {
         id: 1,
-        title: 'Complete Your Profile',
-        description: 'Add your personal information and contact details.',
+        title: t('quickstart.completeProfileTitle'),
+        description: t('quickstart.completeProfileDescription'),
         redirectUrl: '/settings/profile',
-        actionText: 'Go to Profile'
+        actionText: t('quickstart.goToProfile')
       },
       {
         id: 2,
-        title: 'Download the App',
-        description: 'Get the Aquatechy mobile app from the App Store or Google Play Store.',
+        title: t('quickstart.downloadAppTitle'),
+        description: t('quickstart.downloadAppDescription'),
         redirectUrl: 'https://www.aquatechyapp.com/download',
-        actionText: 'Download Aquatechy App'
+        actionText: t('quickstart.downloadAppAction')
       },
       {
         id: 4,
-        title: 'Add your team',
-        description: 'Invite team members, assign roles, and set up permissions for your pool service staff.',
+        title: t('quickstart.addTeamTitle'),
+        description: t('quickstart.addTeamDescription'),
         redirectUrl: addTeamUrl,
-        actionText: 'Add team member'
+        actionText: t('quickstart.addTeamAction')
       },
       {
         id: 5,
-        title: 'Setup Stripe and invoice settings',
-        description:
-          'Connect Stripe for online payments and configure your invoice defaults, communication, and company details.',
+        title: t('quickstart.stripeTitle'),
+        description: t('quickstart.stripeDescription'),
         redirectUrl: invoiceSettingsUrl,
-        actionText: 'Go to Invoice Settings'
+        actionText: t('quickstart.stripeAction')
       },
       {
         id: 6,
-        title: 'Complete a Service in Aquatechy App',
-        description: 'Use the mobile app to record service details, take photos, and complete the job.'
+        title: t('quickstart.completeServiceTitle'),
+        description: t('quickstart.completeServiceDescription')
       }
     ],
-    [addTeamUrl, invoiceSettingsUrl]
+    [addTeamUrl, invoiceSettingsUrl, t]
   );
 
   useEffect(() => {
@@ -161,7 +162,11 @@ export default function QuickStartPage() {
                   type="button"
                   className="mt-0.5 flex-shrink-0 rounded-full"
                   aria-pressed={completed}
-                  aria-label={completed ? `Mark "${step.title}" as not done` : `Mark "${step.title}" as done`}
+                  aria-label={
+                    completed
+                      ? t('quickstart.markNotDoneAria', { title: step.title })
+                      : t('quickstart.markDoneAria', { title: step.title })
+                  }
                   onClick={() => toggleStep(step.id)}
                 >
                   {completed ? (
@@ -179,7 +184,7 @@ export default function QuickStartPage() {
                       className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent/80"
                       onClick={() => toggleStep(step.id)}
                     >
-                      {completed ? 'Mark as not done' : 'Mark as done'}
+                      {completed ? t('quickstart.markNotDone') : t('quickstart.markDone')}
                     </button>
                     {step.videoUrl && (
                       <button
@@ -188,7 +193,7 @@ export default function QuickStartPage() {
                         onClick={() => setSelectedVideo({ url: step.videoUrl!, title: step.title })}
                       >
                         <PlayCircle className="h-4 w-4" />
-                        Watch tutorial video
+                        {t('quickstart.watchTutorial')}
                       </button>
                     )}
                     {step.redirectUrl && (
@@ -198,7 +203,7 @@ export default function QuickStartPage() {
                         onClick={() => handleRedirect(step.redirectUrl!)}
                       >
                         <ExternalLink className="h-4 w-4" />
-                        {step.actionText || 'Go to section'}
+                        {step.actionText || t('quickstart.goToSection')}
                       </button>
                     )}
                   </div>

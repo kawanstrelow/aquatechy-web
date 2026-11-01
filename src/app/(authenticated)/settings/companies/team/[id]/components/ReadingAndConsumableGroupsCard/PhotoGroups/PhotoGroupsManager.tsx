@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +28,8 @@ interface PhotoGroupsManagerProps {
 }
 
 export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
+  const t = useTranslations('settings');
+
   const [editingPhotoGroup, setEditingPhotoGroup] = useState<PhotoGroup | null>(null);
   const [deletingPhotoGroup, setDeletingPhotoGroup] = useState<PhotoGroup | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -39,20 +43,26 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
   const photoGroups = photoGroupsData?.photoGroups || [];
 
   const handleCreatePhotoGroup = (data: CreatePhotoGroupRequest) => {
-    createPhotoGroup({ companyId, data }, {
-      onSuccess: () => {
-        setShowCreateDialog(false);
+    createPhotoGroup(
+      { companyId, data },
+      {
+        onSuccess: () => {
+          setShowCreateDialog(false);
+        }
       }
-    });
+    );
   };
 
   const handleUpdatePhotoGroup = (data: UpdatePhotoGroupRequest) => {
     if (editingPhotoGroup) {
-      updatePhotoGroup({ photoGroupId: editingPhotoGroup.id, data }, {
-        onSuccess: () => {
-          setEditingPhotoGroup(null);
+      updatePhotoGroup(
+        { photoGroupId: editingPhotoGroup.id, data },
+        {
+          onSuccess: () => {
+            setEditingPhotoGroup(null);
+          }
         }
-      });
+      );
     }
   };
 
@@ -71,7 +81,7 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
   };
 
   const toggleGroupExpansion = (photoGroupId: string) => {
-    setExpandedGroups(prev => {
+    setExpandedGroups((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(photoGroupId)) {
         newSet.delete(photoGroupId);
@@ -88,29 +98,30 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Photo Groups</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-lg font-semibold">{t('photos.groupsTitle')}</h3>
+          <p className="text-muted-foreground text-sm">
             Manage photo groups that can be used for service documentation
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} disabled={isCreating}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Photo Group
+          <Plus className="mr-2 h-4 w-4" />
+          {t('photos.addGroup')}
         </Button>
       </div>
 
       {photoGroups.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="text-muted-foreground mb-2">No photo groups</div>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Create photo groups to define photo requirements for your services (e.g., "Before Photos", "Equipment Photos", etc.).
+            <div className="text-muted-foreground mb-2">{t('photos.noGroups')}</div>
+            <p className="text-muted-foreground mb-4 text-center text-sm">
+              Create photo groups to define photo requirements for your services (e.g., "Before Photos", "Equipment
+              Photos", etc.).
             </p>
             <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Photo Group
+              <Plus className="mr-2 h-4 w-4" />
+              {t('photos.createFirst')}
             </Button>
           </CardContent>
         </Card>
@@ -119,14 +130,14 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
           {photoGroups.map((photoGroup) => (
             <Card key={photoGroup.id}>
               <CardHeader className="pb-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   {/* Mobile: Single row with arrow, text, and action buttons - centered */}
-                  <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleGroupExpansion(photoGroup.id)}
-                      className="h-8 w-8 p-0 flex-shrink-0"
+                      className="h-8 w-8 flex-shrink-0 p-0"
                     >
                       {expandedGroups.has(photoGroup.id) ? (
                         <ChevronDown className="h-4 w-4" />
@@ -135,8 +146,8 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
                       )}
                     </Button>
 
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base flex items-center justify-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="flex items-center justify-start gap-2 text-base">
                         {photoGroup.name}
                         {photoGroup.isDefault && (
                           <Badge variant="outline" className="text-xs">
@@ -150,12 +161,9 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
                     </div>
 
                     {/* Action buttons - positioned on the right */}
-                    <div className="flex gap-2 flex-shrink-0">
-                      <Badge
-                        variant={photoGroup.isActive ? "default" : "outline"}
-                        className="text-xs"
-                      >
-                        {photoGroup.isActive ? "Active" : "Inactive"}
+                    <div className="flex flex-shrink-0 gap-2">
+                      <Badge variant={photoGroup.isActive ? 'default' : 'outline'} className="text-xs">
+                        {photoGroup.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                       <Button
                         variant="ghost"
@@ -163,7 +171,7 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
                         onClick={() => setEditingPhotoGroup(photoGroup)}
                         disabled={isUpdating}
                         className="h-8 w-8 p-0"
-                        title="Edit Photo Group"
+                        title={t('photos.editGroup')}
                       >
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -173,8 +181,8 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
                           size="sm"
                           onClick={() => setDeletingPhotoGroup(photoGroup)}
                           disabled={isDeleting}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                          title="Delete Photo Group"
+                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                          title={t('photos.deleteGroup')}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -186,10 +194,7 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
 
               {expandedGroups.has(photoGroup.id) && (
                 <CardContent>
-                  <PhotoDefinitionsManager
-                    photoGroup={photoGroup}
-                    companyId={companyId}
-                  />
+                  <PhotoDefinitionsManager photoGroup={photoGroup} companyId={companyId} />
                 </CardContent>
               )}
             </Card>
@@ -218,8 +223,8 @@ export function PhotoGroupsManager({ companyId }: PhotoGroupsManagerProps) {
       <ConfirmActionDialog
         open={!!deletingPhotoGroup}
         onOpenChange={() => setDeletingPhotoGroup(null)}
-        title="Delete Photo Group"
-        description={`Are you sure you want to delete "${deletingPhotoGroup?.name}"? This action cannot be undone and may affect existing services.`}
+        title={t('photos.deleteGroup')}
+        description={t('confirm.deleteAffectsServices', { name: deletingPhotoGroup?.name ?? '' })}
         onConfirm={handleDeletePhotoGroup}
         variant="destructive"
       />

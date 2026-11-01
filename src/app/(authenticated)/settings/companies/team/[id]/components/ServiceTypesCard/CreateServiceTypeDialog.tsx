@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,12 +13,20 @@ import { Check } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { translateMessage } from '@/i18n/runtime';
 import { clientAxios } from '@/lib/clientAxios';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/user';
@@ -28,9 +38,9 @@ import { SelectorDefinitionsResponse, SelectorGroup } from '@/ts/interfaces/Sele
 import { CreateServiceTypeRequest } from '@/ts/interfaces/ServiceTypes';
 
 const STEPS = [
-  { id: 1, label: 'Basics' },
-  { id: 2, label: 'Groups' },
-  { id: 3, label: 'Communication' }
+  { id: 1, label: 'serviceTypes.basics' },
+  { id: 2, label: 'serviceTypes.groups' },
+  { id: 3, label: 'invoices.communication' }
 ] as const;
 
 const DEFAULT_EMAIL_HEADER =
@@ -38,8 +48,8 @@ const DEFAULT_EMAIL_HEADER =
 const DEFAULT_EMAIL_FOOTER = 'Thank you for choosing %company.name%!';
 
 const createServiceTypeSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isDefault: z.boolean().default(false),
   checklistTemplateId: z.string().optional(),
   sendAutomaticEmails: z.boolean(),
@@ -66,9 +76,9 @@ interface CreateServiceTypeDialogProps {
 }
 
 function formatPreviewNames(names: string[], maxVisible = 5): string {
-  if (names.length === 0) return 'No items yet';
+  if (names.length === 0) return translateMessage('settings.serviceTypes.noItemsYet', 'No items yet');
   if (names.length <= maxVisible) return names.join(' · ');
-  return `${names.slice(0, maxVisible).join(' · ')} · +${names.length - maxVisible} more`;
+  return `${names.slice(0, maxVisible).join(' · ')} · ${translateMessage('settings.serviceTypes.more', '+{count} more').replace('{count}', String(names.length - maxVisible))}`;
 }
 
 function GrowPlanSwitchLabel({
@@ -80,11 +90,13 @@ function GrowPlanSwitchLabel({
   description: string;
   isFreePlan: boolean;
 }) {
+  const t = useTranslations('settings');
+
   return (
     <div className="flex flex-col space-y-1">
       <span className="text-sm font-semibold text-gray-800">
         {label}
-        {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">(Upgrade your plan)</span>}
+        {isFreePlan && <span className="ml-1.5 text-xs font-medium text-blue-600">{t('actions.upgradePlan')}</span>}
       </span>
       <span className="text-muted-foreground text-sm font-normal">{description}</span>
     </div>
@@ -114,7 +126,12 @@ function GroupCheckboxRow({
         checked && 'border-blue-400 bg-blue-50/60 ring-1 ring-blue-200'
       )}
     >
-      <Checkbox id={id} checked={checked} onCheckedChange={(value) => onCheckedChange(value === true)} className="mt-0.5" />
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(value) => onCheckedChange(value === true)}
+        className="mt-0.5"
+      />
       <div className="min-w-0 flex-1 space-y-1">
         <div className="text-sm font-medium leading-none">{name}</div>
         {description ? <p className="text-muted-foreground text-xs">{description}</p> : null}
@@ -135,6 +152,8 @@ export function CreateServiceTypeDialog({
   photoGroups,
   selectorGroups
 }: CreateServiceTypeDialogProps) {
+  const t = useTranslations('settings');
+
   const [step, setStep] = useState(1);
   const [selectedReadingGroupIds, setSelectedReadingGroupIds] = useState<string[]>([]);
   const [selectedConsumableGroupIds, setSelectedConsumableGroupIds] = useState<string[]>([]);
@@ -188,10 +207,7 @@ export function CreateServiceTypeDialog({
     }))
   });
 
-  const photoGroupsNeedingFetch = useMemo(
-    () => photoGroups.filter((group) => !group.photoDefinitions),
-    [photoGroups]
-  );
+  const photoGroupsNeedingFetch = useMemo(() => photoGroups.filter((group) => !group.photoDefinitions), [photoGroups]);
 
   const photoDefinitionQueries = useQueries({
     queries: photoGroupsNeedingFetch.map((group) => ({
@@ -278,10 +294,7 @@ export function CreateServiceTypeDialog({
 
     selectorGroups.forEach((group) => {
       if (group.selectorDefinitions) {
-        map.set(
-          group.id,
-          formatPreviewNames(group.selectorDefinitions.map((definition) => definition.question))
-        );
+        map.set(group.id, formatPreviewNames(group.selectorDefinitions.map((definition) => definition.question)));
         return;
       }
       const query = fetchedById.get(group.id);
@@ -360,9 +373,9 @@ export function CreateServiceTypeDialog({
       selectorGroups: selectedSelectorGroupIds.map((selectorGroupId, order) => ({ selectorGroupId, order })),
       serviceTypeEmailPreferences: {
         sendAutomaticEmails: data.sendAutomaticEmails,
-        header: DEFAULT_EMAIL_HEADER,
+        header: translateMessage('settings.serviceTypes.defaultEmailHeader', DEFAULT_EMAIL_HEADER),
         body: null,
-        footer: DEFAULT_EMAIL_FOOTER,
+        footer: translateMessage('settings.serviceTypes.defaultEmailFooter', DEFAULT_EMAIL_FOOTER),
         technicianNotes: isFreePlan || !data.sendAutomaticEmails ? false : data.technicianNotes,
         sendReadingsGroups: isFreePlan || !data.sendAutomaticEmails ? false : data.sendReadingsGroups,
         sendConsumablesGroups: isFreePlan || !data.sendAutomaticEmails ? false : data.sendConsumablesGroups,
@@ -395,9 +408,9 @@ export function CreateServiceTypeDialog({
       }}
     >
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden border border-slate-200 p-0 sm:max-w-2xl">
-        <div className="shrink-0 space-y-5 border-b border-slate-200 px-6 pb-5 pt-6 pr-12">
+        <div className="shrink-0 space-y-5 border-b border-slate-200 px-6 pb-5 pr-12 pt-6">
           <DialogHeader>
-            <DialogTitle>Create Service Type</DialogTitle>
+            <DialogTitle>{t('serviceTypes.createTitle')}</DialogTitle>
             <DialogDescription>
               Set up a service type in three steps: basic info, linked groups, and email communication.
             </DialogDescription>
@@ -439,7 +452,7 @@ export function CreateServiceTypeDialog({
                           !isActive && !isComplete && 'text-slate-400'
                         )}
                       >
-                        {stepItem.label}
+                        {t(stepItem.label)}
                       </span>
                     </li>
                   );
@@ -466,9 +479,9 @@ export function CreateServiceTypeDialog({
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name *</FormLabel>
+                        <FormLabel>{t('fields.nameRequired')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Pool Cleaning" {...field} />
+                          <Input placeholder={t('serviceTypes.namePlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -480,10 +493,10 @@ export function CreateServiceTypeDialog({
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>{t('fields.description')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Brief description of what this service type includes..."
+                            placeholder={t('serviceTypes.descriptionPlaceholder')}
                             className="resize-none"
                             rows={3}
                             {...field}
@@ -499,15 +512,15 @@ export function CreateServiceTypeDialog({
                     name="checklistTemplateId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Checklist Template</FormLabel>
+                        <FormLabel>{t('serviceTypes.checklistTemplate')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a checklist template (optional)" />
+                              <SelectValue placeholder={t('serviceTypes.checklistPlaceholder')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="none">No template</SelectItem>
+                            <SelectItem value="none">{t('serviceTypes.noTemplate')}</SelectItem>
                             {checklistTemplates.map((template) => (
                               <SelectItem key={template.id} value={template.id}>
                                 {template.name} {template.isDefault && '(Default)'}
@@ -524,14 +537,12 @@ export function CreateServiceTypeDialog({
 
               {step === 2 && (
                 <div className="space-y-6">
-                  <p className="text-muted-foreground text-sm">
-                    Optionally link existing groups. Previews show what technicians will fill in for each group.
-                  </p>
+                  <p className="text-muted-foreground text-sm">{t('serviceTypes.linkGroupsHint')}</p>
 
                   <section className="space-y-3">
-                    <h4 className="text-sm font-semibold">Reading Groups</h4>
+                    <h4 className="text-sm font-semibold">{t('readings.groupsTitle')}</h4>
                     {readingGroups.length === 0 ? (
-                      <p className="text-muted-foreground text-sm">No reading groups available.</p>
+                      <p className="text-muted-foreground text-sm">{t('serviceTypes.noReadingGroups')}</p>
                     ) : (
                       <div className="space-y-2">
                         {readingGroups.map((group) => (
@@ -552,9 +563,9 @@ export function CreateServiceTypeDialog({
                   </section>
 
                   <section className="space-y-3">
-                    <h4 className="text-sm font-semibold">Consumable Groups</h4>
+                    <h4 className="text-sm font-semibold">{t('consumables.groupsTitle')}</h4>
                     {consumableGroups.length === 0 ? (
-                      <p className="text-muted-foreground text-sm">No consumable groups available.</p>
+                      <p className="text-muted-foreground text-sm">{t('serviceTypes.noConsumableGroups')}</p>
                     ) : (
                       <div className="space-y-2">
                         {consumableGroups.map((group) => (
@@ -575,9 +586,9 @@ export function CreateServiceTypeDialog({
                   </section>
 
                   <section className="space-y-3">
-                    <h4 className="text-sm font-semibold">Photo Groups</h4>
+                    <h4 className="text-sm font-semibold">{t('photos.groupsTitle')}</h4>
                     {photoGroups.length === 0 ? (
-                      <p className="text-muted-foreground text-sm">No photo groups available.</p>
+                      <p className="text-muted-foreground text-sm">{t('serviceTypes.noPhotoGroups')}</p>
                     ) : (
                       <div className="space-y-2">
                         {photoGroups.map((group) => (
@@ -598,9 +609,9 @@ export function CreateServiceTypeDialog({
                   </section>
 
                   <section className="space-y-3">
-                    <h4 className="text-sm font-semibold">Selector Groups</h4>
+                    <h4 className="text-sm font-semibold">{t('selectors.groupsTitle')}</h4>
                     {selectorGroups.length === 0 ? (
-                      <p className="text-muted-foreground text-sm">No selector groups available.</p>
+                      <p className="text-muted-foreground text-sm">{t('serviceTypes.noSelectorGroups')}</p>
                     ) : (
                       <div className="space-y-2">
                         {selectorGroups.map((group) => (
@@ -634,7 +645,9 @@ export function CreateServiceTypeDialog({
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4">
                         <div className="space-y-1">
-                          <FormLabel className="text-sm font-semibold text-gray-800">Send Automatic Emails</FormLabel>
+                          <FormLabel className="text-sm font-semibold text-gray-800">
+                            {t('serviceTypes.sendAutomaticEmails')}
+                          </FormLabel>
                           <p className="text-muted-foreground text-sm font-normal">
                             Automatically email clients when a service is completed
                           </p>
@@ -658,8 +671,12 @@ export function CreateServiceTypeDialog({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between gap-4 p-4">
                           <div className="space-y-1">
-                            <FormLabel className="text-sm font-semibold text-gray-800">Photo Groups</FormLabel>
-                            <p className="text-muted-foreground text-sm font-normal">Include photo groups in the email</p>
+                            <FormLabel className="text-sm font-semibold text-gray-800">
+                              {t('photos.groupsTitle')}
+                            </FormLabel>
+                            <p className="text-muted-foreground text-sm font-normal">
+                              {t('serviceTypes.includePhotoGroups')}
+                            </p>
                           </div>
                           <FormControl>
                             <Switch
@@ -678,8 +695,8 @@ export function CreateServiceTypeDialog({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between gap-4 p-4">
                           <GrowPlanSwitchLabel
-                            label="Technician Notes"
-                            description="Include technician notes in the email"
+                            label={t('serviceTypes.technicianNotes')}
+                            description={t('serviceTypes.includeTechnicianNotes')}
                             isFreePlan={isFreePlan}
                           />
                           <FormControl>
@@ -699,8 +716,8 @@ export function CreateServiceTypeDialog({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between gap-4 p-4">
                           <GrowPlanSwitchLabel
-                            label="Reading Groups"
-                            description="Include reading groups data in the email"
+                            label={t('readings.groupsTitle')}
+                            description={t('serviceTypes.includeReadings')}
                             isFreePlan={isFreePlan}
                           />
                           <FormControl>
@@ -720,8 +737,8 @@ export function CreateServiceTypeDialog({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between gap-4 p-4">
                           <GrowPlanSwitchLabel
-                            label="Consumable Groups"
-                            description="Include consumable groups data in the email"
+                            label={t('consumables.groupsTitle')}
+                            description={t('serviceTypes.includeConsumables')}
                             isFreePlan={isFreePlan}
                           />
                           <FormControl>
@@ -741,8 +758,8 @@ export function CreateServiceTypeDialog({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between gap-4 p-4">
                           <GrowPlanSwitchLabel
-                            label="Selector Groups"
-                            description="Include selector groups data in the email"
+                            label={t('selectors.groupsTitle')}
+                            description={t('serviceTypes.includeSelectors')}
                             isFreePlan={isFreePlan}
                           />
                           <FormControl>
@@ -762,8 +779,8 @@ export function CreateServiceTypeDialog({
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between gap-4 p-4">
                           <GrowPlanSwitchLabel
-                            label="Checklist"
-                            description="Include checklist data in the email"
+                            label={t('groups.checklist')}
+                            description={t('serviceTypes.includeChecklist')}
                             isFreePlan={isFreePlan}
                           />
                           <FormControl>
@@ -782,14 +799,26 @@ export function CreateServiceTypeDialog({
             </div>
 
             <DialogFooter className="shrink-0 flex-col gap-3 border-t border-slate-200 bg-white px-6 py-5 sm:flex-row sm:justify-between">
-              <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading} className="w-full sm:w-auto">
-                Cancel
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isLoading}
+                className="w-full sm:w-auto"
+              >
+                {t('actions.cancel')}
               </Button>
 
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 {step > 1 && (
-                  <Button type="button" variant="outline" onClick={handleBack} disabled={isLoading} className="w-full sm:w-auto">
-                    Back
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    disabled={isLoading}
+                    className="w-full sm:w-auto"
+                  >
+                    {t('actions.back')}
                   </Button>
                 )}
 
@@ -801,7 +830,7 @@ export function CreateServiceTypeDialog({
                   disabled={isLoading}
                   className="w-full sm:w-auto"
                 >
-                  {step < 3 ? 'Next' : isLoading ? 'Creating...' : 'Create Service Type'}
+                  {step < 3 ? t('actions.next') : isLoading ? t('actions.creating') : t('serviceTypes.create')}
                 </Button>
               </div>
             </DialogFooter>

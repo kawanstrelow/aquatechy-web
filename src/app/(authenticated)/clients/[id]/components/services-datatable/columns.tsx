@@ -2,8 +2,10 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
+
+import { translateMessage } from '@/i18n/runtime';
+import { Button } from '@/components/ui/button';
 
 import { Service } from '@/ts/interfaces/Service';
 import DeleteServiceDialog from './cancel-dialog';
@@ -11,32 +13,45 @@ import DeleteServiceDialog from './cancel-dialog';
 export const columns: ColumnDef<Service>[] = [
   {
     accessorKey: 'scheduledTo',
-    header: 'Scheduled to',
+    header: () => translateMessage('clients.columns.scheduledTo', 'Scheduled to'),
     cell: (props) => {
-      const formattedDate = format(new Date(props.row.original.scheduledTo!), "iiii, MMM do 'at' h:mm aaaa");
+      const date = new Date(props.row.original.scheduledTo!);
+      const formattedDate = translateMessage('clients.service.atTime', '{date} at {time}')
+        .replace('{date}', format(date, 'iiii, MMM do'))
+        .replace('{time}', format(date, 'h:mm aaaa'));
       return <span className="flex text-nowrap">{formattedDate}</span>;
     }
   },
   {
-    header: 'Status',
+    id: 'status',
+    header: () => translateMessage('clients.columns.status', 'Status'),
     cell: (props) => {
       const status = props.row.original.status;
-      return <span className="text-nowrap capitalize">{status.toLowerCase()}</span>;
+      return (
+        <span className="text-nowrap">{translateMessage(`clients.serviceStatus.${status}`, status.toLowerCase())}</span>
+      );
     }
   },
   {
-    header: 'Completed',
+    id: 'completed',
+    header: () => translateMessage('clients.columns.completed', 'Completed'),
     cell: (props) => {
       const { completedAt, completedByUser } = props.row.original;
 
       if (!completedAt || !completedByUser) return <div></div>;
 
-      const formattedDate = format(new Date(completedAt), "iiii, MMM do 'at' h:mm aaaa");
+      const date = new Date(completedAt);
+      const formattedDate = translateMessage('clients.service.atTime', '{date} at {time}')
+        .replace('{date}', format(date, 'iiii, MMM do'))
+        .replace('{time}', format(date, 'h:mm aaaa'));
       return (
         <div className="text-nowrap">
           <span>{formattedDate}</span>
           <span className="text-muted-foreground text-sm">
-            by {completedByUser.firstName} {completedByUser.lastName}
+            {translateMessage('clients.service.completedBy', 'by {name}').replace(
+              '{name}',
+              `${completedByUser.firstName} ${completedByUser.lastName}`
+            )}
           </span>
         </div>
       );

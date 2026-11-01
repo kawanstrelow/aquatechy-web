@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -12,6 +13,7 @@ import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import { useUserStore } from '@/store/user';
 
 function PaymentsSettingsContent() {
+  const t = useTranslations('settings');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data: companies = [], isLoading } = useGetCompanies();
@@ -46,29 +48,29 @@ function PaymentsSettingsContent() {
     <div className="flex flex-col gap-6 p-2">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Payments</h1>
+          <h1 className="text-2xl font-bold">{t('payments.title')}</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Connect Stripe so clients can pay invoices online. After Stripe onboarding you return here (e.g.{' '}
-            <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">/settings/payments?status=return</code>
-            ). You can also manage Connect under Company Preferences → Invoice Settings → Online Payments.
+            {t.rich('payments.description', {
+              code: (chunks) => <code className="rounded bg-slate-100 px-1 py-0.5 text-xs">{chunks}</code>
+            })}
           </p>
         </div>
         <Link
           href="/invoices/settings?tab=payments"
           className="shrink-0 text-sm font-medium text-sky-700 hover:text-sky-900"
         >
-          Invoice Settings → Online Payments
+          {t('payments.invoiceSettingsLink')}
         </Link>
       </div>
 
       {companies.length === 0 ? (
-        <p className="text-sm text-slate-600">No companies yet. Create a company to manage billing settings.</p>
+        <p className="text-sm text-slate-600">{t('payments.noCompanies')}</p>
       ) : (
         <>
           <div className="w-full max-w-md">
             <Select value={selectedCompany?.id ?? ''} onValueChange={handleCompanyChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a company" />
+                <SelectValue placeholder={t('payments.selectCompany')} />
               </SelectTrigger>
               <SelectContent>
                 {companies.map((company) => (

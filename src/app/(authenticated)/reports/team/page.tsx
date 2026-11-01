@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowRight, FileBarChartIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { borderedButtonClass } from '../_components/ReportChrome';
 
 export default function TeamReportsPage() {
+  const t = useTranslations('reports');
   const { data: technicians, isLoading, error } = useGetTechnicianSummary();
 
   if (isLoading) {
@@ -24,16 +26,16 @@ export default function TeamReportsPage() {
           <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-canvas">
             <FileBarChartIcon className="h-4 w-4 text-accent" />
           </span>
-          Filter cleaning punctuality
+          {t('team.punctualityTitle')}
         </h2>
-        <p className="mt-2 text-sm text-ink-muted">On-time filter cleaning for each technician</p>
+        <p className="mt-2 text-sm text-ink-muted">{t('team.punctualityDescription')}</p>
       </div>
 
       <div className="space-y-3 px-5 py-5">
         {error ? (
-          <p className="text-sm text-danger">Error loading team data</p>
+          <p className="text-sm text-danger">{t('team.loadError')}</p>
         ) : !technicians || technicians.length === 0 ? (
-          <p className="text-sm text-ink-muted">No technician data available</p>
+          <p className="text-sm text-ink-muted">{t('team.empty')}</p>
         ) : (
           technicians.slice(0, 3).map((tech) => (
             <div
@@ -42,11 +44,13 @@ export default function TeamReportsPage() {
             >
               <div>
                 <p className="font-medium text-ink">{tech.name}</p>
-                <p className="text-sm text-ink-muted">{tech.pools} pools assigned</p>
+                <p className="text-sm text-ink-muted">{t('team.poolsAssigned', { count: tech.pools })}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-accent">{tech.onTimePercentage}% on-time</p>
-                <p className="text-xs text-ink-muted">{tech.overdueCount} overdue</p>
+                <p className="text-sm font-medium text-accent">
+                  {t('team.onTimePercent', { percent: tech.onTimePercentage })}
+                </p>
+                <p className="text-xs text-ink-muted">{t('team.overdueCount', { count: tech.overdueCount })}</p>
               </div>
             </div>
           ))
@@ -56,7 +60,7 @@ export default function TeamReportsPage() {
       <div className="border-t border-line px-5 py-4">
         <Button variant="outline" className={cn(borderedButtonClass, 'w-full')} asChild>
           <Link href="/reports/team/technicians">
-            View all technicians
+            {t('team.viewAllTechnicians')}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>

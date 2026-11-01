@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
@@ -14,7 +23,7 @@ import { CreateSelectorOptionRequest, SelectorDefinition, SelectorOption } from 
 
 const SELECTOR_LIMITS = {
   optionText: { min: 1, max: 50 },
-  optionValue: { min: 1, max: 50 },
+  optionValue: { min: 1, max: 50 }
 } as const;
 
 function generateSelectorOptionValueFromText(text: string): string {
@@ -30,7 +39,7 @@ function generateSelectorOptionValueFromText(text: string): string {
 function getGeneratedOptionValueFromTextError(displayText: string): string | undefined {
   const value = generateSelectorOptionValueFromText(displayText);
   if (value.length < SELECTOR_LIMITS.optionValue.min) {
-    return 'Display text must yield a non-empty value (use letters or numbers).';
+    return 'settings.errors.displayTextYield';
   }
   if (value.length > SELECTOR_LIMITS.optionValue.max) {
     return `Value is too long (${value.length} characters). Use a shorter display text (max ${SELECTOR_LIMITS.optionValue.max} characters in the generated value).`;
@@ -41,12 +50,12 @@ function getGeneratedOptionValueFromTextError(displayText: string): string | und
 const selectorOptionTextSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.optionText.min, 'Display text is required')
-  .max(SELECTOR_LIMITS.optionText.max, `Display text must be at most ${SELECTOR_LIMITS.optionText.max} characters`);
+  .min(SELECTOR_LIMITS.optionText.min, 'settings.errors.displayTextRequired')
+  .max(SELECTOR_LIMITS.optionText.max, 'settings.errors.displayTextMax');
 
 const createSelectorOptionSchema = z
   .object({
-    text: selectorOptionTextSchema,
+    text: selectorOptionTextSchema
   })
   .superRefine((data, ctx) => {
     const msg = getGeneratedOptionValueFromTextError(data.text);
@@ -72,20 +81,22 @@ export function CreateSelectorOptionDialog({
   onSubmit,
   isLoading = false,
   selectorDefinition,
-  existingOptions,
+  existingOptions
 }: CreateSelectorOptionDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<CreateSelectorOptionFormData>({
     resolver: zodResolver(createSelectorOptionSchema),
     defaultValues: {
-      text: '',
-    },
+      text: ''
+    }
   });
 
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
       form.reset({
-        text: '',
+        text: ''
       });
     }
   }, [open, form]);
@@ -93,7 +104,7 @@ export function CreateSelectorOptionDialog({
   // Helper function to get next available order
   const getNextOrder = (): number => {
     if (existingOptions.length === 0) return 0;
-    const maxOrder = Math.max(...existingOptions.map(option => option.order));
+    const maxOrder = Math.max(...existingOptions.map((option) => option.order));
     return maxOrder + 1;
   };
 
@@ -104,7 +115,7 @@ export function CreateSelectorOptionDialog({
     onSubmit({
       text: data.text.trim(),
       value,
-      order,
+      order
     });
   };
 
@@ -112,11 +123,11 @@ export function CreateSelectorOptionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Selector Option</DialogTitle>
-        <DialogDescription>
-          Add a new option for: "{selectorDefinition?.question}"
+          <DialogTitle>{t('selectors.createOption')}</DialogTitle>
+          <DialogDescription>
+            Add a new option for: "{selectorDefinition?.question}"
             <br />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               Enter the display text and the value will be auto-generated.
             </span>
           </DialogDescription>
@@ -128,10 +139,10 @@ export function CreateSelectorOptionDialog({
               name="text"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Display Text *</FormLabel>
+                  <FormLabel>{t('selectors.displayText')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Excellent, Good, Fair, Poor, Yes, No, High, Medium, Low"
+                      placeholder={t('selectors.optionExamples')}
                       disabled={isLoading}
                       maxLength={SELECTOR_LIMITS.optionText.max}
                       {...field}
@@ -142,13 +153,12 @@ export function CreateSelectorOptionDialog({
               )}
             />
 
-
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Option'}
+                {isLoading ? t('actions.creating') : t('selectors.createOption')}
               </Button>
             </DialogFooter>
           </form>

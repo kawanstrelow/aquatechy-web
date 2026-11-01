@@ -6,6 +6,8 @@ import { useToast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { Service } from '@/ts/interfaces/Service';
 
+import { translateMessage } from '@/i18n/runtime';
+
 const updateServiceInstructionsSchema = z.object({
   serviceId: z
     .string({
@@ -35,7 +37,7 @@ export const useUpdateServiceInstructions = () => {
       // Create FormData for multipart/form-data request
       const formData = new FormData();
       formData.append('serviceId', validatedData.serviceId);
-      
+
       // Handle instructions field
       if (validatedData.instructions !== undefined) {
         if (validatedData.instructions === null || validatedData.instructions === '') {
@@ -47,8 +49,8 @@ export const useUpdateServiceInstructions = () => {
 
       const response = await clientAxios.patch('/services/', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
       return response.data;
@@ -57,36 +59,48 @@ export const useUpdateServiceInstructions = () => {
       // Invalidate and refetch relevant queries
       queryClient.invalidateQueries({ queryKey: ['services'] });
       queryClient.invalidateQueries({ queryKey: ['work-orders-services'] });
-      
+
       // Optionally update the specific service in cache
       queryClient.setQueryData(['service', data.service.id], data.service);
 
       toast({
-        title: 'Success',
-        description: 'Service instructions updated successfully',
-        variant: 'default',
+        title: translateMessage('toasts.success', 'Success'),
+        description: translateMessage(
+          'toasts.serviceInstructionsUpdatedSuccessfully',
+          'Service instructions updated successfully'
+        ),
+        variant: 'default'
       });
     },
     onError: (error) => {
       console.error('Error updating service instructions:', error);
-      
-      let errorMessage = 'Failed to update service instructions. Please try again.';
-      
+
+      let errorMessage = translateMessage(
+        'toasts.failedToUpdateServiceInstructionsPleaseTryAgain',
+        'Failed to update service instructions. Please try again.'
+      );
+
       if (error.response?.status === 404) {
-        errorMessage = 'Service not found or you don\'t have permission to update it.';
+        errorMessage = translateMessage(
+          'toasts.serviceNotFoundOrYouDontHavePermissionToUpdateIt',
+          "Service not found or you don't have permission to update it."
+        );
       } else if (error.response?.status === 401) {
-        errorMessage = 'Unauthorized. Please log in again.';
+        errorMessage = translateMessage('toasts.unauthorizedPleaseLogInAgain', 'Unauthorized. Please log in again.');
       } else if (error.response?.status === 400) {
-        errorMessage = 'Invalid data provided. Please check your input.';
+        errorMessage = translateMessage(
+          'toasts.invalidDataProvidedPleaseCheckYourInput',
+          'Invalid data provided. Please check your input.'
+        );
       } else if (error.response?.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
         errorMessage = (error.response.data as { message: string }).message;
       }
 
       toast({
-        title: 'Error',
+        title: translateMessage('toasts.error', 'Error'),
         description: errorMessage,
-        variant: 'destructive',
+        variant: 'destructive'
       });
-    },
+    }
   });
 };

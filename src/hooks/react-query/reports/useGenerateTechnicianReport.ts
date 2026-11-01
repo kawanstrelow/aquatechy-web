@@ -3,6 +3,8 @@ import { AxiosError } from 'axios';
 
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface ServiceTypeWithPayment {
   serviceTypeId: string;
   serviceTypeName: string;
@@ -79,8 +81,7 @@ export const useGenerateTechnicianReport = () => {
 
       const contentDisposition = response.headers['content-disposition'];
       const filename = contentDisposition
-        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') ||
-          `technician-report-${from}-to-${to}.pdf`
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') || `technician-report-${from}-to-${to}.pdf`
         : `technician-report-${from}-to-${to}.pdf`;
 
       link.download = filename;
@@ -94,7 +95,10 @@ export const useGenerateTechnicianReport = () => {
     onError: async (error: AxiosError) => {
       console.error('Error generating technician report:', error);
 
-      let errorMessage = 'Failed to generate report. Please try again.';
+      let errorMessage = translateMessage(
+        'toasts.failedToGenerateReportPleaseTryAgain',
+        'Failed to generate report. Please try again.'
+      );
 
       if (error.response?.data instanceof Blob) {
         try {

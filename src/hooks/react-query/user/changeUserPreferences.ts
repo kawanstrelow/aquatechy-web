@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type UserEmailPreferences = {
   sendEmails: boolean;
   attachChemicalsReadings: boolean;
@@ -23,7 +25,7 @@ export const useChangeUserPreferences = () => {
     onSuccess: () => {
       toast({
         duration: 2000,
-        title: 'Email preferences updated successfully',
+        title: translateMessage('toasts.emailPreferencesUpdatedSuccessfully', 'Email preferences updated successfully'),
         variant: 'success'
       });
     },
@@ -35,8 +37,13 @@ export const useChangeUserPreferences = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating preferences email settings',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage(
+          'toasts.errorUpdatingPreferencesEmailSettings',
+          'Error updating preferences email settings'
+        ),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

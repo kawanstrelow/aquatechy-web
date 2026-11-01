@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Info } from 'lucide-react';
@@ -55,6 +56,7 @@ interface EstimateCommunicationTabProps {
 }
 
 export function EstimateCommunicationTab({ companyId, userRole }: EstimateCommunicationTabProps) {
+  const t = useTranslations('invoices');
   const form = useFormContext<{ estimateCommunication: EstimateCommunication }>();
   const { mutate: updateSettings, isPending } = useUpdateEstimateCommunicationSettings(companyId || '');
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId || '');
@@ -118,47 +120,39 @@ export function EstimateCommunicationTab({ companyId, userRole }: EstimateCommun
       <form onSubmit={handleSubmit} className="space-y-6">
         <DocumentSmsToggle
           name="estimateCommunication.sendSms"
-          title="Send estimate SMS"
-          description="Also send an SMS when this company sends an estimate email. Uses your connected Quo or Twilio number, or Aquatechy’s number if none is connected. The client must have a phone number. SMS text is not customizable, and there is no per-client estimate SMS preference."
+          title={t('settings.sendEstimateSms')}
+          description={t('settings.sendEstimateSmsDescription')}
           canManage={canManageSettings}
           isFreePlan={isFreePlan}
         />
 
         <Alert className="border-blue-200 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="font-semibold text-blue-900">Estimate email templates</AlertTitle>
-          <AlertDescription className="mt-2 text-blue-800">
-            Customize emails sent when estimates are shared with clients and when your company is notified of
-            accept/decline events. Placeholders are replaced when emails are sent.
-          </AlertDescription>
+          <AlertTitle className="font-semibold text-blue-900">{t('settings.estimateTemplatesTitle')}</AlertTitle>
+          <AlertDescription className="mt-2 text-blue-800">{t('settings.estimateTemplatesHelp')}</AlertDescription>
         </Alert>
 
         {!canManageSettings && (
           <Alert>
-            <AlertTitle>View only</AlertTitle>
-            <AlertDescription>
-              Only owners and admins can update estimate email templates for this company.
-            </AlertDescription>
+            <AlertTitle>{t('settings.viewOnly')}</AlertTitle>
+            <AlertDescription>{t('settings.estimateViewOnly')}</AlertDescription>
           </Alert>
         )}
 
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-2 text-lg font-semibold">Client Estimate Email</h2>
-          <p className="mb-4 text-sm text-gray-500">
-            Sent to the client when you send an estimate. Accept/decline buttons, PDF attachment, and portal link are
-            always included by the system.
-          </p>
+          <h2 className="mb-2 text-lg font-semibold">{t('settings.clientEstimateEmail')}</h2>
+          <p className="mb-4 text-sm text-gray-500">{t('settings.clientEstimateEmailHelp')}</p>
           <VariableList variables={clientEstimateVariables} />
           <div className="space-y-4">
             <InputField
               name="estimateCommunication.estimateMessage.emailSubject"
-              label="Email Subject"
+              label={t('fields.emailSubject')}
               placeholder={DEFAULT_ESTIMATE_MESSAGE.emailSubject ?? ''}
               disabled={!canManageSettings}
             />
             <InputField
               name="estimateCommunication.estimateMessage.emailBody"
-              label="Email Body"
+              label={t('fields.emailBody')}
               placeholder={DEFAULT_ESTIMATE_MESSAGE.emailBody ?? ''}
               type={FieldType.TextArea}
               disabled={!canManageSettings}
@@ -167,21 +161,19 @@ export function EstimateCommunicationTab({ companyId, userRole }: EstimateCommun
         </div>
 
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-2 text-lg font-semibold">Acceptance Notification</h2>
-          <p className="mb-4 text-sm text-gray-500">
-            Sent to your company reply-to email (or company email) when a client or staff member accepts an estimate.
-          </p>
+          <h2 className="mb-2 text-lg font-semibold">{t('settings.acceptanceNotification')}</h2>
+          <p className="mb-4 text-sm text-gray-500">{t('settings.acceptanceNotificationHelp')}</p>
           <VariableList variables={acceptNotificationVariables} />
           <div className="space-y-4">
             <InputField
               name="estimateCommunication.acceptedNotificationMessage.emailSubject"
-              label="Email Subject"
+              label={t('fields.emailSubject')}
               placeholder={DEFAULT_ACCEPTED_NOTIFICATION_MESSAGE.emailSubject ?? ''}
               disabled={!canManageSettings}
             />
             <InputField
               name="estimateCommunication.acceptedNotificationMessage.emailBody"
-              label="Email Body"
+              label={t('fields.emailBody')}
               placeholder={DEFAULT_ACCEPTED_NOTIFICATION_MESSAGE.emailBody ?? ''}
               type={FieldType.TextArea}
               disabled={!canManageSettings}
@@ -190,21 +182,19 @@ export function EstimateCommunicationTab({ companyId, userRole }: EstimateCommun
         </div>
 
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-2 text-lg font-semibold">Decline Notification</h2>
-          <p className="mb-4 text-sm text-gray-500">
-            Sent to your company reply-to email (or company email) when a client or staff member declines an estimate.
-          </p>
+          <h2 className="mb-2 text-lg font-semibold">{t('settings.declineNotification')}</h2>
+          <p className="mb-4 text-sm text-gray-500">{t('settings.declineNotificationHelp')}</p>
           <VariableList variables={declineNotificationVariables} />
           <div className="space-y-4">
             <InputField
               name="estimateCommunication.declinedNotificationMessage.emailSubject"
-              label="Email Subject"
+              label={t('fields.emailSubject')}
               placeholder={DEFAULT_DECLINED_NOTIFICATION_MESSAGE.emailSubject ?? ''}
               disabled={!canManageSettings}
             />
             <InputField
               name="estimateCommunication.declinedNotificationMessage.emailBody"
-              label="Email Body"
+              label={t('fields.emailBody')}
               placeholder={DEFAULT_DECLINED_NOTIFICATION_MESSAGE.emailBody ?? ''}
               type={FieldType.TextArea}
               disabled={!canManageSettings}
@@ -214,7 +204,7 @@ export function EstimateCommunicationTab({ companyId, userRole }: EstimateCommun
 
         {canManageSettings && (
           <Button type="submit" disabled={isPending}>
-            {isPending ? 'Saving...' : 'Save Estimate Communication Settings'}
+            {isPending ? t('actions.saving') : t('settings.saveEstimateCommunication')}
           </Button>
         )}
       </form>

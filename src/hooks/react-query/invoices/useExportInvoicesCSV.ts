@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { clientAxios } from '@/lib/clientAxios';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export interface ExportInvoicesCSVParams {
   clientId?: string | null;
   companyOwnerId?: string | null;
@@ -19,7 +21,7 @@ export const useExportInvoicesCSV = () => {
     mutationFn: async (params: ExportInvoicesCSVParams): Promise<void> => {
       // Build query params - only include defined, non-null values
       const queryParams: Record<string, string> = {};
-      
+
       if (params.clientId) {
         queryParams.clientId = params.clientId;
       }
@@ -40,8 +42,8 @@ export const useExportInvoicesCSV = () => {
         params: queryParams,
         responseType: 'blob',
         headers: {
-          Accept: 'text/csv',
-        },
+          Accept: 'text/csv'
+        }
       });
 
       // Create blob from response
@@ -50,7 +52,7 @@ export const useExportInvoicesCSV = () => {
       // Extract filename from Content-Disposition header or use default
       const contentDisposition = response.headers['content-disposition'];
       let filename = `invoices-export-${new Date().toISOString().split('T')[0]}.csv`;
-      
+
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="(.+)"/);
         if (filenameMatch && filenameMatch[1]) {
@@ -75,12 +77,12 @@ export const useExportInvoicesCSV = () => {
     onSuccess: () => {
       toast({
         duration: 2000,
-        title: 'Invoices exported successfully',
+        title: translateMessage('toasts.invoicesExportedSuccessfully', 'Invoices exported successfully'),
         variant: 'success'
       });
     },
     onError: async (error: AxiosError) => {
-      let errorMessage = 'Failed to export invoices to CSV';
+      let errorMessage = translateMessage('toasts.failedToExportInvoicesToCsv', 'Failed to export invoices to CSV');
 
       // Handle blob error responses
       if (error.response?.data instanceof Blob) {
@@ -92,19 +94,21 @@ export const useExportInvoicesCSV = () => {
             : errorData.message || errorData.error || errorMessage;
         } catch {
           // If parsing fails, use default message based on status
-          errorMessage = error.response?.status === 403
-            ? 'Permission denied. You do not have access to export invoices.'
-            : error.response?.status === 400
-            ? 'Invalid filter parameters provided.'
-            : errorMessage;
+          errorMessage =
+            error.response?.status === 403
+              ? translateMessage(
+                  'toasts.permissionDeniedYouDoNotHaveAccessToExportInvoices',
+                  'Permission denied. You do not have access to export invoices.'
+                )
+              : error.response?.status === 400
+                ? translateMessage('toasts.invalidFilterParametersProvided', 'Invalid filter parameters provided.')
+                : errorMessage;
         }
       } else {
         // Handle regular JSON error responses
         const errorData = error.response?.data as { message?: string | string[]; error?: string };
         if (errorData?.message) {
-          errorMessage = Array.isArray(errorData.message)
-            ? errorData.message.join(', ')
-            : errorData.message;
+          errorMessage = Array.isArray(errorData.message) ? errorData.message.join(', ') : errorData.message;
         } else if (errorData?.error) {
           errorMessage = errorData.error;
         }
@@ -113,7 +117,7 @@ export const useExportInvoicesCSV = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error exporting invoices',
+        title: translateMessage('toasts.errorExportingInvoices', 'Error exporting invoices'),
         description: errorMessage
       });
     }
@@ -121,4 +125,3 @@ export const useExportInvoicesCSV = () => {
 
   return { mutate, mutateAsync, isPending };
 };
-

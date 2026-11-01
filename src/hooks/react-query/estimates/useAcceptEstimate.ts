@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { AcceptEstimateResponse } from '@/ts/interfaces/Estimate';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useAcceptEstimate = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -22,7 +24,9 @@ export const useAcceptEstimate = () => {
 
       toast({
         duration: 2000,
-        title: response.alreadyConverted ? 'Estimate was already accepted' : 'Estimate accepted — draft invoice created',
+        title: response.alreadyConverted
+          ? translateMessage('toasts.estimateWasAlreadyAccepted', 'Estimate was already accepted')
+          : translateMessage('toasts.estimateAcceptedDraftInvoiceCreated', 'Estimate accepted — draft invoice created'),
         variant: 'success'
       });
     },
@@ -30,12 +34,12 @@ export const useAcceptEstimate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to accept estimate';
+        : errorMessage || translateMessage('toasts.failedToAcceptEstimate', 'Failed to accept estimate');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error accepting estimate',
+        title: translateMessage('toasts.errorAcceptingEstimate', 'Error accepting estimate'),
         description: message
       });
     }

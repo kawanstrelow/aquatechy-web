@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { Building2, Clock, Loader2, MapPin, Route, Timer, User } from 'lucide-react';
 
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Weekdays } from '@/constants';
+import { translateMessage, translateOptionLabel } from '@/i18n/runtime';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useGetRouteEfficiencyReport } from '@/hooks/react-query/reports/useGetRouteEfficiencyReport';
 import { RouteEfficiencyReportEntry } from '@/ts/interfaces/RouteEfficiencyReport';
@@ -18,15 +20,18 @@ const fieldControlClass = 'w-full min-w-[240px] max-w-sm border border-slate-200
 
 function formatDriveTime(minutes: number | null): string {
   if (minutes == null) return '—';
-  if (minutes < 60) return `${minutes} min`;
+  const minuteLabel = translateMessage('reports.units.min', 'min');
+  const hourLabel = translateMessage('reports.units.hour', 'h');
+  const remainderLabel = translateMessage('reports.units.minute', 'm');
+  if (minutes < 60) return `${minutes} ${minuteLabel}`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  return m > 0 ? `${h}${hourLabel} ${m}${remainderLabel}` : `${h}${hourLabel}`;
 }
 
 function formatDistance(miles: number | null): string {
   if (miles == null) return '—';
-  return `${miles.toFixed(1)} mi`;
+  return `${miles.toFixed(1)} ${translateMessage('reports.units.miles', 'mi')}`;
 }
 
 function technicianDisplayName(entry: RouteEfficiencyReportEntry): string {
@@ -34,7 +39,8 @@ function technicianDisplayName(entry: RouteEfficiencyReportEntry): string {
 }
 
 function formatWeekday(weekday: string): string {
-  return Weekdays.find((day) => day.value === weekday)?.name ?? weekday;
+  const day = Weekdays.find((item) => item.value === weekday);
+  return day ? translateOptionLabel(day) : weekday;
 }
 
 type TechnicianRouteGroup = {
@@ -79,6 +85,7 @@ function groupReportByTechnician(report: RouteEfficiencyReportEntry[]): Technici
 }
 
 export default function RouteEfficiencyReportPage() {
+  const t = useTranslations('reports');
   const { data: companies = [], isLoading: isLoadingCompanies } = useGetCompanies();
   const [selectedCompany, setSelectedCompany] = useState('');
 
@@ -126,10 +133,10 @@ export default function RouteEfficiencyReportPage() {
   return (
     <div className="flex flex-col gap-6">
       <ReportHeader
-        title="Route Efficiency Report"
-        description="Planned route distance and time by technician and weekday"
+        title={t('routeEfficiency.title')}
+        description={t('routeEfficiency.description')}
         backHref="/reports/services"
-        backLabel="Back to service reports"
+        backLabel={t('back.serviceReports')}
       />
 
       <Card className="overflow-hidden border-line bg-surface shadow-lift">
@@ -141,12 +148,12 @@ export default function RouteEfficiencyReportPage() {
               </div>
               <div className="min-w-0 space-y-2">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Company</p>
-                  <p className="text-sm text-gray-500">Select the company whose routes to analyze</p>
+                  <p className="text-sm font-medium text-gray-900">{t('routeEfficiency.company')}</p>
+                  <p className="text-sm text-gray-500">{t('routeEfficiency.companyHint')}</p>
                 </div>
                 <Select value={selectedCompany} onValueChange={setSelectedCompany}>
                   <SelectTrigger id="company" className={fieldControlClass}>
-                    <SelectValue placeholder="Select a company" />
+                    <SelectValue placeholder={t('routeEfficiency.selectCompany')} />
                   </SelectTrigger>
                   <SelectContent>
                     {companies.map((company) => (
@@ -161,7 +168,9 @@ export default function RouteEfficiencyReportPage() {
 
             {selectedCompany && selectedCompanyName && (
               <div className="rounded-lg border border-line bg-canvas px-4 py-3 lg:min-w-[240px]">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Viewing</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  {t('routeEfficiency.viewing')}
+                </p>
                 <p className="mt-1 truncate text-sm font-semibold text-gray-900">{selectedCompanyName}</p>
               </div>
             )}
@@ -173,14 +182,14 @@ export default function RouteEfficiencyReportPage() {
             {isLoadingReportData ? (
               <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-500">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Loading route summary...
+                {t('routeEfficiency.loadingSummary')}
               </div>
             ) : error ? null : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <Route className="h-4 w-4 text-accent" />
-                    <span className="text-sm font-medium text-gray-600">Routes</span>
+                    <span className="text-sm font-medium text-gray-600">{t('routeEfficiency.routes')}</span>
                   </div>
                   <p className="text-3xl font-bold text-accent">{companyTotals.routes}</p>
                 </div>
@@ -188,7 +197,7 @@ export default function RouteEfficiencyReportPage() {
                 <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-accent" />
-                    <span className="text-sm font-medium text-gray-600">Total Stops</span>
+                    <span className="text-sm font-medium text-gray-600">{t('routeEfficiency.totalStops')}</span>
                   </div>
                   <p className="text-3xl font-bold text-accent">{companyTotals.stopCount}</p>
                 </div>
@@ -196,7 +205,7 @@ export default function RouteEfficiencyReportPage() {
                 <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-accent" />
-                    <span className="text-sm font-medium text-gray-600">Total Distance</span>
+                    <span className="text-sm font-medium text-gray-600">{t('routeEfficiency.totalDistance')}</span>
                   </div>
                   <p className="text-3xl font-bold text-accent">{formatDistance(companyTotals.totalDistanceInMiles)}</p>
                 </div>
@@ -204,7 +213,7 @@ export default function RouteEfficiencyReportPage() {
                 <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <Timer className="h-4 w-4 text-accent" />
-                    <span className="text-sm font-medium text-gray-600">Drive Time</span>
+                    <span className="text-sm font-medium text-gray-600">{t('routeEfficiency.driveTime')}</span>
                   </div>
                   <p className="text-3xl font-bold text-accent">
                     {formatDriveTime(companyTotals.totalDriveTimeInMinutes)}
@@ -214,7 +223,7 @@ export default function RouteEfficiencyReportPage() {
                 <div className="rounded-xl border border-line bg-canvas p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <Clock className="h-4 w-4 text-accent" />
-                    <span className="text-sm font-medium text-gray-600">Total route time (driving + stops)</span>
+                    <span className="text-sm font-medium text-gray-600">{t('routeEfficiency.totalRouteTime')}</span>
                   </div>
                   <p className="text-3xl font-bold text-accent">
                     {formatDriveTime(companyTotals.totalRouteTimeInMinutes)}
@@ -229,13 +238,13 @@ export default function RouteEfficiencyReportPage() {
       {!selectedCompany || isLoadingReportData ? null : error ? (
         <Card className="border-line bg-surface shadow-lift">
           <CardContent className="py-8 text-center">
-            <p className="text-danger">Error loading route efficiency report</p>
+            <p className="text-danger">{t('routeEfficiency.loadError')}</p>
           </CardContent>
         </Card>
       ) : technicianGroups.length === 0 ? (
         <Card className="border-line bg-surface shadow-lift">
           <CardContent className="py-8 text-center">
-            <p className="text-ink-muted">No active routes for this company</p>
+            <p className="text-ink-muted">{t('routeEfficiency.empty')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -250,16 +259,26 @@ export default function RouteEfficiencyReportPage() {
                       {group.name}
                     </CardTitle>
                     <CardDescription>
-                      {group.routes.length} route{group.routes.length === 1 ? '' : 's'} · {group.totals.stopCount} stop
-                      {group.totals.stopCount === 1 ? '' : 's'}
+                      {t('routeEfficiency.routeStopSummary', {
+                        routes: group.routes.length,
+                        routeLabel:
+                          group.routes.length === 1 ? t('routeEfficiency.route') : t('routeEfficiency.routesLabel'),
+                        stops: group.totals.stopCount,
+                        stopLabel:
+                          group.totals.stopCount === 1 ? t('routeEfficiency.stop') : t('routeEfficiency.stopsLabel')
+                      })}
                     </CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary" className="border border-line bg-canvas text-ink">
-                      {formatDistance(group.totals.totalDistanceInMiles)} total
+                      {t('routeEfficiency.distanceTotal', {
+                        distance: formatDistance(group.totals.totalDistanceInMiles)
+                      })}
                     </Badge>
                     <Badge variant="secondary" className="border border-line bg-canvas text-ink">
-                      {formatDriveTime(group.totals.totalRouteTimeInMinutes)} route time
+                      {t('routeEfficiency.routeTimeBadge', {
+                        time: formatDriveTime(group.totals.totalRouteTimeInMinutes)
+                      })}
                     </Badge>
                   </div>
                 </div>
@@ -269,15 +288,17 @@ export default function RouteEfficiencyReportPage() {
                   <table className="w-full border-collapse">
                     <thead className="bg-surface">
                       <tr className="border-b border-line bg-surface">
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Weekday</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Stops</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Distance</th>
-                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">Drive Time</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.weekday')}</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.stops')}</th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">{t('columns.distance')}</th>
                         <th className="bg-surface p-3 text-left font-medium text-ink-muted">
-                          Service time (20m per stop)
+                          {t('columns.driveTime')}
                         </th>
                         <th className="bg-surface p-3 text-left font-medium text-ink-muted">
-                          Total route time (driving + stops)
+                          {t('columns.serviceTime')}
+                        </th>
+                        <th className="bg-surface p-3 text-left font-medium text-ink-muted">
+                          {t('columns.totalRouteTime')}
                         </th>
                       </tr>
                     </thead>

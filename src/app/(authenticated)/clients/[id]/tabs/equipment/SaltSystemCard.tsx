@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { Droplets, Loader2Icon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
 import {
   AlertDialog,
@@ -39,6 +40,7 @@ export function SaltSystemCard({
   poolId,
   onClick
 }: SaltSystemCardProps) {
+  const t = useTranslations('clients');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const { mutate: updateSaltSystem } = useUpdateSaltSystem();
@@ -74,9 +76,9 @@ export function SaltSystemCard({
     <>
       <Droplets className="h-16 w-16 text-sky-600" aria-hidden />
       <div>
-        <p className="text-lg font-semibold text-gray-900">Salt system</p>
+        <p className="text-lg font-semibold text-gray-900">{t('equipment.saltSystem')}</p>
         {hasSaltSystem && model && <p className="mt-0.5 text-sm text-gray-500">{model}</p>}
-        {isInactive && <p className="mt-1 text-xs font-medium text-gray-500">Inactive</p>}
+        {isInactive && <p className="mt-1 text-xs font-medium text-gray-500">{t('equipment.inactive')}</p>}
       </div>
       {!hasSaltSystem && (
         <button
@@ -84,18 +86,16 @@ export function SaltSystemCard({
           onClick={() => setConfirmOpen(true)}
           className="text-sm font-medium text-sky-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
         >
-          Activate
+          {t('equipment.activate')}
         </button>
       )}
       {showMaintenance && (
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-gray-500">
-          {showLastCleaned && <span>Last cleaned {format(new Date(lastCleaningDate!), 'MMM d, yyyy')}</span>}
-          {showEmptyCleaning && <span>No cleaning recorded</span>}
-          {showRecordCount && (
-            <span>
-              {maintenanceCount} record{maintenanceCount === 1 ? '' : 's'}
-            </span>
+          {showLastCleaned && (
+            <span>{t('equipment.lastCleaned', { date: format(new Date(lastCleaningDate!), 'MMM d, yyyy') })}</span>
           )}
+          {showEmptyCleaning && <span>{t('equipment.noCleaning')}</span>}
+          {showRecordCount && <span>{t('equipment.records', { count: maintenanceCount })}</span>}
         </div>
       )}
     </>
@@ -119,27 +119,27 @@ export function SaltSystemCard({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Activate salt system?</AlertDialogTitle>
+            <AlertDialogTitle>{t('equipment.activateTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {isActivating ? 'Activating salt system...' : 'Are you sure you want to activate this salt system?'}
+              {isActivating ? t('equipment.activatingSystem') : t('equipment.activateConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             {isActivating ? (
               <div className="flex w-full items-center justify-center gap-2 py-1 text-sm text-gray-500">
                 <Loader2Icon className="h-4 w-4 animate-spin" />
-                Activating...
+                {t('shared.activating')}
               </div>
             ) : (
               <>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('shared.cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={(event) => {
                     event.preventDefault();
                     activate();
                   }}
                 >
-                  Confirm
+                  {t('shared.confirm')}
                 </AlertDialogAction>
               </>
             )}

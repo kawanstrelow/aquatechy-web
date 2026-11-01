@@ -3,6 +3,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
+import { translateMessage } from '@/i18n/runtime';
+
 import { EstimateListRow } from '../utils/estimateUiTypes';
 import { EstimateActions } from './components/EstimateActions';
 
@@ -41,13 +43,13 @@ export const createColumns = (
 ): ColumnDef<EstimateListRow>[] => [
   {
     accessorKey: 'estimateNumber',
-    header: 'Estimate Number',
+    header: () => translateMessage('invoices.columns.estimateNumber', 'Estimate Number'),
     cell: ({ row }) => <div className="font-semibold text-gray-900">{row.original.estimateNumber}</div>,
     enableGlobalFilter: true
   },
   {
     accessorKey: 'clientName',
-    header: 'Client',
+    header: () => translateMessage('invoices.columns.client', 'Client'),
     cell: ({ row }) => <div className="font-medium text-gray-900">{row.original.clientName}</div>,
     enableGlobalFilter: true,
     filterFn: (row, _, filter) => {
@@ -57,26 +59,22 @@ export const createColumns = (
   },
   {
     accessorKey: 'issuedDate',
-    header: 'Issued Date',
-    cell: ({ row }) => (
-      <div className="text-gray-700">{format(new Date(row.original.issuedDate), 'MMM dd, yyyy')}</div>
-    )
+    header: () => translateMessage('invoices.columns.issuedDate', 'Issued Date'),
+    cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.issuedDate), 'MMM dd, yyyy')}</div>
   },
   {
     accessorKey: 'validUntil',
-    header: 'Valid Until',
-    cell: ({ row }) => (
-      <div className="text-gray-700">{format(new Date(row.original.validUntil), 'MMM dd, yyyy')}</div>
-    )
+    header: () => translateMessage('invoices.columns.validUntil', 'Valid Until'),
+    cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.validUntil), 'MMM dd, yyyy')}</div>
   },
   {
     accessorKey: 'amount',
-    header: 'Amount',
+    header: () => translateMessage('invoices.columns.amount', 'Amount'),
     cell: ({ row }) => <div className="font-semibold text-gray-900">${row.original.amount.toFixed(2)}</div>
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: () => translateMessage('invoices.columns.status', 'Status'),
     cell: ({ row }) => {
       const statusConfig = statusOptions[row.original.status] || {
         className: 'bg-gray-100 text-gray-600',
@@ -86,7 +84,7 @@ export const createColumns = (
         <div
           className={`inline-flex max-w-28 items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold ${statusConfig.className}`}
         >
-          {statusConfig.label}
+          {translateMessage(`invoices.status.${row.original.status}`, statusConfig.label)}
         </div>
       );
     },
@@ -97,7 +95,7 @@ export const createColumns = (
   },
   {
     id: 'actions',
-    header: 'Actions',
+    header: () => translateMessage('invoices.columns.actions', 'Actions'),
     cell: ({ row }) => (
       <EstimateActions
         estimate={row.original}

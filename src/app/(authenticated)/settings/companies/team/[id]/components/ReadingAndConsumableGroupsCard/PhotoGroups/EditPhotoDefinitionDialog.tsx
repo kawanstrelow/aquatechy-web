@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,11 +24,11 @@ import { Switch } from '@/components/ui/switch';
 import { PhotoDefinition, UpdatePhotoDefinitionRequest } from '@/ts/interfaces/PhotoGroups';
 
 const updatePhotoDefinitionSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isRequired: z.boolean(),
   allowGallery: z.boolean(),
-  sendOnEmail: z.boolean(),
+  sendOnEmail: z.boolean()
 });
 
 interface EditPhotoDefinitionDialogProps {
@@ -37,6 +46,8 @@ export function EditPhotoDefinitionDialog({
   onSubmit,
   isLoading
 }: EditPhotoDefinitionDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof updatePhotoDefinitionSchema>>({
     resolver: zodResolver(updatePhotoDefinitionSchema),
     defaultValues: {
@@ -84,10 +95,8 @@ export function EditPhotoDefinitionDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Edit Photo Definition</DialogTitle>
-          <DialogDescription>
-            Update the photo definition information.
-          </DialogDescription>
+          <DialogTitle>{t('photos.editDefinition')}</DialogTitle>
+          <DialogDescription>{t('photos.editDefinitionDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -97,9 +106,9 @@ export function EditPhotoDefinitionDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name *</FormLabel>
+                  <FormLabel>{t('fields.nameRequired')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Before Photo, Equipment Photo" {...field} />
+                    <Input placeholder={t('photos.definitionPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -111,10 +120,10 @@ export function EditPhotoDefinitionDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of what this photo should capture..."
+                      placeholder={t('photos.definitionDescriptionPlaceholder')}
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -131,18 +140,11 @@ export function EditPhotoDefinitionDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Required
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      Mark this photo as required for service completion
-                    </p>
+                    <FormLabel className="text-base">{t('fields.required')}</FormLabel>
+                    <p className="text-muted-foreground text-sm">{t('photos.requiredHint')}</p>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
@@ -154,18 +156,13 @@ export function EditPhotoDefinitionDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Allow Gallery
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
+                    <FormLabel className="text-base">{t('photos.allowGallery')}</FormLabel>
+                    <p className="text-muted-foreground text-sm">
                       Allow users to select photos from gallery for this definition
                     </p>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
@@ -177,29 +174,24 @@ export function EditPhotoDefinitionDialog({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Send On Email
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
+                    <FormLabel className="text-base">{t('photos.sendOnEmail')}</FormLabel>
+                    <p className="text-muted-foreground text-sm">
                       Enable this option to send this photo when photo groups are enabled to be sent.
                     </p>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
             />
 
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end w-full">
+            <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Definition'}
+                {isLoading ? t('actions.updating') : t('actions.updateDefinition')}
               </Button>
             </DialogFooter>
           </form>
@@ -208,4 +200,3 @@ export function EditPhotoDefinitionDialog({
     </Dialog>
   );
 }
-

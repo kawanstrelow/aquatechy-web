@@ -1,6 +1,7 @@
 'use client';
 
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { useTranslations } from 'next-intl';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProductListRow } from '@/ts/interfaces/Product';
@@ -11,6 +12,7 @@ interface DataTableProductsProps<TValue> {
 }
 
 export function DataTableProducts<TValue>({ columns, data }: DataTableProductsProps<TValue>) {
+  const t = useTranslations('shopping');
   const table = useReactTable({
     data,
     columns,
@@ -34,10 +36,7 @@ export function DataTableProducts<TValue>({ columns, data }: DataTableProductsPr
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="border-b border-gray-100 transition-colors hover:bg-gray-50/50"
-              >
+              <TableRow key={row.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50/50">
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
@@ -52,7 +51,7 @@ export function DataTableProducts<TValue>({ columns, data }: DataTableProductsPr
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
-                No products found.
+                {t('noProducts')}
               </TableCell>
             </TableRow>
           )}

@@ -3,6 +3,7 @@ import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -38,15 +39,9 @@ import { OptimizeRouteModal } from './OptimizeRouteModal';
 import { DialogTransferCompleteRoute } from './ModalTransferCompleteRoute';
 
 export default function Page() {
-  const {
-    directions,
-    distance,
-    duration,
-    isLoaded,
-    loadError,
-    getDirectionsFromHereMaps,
-    clearDirections
-  } = useMapAssignmentsUtils();
+  const t = useTranslations('routes');
+  const { directions, distance, duration, isLoaded, loadError, getDirectionsFromHereMaps, clearDirections } =
+    useMapAssignmentsUtils();
 
   const [openTransferDialog, setOpenTransferDialog] = useState(false);
   const [isOptimizeModalOpen, setIsOptimizeModalOpen] = useState(false);
@@ -63,11 +58,11 @@ export default function Page() {
     const totalDist = currentAssignments.reduce((sum, assignment) => {
       return sum + (assignment.distanceInMilesToNextStop || 0);
     }, 0);
-    
+
     const totalDur = currentAssignments.reduce((sum, assignment) => {
       return sum + (assignment.timeInMinutesToNextStop || 0);
     }, 0);
-    
+
     return {
       totalDistance: totalDist > 0 ? `${totalDist.toFixed(1)} mi` : '',
       totalDuration: totalDur > 0 ? `${totalDur.toFixed(0)} min` : ''
@@ -158,7 +153,8 @@ export default function Page() {
       // It will be called when Save is clicked
       setHasChanges(true);
       setRequiresRecalculation(true);
-      console.log('has changes ', hasChanges);  console.log('requires recalculation ', requiresRecalculation);
+      console.log('has changes ', hasChanges);
+      console.log('requires recalculation ', requiresRecalculation);
     }
   }
 
@@ -282,17 +278,17 @@ export default function Page() {
                         {width
                           ? width < 1440
                             ? width < 768
-                              ? weekdaysLetter[index]
-                              : weekdaysShort[index]
-                            : weekday
-                          : weekday}
+                              ? t(`weekdaysLetter.${weekdayKeys[index]}`)
+                              : t(`weekdaysShort.${weekdayKeys[index]}`)
+                            : t(`weekdays.${weekdayKeys[index]}`)
+                          : t(`weekdays.${weekdayKeys[index]}`)}
                       </TabsTrigger>
                     ))}
                   </TabsList>
 
                   <MemberSelect onChange={handleChangeMember} />
 
-                  <div className="mt-2 flex flex-col gap-2 sm:flex-row mt-4">
+                  <div className="mt-2 mt-4 flex flex-col gap-2 sm:flex-row">
                     <DialogNewAssignment />
                     {currentAssignments.length > 0 && (
                       <Button
@@ -301,7 +297,7 @@ export default function Page() {
                         variant="secondary"
                         onClick={() => setOpenTransferDialog(true)}
                       >
-                        Transfer Entire Route
+                        {t('transferEntireRoute')}
                       </Button>
                     )}
                     <DialogTransferCompleteRoute
@@ -324,7 +320,7 @@ export default function Page() {
                         className="mt-2 w-full bg-blue-500 hover:bg-blue-700"
                         onClick={() => setIsOptimizeModalOpen(true)}
                       >
-                        Optimize Route
+                        {t('optimizeRoute')}
                       </Button>
                     )}
                     {hasChanges && (
@@ -336,7 +332,7 @@ export default function Page() {
                         // title='Save'
                       >
                         {/* {assignmentToId !== user?.id ?  'Save (only your technicians)' : 'Save'} */}
-                        Save
+                        {t('save')}
                       </Button>
                     )}
                   </div>
@@ -376,5 +372,4 @@ export default function Page() {
 export type FormSchema = z.infer<typeof newAssignmentSchema>;
 
 const weekdays: Weekdays[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const weekdaysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const weekdaysLetter = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const weekdayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;

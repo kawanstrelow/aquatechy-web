@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -17,23 +18,23 @@ import { RecurringInvoiceFrequency, PaymentTermsDays } from '@/ts/interfaces/Rec
 import { editInvoiceDefaultValuesSchema } from '@/schemas/invoiceDefaultValues';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-const frequencyOptions = [
-  { key: RecurringInvoiceFrequency.Weekly, value: RecurringInvoiceFrequency.Weekly, name: 'Weekly' },
-  { key: RecurringInvoiceFrequency.Monthly, value: RecurringInvoiceFrequency.Monthly, name: 'Monthly' },
-  { key: RecurringInvoiceFrequency.Each2Months, value: RecurringInvoiceFrequency.Each2Months, name: 'Every 2 Months' },
-  { key: RecurringInvoiceFrequency.Each3Months, value: RecurringInvoiceFrequency.Each3Months, name: 'Every 3 Months' },
-  { key: RecurringInvoiceFrequency.Each4Months, value: RecurringInvoiceFrequency.Each4Months, name: 'Every 4 Months' },
-  { key: RecurringInvoiceFrequency.Each6Months, value: RecurringInvoiceFrequency.Each6Months, name: 'Every 6 Months' },
-  { key: RecurringInvoiceFrequency.Yearly, value: RecurringInvoiceFrequency.Yearly, name: 'Yearly' }
+const frequencyValues = [
+  RecurringInvoiceFrequency.Weekly,
+  RecurringInvoiceFrequency.Monthly,
+  RecurringInvoiceFrequency.Each2Months,
+  RecurringInvoiceFrequency.Each3Months,
+  RecurringInvoiceFrequency.Each4Months,
+  RecurringInvoiceFrequency.Each6Months,
+  RecurringInvoiceFrequency.Yearly
 ];
 
-const paymentTermsOptions = [
-  { key: PaymentTermsDays.OneDay, value: PaymentTermsDays.OneDay, name: 'Due on 1 day' },
-  { key: PaymentTermsDays.ThreeDays, value: PaymentTermsDays.ThreeDays, name: 'Due on 3 days' },
-  { key: PaymentTermsDays.SevenDays, value: PaymentTermsDays.SevenDays, name: 'Due on 7 days' },
-  { key: PaymentTermsDays.FifteenDays, value: PaymentTermsDays.FifteenDays, name: 'Due on 15 days' },
-  { key: PaymentTermsDays.ThirtyDays, value: PaymentTermsDays.ThirtyDays, name: 'Due on 30 days' },
-  { key: PaymentTermsDays.SixtyDays, value: PaymentTermsDays.SixtyDays, name: 'Due on 60 days' }
+const paymentTermValues = [
+  PaymentTermsDays.OneDay,
+  PaymentTermsDays.ThreeDays,
+  PaymentTermsDays.SevenDays,
+  PaymentTermsDays.FifteenDays,
+  PaymentTermsDays.ThirtyDays,
+  PaymentTermsDays.SixtyDays
 ];
 
 interface DefaultValuesTabProps {
@@ -41,6 +42,17 @@ interface DefaultValuesTabProps {
 }
 
 export function DefaultValuesTab({ companyId }: DefaultValuesTabProps) {
+  const t = useTranslations('invoices');
+  const frequencyOptions = frequencyValues.map((value) => ({
+    key: value,
+    value,
+    name: t(`frequency.${value}`)
+  }));
+  const paymentTermsOptions = paymentTermValues.map((value) => ({
+    key: value,
+    value,
+    name: t(`paymentTerms.${value}`)
+  }));
 
   // Fetch company data to get default values preferences
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId || '');
@@ -51,7 +63,7 @@ export function DefaultValuesTab({ companyId }: DefaultValuesTabProps) {
       paymentInstructions: company?.preferences?.invoiceSettingsPreferences?.defaultValues?.paymentInstructions || '',
       notes: company?.preferences?.invoiceSettingsPreferences?.defaultValues?.notes || '',
       defaultFrequency: company?.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultFrequency || '',
-      defaultPaymentTerm: company?.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultPaymentTerm || '',
+      defaultPaymentTerm: company?.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultPaymentTerm || ''
     }
   });
 
@@ -63,7 +75,7 @@ export function DefaultValuesTab({ companyId }: DefaultValuesTabProps) {
         paymentInstructions: defaultValues?.paymentInstructions || '',
         notes: defaultValues?.notes || '',
         defaultFrequency: defaultValues?.defaultFrequency || undefined,
-        defaultPaymentTerm: defaultValues?.defaultPaymentTerm || undefined,
+        defaultPaymentTerm: defaultValues?.defaultPaymentTerm || undefined
       });
     }
   }, [company, isLoadingCompany, form]);
@@ -78,10 +90,10 @@ export function DefaultValuesTab({ companyId }: DefaultValuesTabProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyId) return;
-    
+
     // Get all four fields - API requires all-or-nothing
     const data = form.getValues();
-    
+
     // Ensure all four fields are provided together (API requirement)
     // Use defaults if any field is missing
     const requestData: InvoiceDefaultValues = {
@@ -90,60 +102,54 @@ export function DefaultValuesTab({ companyId }: DefaultValuesTabProps) {
       defaultFrequency: data.defaultFrequency as RecurringInvoiceFrequency,
       defaultPaymentTerm: data.defaultPaymentTerm as PaymentTermsDays
     };
-    
+
     updateSettings(requestData);
   };
-
 
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Default Values</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('settings.defaultValues')}</h2>
           <div className="space-y-4">
             <InputField
               name="paymentInstructions"
-              label="Payment Instructions"
-              placeholder="Enter default payment instructions"
+              label={t('fields.paymentInstructions')}
+              placeholder={t('placeholders.enterDefaultPaymentInstructions')}
               type={FieldType.TextArea}
             />
 
             <InputField
               name="notes"
-              label="Notes"
-              placeholder="Enter default notes"
+              label={t('fields.notes')}
+              placeholder={t('placeholders.enterDefaultNotes')}
               type={FieldType.TextArea}
             />
 
-            {
-              company?.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultFrequency && (
-                <SelectField
-                  name="defaultFrequency"
-                  label="Default Frequency"
-                  placeholder="Select default frequency"
-                  options={frequencyOptions}
-                  value={form.watch('defaultFrequency') as RecurringInvoiceFrequency}
-                />
-              )
-            }
+            {company?.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultFrequency && (
+              <SelectField
+                name="defaultFrequency"
+                label={t('settings.defaultFrequency')}
+                placeholder={t('placeholders.selectDefaultFrequency')}
+                options={frequencyOptions}
+                value={form.watch('defaultFrequency') as RecurringInvoiceFrequency}
+              />
+            )}
 
-            {
-              company?.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultPaymentTerm && (
-                <SelectField
-                  name="defaultPaymentTerm"
-                  label="Default Payment Term"
-                  placeholder="Select default payment term"
-                  options={paymentTermsOptions}
-                  value={form.watch('defaultPaymentTerm') as PaymentTermsDays}
-                />
-              ) 
-            }
-
+            {company?.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultPaymentTerm && (
+              <SelectField
+                name="defaultPaymentTerm"
+                label={t('settings.defaultPaymentTerm')}
+                placeholder={t('placeholders.selectDefaultPaymentTerm')}
+                options={paymentTermsOptions}
+                value={form.watch('defaultPaymentTerm') as PaymentTermsDays}
+              />
+            )}
           </div>
 
           <div className="mt-6">
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Default Values'}
+              {isPending ? t('actions.saving') : t('settings.saveDefaultValues')}
             </Button>
           </div>
         </div>
@@ -151,4 +157,3 @@ export function DefaultValuesTab({ companyId }: DefaultValuesTabProps) {
     </Form>
   );
 }
-

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { Plus, Trash2, Download, Loader2 } from 'lucide-react';
@@ -26,6 +27,7 @@ interface PhotosTabProps {
 }
 
 export default function PhotosTab({ pool, clientId }: PhotosTabProps) {
+  const t = useTranslations('clients');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingUrl, setDeletingUrl] = useState<string | null>(null);
   const [downloadingUrl, setDownloadingUrl] = useState<string | null>(null);
@@ -55,10 +57,7 @@ export default function PhotosTab({ pool, clientId }: PhotosTabProps) {
 
   const handleRemovePhoto = (url: string) => {
     setDeletingUrl(url);
-    updatePoolPhotos(
-      { poolId: pool.id, clientId, urlsToRemove: [url] },
-      { onSettled: () => setDeletingUrl(null) }
-    );
+    updatePoolPhotos({ poolId: pool.id, clientId, urlsToRemove: [url] }, { onSettled: () => setDeletingUrl(null) });
   };
 
   const handleDownloadPhoto = async (url: string, index: number) => {
@@ -90,7 +89,7 @@ export default function PhotosTab({ pool, clientId }: PhotosTabProps) {
           >
             <Image
               src={url}
-              alt="Pool photo"
+              alt={t('photos.poolPhoto')}
               fill
               className="object-cover transition-transform group-hover:scale-105"
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
@@ -106,7 +105,7 @@ export default function PhotosTab({ pool, clientId }: PhotosTabProps) {
                 onClick={() => handleDownloadPhoto(url, index)}
                 disabled={downloadingUrl === url}
                 className="rounded-full bg-gray-800/90 p-1.5 text-white shadow-lg transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 disabled:opacity-50"
-                aria-label="Download photo"
+                aria-label={t('photos.download')}
               >
                 {downloadingUrl === url ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -119,7 +118,7 @@ export default function PhotosTab({ pool, clientId }: PhotosTabProps) {
                 onClick={() => handleRemovePhoto(url)}
                 className="rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-colors hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:opacity-50"
                 disabled={isPending}
-                aria-label="Delete photo"
+                aria-label={t('photos.delete')}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -133,7 +132,7 @@ export default function PhotosTab({ pool, clientId }: PhotosTabProps) {
             onClick={handleAddPhotos}
             className="flex aspect-square w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-gray-400 hover:bg-gray-100 disabled:opacity-50"
             disabled={isPending}
-            aria-label="Add photos"
+            aria-label={t('photos.add')}
           >
             {isAdding ? (
               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -141,7 +140,7 @@ export default function PhotosTab({ pool, clientId }: PhotosTabProps) {
               <Plus className="h-8 w-8 text-gray-400" />
             )}
           </button>
-          <p className="text-sm font-medium text-gray-700">{isAdding ? 'Uploading...' : 'Add Photo'}</p>
+          <p className="text-sm font-medium text-gray-700">{isAdding ? t('shared.uploading') : t('shared.addPhoto')}</p>
         </div>
       </div>
 
@@ -154,9 +153,7 @@ export default function PhotosTab({ pool, clientId }: PhotosTabProps) {
         onChange={handleFileChange}
       />
 
-      {photos.length === 0 && !isAdding && (
-        <p className="text-sm text-gray-500">No photos have been added to this pool yet. Use the box above to add some.</p>
-      )}
+      {photos.length === 0 && !isAdding && <p className="text-sm text-gray-500">{t('photos.empty')}</p>}
     </div>
   );
 }

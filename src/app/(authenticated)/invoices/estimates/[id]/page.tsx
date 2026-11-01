@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { notFound, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -25,6 +26,7 @@ type Props = {
 };
 
 export default function EstimateDetailPage({ params: { id } }: Props) {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { data, isLoading, isError, error } = useGetEstimateById(id);
@@ -48,8 +50,8 @@ export default function EstimateDetailPage({ params: { id } }: Props) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <h2 className="mb-2 text-xl font-semibold text-gray-900">Error loading estimate</h2>
-          <p className="text-gray-600">{errorMessage || 'An unexpected error occurred'}</p>
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">{t('errors.loadEstimate')}</h2>
+          <p className="text-gray-600">{errorMessage || t('empty.unexpectedError')}</p>
         </div>
       </div>
     );
@@ -89,9 +91,7 @@ export default function EstimateDetailPage({ params: { id } }: Props) {
         onDecline={handleDecline}
         onDuplicate={handleDuplicate}
         onViewInvoice={
-          estimate.convertedInvoiceId
-            ? () => router.push(`/invoices/${estimate.convertedInvoiceId}`)
-            : undefined
+          estimate.convertedInvoiceId ? () => router.push(`/invoices/${estimate.convertedInvoiceId}`) : undefined
         }
         isSending={isSending}
         isDownloading={isDownloading}
@@ -105,10 +105,10 @@ export default function EstimateDetailPage({ params: { id } }: Props) {
       <ConfirmActionDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}
-        title="Cancel estimate"
-        description={`Cancel estimate #${estimate.estimateNumber}? It will remain in your records as cancelled.`}
-        confirmText={isCancelling ? 'Cancelling…' : 'Cancel estimate'}
-        cancelText="Close"
+        title={t('list.cancelEstimateTitle')}
+        description={t('list.cancelEstimateDescription', { number: estimate.estimateNumber })}
+        confirmText={isCancelling ? t('actions.cancelling') : t('list.cancelEstimateConfirm')}
+        cancelText={t('actions.close')}
         onConfirm={async () => {
           await cancelEstimate(id);
           setCancelDialogOpen(false);

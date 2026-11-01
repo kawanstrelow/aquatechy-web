@@ -3,6 +3,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { CreateSelectorDefinitionRequest, SelectorDefinitionResponse } from '@/ts/interfaces/SelectorGroups';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface CreateSelectorDefinitionParams {
   selectorGroupId: string;
   data: CreateSelectorDefinitionRequest;
@@ -13,7 +15,10 @@ export function useCreateSelectorDefinition() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ selectorGroupId, data }: CreateSelectorDefinitionParams): Promise<SelectorDefinitionResponse> => {
+    mutationFn: async ({
+      selectorGroupId,
+      data
+    }: CreateSelectorDefinitionParams): Promise<SelectorDefinitionResponse> => {
       const response = await clientAxios.post(`/selector-definitions/groups/${selectorGroupId}`, data);
       return response.data;
     },
@@ -23,7 +28,7 @@ export function useCreateSelectorDefinition() {
       queryClient.invalidateQueries({ queryKey: ['selectorOptions'] });
       toast({
         duration: 2000,
-        title: 'Question created successfully',
+        title: translateMessage('toasts.questionCreatedSuccessfully', 'Question created successfully'),
         variant: 'success'
       });
     },
@@ -31,9 +36,10 @@ export function useCreateSelectorDefinition() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error creating question',
-        description: error.response?.data?.message || 'Internal server error'
+        title: translateMessage('toasts.errorCreatingQuestion', 'Error creating question'),
+        description:
+          error.response?.data?.message || translateMessage('toasts.internalServerError', 'Internal server error')
       });
-    },
+    }
   });
 }

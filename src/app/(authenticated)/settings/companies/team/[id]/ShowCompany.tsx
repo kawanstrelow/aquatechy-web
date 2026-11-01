@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { format } from 'date-fns';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
@@ -40,6 +42,8 @@ function parseTab(value: string | null): CompanyTab {
 }
 
 function ShowCompanyInner({ company }: Props) {
+  const t = useTranslations('settings');
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -155,7 +159,7 @@ function ShowCompanyInner({ company }: Props) {
                     onClick={handleLogoLinkClick}
                     className="z-10 text-sm font-medium text-sky-600 underline underline-offset-2 hover:text-sky-700"
                   >
-                    Change logo
+                    {t('companies.changeLogo')}
                   </button>
                 </>
               )}
@@ -175,7 +179,7 @@ function ShowCompanyInner({ company }: Props) {
               <Dialog open={logoDialogOpen} onOpenChange={setLogoDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Update Company Logo</DialogTitle>
+                    <DialogTitle>{t('companies.updateLogoTitle')}</DialogTitle>
                   </DialogHeader>
                   <div className="flex flex-col items-center gap-4">
                     {selectedImage && (
@@ -193,7 +197,7 @@ function ShowCompanyInner({ company }: Props) {
                           />
                         </div>
                         <div className="w-full px-4">
-                          <p className="mb-2 text-sm text-gray-500">Zoom</p>
+                          <p className="mb-2 text-sm text-gray-500">{t('companies.zoom')}</p>
                           <Slider
                             value={[zoom]}
                             onValueChange={(value) => setZoom(value[0])}
@@ -206,10 +210,10 @@ function ShowCompanyInner({ company }: Props) {
                     )}
                     <div className="flex w-full justify-end gap-2">
                       <Button variant="outline" onClick={() => setLogoDialogOpen(false)}>
-                        Cancel
+                        {t('actions.cancel')}
                       </Button>
                       <Button onClick={handleSaveLogo} disabled={isPending}>
-                        {isPending ? 'Updating...' : 'Update Logo'}
+                        {isPending ? t('actions.updating') : t('companies.updateLogo')}
                       </Button>
                     </div>
                   </div>
@@ -220,20 +224,20 @@ function ShowCompanyInner({ company }: Props) {
             <div className="flex flex-row flex-wrap items-start justify-start gap-[18px] self-start lg:flex-col lg:flex-nowrap">
               <div className="inline-flex w-fit items-start justify-start gap-2">
                 <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="self-stretch text-sm font-medium text-gray-500">E-mail</div>
+                  <div className="self-stretch text-sm font-medium text-gray-500">{t('email')}</div>
                   <div className="self-stretch text-sm font-medium text-gray-800">{company.email}</div>
                 </div>
               </div>
               <div className="inline-flex w-fit items-start justify-start gap-2">
                 <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="self-stretch text-sm font-medium text-gray-500">Phone Number</div>
+                  <div className="self-stretch text-sm font-medium text-gray-500">{t('companies.phoneNumber')}</div>
                   <div className="self-stretch text-sm font-medium text-gray-800">{company.phone}</div>
                 </div>
               </div>
 
               <div className="inline-flex w-fit items-start justify-start gap-2">
                 <div className="inline-flex shrink grow basis-0 flex-col items-start justify-center gap-1">
-                  <div className="text-sm font-medium text-gray-500">Joined</div>
+                  <div className="text-sm font-medium text-gray-500">{t('companies.joined')}</div>
                   <div className="text-sm font-medium text-gray-800">
                     {format(new Date(company.createdAt), 'MMMM, dd, yyyy')}
                   </div>
@@ -251,7 +255,7 @@ function ShowCompanyInner({ company }: Props) {
                     className="w-full"
                     onClick={() => setDeleteDialogOpen(true)}
                   >
-                    Delete company
+                    {t('companies.deleteCompany')}
                   </Button>
                 </div>
                 <Dialog
@@ -263,22 +267,21 @@ function ShowCompanyInner({ company }: Props) {
                 >
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Delete company</DialogTitle>
-                      <DialogDescription>
-                        This permanently removes the company and related data such as clients and pools. This cannot be
-                        undone.
-                      </DialogDescription>
+                      <DialogTitle>{t('companies.deleteCompany')}</DialogTitle>
+                      <DialogDescription>{t('companies.deleteCompanyDescription')}</DialogDescription>
                     </DialogHeader>
                     <div className="flex flex-col gap-3">
                       <p className="text-sm text-gray-600">
-                        Type <span className="font-mono font-semibold">{DELETE_CONFIRMATION}</span> to confirm.
+                        {t.rich('companies.typeDeleteToConfirm', {
+                          token: (chunks) => <span className="font-mono font-semibold">{chunks}</span>
+                        })}
                       </p>
                       <Input
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.target.value)}
                         placeholder={DELETE_CONFIRMATION}
                         autoComplete="off"
-                        aria-label="Type DELETE to confirm"
+                        aria-label={t('companies.typeDeleteAria')}
                       />
                       <div className="flex justify-end gap-2">
                         <Button
@@ -289,7 +292,7 @@ function ShowCompanyInner({ company }: Props) {
                             setDeleteConfirmText('');
                           }}
                         >
-                          Cancel
+                          {t('actions.cancel')}
                         </Button>
                         <Button
                           type="button"
@@ -297,7 +300,7 @@ function ShowCompanyInner({ company }: Props) {
                           disabled={deleteConfirmText !== DELETE_CONFIRMATION || isDeletePending}
                           onClick={handleDeleteCompany}
                         >
-                          {isDeletePending ? 'Deleting…' : 'Delete permanently'}
+                          {isDeletePending ? t('actions.deleting') : t('companies.deletePermanently')}
                         </Button>
                       </div>
                     </div>
@@ -317,7 +320,7 @@ function ShowCompanyInner({ company }: Props) {
                 <div
                   className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'company_info' && selectedTabStyles}`}
                 >
-                  Basic Information
+                  {t('companies.basicInformation')}
                 </div>
                 {tab === 'company_info' && <div className="Rectangle2 h-0.5 self-stretch bg-gray-800" />}
               </div>
@@ -328,13 +331,13 @@ function ShowCompanyInner({ company }: Props) {
                 <div
                   className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'preferences' && selectedTabStyles}`}
                 >
-                  Preferences
+                  {t('companies.preferencesTab')}
                 </div>
                 {tab === 'preferences' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
               <div onClick={() => selectTab('team')} className="inline-flex flex-col items-start justify-start gap-2.5">
                 <div className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'team' && selectedTabStyles}`}>
-                  Team
+                  {t('companies.teamTab')}
                 </div>
                 {tab === 'team' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>
@@ -345,7 +348,7 @@ function ShowCompanyInner({ company }: Props) {
                 <div
                   className={`text-sm text-gray-500 hover:cursor-pointer ${tab === 'messages' && selectedTabStyles}`}
                 >
-                  Messages
+                  {t('companies.messagesTab')}
                 </div>
                 {tab === 'messages' && <div className="h-0.5 self-stretch bg-gray-800" />}
               </div>

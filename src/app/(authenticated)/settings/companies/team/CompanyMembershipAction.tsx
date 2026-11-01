@@ -1,6 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -28,6 +29,8 @@ type Props = {
 };
 
 export function CompanyMembershipAction({ companyId, companyName, membershipStatus }: Props) {
+  const t = useTranslations('settings');
+  const common = useTranslations('common');
   const queryClient = useQueryClient();
   const router = useRouter();
   const { data: companies } = useGetCompanies();
@@ -79,51 +82,48 @@ export function CompanyMembershipAction({ companyId, companyName, membershipStat
     <>
       <div className="flex w-full justify-center" onClick={(e) => e.stopPropagation()}>
         <Button type="button" variant={isActive ? 'outline' : 'default'} size="sm" onClick={() => setOpen(true)}>
-          {isActive ? 'Quit company' : 'Accept invitation'}
+          {isActive ? t('companies.quitCompany') : t('companies.acceptInvitation')}
         </Button>
       </div>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{isActive ? 'Leave this company?' : 'Accept invitation'}</DialogTitle>
+            <DialogTitle>{isActive ? t('companies.leaveCompanyTitle') : t('companies.acceptInvitation')}</DialogTitle>
             <DialogDescription>
-              {isActive ? (
-                <>
-                  You will lose access to {companyName} and its clients, pools, and services tied to your membership.
-                </>
-              ) : (
-                <>
-                  You will join {companyName} as {company.role}.
-                </>
-              )}
+              {isActive
+                ? t('companies.leaveCompanyDescription', { companyName })
+                : t('companies.joinCompanyDescription', {
+                    companyName,
+                    role: t.has(`roles.${company.role}`) ? t(`roles.${company.role}`) : company.role
+                  })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             {isActive ? (
               <>
-                <p className="text-sm text-muted-foreground">
-                  Type <span className="font-semibold">{QUIT_CONFIRMATION}</span> to confirm you want to leave.
+                <p className="text-muted-foreground text-sm">
+                  {t.rich('companies.typeQuitToConfirm', {
+                    token: (chunks) => <span className="font-semibold">{chunks}</span>
+                  })}
                 </p>
                 <Input
                   value={quitConfirmText}
                   onChange={(e) => setQuitConfirmText(e.target.value)}
                   placeholder={QUIT_CONFIRMATION}
                   autoComplete="off"
-                  aria-label="Type QUIT to confirm leaving the company"
+                  aria-label={t('companies.typeQuitAria')}
                 />
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Confirm below to activate your membership. You can change this later from company settings if needed.
-              </p>
+              <p className="text-muted-foreground text-sm">{t('companies.acceptMembershipHint')}</p>
             )}
           </div>
 
           <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={isBusy}>
-              Cancel
+              {common('cancel')}
             </Button>
             {isActive ? (
               <Button
@@ -132,11 +132,11 @@ export function CompanyMembershipAction({ companyId, companyName, membershipStat
                 disabled={quitConfirmText !== QUIT_CONFIRMATION || isBusy}
                 onClick={handleQuit}
               >
-                {isQuitting ? 'Leaving…' : 'Leave company'}
+                {isQuitting ? t('companies.leaving') : t('companies.leaveCompany')}
               </Button>
             ) : (
               <Button type="button" disabled={isBusy} onClick={handleAccept}>
-                {isAccepting ? 'Accepting…' : 'Accept invitation'}
+                {isAccepting ? t('companies.accepting') : t('companies.acceptInvitation')}
               </Button>
             )}
           </DialogFooter>

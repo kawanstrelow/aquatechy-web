@@ -6,6 +6,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import Cookies from 'js-cookie';
 import { Service, StructuredPhoto, PhotoDefinition } from '@/ts/interfaces/Service';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface AddPhotoData {
   photoDefinitionId: string;
   file: File;
@@ -18,12 +20,12 @@ export const useAddServicePhotos = () => {
   const userId = Cookies.get('userId');
 
   return useMutation({
-    mutationFn: async ({ 
-      serviceId, 
-      newPhotos, 
+    mutationFn: async ({
+      serviceId,
+      newPhotos,
       currentService
-    }: { 
-      serviceId: string; 
+    }: {
+      serviceId: string;
       newPhotos: AddPhotoData[];
       photoDefinitions: PhotoDefinition[];
       currentService: Service;
@@ -67,31 +69,28 @@ export const useAddServicePhotos = () => {
     onSuccess: (updatedService, { serviceId }) => {
       // Update the service in cache
       queryClient.setQueryData(['service', serviceId], updatedService);
-      
+
       // Update services query cache with the new service data
-      queryClient.setQueriesData(
-        { queryKey: ['services'], exact: false },
-        (oldData: any) => {
-          if (!oldData?.services) return oldData;
-          
-          const updatedServices = oldData.services.map((service: any) =>
-            service.id === serviceId ? updatedService.service : service
-          );
-          
-          return {
-            ...oldData,
-            services: updatedServices
-          };
-        }
-      );
-      
+      queryClient.setQueriesData({ queryKey: ['services'], exact: false }, (oldData: any) => {
+        if (!oldData?.services) return oldData;
+
+        const updatedServices = oldData.services.map((service: any) =>
+          service.id === serviceId ? updatedService.service : service
+        );
+
+        return {
+          ...oldData,
+          services: updatedServices
+        };
+      });
+
       // Invalidate related queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['services', userId] });
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
 
       toast({
         duration: 2000,
-        title: 'Photos added successfully',
+        title: translateMessage('toasts.photosAddedSuccessfully', 'Photos added successfully'),
         variant: 'success'
       });
     },
@@ -103,8 +102,10 @@ export const useAddServicePhotos = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error adding photos',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorAddingPhotos', 'Error adding photos'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

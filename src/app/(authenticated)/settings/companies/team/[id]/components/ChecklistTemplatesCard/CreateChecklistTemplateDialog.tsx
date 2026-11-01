@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,15 +25,15 @@ import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { CreateChecklistTemplateRequest } from '@/ts/interfaces/ChecklistTemplates';
 
 const checklistItemSchema = z.object({
-  label: z.string().min(1, 'Label is required').max(100, 'Label must be less than 100 characters'),
+  label: z.string().min(1, 'settings.errors.labelRequired').max(100, 'settings.errors.labelMax'),
   order: z.number().min(1)
 });
 
 const createChecklistTemplateSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isDefault: z.boolean().default(false),
-  items: z.array(checklistItemSchema).min(1, 'At least one checklist item is required')
+  items: z.array(checklistItemSchema).min(1, 'settings.errors.checklistItemRequired')
 });
 
 interface CreateChecklistTemplateDialogProps {
@@ -35,13 +44,15 @@ interface CreateChecklistTemplateDialogProps {
   companyId: string;
 }
 
-export function CreateChecklistTemplateDialog({ 
-  open, 
-  onOpenChange, 
-  onSubmit, 
-  isLoading, 
-  companyId 
+export function CreateChecklistTemplateDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading,
+  companyId
 }: CreateChecklistTemplateDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof createChecklistTemplateSchema>>({
     resolver: zodResolver(createChecklistTemplateSchema),
     defaultValues: {
@@ -72,9 +83,9 @@ export function CreateChecklistTemplateDialog({
   };
 
   const addItem = () => {
-    append({ 
-      label: '', 
-      order: fields.length + 1 
+    append({
+      label: '',
+      order: fields.length + 1
     });
   };
 
@@ -91,12 +102,10 @@ export function CreateChecklistTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Create Checklist Template</DialogTitle>
-          <DialogDescription>
-            Create a new checklist template that can be used for service reports. Templates help standardize your service checklists.
-          </DialogDescription>
+          <DialogTitle>{t('checklists.createTitle')}</DialogTitle>
+          <DialogDescription>{t('checklists.createDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -106,9 +115,9 @@ export function CreateChecklistTemplateDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Template Name *</FormLabel>
+                  <FormLabel>{t('checklists.templateName')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Pool Cleaning Checklist" {...field} />
+                    <Input placeholder={t('checklists.namePlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -120,10 +129,10 @@ export function CreateChecklistTemplateDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Brief description of what this template covers..."
+                    <Textarea
+                      placeholder={t('checklists.descriptionPlaceholder')}
                       className="resize-none"
                       rows={2}
                       {...field}
@@ -136,17 +145,17 @@ export function CreateChecklistTemplateDialog({
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <FormLabel>Checklist Items *</FormLabel>
+                <FormLabel>{t('checklists.itemsRequired')}</FormLabel>
                 <Button type="button" onClick={addItem} size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Item
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('checklists.addItem')}
                 </Button>
               </div>
 
-              <div className="space-y-3 max-h-60 overflow-y-auto">
+              <div className="max-h-60 space-y-3 overflow-y-auto">
                 {fields.map((field, index) => (
-                  <div key={field.id} className="flex items-start gap-2 p-3 border rounded-lg">
-                    <GripVertical className="h-4 w-4 text-muted-foreground mt-2 flex-shrink-0" />
+                  <div key={field.id} className="flex items-start gap-2 rounded-lg border p-3">
+                    <GripVertical className="text-muted-foreground mt-2 h-4 w-4 flex-shrink-0" />
                     <div className="flex-1 space-y-2">
                       <FormField
                         control={form.control}
@@ -154,10 +163,7 @@ export function CreateChecklistTemplateDialog({
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input 
-                                placeholder={`Item ${index + 1} (e.g., Vacuum pool floor)`}
-                                {...field}
-                              />
+                              <Input placeholder={t('checklists.itemPlaceholder', { index: index + 1 })} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -182,10 +188,10 @@ export function CreateChecklistTemplateDialog({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Template'}
+                {isLoading ? t('actions.creating') : t('checklists.create')}
               </Button>
             </DialogFooter>
           </form>

@@ -1,6 +1,7 @@
 'use client';
 
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -12,6 +13,7 @@ import { useUserStore } from '@/store/user';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 
 export default function Page() {
+  const t = useTranslations('settings');
   const user = useUserStore((state) => state.user);
   const { data: companies } = useGetCompanies();
 
@@ -34,11 +36,11 @@ export default function Page() {
         <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center">
           <Button onClick={() => router.push('/settings/companies/team/add-company')}>
             <PlusIcon className="mr-2" />
-            Add company
+            {t('companies.addCompany')}
           </Button>
 
           <Input
-            placeholder="Filter by name..."
+            placeholder={t('companies.filterByName')}
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             className="w-full min-w-0 md:flex-1"

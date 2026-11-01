@@ -7,36 +7,36 @@ const { address, city, notes, state, zipCode, volumeInGallons } = defaultSchemas
 export const poolSchema = z.object({
   poolAddress: address,
   animalDanger: z.boolean({
-    required_error: 'Animal danger is required.',
-    invalid_type_error: 'Animal danger must be a boolean.'
+    required_error: 'clients.errors.animalDangerRequired',
+    invalid_type_error: 'clients.errors.animalDangerBoolean'
   }),
   poolCity: city,
   enterSide: z
     .string({
-      required_error: 'Enter side is required.',
-      invalid_type_error: 'Enter side must be a string.'
+      required_error: 'clients.errors.enterSideRequired',
+      invalid_type_error: 'clients.errors.enterSideString'
     })
     .trim()
-    .min(1, { message: 'Enter side must be at least 1 character.' })
+    .min(1, { message: 'clients.errors.enterSideMin' })
     .optional(),
   lockerCode: z
     .string({
-      required_error: "lockerCode field is required, even if it's null.",
-      invalid_type_error: 'Locker code must be a string.'
+      required_error: 'clients.errors.lockerCodeRequired',
+      invalid_type_error: 'clients.errors.lockerCodeString'
     })
     .nullable()
     .optional(),
 
   poolNotes: notes,
   hasSaltSystem: z.enum(['true', 'false'], {
-    required_error: 'Salt system is required.',
-    invalid_type_error: 'Salt system must be yes or no.'
+    required_error: 'clients.errors.saltSystemRequired',
+    invalid_type_error: 'clients.errors.saltSystemYesNo'
   }),
   poolState: state,
   poolZip: zipCode,
   bodyOfWater: z
     .string({
-      invalid_type_error: 'Body of water must be a string.'
+      invalid_type_error: 'clients.errors.bodyOfWaterString'
     })
     .trim()
     .nullable()
@@ -47,40 +47,40 @@ export const poolSchema = z.object({
 
 const latitude = z
   .number({
-    invalid_type_error: 'Latitude must be a number.'
+    invalid_type_error: 'clients.errors.latitudeNumber'
   })
-  .min(-90, { message: 'Latitude must be between -90 and 90.' })
-  .max(90, { message: 'Latitude must be between -90 and 90.' });
+  .min(-90, { message: 'clients.errors.latitudeRange' })
+  .max(90, { message: 'clients.errors.latitudeRange' });
 
 const longitude = z
   .number({
-    invalid_type_error: 'Longitude must be a number.'
+    invalid_type_error: 'clients.errors.longitudeNumber'
   })
-  .min(-180, { message: 'Longitude must be between -180 and 180.' })
-  .max(180, { message: 'Longitude must be between -180 and 180.' });
+  .min(-180, { message: 'clients.errors.longitudeRange' })
+  .max(180, { message: 'clients.errors.longitudeRange' });
 
 export const editPoolSchema = z
   .object({
     poolId: z
       .string({
-        required_error: 'poolId is required.',
-        invalid_type_error: 'poolId must be a string.'
+        required_error: 'clients.errors.poolIdRequired',
+        invalid_type_error: 'clients.errors.poolIdString'
       })
       .trim()
-      .min(1, { message: 'poolId must be at least 1 character.' }),
+      .min(1, { message: 'clients.errors.poolIdMin' }),
     address: address.optional(),
     city: city.optional(),
     enterSide: z
       .string({
-        required_error: 'enterSide is required.',
-        invalid_type_error: 'enterSide must be a string.'
+        required_error: 'clients.errors.enterSideRequiredId',
+        invalid_type_error: 'clients.errors.enterSideStringId'
       })
       .trim()
       .optional(),
     lockerCode: z
       .string({
-        required_error: "lockerCode field is required, even if it's null.",
-        invalid_type_error: 'lockerCode must be a string.'
+        required_error: 'clients.errors.lockerCodeRequired',
+        invalid_type_error: 'clients.errors.lockerCodeStringId'
       })
       .optional(),
     state: defaultSchemas.state.optional(),
@@ -93,7 +93,7 @@ export const editPoolSchema = z
     addressLine2: z.optional(z.string().trim()),
     bodyOfWater: z
       .string({
-        invalid_type_error: 'Body of water must be a string.'
+        invalid_type_error: 'clients.errors.bodyOfWaterString'
       })
       .trim()
       .nullable()
@@ -111,7 +111,7 @@ export const editPoolSchema = z
 
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Latitude and longitude must both be set.',
+      message: 'clients.errors.latLngBoth',
       path: [hasLat ? 'lng' : 'lat']
     });
   });

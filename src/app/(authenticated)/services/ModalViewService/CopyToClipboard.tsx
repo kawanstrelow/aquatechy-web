@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { IoCopy } from 'react-icons/io5';
 
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export function CopyToClipboard({ value, Icon }: Props) {
+  const t = useTranslations('services');
   const { toast } = useToast();
 
   return (
@@ -20,7 +22,7 @@ export function CopyToClipboard({ value, Icon }: Props) {
         onClick={() => {
           navigator.clipboard.writeText(value);
           toast({
-            title: 'Copied successfully!',
+            title: t('copied'),
             variant: 'success',
             duration: 2000
           });

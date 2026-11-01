@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 
+import { translateMessage } from '@/i18n/runtime';
 import { Service } from '@/ts/interfaces/Service';
 import { ServiceStatus } from '@/ts/interfaces/Service';
 import { format } from 'date-fns';
@@ -28,37 +29,38 @@ const statusOptions: Record<ServiceStatus, { label: string; className: string }>
 export const columns: ColumnDef<Service>[] = [
   {
     accessorKey: 'client',
-    header: 'Client',
-    cell: ({ row: { original } }) => (
+    header: () => translateMessage('workOrders.columns.client', 'Client'),
+    cell: ({ row: { original } }) =>
       original.pool?.clientOwner ? (
-      <>
-        <div>
-          {original.pool?.clientOwner?.firstName} {original.pool?.clientOwner?.lastName}
-        </div>
-        <div>
-          {original.pool?.bodyOfWater ? `${original.pool?.bodyOfWater} - ` : ''}{original.pool?.address}{original.pool?.addressLine2 ? ` ${original.pool?.addressLine2}` : ''}, {original.pool?.city}, {original.pool?.state}, {original.pool?.zip}
-        </div>
-      </>
+        <>
+          <div>
+            {original.pool?.clientOwner?.firstName} {original.pool?.clientOwner?.lastName}
+          </div>
+          <div>
+            {original.pool?.bodyOfWater ? `${original.pool?.bodyOfWater} - ` : ''}
+            {original.pool?.address}
+            {original.pool?.addressLine2 ? ` ${original.pool?.addressLine2}` : ''}, {original.pool?.city},{' '}
+            {original.pool?.state}, {original.pool?.zip}
+          </div>
+        </>
       ) : (
         <>
           <div>
             {original.clientOwner?.firstName} {original.clientOwner?.lastName}
           </div>
           <div>
-            {original.pool?.bodyOfWater ? `${original.pool?.bodyOfWater} - ` : ''}{original.pool?.address}{original.pool?.addressLine2 ? ` ${original.pool?.addressLine2}` : ''}, {original.pool?.city}, {original.pool?.state}, {original.pool?.zip}
+            {original.pool?.bodyOfWater ? `${original.pool?.bodyOfWater} - ` : ''}
+            {original.pool?.address}
+            {original.pool?.addressLine2 ? ` ${original.pool?.addressLine2}` : ''}, {original.pool?.city},{' '}
+            {original.pool?.state}, {original.pool?.zip}
           </div>
         </>
       )
-    )
   },
   {
     accessorKey: 'scheduledTo',
-    header: 'Scheduled',
-    cell: ({ row: { original } }) => (
-      <div>
-        {format(new Date(original.scheduledTo), "EEE, MMM do")}
-      </div>
-    ),
+    header: () => translateMessage('workOrders.columns.scheduled', 'Scheduled'),
+    cell: ({ row: { original } }) => <div>{format(new Date(original.scheduledTo), 'EEE, MMM do')}</div>,
     filterFn: (row, columnId, value) => {
       let date: string | Date | null = row.original.scheduledTo;
 
@@ -68,7 +70,7 @@ export const columns: ColumnDef<Service>[] = [
       // vem do back como string
       if (typeof date === 'string') date = new Date(date);
       if (!date) return false;
-      
+
       if (start && !end) {
         return date.getTime() >= start.getTime();
       } else if (!start && end) {
@@ -80,10 +82,12 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     accessorKey: 'completedAt',
-    header: 'Completed',
+    header: () => translateMessage('workOrders.columns.completed', 'Completed'),
     cell: ({ row: { original } }) => (
       <div>
-        {original.completedAt ? format(new Date(original.completedAt), "EEE, MMM do") : "Open"}
+        {original.completedAt
+          ? format(new Date(original.completedAt), 'EEE, MMM do')
+          : translateMessage('workOrders.open', 'Open')}
       </div>
     ),
     filterFn: (row, columnId, value) => {
@@ -95,7 +99,7 @@ export const columns: ColumnDef<Service>[] = [
       // vem do back como string
       if (typeof date === 'string') date = new Date(date);
       if (!date) return false;
-      
+
       if (start && !end) {
         return date.getTime() >= start.getTime();
       } else if (!start && end) {
@@ -107,27 +111,24 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     accessorKey: 'serviceType',
-    header: 'Service Type',
+    header: () => translateMessage('workOrders.columns.serviceType', 'Service Type'),
     cell: ({ row: { original } }) => (
-      <div>
-        {original.serviceType?.name || 'N/A'}
-      </div>
+      <div>{original.serviceType?.name || translateMessage('workOrders.notAvailable', 'N/A')}</div>
     )
   },
   {
     accessorKey: 'instructions',
-    header: 'Instructions',
-    cell: ({ row: { original } }) => (
+    header: () => translateMessage('workOrders.columns.instructions', 'Instructions'),
+    cell: ({ row: { original } }) =>
       original.instructions && original.instructions !== 'N/A' ? (
-        <div className="truncate max-w-[200px]" title={original.instructions}>
+        <div className="max-w-[200px] truncate" title={original.instructions}>
           {original.instructions}
         </div>
       ) : null
-    )
   },
   {
     accessorKey: 'completedByUserId',
-    header: 'Assigned to',
+    header: () => translateMessage('workOrders.columns.assignedTo', 'Assigned to'),
     cell: ({ row: { original } }) => (
       <div>
         {original.assignedTo?.firstName} {original.assignedTo?.lastName}
@@ -136,16 +137,17 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: () => translateMessage('workOrders.columns.status', 'Status'),
     cell: ({ row: { original } }) => {
       const statusConfig = statusOptions[original.status] || { className: 'bg-gray-100 text-gray-600' };
+      const statusLabel = original.status
+        ? translateMessage(`workOrders.statuses.${original.status}`, statusConfig.label || original.status)
+        : translateMessage('workOrders.unknown', 'Unknown');
       return (
-        <div
-          className={`max-w-28 rounded-lg px-2 py-2 text-center font-semibold ${statusConfig.className}`}
-        >
-          {original.status || 'Unknown'}
+        <div className={`max-w-28 rounded-lg px-2 py-2 text-center font-semibold ${statusConfig.className}`}>
+          {statusLabel}
         </div>
       );
     }
-  },
+  }
 ];

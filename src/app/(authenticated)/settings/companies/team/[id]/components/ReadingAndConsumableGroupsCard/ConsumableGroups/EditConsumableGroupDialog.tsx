@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,8 +24,8 @@ import { Switch } from '@/components/ui/switch';
 import { ConsumableGroup, UpdateConsumableGroupRequest } from '@/ts/interfaces/ConsumableGroups';
 
 const updateConsumableGroupSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isActive: z.boolean()
 });
 
@@ -28,7 +37,15 @@ interface EditConsumableGroupDialogProps {
   isLoading: boolean;
 }
 
-export function EditConsumableGroupDialog({ open, onOpenChange, consumableGroup, onSubmit, isLoading }: EditConsumableGroupDialogProps) {
+export function EditConsumableGroupDialog({
+  open,
+  onOpenChange,
+  consumableGroup,
+  onSubmit,
+  isLoading
+}: EditConsumableGroupDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof updateConsumableGroupSchema>>({
     resolver: zodResolver(updateConsumableGroupSchema),
     defaultValues: {
@@ -65,10 +82,8 @@ export function EditConsumableGroupDialog({ open, onOpenChange, consumableGroup,
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Consumable Group</DialogTitle>
-          <DialogDescription>
-            Update the consumable group information. Note that default groups cannot be deactivated.
-          </DialogDescription>
+          <DialogTitle>{t('consumables.editGroup')}</DialogTitle>
+          <DialogDescription>{t('consumables.editGroupDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -78,9 +93,9 @@ export function EditConsumableGroupDialog({ open, onOpenChange, consumableGroup,
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name *</FormLabel>
+                  <FormLabel>{t('fields.nameRequired')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Chemicals" {...field} />
+                    <Input placeholder={t('consumables.groupPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -92,10 +107,10 @@ export function EditConsumableGroupDialog({ open, onOpenChange, consumableGroup,
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of what consumables this group contains..."
+                      placeholder={t('consumables.groupDescriptionPlaceholder')}
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -113,12 +128,12 @@ export function EditConsumableGroupDialog({ open, onOpenChange, consumableGroup,
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">
-                      Active
+                      {t('statuses.Active')}
                     </FormLabel>
                     <p className="text-sm text-muted-foreground">
                       {consumableGroup.isDefault
-                        ? 'This is a default group and cannot be deactivated'
-                        : 'Deactivate to hide this group from new service reports'
+                        ? t('groups.defaultCannotDeactivate')
+                        : t('groups.deactivateHint')
                       }
                     </p>
                   </div>
@@ -133,12 +148,12 @@ export function EditConsumableGroupDialog({ open, onOpenChange, consumableGroup,
               )}
             /> */}
 
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end w-full">
+            <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Group'}
+                {isLoading ? t('actions.updating') : t('actions.updateGroup')}
               </Button>
             </DialogFooter>
           </form>
@@ -147,4 +162,3 @@ export function EditConsumableGroupDialog({ open, onOpenChange, consumableGroup,
     </Dialog>
   );
 }
-

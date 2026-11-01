@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,19 +28,19 @@ import { CreateProductRequest, ProductCategory, ProductListRow, UpdateProductReq
 const productFieldsSchema = z
   .object({
     companyId: z.string().optional(),
-    name: z.string().trim().min(1, 'Name is required').max(200, 'Name must be at most 200 characters'),
-    description: z.string().max(1000, 'Description must be at most 1000 characters').optional(),
-    sku: z.string().max(50, 'SKU must be at most 50 characters').optional(),
-    unit: z.string().trim().min(1, 'Unit is required').max(50, 'Unit must be at most 50 characters'),
-    unitPrice: z.coerce.number().min(0, 'Price must be zero or greater'),
-    cost: z.coerce.number().min(0, 'Cost must be zero or greater').optional(),
+    name: z.string().trim().min(1, 'shopping.validation.nameRequired').max(200, 'shopping.validation.nameMax200'),
+    description: z.string().max(1000, 'shopping.validation.descriptionMax1000').optional(),
+    sku: z.string().max(50, 'shopping.validation.skuMax').optional(),
+    unit: z.string().trim().min(1, 'shopping.validation.unitRequired').max(50, 'shopping.validation.unitMax'),
+    unitPrice: z.coerce.number().min(0, 'shopping.validation.priceMin'),
+    cost: z.coerce.number().min(0, 'shopping.validation.costMin').optional(),
     categoryId: z.string().optional(),
     isTaxable: z.boolean(),
-    defaultTaxRate: z.coerce.number().min(0, 'Tax rate must be zero or greater').optional(),
+    defaultTaxRate: z.coerce.number().min(0, 'shopping.validation.taxMin').optional(),
     isActive: z.boolean().optional()
   })
   .refine((data) => !data.isTaxable || (data.defaultTaxRate !== undefined && data.defaultTaxRate >= 0), {
-    message: 'Tax rate is required when taxable',
+    message: 'shopping.validation.taxRequired',
     path: ['defaultTaxRate']
   });
 
@@ -136,6 +137,8 @@ export function ProductFormDialog({
   onSubmitEdit,
   isLoading
 }: ProductFormDialogProps) {
+  const t = useTranslations('shopping');
+  const common = useTranslations('common');
   const isCreate = mode === 'create';
 
   const form = useForm<ProductFormValues>({
@@ -182,7 +185,7 @@ export function ProductFormDialog({
   );
 
   const categoryOptions = [
-    { key: 'none', value: 'none', name: 'Uncategorized' },
+    { key: 'none', value: 'none', name: t('uncategorized') },
     ...categories
       .filter((category) => category.isActive)
       .map((category) => ({
@@ -240,11 +243,9 @@ export function ProductFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>{isCreate ? 'Add product' : 'Edit product'}</DialogTitle>
+          <DialogTitle>{isCreate ? t('productDialog.addTitle') : t('productDialog.editTitle')}</DialogTitle>
           <DialogDescription>
-            {isCreate
-              ? 'Select a company first, then enter the product details for that catalog.'
-              : 'Update product details in your catalog.'}
+            {isCreate ? t('productDialog.addDescription') : t('productDialog.editDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -255,17 +256,17 @@ export function ProductFormDialog({
                 {showCompanySelect ? (
                   <SelectField
                     name="companyId"
-                    label="Company *"
+                    label={t('productDialog.company')}
                     options={companyOptions}
-                    placeholder="Select company"
+                    placeholder={t('productDialog.selectCompany')}
                   />
                 ) : (
                   <>
                     <input type="hidden" {...form.register('companyId')} />
                     {companies.length === 1 && (
-                      <p className="text-sm text-muted-foreground">
-                        Company:{' '}
-                        <span className="font-medium text-foreground">{companies[0].name}</span>
+                      <p className="text-muted-foreground text-sm">
+                        {t('productDialog.companyLabel')}{' '}
+                        <span className="text-foreground font-medium">{companies[0].name}</span>
                       </p>
                     )}
                   </>
@@ -279,9 +280,9 @@ export function ProductFormDialog({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name *</FormLabel>
+                    <FormLabel>{t('productDialog.name')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Chlorine Tabs" {...field} />
+                      <Input placeholder={t('productDialog.namePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -294,9 +295,9 @@ export function ProductFormDialog({
                   name="sku"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>SKU</FormLabel>
+                      <FormLabel>{t('productDialog.sku')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Optional" {...field} />
+                        <Input placeholder={t('productDialog.optional')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -308,9 +309,9 @@ export function ProductFormDialog({
                   name="unit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Unit *</FormLabel>
+                      <FormLabel>{t('productDialog.unit')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. each, gallon" {...field} />
+                        <Input placeholder={t('productDialog.unitPlaceholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -324,7 +325,7 @@ export function ProductFormDialog({
                   name="unitPrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sell price (USD) *</FormLabel>
+                      <FormLabel>{t('productDialog.sellPrice')}</FormLabel>
                       <FormControl>
                         <Input type="number" min={0} step="0.01" placeholder="0.00" {...field} />
                       </FormControl>
@@ -338,13 +339,13 @@ export function ProductFormDialog({
                   name="cost"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cost (USD)</FormLabel>
+                      <FormLabel>{t('productDialog.cost')}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           min={0}
                           step="0.01"
-                          placeholder="Optional"
+                          placeholder={t('productDialog.optional')}
                           value={field.value ?? ''}
                           onChange={(event) => {
                             const value = event.target.value;
@@ -360,9 +361,9 @@ export function ProductFormDialog({
 
               <SelectField
                 name="categoryId"
-                label="Category"
+                label={t('productDialog.category')}
                 options={categoryOptions}
-                placeholder={canEditDetails ? 'Select category' : 'Select a company first'}
+                placeholder={canEditDetails ? t('productDialog.selectCategory') : t('productDialog.selectCompanyFirst')}
               />
 
               <FormField
@@ -370,9 +371,14 @@ export function ProductFormDialog({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t('productDialog.description')}</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Optional description" className="resize-none" rows={3} {...field} />
+                      <Textarea
+                        placeholder={t('productDialog.descriptionPlaceholder')}
+                        className="resize-none"
+                        rows={3}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -388,7 +394,7 @@ export function ProductFormDialog({
                       <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Taxable</FormLabel>
+                      <FormLabel>{t('productDialog.taxable')}</FormLabel>
                     </div>
                   </FormItem>
                 )}
@@ -400,7 +406,7 @@ export function ProductFormDialog({
                   name="defaultTaxRate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Default tax rate (%)</FormLabel>
+                      <FormLabel>{t('productDialog.taxRate')}</FormLabel>
                       <FormControl>
                         <Input type="number" min={0} step="0.01" placeholder="0" {...field} />
                       </FormControl>
@@ -420,10 +426,8 @@ export function ProductFormDialog({
                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Active</FormLabel>
-                        <p className="text-sm text-muted-foreground">
-                          Inactive products are hidden from active lists.
-                        </p>
+                        <FormLabel>{t('productDialog.active')}</FormLabel>
+                        <p className="text-muted-foreground text-sm">{t('productDialog.inactiveHint')}</p>
                       </div>
                     </FormItem>
                   )}
@@ -433,10 +437,14 @@ export function ProductFormDialog({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                Cancel
+                {common('cancel')}
               </Button>
               <Button type="submit" disabled={isLoading || (isCreate && !canEditDetails)}>
-                {isLoading ? 'Saving...' : isCreate ? 'Create product' : 'Save changes'}
+                {isLoading
+                  ? t('productDialog.saving')
+                  : isCreate
+                    ? t('productDialog.create')
+                    : t('productDialog.saveChanges')}
               </Button>
             </DialogFooter>
           </form>

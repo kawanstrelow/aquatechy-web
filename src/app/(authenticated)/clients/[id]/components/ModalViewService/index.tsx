@@ -16,6 +16,7 @@ import {
   Plus
 } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useState, useRef, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,16 @@ import { useResendServiceEmail } from '@/hooks/react-query/services/useResendSer
 import { useResendServiceSms } from '@/hooks/react-query/services/useResendServiceSms';
 import { useDeleteServicePhoto } from '@/hooks/react-query/services/useDeleteServicePhoto';
 import { useAddServicePhotos } from '@/hooks/react-query/services/useAddServicePhotos';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 
 type Props = {
   service: Service;
@@ -42,6 +52,7 @@ type Props = {
 };
 
 export function ModalViewService({ service, pool, open, setOpen }: Props) {
+  const t = useTranslations('clients');
   const resendEmailMutation = useResendServiceEmail();
   const resendSmsMutation = useResendServiceSms();
   const deletePhotoMutation = useDeleteServicePhoto();
@@ -64,11 +75,11 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
   const getStatusMessage = (status: string) => {
     switch (status) {
       case 'InProgress':
-        return 'Service is in progress.';
+        return t('service.inProgress');
       case 'Open':
-        return 'Service is still open.';
+        return t('service.stillOpen');
       case 'Skipped':
-        return 'Service was skipped.';
+        return t('service.skipped');
       default:
         return '';
     }
@@ -146,23 +157,25 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
   const confirmAddPhotos = () => {
     if (selectedFiles.length > 0 && currentService?.id) {
       // Get photo definitions from the service
-      const photoDefinitions = currentService.photosSnapshot?.flatMap(group => group.photoDefinitions) || [];
+      const photoDefinitions = currentService.photosSnapshot?.flatMap((group) => group.photoDefinitions) || [];
 
       // Filter for "After service" photo definitions
-      const afterServiceDefinitions = photoDefinitions.filter(def =>
-        def.name.toLowerCase().includes('after service') ||
-        def.name.toLowerCase().includes('after-service') ||
-        def.name.toLowerCase().includes('after')
+      const afterServiceDefinitions = photoDefinitions.filter(
+        (def) =>
+          def.name.toLowerCase().includes('after service') ||
+          def.name.toLowerCase().includes('after-service') ||
+          def.name.toLowerCase().includes('after')
       );
 
       // Use the first "After service" definition, or fallback to first available, or create a default one
-      const photoDefinitionId = afterServiceDefinitions.length > 0
-        ? afterServiceDefinitions[0].id
-        : photoDefinitions.length > 0
-        ? photoDefinitions[0].id
-        : 'default-photo-definition';
+      const photoDefinitionId =
+        afterServiceDefinitions.length > 0
+          ? afterServiceDefinitions[0].id
+          : photoDefinitions.length > 0
+            ? photoDefinitions[0].id
+            : 'default-photo-definition';
 
-      const newPhotos = selectedFiles.map(file => ({
+      const newPhotos = selectedFiles.map((file) => ({
         photoDefinitionId,
         file,
         notes: `Added photo - ${file.name}`
@@ -221,9 +234,10 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
     if (!currentService?.photosSnapshot) return [];
 
     return currentService.photosSnapshot.map((group: any) => {
-      const groupPhotos = currentService?.structuredPhotos?.filter(
-        (photo: any) => group.photoDefinitions.some((def: any) => def.id === photo.photoDefinitionId)
-      ) || [];
+      const groupPhotos =
+        currentService?.structuredPhotos?.filter((photo: any) =>
+          group.photoDefinitions.some((def: any) => def.id === photo.photoDefinitionId)
+        ) || [];
 
       return {
         ...group,
@@ -236,27 +250,30 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
     if (currentService?.readingsSnapshot) {
       return currentService.readingsSnapshot.map((group: any) => ({
         ...group,
-        readings: currentService?.readings?.filter((reading: any) =>
-          group.readingDefinitions.some((def: any) => def.id === reading.readingDefinitionId)
-        ) || []
+        readings:
+          currentService?.readings?.filter((reading: any) =>
+            group.readingDefinitions.some((def: any) => def.id === reading.readingDefinitionId)
+          ) || []
       }));
     }
 
     // Fallback to old structure
     if (currentService?.chemicalsReading) {
-      return [{
-        id: 'legacy',
-        name: 'Chemical Readings',
-        description: 'Legacy chemical readings',
-        readings: Object.entries(currentService.chemicalsReading).map(([key, value]) => ({
-          readingDefinitionId: key,
-          value: value,
-          readingDefinition: {
-            name: key.charAt(0).toUpperCase() + key.slice(1),
-            unit: key === 'ph' ? 'pH' : 'ppm'
-          }
-        }))
-      }];
+      return [
+        {
+          id: 'legacy',
+          name: t('service.chemicalReadings'),
+          description: t('service.legacyReadings'),
+          readings: Object.entries(currentService.chemicalsReading).map(([key, value]) => ({
+            readingDefinitionId: key,
+            value: value,
+            readingDefinition: {
+              name: key.charAt(0).toUpperCase() + key.slice(1),
+              unit: key === 'ph' ? 'pH' : 'ppm'
+            }
+          }))
+        }
+      ];
     }
 
     return [];
@@ -266,28 +283,35 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
     if (currentService?.consumablesSnapshot) {
       return currentService.consumablesSnapshot.map((group: any) => ({
         ...group,
-        consumables: currentService?.consumables?.filter((consumable: any) =>
-          group.consumableDefinitions.some((def: any) => def.id === consumable.consumableDefinitionId)
-        ) || []
+        consumables:
+          currentService?.consumables?.filter((consumable: any) =>
+            group.consumableDefinitions.some((def: any) => def.id === consumable.consumableDefinitionId)
+          ) || []
       }));
     }
 
     // Fallback to old structure
     if (currentService?.chemicalsSpent) {
-      return [{
-        id: 'legacy',
-        name: 'Chemicals Spent',
-        description: 'Legacy chemicals spent',
-        consumables: Object.entries(currentService.chemicalsSpent).map(([key, value]) => ({
-          consumableDefinitionId: key,
-          quantity: value,
-          consumableDefinition: {
-            name: key.charAt(0).toUpperCase() + key.slice(1),
-            unit: key === 'liquidChlorine' || key === 'muriaticAcid' ? 'gallon' :
-                  key === 'tablet' ? 'unit' : 'oz'
-          }
-        }))
-      }];
+      return [
+        {
+          id: 'legacy',
+          name: t('service.chemicalsSpent'),
+          description: t('service.legacyChemicals'),
+          consumables: Object.entries(currentService.chemicalsSpent).map(([key, value]) => ({
+            consumableDefinitionId: key,
+            quantity: value,
+            consumableDefinition: {
+              name: key.charAt(0).toUpperCase() + key.slice(1),
+              unit:
+                key === 'liquidChlorine' || key === 'muriaticAcid'
+                  ? t('service.gallon')
+                  : key === 'tablet'
+                    ? t('service.unit')
+                    : 'oz'
+            }
+          }))
+        }
+      ];
     }
 
     return [];
@@ -305,23 +329,48 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
     // Fallback to old checklist structure
     if (currentService?.checklist) {
       return [
-        { id: 'poolVacuumed', label: 'Pool Vacuumed', completed: currentService.checklist.poolVacuumed },
-        { id: 'skimmerCleaned', label: 'Skimmer Cleaned', completed: currentService.checklist.skimmerCleaned },
-        { id: 'tilesBrushed', label: 'Tiles Brushed', completed: currentService.checklist.tilesBrushed },
-        { id: 'pumpBasketCleaned', label: 'Pump Basket Cleaned', completed: currentService.checklist.pumpBasketCleaned },
-        { id: 'filterWashed', label: 'Filter Washed', completed: currentService.checklist.filterWashed },
-        { id: 'filterChanged', label: 'Filter Changed', completed: currentService.checklist.filterChanged },
-        { id: 'chemicalsAdjusted', label: 'Chemicals Adjusted', completed: currentService.checklist.chemicalsAdjusted }
+        {
+          id: 'poolVacuumed',
+          label: t('service.checklistItems.poolVacuumed'),
+          completed: currentService.checklist.poolVacuumed
+        },
+        {
+          id: 'skimmerCleaned',
+          label: t('service.checklistItems.skimmerCleaned'),
+          completed: currentService.checklist.skimmerCleaned
+        },
+        {
+          id: 'tilesBrushed',
+          label: t('service.checklistItems.tilesBrushed'),
+          completed: currentService.checklist.tilesBrushed
+        },
+        {
+          id: 'pumpBasketCleaned',
+          label: t('service.checklistItems.pumpBasketCleaned'),
+          completed: currentService.checklist.pumpBasketCleaned
+        },
+        {
+          id: 'filterWashed',
+          label: t('service.checklistItems.filterWashed'),
+          completed: currentService.checklist.filterWashed
+        },
+        {
+          id: 'filterChanged',
+          label: t('service.checklistItems.filterChanged'),
+          completed: currentService.checklist.filterChanged
+        },
+        {
+          id: 'chemicalsAdjusted',
+          label: t('service.checklistItems.chemicalsAdjusted'),
+          completed: currentService.checklist.chemicalsAdjusted
+        }
       ];
     }
 
     return [];
   };
 
-  const completedDurationSecs = getServiceDurationTotalSeconds(
-    currentService.startedAt,
-    currentService.completedAt
-  );
+  const completedDurationSecs = getServiceDurationTotalSeconds(currentService.startedAt, currentService.completedAt);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -329,16 +378,22 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
         <DialogHeader>
           <div className="flex items-center gap-2">
             <ListChecks className="h-6 w-6 text-[#364D9D]" />
-            <DialogTitle className="text-xl font-semibold">Service Report</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">{t('service.report')}</DialogTitle>
           </div>
 
           {currentService.status === 'Completed' && (
             <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
               <div className="flex-1">
-                {format(new Date(currentService?.completedAt || new Date()), "EEEE, MMMM do 'at' h:mm a")}
+                {t('service.atTime', {
+                  date: format(new Date(currentService?.completedAt || new Date()), 'EEEE, MMMM do'),
+                  time: format(new Date(currentService?.completedAt || new Date()), 'h:mm a')
+                })}
                 {completedDurationSecs != null && <> {formatServiceDurationModal(completedDurationSecs)}</>}
                 <span className="ml-1 font-medium">
-                  by {currentService?.completedByUser?.firstName || ''} {currentService?.completedByUser?.lastName || ''}
+                  {t('service.completedByLine', {
+                    firstName: currentService?.completedByUser?.firstName || '',
+                    lastName: currentService?.completedByUser?.lastName || ''
+                  })}
                 </span>
               </div>
             </div>
@@ -357,42 +412,44 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
             <Accordion type="single" collapsible defaultValue="photos" className="mt-4">
               {/* Service Photos Section - Always show */}
               <AccordionItem value="photos">
-                  <AccordionTrigger className="text-lg">
-                    <div className="flex items-center gap-2">
-                      <ImageIcon className="h-5 w-5 text-[#364D9D]" />
-                      <span className="text-md">Service Photos</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {hasPhotos() ? (
-                      currentService?.photosSnapshot && currentService?.photosSnapshot.length > 0 && currentService?.photos?.length === 0 ? (
+                <AccordionTrigger className="text-lg">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5 text-[#364D9D]" />
+                    <span className="text-md">{t('service.photos')}</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  {hasPhotos() ? (
+                    currentService?.photosSnapshot &&
+                    currentService?.photosSnapshot.length > 0 &&
+                    currentService?.photos?.length === 0 ? (
                       // New structured photos
                       <div className="space-y-4">
                         {getPhotoGroups().map((group: any, groupIndex: number) => (
                           <Card key={groupIndex}>
                             <CardHeader>
                               <CardTitle className="text-lg">{group.name}</CardTitle>
-                              {group.description && (
-                                <p className="text-sm text-gray-600">{group.description}</p>
-                              )}
+                              {group.description && <p className="text-sm text-gray-600">{group.description}</p>}
                             </CardHeader>
                             <CardContent>
                               {group.photos.length > 0 ? (
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                                   {group.photos.map((photo: any, photoIndex: number) => {
-                                    const photoDefinition = group.photoDefinitions?.find((def: any) => def.id === photo.photoDefinitionId);
+                                    const photoDefinition = group.photoDefinitions?.find(
+                                      (def: any) => def.id === photo.photoDefinitionId
+                                    );
                                     return (
                                       <div key={photoIndex} className="space-y-2">
                                         {photoDefinition && (
                                           <p className="text-sm font-medium text-gray-700">{photoDefinition.name}</p>
                                         )}
-                                        {photo.notes && (
-                                          <p className="text-xs text-gray-500">{photo.notes}</p>
-                                        )}
+                                        {photo.notes && <p className="text-xs text-gray-500">{photo.notes}</p>}
                                         <div className="group relative aspect-square overflow-hidden rounded-lg">
                                           <Image
                                             src={photo.url}
-                                            alt={photoDefinition?.name || `Service photo ${photoIndex + 1}`}
+                                            alt={
+                                              photoDefinition?.name || t('service.photoAlt', { index: photoIndex + 1 })
+                                            }
                                             layout="fill"
                                             className="object-cover transition-transform hover:scale-105"
                                           />
@@ -405,7 +462,6 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                                             <Trash2 className="h-3 w-3" />
                                           </button>
                                         </div>
-
                                       </div>
                                     );
                                   })}
@@ -418,12 +474,12 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                                     >
                                       <Plus className="h-8 w-8 text-gray-400" />
                                     </button>
-                                    <p className="text-sm font-medium text-gray-700">Add Photo</p>
+                                    <p className="text-sm font-medium text-gray-700">{t('shared.addPhoto')}</p>
                                   </div>
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center justify-center space-y-4">
-                                  <p className="text-sm text-gray-500">No photos available for this group.</p>
+                                  <p className="text-sm text-gray-500">{t('service.noPhotosInGroup')}</p>
                                   <button
                                     onClick={handleAddPhotos}
                                     className="flex aspect-square w-32 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-gray-400 hover:bg-gray-100"
@@ -431,7 +487,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                                   >
                                     <Plus className="h-8 w-8 text-gray-400" />
                                   </button>
-                                  <p className="text-sm font-medium text-gray-700">Add Photo</p>
+                                  <p className="text-sm font-medium text-gray-700">{t('shared.addPhoto')}</p>
                                 </div>
                               )}
                             </CardContent>
@@ -445,7 +501,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                           <div key={index} className="group relative aspect-square overflow-hidden rounded-lg">
                             <Image
                               src={photo.url}
-                              alt={`Service photo ${index + 1}`}
+                              alt={t('service.photoAlt', { index: index + 1 })}
                               layout="fill"
                               className="object-cover transition-transform hover:scale-105"
                             />
@@ -468,26 +524,26 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                           >
                             <Plus className="h-8 w-8 text-gray-400" />
                           </button>
-                          <p className="text-sm font-medium text-gray-700">Add Photo</p>
+                          <p className="text-sm font-medium text-gray-700">{t('shared.addPhoto')}</p>
                         </div>
                       </div>
                     )
-                    ) : (
-                      // No photos - show add photo button
-                      <div className="flex flex-col items-center justify-center space-y-4 py-8">
-                        <p className="text-sm text-gray-500">No photos have been added to this service yet.</p>
-                        <button
-                          onClick={handleAddPhotos}
-                          className="flex aspect-square w-32 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-gray-400 hover:bg-gray-100"
-                          disabled={addPhotosMutation.isPending}
-                        >
-                          <Plus className="h-8 w-8 text-gray-400" />
-                        </button>
-                        <p className="text-sm font-medium text-gray-700">Add Photos</p>
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
+                  ) : (
+                    // No photos - show add photo button
+                    <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                      <p className="text-sm text-gray-500">{t('service.noPhotosYet')}</p>
+                      <button
+                        onClick={handleAddPhotos}
+                        className="flex aspect-square w-32 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-gray-400 hover:bg-gray-100"
+                        disabled={addPhotosMutation.isPending}
+                      >
+                        <Plus className="h-8 w-8 text-gray-400" />
+                      </button>
+                      <p className="text-sm font-medium text-gray-700">{t('shared.addPhotos')}</p>
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
 
               {/* Readings Section */}
               {getReadingGroups().length > 0 && (
@@ -495,7 +551,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                   <AccordionTrigger className="text-lg">
                     <div className="flex items-center gap-2">
                       <Beaker className="h-5 w-5 text-[#364D9D]" />
-                      <span className="text-md">Readings</span>
+                      <span className="text-md">{t('service.readings')}</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
@@ -504,39 +560,41 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                         <Card key={groupIndex}>
                           <CardHeader>
                             <CardTitle className="text-lg">{group.name}</CardTitle>
-                            {group.description && (
-                              <p className="text-sm text-gray-600">{group.description}</p>
-                            )}
+                            {group.description && <p className="text-sm text-gray-600">{group.description}</p>}
                           </CardHeader>
                           <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                            {group.readings.length > 0 ? (
-                              group.readings.map((reading: any, readingIndex: number) => {
-                                // Find the reading definition from the group's readingDefinitions
-                                const readingDefinition = group.readingDefinitions?.find((def: any) => def.id === reading.readingDefinitionId);
-                                return (
-                                  <div key={readingIndex} className="rounded-lg bg-gray-50 p-3">
-                                    <div className="text-sm text-gray-500">
-                                      {readingDefinition?.name || reading.readingDefinitionId}
-                                      {readingDefinition?.unit && ` (${readingDefinition.unit})`}
+                            {group.readings.length > 0
+                              ? group.readings.map((reading: any, readingIndex: number) => {
+                                  // Find the reading definition from the group's readingDefinitions
+                                  const readingDefinition = group.readingDefinitions?.find(
+                                    (def: any) => def.id === reading.readingDefinitionId
+                                  );
+                                  return (
+                                    <div key={readingIndex} className="rounded-lg bg-gray-50 p-3">
+                                      <div className="text-sm text-gray-500">
+                                        {readingDefinition?.name || reading.readingDefinitionId}
+                                        {readingDefinition?.unit && ` (${readingDefinition.unit})`}
+                                      </div>
+                                      <div className="text-lg font-semibold">
+                                        {reading.value || t('shared.notAvailable')}
+                                      </div>
                                     </div>
-                                    <div className="text-lg font-semibold">{reading.value || 'N/A'}</div>
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              // Fallback for legacy structure
-                              group.readingDefinitions?.map((def: any, defIndex: number) => {
-                                const reading = group.readings.find((r: any) => r.readingDefinitionId === def.id);
-                                return (
-                                  <div key={defIndex} className="rounded-lg bg-gray-50 p-3">
-                                    <div className="text-sm text-gray-500">
-                                      {def.name} {def.unit && `(${def.unit})`}
+                                  );
+                                })
+                              : // Fallback for legacy structure
+                                group.readingDefinitions?.map((def: any, defIndex: number) => {
+                                  const reading = group.readings.find((r: any) => r.readingDefinitionId === def.id);
+                                  return (
+                                    <div key={defIndex} className="rounded-lg bg-gray-50 p-3">
+                                      <div className="text-sm text-gray-500">
+                                        {def.name} {def.unit && `(${def.unit})`}
+                                      </div>
+                                      <div className="text-lg font-semibold">
+                                        {reading?.value || t('shared.notAvailable')}
+                                      </div>
                                     </div>
-                                    <div className="text-lg font-semibold">{reading?.value || 'N/A'}</div>
-                                  </div>
-                                );
-                              })
-                            )}
+                                  );
+                                })}
                           </CardContent>
                         </Card>
                       ))}
@@ -551,7 +609,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                   <AccordionTrigger className="text-lg">
                     <div className="flex items-center gap-2">
                       <FlaskConical className="h-5 w-5 text-[#364D9D]" />
-                      <span className="text-md">Consumables</span>
+                      <span className="text-md">{t('service.consumables')}</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
@@ -560,43 +618,47 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                         <Card key={groupIndex}>
                           <CardHeader>
                             <CardTitle className="text-lg">{group.name}</CardTitle>
-                            {group.description && (
-                              <p className="text-sm text-gray-600">{group.description}</p>
-                            )}
+                            {group.description && <p className="text-sm text-gray-600">{group.description}</p>}
                           </CardHeader>
                           <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                            {group.consumables.length > 0 ? (
-                              group.consumables.map((consumable: any, consumableIndex: number) => {
-                                // Find the consumable definition from the group's consumableDefinitions
-                                const consumableDefinition = group.consumableDefinitions?.find((def: any) => def.id === consumable.consumableDefinitionId);
-                                return (
-                                  <div key={consumableIndex} className="rounded-lg bg-gray-50 p-3">
-                                    <div className="text-sm text-gray-500">
-                                      {consumableDefinition?.name || consumable.consumableDefinitionId}
-                                      {consumableDefinition?.unit && ` (${consumableDefinition.unit})`}
+                            {group.consumables.length > 0
+                              ? group.consumables.map((consumable: any, consumableIndex: number) => {
+                                  // Find the consumable definition from the group's consumableDefinitions
+                                  const consumableDefinition = group.consumableDefinitions?.find(
+                                    (def: any) => def.id === consumable.consumableDefinitionId
+                                  );
+                                  return (
+                                    <div key={consumableIndex} className="rounded-lg bg-gray-50 p-3">
+                                      <div className="text-sm text-gray-500">
+                                        {consumableDefinition?.name || consumable.consumableDefinitionId}
+                                        {consumableDefinition?.unit && ` (${consumableDefinition.unit})`}
+                                      </div>
+                                      <div className="text-lg font-semibold">
+                                        {consumable.quantity
+                                          ? `${consumable.quantity} ${consumableDefinition?.unit || ''}`
+                                          : t('shared.notAvailable')}
+                                      </div>
                                     </div>
-                                    <div className="text-lg font-semibold">
-                                      {consumable.quantity ? `${consumable.quantity} ${consumableDefinition?.unit || ''}` : 'N/A'}
+                                  );
+                                })
+                              : // Fallback for legacy structure
+                                group.consumableDefinitions?.map((def: any, defIndex: number) => {
+                                  const consumable = group.consumables.find(
+                                    (c: any) => c.consumableDefinitionId === def.id
+                                  );
+                                  return (
+                                    <div key={defIndex} className="rounded-lg bg-gray-50 p-3">
+                                      <div className="text-sm text-gray-500">
+                                        {def.name} {def.unit && `(${def.unit})`}
+                                      </div>
+                                      <div className="text-lg font-semibold">
+                                        {consumable?.quantity
+                                          ? `${consumable.quantity} ${def.unit || ''}`
+                                          : t('shared.notAvailable')}
+                                      </div>
                                     </div>
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              // Fallback for legacy structure
-                              group.consumableDefinitions?.map((def: any, defIndex: number) => {
-                                const consumable = group.consumables.find((c: any) => c.consumableDefinitionId === def.id);
-                                return (
-                                  <div key={defIndex} className="rounded-lg bg-gray-50 p-3">
-                                    <div className="text-sm text-gray-500">
-                                      {def.name} {def.unit && `(${def.unit})`}
-                                    </div>
-                                    <div className="text-lg font-semibold">
-                                      {consumable?.quantity ? `${consumable.quantity} ${def.unit || ''}` : 'N/A'}
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            )}
+                                  );
+                                })}
                           </CardContent>
                         </Card>
                       ))}
@@ -611,7 +673,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                   <AccordionTrigger className="text-lg">
                     <div className="flex items-center gap-2">
                       <ListChecks className="h-5 w-5 text-[#364D9D]" />
-                      <span className="text-md">Service Checklist</span>
+                      <span className="text-md">{t('service.checklist')}</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
@@ -632,7 +694,6 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                   </AccordionContent>
                 </AccordionItem>
               )}
-
             </Accordion>
 
             {/* Actions */}
@@ -644,7 +705,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                 disabled={resendEmailMutation.isPending}
               >
                 <Mail className="h-4 w-4" />
-                {resendEmailMutation.isPending ? 'Sending...' : 'Resend Email'}
+                {resendEmailMutation.isPending ? t('shared.sending') : t('service.resendEmail')}
               </Button>
 
               <Button
@@ -654,7 +715,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                 disabled={resendSmsMutation.isPending}
               >
                 <MessageSquare className="h-4 w-4" />
-                {resendSmsMutation.isPending ? 'Sending...' : 'Resend SMS'}
+                {resendSmsMutation.isPending ? t('shared.sending') : t('service.resendSms')}
               </Button>
 
               {hasPhotos() && (
@@ -671,14 +732,14 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                       URL.revokeObjectURL(url);
                     } catch (error) {
                       console.error('Error downloading photos:', error);
-                      alert('Failed to download photos. Please try again.');
+                      alert(t('service.downloadFailed'));
                     }
                   }}
                   variant="outline"
                   className="flex items-center gap-2"
                 >
                   <Download className="h-4 w-4" />
-                  Download Photos
+                  {t('service.downloadPhotos')}
                 </Button>
               )}
 
@@ -690,7 +751,7 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                 trigger={
                   <Button variant="destructive" className="flex items-center gap-2">
                     <Trash2 className="h-4 w-4" />
-                    Delete Service
+                    {t('service.deleteService')}
                   </Button>
                 }
               />
@@ -706,19 +767,17 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Photo</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this photo? This action cannot be undone.
-              </AlertDialogDescription>
+              <AlertDialogTitle>{t('service.deletePhoto')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('service.deletePhotoDescription')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('shared.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmDeletePhoto}
                 className="bg-red-600 hover:bg-red-700"
                 disabled={deletePhotoMutation.isPending}
               >
-                {deletePhotoMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deletePhotoMutation.isPending ? t('shared.deleting') : t('shared.delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -728,12 +787,12 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
         <Dialog open={showAddPhotoDialog} onOpenChange={setShowAddPhotoDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Photos</DialogTitle>
+              <DialogTitle>{t('shared.addPhotos')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <label htmlFor="photo-upload" className="block text-sm font-medium text-gray-700">
-                  Select Photos
+                  {t('service.selectPhotos')}
                 </label>
                 <input
                   ref={fileInputRef}
@@ -742,13 +801,13 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
                   multiple
                   accept="image/*"
                   onChange={handleFileSelect}
-                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
                 />
               </div>
               {selectedFiles.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Selected files:</p>
-                  <ul className="mt-1 list-disc list-inside text-sm text-gray-600">
+                  <p className="text-sm font-medium text-gray-700">{t('service.selectedFiles')}</p>
+                  <ul className="mt-1 list-inside list-disc text-sm text-gray-600">
                     {selectedFiles.map((file, index) => (
                       <li key={index}>{file.name}</li>
                     ))}
@@ -760,11 +819,8 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
               <Button variant="outline" onClick={() => setShowAddPhotoDialog(false)}>
                 Cancel
               </Button>
-              <Button
-                onClick={confirmAddPhotos}
-                disabled={selectedFiles.length === 0 || addPhotosMutation.isPending}
-              >
-                {addPhotosMutation.isPending ? 'Adding...' : 'Add Photos'}
+              <Button onClick={confirmAddPhotos} disabled={selectedFiles.length === 0 || addPhotosMutation.isPending}>
+                {addPhotosMutation.isPending ? t('shared.adding') : t('shared.addPhotos')}
               </Button>
             </div>
           </DialogContent>
@@ -774,18 +830,13 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
         <AlertDialog open={showResendEmailDialog} onOpenChange={setShowResendEmailDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Resend Service Email</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to resend the service report email to the client? This will send a new copy of the service report.
-              </AlertDialogDescription>
+              <AlertDialogTitle>{t('service.resendEmailTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('service.resendEmailDescription')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleResendEmail}
-                disabled={resendEmailMutation.isPending}
-              >
-                {resendEmailMutation.isPending ? 'Sending...' : 'Resend Email'}
+              <AlertDialogCancel>{t('shared.cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleResendEmail} disabled={resendEmailMutation.isPending}>
+                {resendEmailMutation.isPending ? t('shared.sending') : t('service.resendEmail')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -795,18 +846,13 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
         <AlertDialog open={showResendSmsDialog} onOpenChange={setShowResendSmsDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Resend Service SMS</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to resend the service report link by text message? The client will receive a new link to view their report.
-              </AlertDialogDescription>
+              <AlertDialogTitle>{t('service.resendSmsTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('service.resendSmsDescription')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleResendSms}
-                disabled={resendSmsMutation.isPending}
-              >
-                {resendSmsMutation.isPending ? 'Sending...' : 'Resend SMS'}
+              <AlertDialogCancel>{t('shared.cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleResendSms} disabled={resendSmsMutation.isPending}>
+                {resendSmsMutation.isPending ? t('shared.sending') : t('service.resendSms')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

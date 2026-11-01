@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -32,9 +34,7 @@ interface InvoiceSettingsFormData {
 const createDefaultFormValues = (company?: Company): InvoiceSettingsFormData => ({
   company: {
     replyToEmail:
-      company?.preferences?.invoiceSettingsPreferences?.companyInformation?.replyToEmail ??
-      company?.email ??
-      null
+      company?.preferences?.invoiceSettingsPreferences?.companyInformation?.replyToEmail ?? company?.email ?? null
   },
   defaults: {
     paymentInstructions: company?.preferences?.invoiceSettingsPreferences?.defaultValues?.paymentInstructions ?? null,
@@ -76,6 +76,8 @@ interface InvoiceSettingsCardProps {
 }
 
 export function InvoiceSettingsCard({ company }: InvoiceSettingsCardProps) {
+  const t = useTranslations('settings');
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -132,23 +134,23 @@ export function InvoiceSettingsCard({ company }: InvoiceSettingsCardProps) {
             <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-lg bg-slate-100 p-1 text-slate-500">
               <TabsTrigger value="company" className={tabTriggerClassName}>
                 <Building2 className="h-4 w-4" />
-                Company Information
+                {t('invoices.companyInformation')}
               </TabsTrigger>
               <TabsTrigger value="defaults" className={tabTriggerClassName}>
                 <FileText className="h-4 w-4" />
-                Default Values
+                {t('invoices.defaultValues')}
               </TabsTrigger>
               <TabsTrigger value="communication" className={tabTriggerClassName}>
                 <Mail className="h-4 w-4" />
-                Communication
+                {t('invoices.communication')}
               </TabsTrigger>
               <TabsTrigger value="estimates" className={tabTriggerClassName}>
                 <ClipboardList className="h-4 w-4" />
-                Estimates
+                {t('invoices.estimates')}
               </TabsTrigger>
               <TabsTrigger value="payments" className={tabTriggerClassName}>
                 <CreditCard className="h-4 w-4" />
-                Online Payments
+                {t('invoices.onlinePayments')}
               </TabsTrigger>
             </TabsList>
 

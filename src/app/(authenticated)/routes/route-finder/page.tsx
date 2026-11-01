@@ -1,6 +1,7 @@
 'use client';
 
 import { useLoadScript } from '@react-google-maps/api';
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -25,7 +26,7 @@ import useGetPoolsWithoutAssignments from '@/hooks/react-query/pools/getPoolsWit
 const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY || '';
 
 const formSchema = z.object({
-  address: z.string().min(1, 'Address is required'),
+  address: z.string().min(1, 'routes.errors.addressRequired'),
   preferredDay: z.string()
 });
 
@@ -51,24 +52,25 @@ const COOKIE_NAME = 'technician-weekday-colors';
 
 function generateTechnicianWeekdayColors(technicianIds: string[]): TechnicianWeekdayColors {
   const colors: TechnicianWeekdayColors = {};
-  
-  technicianIds.forEach(techId => {
+
+  technicianIds.forEach((techId) => {
     colors[techId] = {};
-    WEEKDAYS.forEach(day => {
+    WEEKDAYS.forEach((day) => {
       colors[techId][day] = generateRandomColor();
     });
   });
-  
+
   return colors;
 }
 
-function PoolsWithoutAssignments({ 
-  showPoolsWithoutAssignments, 
-  onTogglePoolsWithoutAssignments 
-}: { 
+function PoolsWithoutAssignments({
+  showPoolsWithoutAssignments,
+  onTogglePoolsWithoutAssignments
+}: {
   showPoolsWithoutAssignments: boolean;
   onTogglePoolsWithoutAssignments: (checked: boolean) => void;
 }) {
+  const t = useTranslations('routes');
   const { data: poolsWithoutAssignments } = useGetPoolsWithoutAssignments();
   const count = poolsWithoutAssignments?.length || 0;
 
@@ -77,55 +79,45 @@ function PoolsWithoutAssignments({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Red circle with "?" */}
-          <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-            <span className="text-red-600 font-semibold text-xl">?</span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+            <span className="text-xl font-semibold text-red-600">?</span>
           </div>
           <div>
             <Typography element="h4" className="text-left font-semibold text-gray-900">
-              Pools without assignments
+              {t('poolsWithoutAssignments')}
             </Typography>
             <Typography element="span" className="text-sm text-gray-500">
-              {count} pools without assignment
+              {count === 1 ? t('onePoolWithoutAssignment') : t('poolsWithoutAssignmentCount', { count })}
             </Typography>
           </div>
         </div>
-        
+
         {/* Toggle button with clickable text */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => onTogglePoolsWithoutAssignments(!showPoolsWithoutAssignments)}
-            className="flex items-center gap-2 hover:bg-gray-50 rounded-md px-2 py-1 transition-colors"
+            className="flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-gray-50"
           >
             <span className="text-sm text-gray-500">
-              {showPoolsWithoutAssignments ? 'Hide' : 'Show'} on map
+              {showPoolsWithoutAssignments ? t('hideOnMap') : t('showOnMap')}
             </span>
             <button
               onClick={(e) => {
                 e.stopPropagation(); // Prevent double-triggering
                 onTogglePoolsWithoutAssignments(!showPoolsWithoutAssignments);
               }}
-              className={`
-                p-1 rounded-md transition-colors
-                ${showPoolsWithoutAssignments 
-                  ? 'text-green-600 bg-green-50 hover:bg-green-100' 
-                  : 'text-gray-400 bg-gray-50 hover:bg-gray-100'
-                }
-              `}
+              className={`rounded-md p-1 transition-colors ${
+                showPoolsWithoutAssignments
+                  ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                  : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+              } `}
             >
-              <svg 
-                className="w-5 h-5"
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d={showPoolsWithoutAssignments 
-                    ? "M5 13l4 4L19 7" 
-                    : "M6 18L18 6M6 6l12 12"
-                  } 
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d={showPoolsWithoutAssignments ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}
                 />
               </svg>
             </button>
@@ -137,13 +129,14 @@ function PoolsWithoutAssignments({
 }
 
 function RouteFinderContent() {
+  const t = useTranslations('routes');
   const { allAssignments } = useAssignmentsContext();
   const { data: poolsWithoutAssignments = [] } = useGetPoolsWithoutAssignments();
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [loadError, setLoadError] = useState<Error | undefined>();
   const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
   const [showPoolsWithoutAssignments, setShowPoolsWithoutAssignments] = useState(false);
-  
+
   const [currentColorScheme, setCurrentColorScheme] = useState<TechnicianWeekdayColors>(() => {
     // Initialize with stored colors or generate new ones
     const storedColors = Cookies.get(COOKIE_NAME);
@@ -176,7 +169,7 @@ function RouteFinderContent() {
     // Get coordinates using Geocoding service
     const geocoder = new google.maps.Geocoder();
     const fullAddress = `${address.fullAddress}, ${address.city}, ${address.state} ${address.zipCode}`;
-    
+
     try {
       const result = await geocoder.geocode({ address: fullAddress });
       if (result.results[0]?.geometry?.location) {
@@ -193,12 +186,12 @@ function RouteFinderContent() {
   useEffect(() => {
     if (Object.keys(currentColorScheme).length > 0) return; // Skip if we already have colors
 
-    const validAssignments = allAssignments.filter(a => a.assignmentToId);
+    const validAssignments = allAssignments.filter((a) => a.assignmentToId);
     if (validAssignments.length === 0) return;
 
-    const technicianIds = Array.from(new Set(validAssignments.map(a => a.assignmentToId)));
+    const technicianIds = Array.from(new Set(validAssignments.map((a) => a.assignmentToId)));
     const newColors = generateTechnicianWeekdayColors(technicianIds);
-    
+
     Cookies.set(COOKIE_NAME, JSON.stringify(newColors), {
       expires: 30,
       path: '/'
@@ -221,46 +214,35 @@ function RouteFinderContent() {
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="w-full lg:w-1/3">
           <div className="mb-4 space-y-4">
-
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="space-y-4">
-                
-                
                 <div className="grid gap-3">
-                  <div className="flex gap-3 items-start">
+                  <div className="flex items-start gap-3">
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50">
                       <Calendar className="h-3.5 w-3.5 text-blue-500" />
                     </div>
-                    <p className="text-sm text-gray-600">
-                      View your technician's weekly assignments with color-coded markers
-                    </p>
+                    <p className="text-sm text-gray-600">{t('routeFinderHintMarkers')}</p>
                   </div>
 
-                  <div className="flex gap-3 items-start">
+                  <div className="flex items-start gap-3">
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50">
                       <CheckSquare className="h-3.5 w-3.5 text-blue-500" />
                     </div>
-                    <p className="text-sm text-gray-600">
-                      Toggle visibility of specific days for each technician
-                    </p>
+                    <p className="text-sm text-gray-600">{t('routeFinderHintDays')}</p>
                   </div>
 
-                  <div className="flex gap-3 items-start">
+                  <div className="flex items-start gap-3">
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50">
                       <Palette className="h-3.5 w-3.5 text-blue-500" />
                     </div>
-                    <p className="text-sm text-gray-600">
-                      Customize route colors to match your preferences
-                    </p>
+                    <p className="text-sm text-gray-600">{t('routeFinderHintColors')}</p>
                   </div>
 
-                  <div className="flex gap-3 items-start">
+                  <div className="flex items-start gap-3">
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50">
                       <MousePointer className="h-3.5 w-3.5 text-blue-500" />
                     </div>
-                    <p className="text-sm text-gray-600">
-                      Click markers to view detailed assignment information
-                    </p>
+                    <p className="text-sm text-gray-600">{t('routeFinderHintClick')}</p>
                   </div>
                 </div>
               </div>
@@ -268,22 +250,22 @@ function RouteFinderContent() {
           </div>
 
           <Form {...form}>
-            <form className="space-y-4 mb-4">
+            <form className="mb-4 space-y-4">
               <AddressInput
                 name="address"
-                label="Pool Address"
-                placeholder="Enter pool address"
+                label={t('poolAddress')}
+                placeholder={t('enterPoolAddress')}
                 className="bg-surface"
                 onAddressSelect={handleAddressSelect}
               />
             </form>
 
-            <PoolsWithoutAssignments 
+            <PoolsWithoutAssignments
               showPoolsWithoutAssignments={showPoolsWithoutAssignments}
               onTogglePoolsWithoutAssignments={handleTogglePoolsWithoutAssignments}
             />
 
-            <TechnicianSummary 
+            <TechnicianSummary
               assignments={allAssignments}
               onFilterChange={setFilteredAssignments}
               onColorChange={handleColorChange}
@@ -307,7 +289,5 @@ function RouteFinderContent() {
 }
 
 export default function Page() {
-  return (
-      <RouteFinderContent />
-  );
-} 
+  return <RouteFinderContent />;
+}

@@ -1,8 +1,10 @@
 'use client';
+import { useTranslations } from 'next-intl';
 import { Editor } from '@tinymce/tinymce-react';
 import React, { useState } from 'react';
 
 const TinyMCEEditor = () => {
+  const t = useTranslations('clients');
   const [editorContent, setEditorContent] = useState<string>('');
 
   const handleEditorChange = (content: string) => {
@@ -13,7 +15,7 @@ const TinyMCEEditor = () => {
     <div>
       <Editor
         apiKey="2tl55nxymyjiz368pkd4rfpkvie5s4mvvk2qg8ec32bx6jh4"
-        initialValue="<p>Insira seu texto aqui!</p>"
+        initialValue={`<p>${t('editors.placeholder')}</p>`}
         init={{
           height: 500,
           menubar: false,
@@ -34,7 +36,7 @@ const TinyMCEEditor = () => {
         }}
         onEditorChange={handleEditorChange}
       />
-      <button>Obter conteúdo HTML</button>
+      <button>{t('editors.getHtml')}</button>
     </div>
   );
 };

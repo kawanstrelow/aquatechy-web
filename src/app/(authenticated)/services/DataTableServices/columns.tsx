@@ -6,61 +6,79 @@ import { Service } from '@/ts/interfaces/Service';
 import { ServiceStatus } from '@/ts/interfaces/Service';
 import { format } from 'date-fns';
 
+import { translateMessage } from '@/i18n/runtime';
 import { formatDurationMmSs, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
 
-const statusOptions: Record<ServiceStatus, { label: string; className: string }> = {
+const statusOptions: Record<ServiceStatus, { labelKey: string; fallback: string; className: string }> = {
   Open: {
-    label: 'Open',
+    labelKey: 'services.status.open',
+    fallback: 'Open',
     className: 'bg-red-100 text-red-600'
   },
   InProgress: {
-    label: 'In progress',
+    labelKey: 'services.status.inProgress',
+    fallback: 'In progress',
     className: 'bg-yellow-100 text-yellow-600'
   },
   Skipped: {
-    label: 'Skipped',
+    labelKey: 'services.status.skipped',
+    fallback: 'Skipped',
     className: 'bg-gray-100 text-gray-600'
   },
   Completed: {
-    label: 'Completed',
+    labelKey: 'services.status.completed',
+    fallback: 'Completed',
     className: 'bg-green-100 text-green-600'
   }
 };
 
+function notAvailable() {
+  return translateMessage('services.notAvailable', 'N/A');
+}
+
 export const columns: ColumnDef<Service>[] = [
   {
     accessorKey: 'client',
-    header: 'Client',
-    cell: ({ row: { original } }) => (
+    header: () => translateMessage('services.columns.client', 'Client'),
+    cell: ({ row: { original } }) =>
       original.pool?.clientOwner ? (
-      <>
-        <div>
-          {original.pool?.clientOwner?.firstName} {original.pool?.clientOwner?.lastName}
-        </div>
-        <div>
-          {original.pool?.bodyOfWater ? `${original.pool?.bodyOfWater} - ` : ''}{original.pool?.address}{original.pool?.addressLine2 ? ` ${original.pool?.addressLine2}` : ''}, {original.pool?.city}, {original.pool?.state}, {original.pool?.zip}
-        </div>
-      </>
+        <>
+          <div>
+            {original.pool?.clientOwner?.firstName} {original.pool?.clientOwner?.lastName}
+          </div>
+          <div>
+            {original.pool?.bodyOfWater ? `${original.pool?.bodyOfWater} - ` : ''}
+            {original.pool?.address}
+            {original.pool?.addressLine2 ? ` ${original.pool?.addressLine2}` : ''}, {original.pool?.city},{' '}
+            {original.pool?.state}, {original.pool?.zip}
+          </div>
+        </>
       ) : (
         <>
           <div>
             {original.clientOwner?.firstName} {original.clientOwner?.lastName}
           </div>
           <div>
-            {original.pool?.address} {original.pool?.addressLine2}, {original.pool?.city}, {original.pool?.state}, {original.pool?.zip}
+            {original.pool?.address} {original.pool?.addressLine2}, {original.pool?.city}, {original.pool?.state},{' '}
+            {original.pool?.zip}
           </div>
         </>
       )
-    )
   },
   {
     accessorKey: 'completedAt',
-    header: 'Date',
-    cell: ({ row: { original } }) => (
-      <div>
-        {original.completedAt ? format(new Date(original.completedAt), "EEEE, MMMM do 'at' h:mm a") : 'N/A'}
-      </div>
-    ),
+    header: () => translateMessage('services.columns.date', 'Date'),
+    cell: ({ row: { original } }) => {
+      if (!original.completedAt) return <div>{notAvailable()}</div>;
+      const completed = new Date(original.completedAt);
+      return (
+        <div>
+          {translateMessage('services.completedAt', '{date} at {time}')
+            .replace('{date}', format(completed, 'EEEE, MMMM do'))
+            .replace('{time}', format(completed, 'h:mm a'))}
+        </div>
+      );
+    },
     filterFn: (row, columnId, value) => {
       let date: string | Date | null = row.original.completedAt;
 
@@ -82,7 +100,7 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     id: 'duration',
-    header: 'Duration',
+    header: () => translateMessage('services.columns.duration', 'Duration'),
     cell: ({ row: { original } }) => {
       const secs = getServiceDurationTotalSeconds(original.startedAt, original.completedAt);
       return <div>{secs != null ? formatDurationMmSs(secs) : ''}</div>;
@@ -90,27 +108,22 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     accessorKey: 'serviceType',
-    header: 'Service Type',
-    cell: ({ row: { original } }) => (
-      <div>
-        {original.serviceType?.name || 'N/A'}
-      </div>
-    )
+    header: () => translateMessage('services.columns.serviceType', 'Service Type'),
+    cell: ({ row: { original } }) => <div>{original.serviceType?.name || notAvailable()}</div>
   },
   {
     accessorKey: 'notes',
-    header: 'Notes',
-    cell: ({ row: { original } }) => (
+    header: () => translateMessage('services.columns.notes', 'Notes'),
+    cell: ({ row: { original } }) =>
       original.notes && original.notes !== 'N/A' ? (
-        <div className="truncate max-w-[200px]" title={original.notes}>
+        <div className="max-w-[200px] truncate" title={original.notes}>
           {original.notes}
         </div>
       ) : null
-    )
   },
   {
     accessorKey: 'completedByUserId',
-    header: 'Member',
+    header: () => translateMessage('services.columns.member', 'Member'),
     cell: ({ row: { original } }) => (
       <div>
         {original.completedByUser?.firstName} {original.completedByUser?.lastName}
@@ -119,16 +132,19 @@ export const columns: ColumnDef<Service>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: () => translateMessage('services.columns.status', 'Status'),
     cell: ({ row: { original } }) => {
-      const statusConfig = statusOptions[original.status] || { className: 'bg-gray-100 text-gray-600' };
+      const statusConfig = statusOptions[original.status];
+      const label = statusConfig
+        ? translateMessage(statusConfig.labelKey, statusConfig.fallback)
+        : original.status || translateMessage('services.status.unknown', 'Unknown');
       return (
         <div
-          className={`max-w-28 rounded-lg px-2 py-2 text-center font-semibold ${statusConfig.className}`}
+          className={`max-w-28 rounded-lg px-2 py-2 text-center font-semibold ${statusConfig?.className || 'bg-gray-100 text-gray-600'}`}
         >
-          {original.status || 'Unknown'}
+          {label}
         </div>
       );
     }
-  },
+  }
 ];

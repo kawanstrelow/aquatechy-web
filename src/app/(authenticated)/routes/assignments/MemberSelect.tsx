@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useShallow } from 'zustand/react/shallow';
 
 import { useMembersStore } from '@/store/members';
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export default function MemberSelect({ onChange }: Props) {
+  const t = useTranslations('routes');
   const { assignmentToId, members } = useMembersStore(
     useShallow((state) => ({
       assignmentToId: state.assignmentToId,
@@ -37,23 +39,25 @@ export default function MemberSelect({ onChange }: Props) {
       {/* por padrão, o User logado é o tecnico selecionado */}
       <Select onValueChange={handleChange} defaultValue={assignmentToId}>
         <SelectTrigger data-testid="select-member">
-          <SelectValue placeholder="Member" />
+          <SelectValue placeholder={t('member')} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             {members
-              .filter((member, index, self) => 
-                // Keep only the first occurrence of each member ID
-                index === self.findIndex(m => m.id === member.id)
+              .filter(
+                (member, index, self) =>
+                  // Keep only the first occurrence of each member ID
+                  index === self.findIndex((m) => m.id === member.id)
               )
-              .map((member) =>
-                member.id !== user.id &&
-                member.firstName !== '' && (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.firstName} {member.lastName}
-                  </SelectItem>
-                )
-            )}
+              .map(
+                (member) =>
+                  member.id !== user.id &&
+                  member.firstName !== '' && (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.firstName} {member.lastName}
+                    </SelectItem>
+                  )
+              )}
             {
               <SelectItem value={user.id}>
                 {user.firstName} {user.lastName}

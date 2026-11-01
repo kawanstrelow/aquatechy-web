@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { clientAxios } from '@/lib/clientAxios';
 import { GetEstimateByIdResponse } from '@/ts/interfaces/Estimate';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export default function useGetEstimateById(estimateId: string | undefined) {
   return useQuery({
     queryKey: ['estimate', estimateId],
@@ -24,7 +26,7 @@ export default function useGetEstimateById(estimateId: string | undefined) {
             status === 404 ||
             (errorMessage && typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('not found'))
           ) {
-            throw new Error('Estimate not found');
+            throw new Error(translateMessage('toasts.estimateNotFound2', 'Estimate not found'));
           }
 
           if (status === 400 && errorMessage) {
@@ -37,7 +39,7 @@ export default function useGetEstimateById(estimateId: string | undefined) {
               ? Array.isArray(errorMessage)
                 ? errorMessage.join(', ')
                 : errorMessage
-              : 'Failed to fetch estimate'
+              : translateMessage('toasts.failedToFetchEstimate', 'Failed to fetch estimate')
           );
         }
         throw error;

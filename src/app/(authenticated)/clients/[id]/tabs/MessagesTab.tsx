@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { MessageLogList } from '@/components/messaging/MessageLogList';
 import { useGetClientMessages } from '@/hooks/react-query/clients/useGetClientMessages';
 
@@ -8,14 +9,15 @@ type Props = {
 };
 
 export default function MessagesTab({ clientId }: Props) {
+  const t = useTranslations('clients');
   const { data, isLoading, isError, isFetchingNextPage, hasNextPage, fetchNextPage } = useGetClientMessages(clientId);
   const messages = data?.pages.flatMap((page) => page.messages) ?? [];
 
   return (
     <div className="flex w-full flex-col gap-4">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">Messages</h3>
-        <p className="text-sm text-gray-500">Emails and texts sent to this client.</p>
+        <h3 className="text-lg font-semibold text-gray-900">{t('messages.title')}</h3>
+        <p className="text-sm text-gray-500">{t('messages.description')}</p>
       </div>
       <MessageLogList
         showChannel
@@ -32,8 +34,8 @@ export default function MessagesTab({ clientId }: Props) {
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={Boolean(hasNextPage)}
         onLoadMore={() => fetchNextPage()}
-        emptyDescription="No messages yet for this client."
-        errorDescription="You may not have permission to view this client's messages."
+        emptyDescription={t('messages.empty')}
+        errorDescription={t('messages.error')}
       />
     </div>
   );

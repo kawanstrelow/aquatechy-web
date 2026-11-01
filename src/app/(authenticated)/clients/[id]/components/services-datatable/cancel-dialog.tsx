@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaRegTrashAlt } from 'react-icons/fa';
 
@@ -25,6 +26,7 @@ export default function DeleteServiceDialog({
   trigger,
   onSuccess
 }: DeleteServiceDialogProps) {
+  const t = useTranslations('clients');
   const { toast } = useToast();
 
   const cancelService = useDeleteService(clientId);
@@ -36,8 +38,8 @@ export default function DeleteServiceDialog({
     });
     toast({
       variant: 'success',
-      title: 'Service deleted successfully',
-      description: 'The service has been deleted successfully',
+      title: t('service.deletedTitle'),
+      description: t('service.deletedDescription'),
       duration: 3000
     });
     onSuccess?.();
@@ -48,7 +50,7 @@ export default function DeleteServiceDialog({
       variant="destructive"
       trigger={trigger}
       onConfirm={handleConfirm}
-      description="Once you delete service, you will lose all the information related"
+      description={t('service.deleteWarning')}
     />
   );
 }

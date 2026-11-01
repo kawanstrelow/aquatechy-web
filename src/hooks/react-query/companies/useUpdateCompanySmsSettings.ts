@@ -7,6 +7,8 @@ import { CompanySmsSettingsPublic, UpdateCompanySmsSettingsBody } from '@/ts/int
 
 import { companySmsSettingsQueryKey } from './useGetCompanySmsSettings';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message?:
     | string
@@ -25,7 +27,7 @@ type ErrorResponse = {
 function extractErrorMessage(error: AxiosError<ErrorResponse>): string {
   const data = error.response?.data;
   if (!data) {
-    return 'An error occurred';
+    return translateMessage('toasts.anErrorOccurred', 'An error occurred');
   }
 
   if (typeof data.message === 'string' && data.message.trim()) {
@@ -40,7 +42,7 @@ function extractErrorMessage(error: AxiosError<ErrorResponse>): string {
     return data.issues.map((issue) => issue.message).join(', ');
   }
 
-  return 'An error occurred';
+  return translateMessage('toasts.anErrorOccurred', 'An error occurred');
 }
 
 export function useUpdateCompanySmsSettings(companyId: string) {
@@ -57,14 +59,20 @@ export function useUpdateCompanySmsSettings(companyId: string) {
       toast({
         title:
           variables.provider === 'aquatechy'
-            ? 'Service-report SMS will use Aquatechy’s number'
-            : 'SMS provider connected. A test message was sent.',
+            ? translateMessage(
+                'toasts.serviceReportSmsWillUseAquatechysNumber',
+                'Service-report SMS will use Aquatechy’s number'
+              )
+            : translateMessage(
+                'toasts.smsProviderConnectedATestMessageWasSent',
+                'SMS provider connected. A test message was sent.'
+              ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating SMS settings',
+        title: translateMessage('toasts.errorUpdatingSmsSettings', 'Error updating SMS settings'),
         description: extractErrorMessage(error),
         variant: 'error'
       });

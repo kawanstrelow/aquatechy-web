@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +23,7 @@ type Props = {
 };
 
 export function CompanyCard({ companyId, name, email, phone, role, status, imageUrl, href }: Props) {
+  const t = useTranslations('settings');
   const router = useRouter();
   const isPendingAcceptance = status !== 'Active';
   const canOpenCompanyPage = isManagementRole(role) || Boolean(href);
@@ -53,13 +55,13 @@ export function CompanyCard({ companyId, name, email, phone, role, status, image
     >
       {isPendingAcceptance && (
         <div className="pointer-events-none absolute -top-0 left-0 rounded-tl-lg bg-yellow-500 px-3 py-1 text-center text-xs font-medium text-white">
-          Pending Acceptance
+          {t('companies.pendingAcceptance')}
         </div>
       )}
 
       <div className="mt-2 flex flex-col items-center justify-start gap-3 self-stretch">
         <Avatar className="size-24">
-          <AvatarImage src={imageUrl || ''} alt={`${name} logo`} />
+          <AvatarImage src={imageUrl || ''} alt={t('companies.logoAlt', { name })} />
           <AvatarFallback className="text-2xl">{getInitials(name)}</AvatarFallback>
         </Avatar>
         <div className="flex w-full flex-col items-center gap-2">
@@ -77,24 +79,22 @@ export function CompanyCard({ companyId, name, email, phone, role, status, image
       </div>
 
       <Separator />
-      <div className="flex h-[52px] flex-col items-center justify-center gap-2.5 self-stretch">
+      <div className="flex w-full flex-col gap-2.5">
         {role && (
-          <div className="inline-flex items-center justify-start gap-1 self-stretch">
-            <div className="w-14 text-xs font-normal leading-[18px] text-gray-500">My role</div>
-            <div className="h-[18px] w-fit shrink grow basis-0 overflow-hidden text-ellipsis text-right text-xs font-medium leading-[18px] text-gray-400">
-              {role}
+          <div className="flex items-center justify-between gap-3">
+            <div className="shrink-0 text-xs font-normal leading-[18px] text-gray-500">{t('companies.myRole')}</div>
+            <div className="min-w-0 truncate text-right text-xs font-medium leading-[18px] text-gray-400">
+              {t.has(`roles.${role}`) ? t(`roles.${role}`) : role}
             </div>
           </div>
         )}
-        <div className="inline-flex items-center justify-start gap-1 self-stretch">
-          <div className="w-14 text-xs font-normal leading-[18px] text-gray-500">E-mail</div>
-          <div className="h-[18px] w-fit shrink grow basis-0 overflow-hidden text-ellipsis text-right text-xs font-medium leading-[18px] text-gray-400">
-            {email}
-          </div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="shrink-0 text-xs font-normal leading-[18px] text-gray-500">{t('email')}</div>
+          <div className="min-w-0 truncate text-right text-xs font-medium leading-[18px] text-gray-400">{email}</div>
         </div>
-        <div className="inline-flex items-center justify-start gap-1 self-stretch">
-          <div className="w-14 text-xs font-normal leading-[18px] text-gray-500">Phone</div>
-          <div className="shrink grow basis-0 text-right text-xs font-medium leading-[18px] text-gray-400">{phone}</div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="shrink-0 text-xs font-normal leading-[18px] text-gray-500">{t('phone')}</div>
+          <div className="min-w-0 truncate text-right text-xs font-medium leading-[18px] text-gray-400">{phone}</div>
         </div>
       </div>
     </div>

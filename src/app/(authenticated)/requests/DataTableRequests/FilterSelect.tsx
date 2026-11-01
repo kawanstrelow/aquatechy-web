@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl';
+
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Props = {
@@ -8,6 +10,8 @@ type Props = {
 };
 
 export function FilterSelect({ data, placeholder, onChange, value }: Props) {
+  const t = useTranslations('requests');
+
   return (
     <Select onValueChange={onChange}>
       <SelectTrigger className="w-full">
@@ -19,7 +23,7 @@ export function FilterSelect({ data, placeholder, onChange, value }: Props) {
             {
               key: 'All',
               value: 'All',
-              name: 'All'
+              name: t('all')
             },
             ...data
           ].map((d) => (

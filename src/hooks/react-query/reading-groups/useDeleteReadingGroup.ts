@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -20,17 +22,16 @@ export const useDeleteReadingGroup = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       queryClient.invalidateQueries({ queryKey: ['service-types'] });
       toast({
-        title: 'Reading group deleted successfully',
+        title: translateMessage('toasts.readingGroupDeletedSuccessfully', 'Reading group deleted successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error deleting reading group',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorDeletingReadingGroup', 'Error deleting reading group'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }
   });
 };
-

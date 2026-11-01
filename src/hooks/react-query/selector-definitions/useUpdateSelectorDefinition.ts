@@ -3,6 +3,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { UpdateSelectorDefinitionRequest, SelectorDefinitionResponse } from '@/ts/interfaces/SelectorGroups';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface UpdateSelectorDefinitionParams {
   selectorDefinitionId: string;
   data: UpdateSelectorDefinitionRequest;
@@ -14,7 +16,10 @@ export function useUpdateSelectorDefinition() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ selectorDefinitionId, data }: UpdateSelectorDefinitionParams): Promise<SelectorDefinitionResponse> => {
+    mutationFn: async ({
+      selectorDefinitionId,
+      data
+    }: UpdateSelectorDefinitionParams): Promise<SelectorDefinitionResponse> => {
       const response = await clientAxios.patch(`/selector-definitions/${selectorDefinitionId}`, data);
       return response.data;
     },
@@ -24,7 +29,7 @@ export function useUpdateSelectorDefinition() {
       queryClient.invalidateQueries({ queryKey: ['selectorOptions'] });
       toast({
         duration: 2000,
-        title: 'Question updated successfully',
+        title: translateMessage('toasts.questionUpdatedSuccessfully', 'Question updated successfully'),
         variant: 'success'
       });
     },
@@ -32,9 +37,10 @@ export function useUpdateSelectorDefinition() {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating question',
-        description: error.response?.data?.message || 'Internal server error'
+        title: translateMessage('toasts.errorUpdatingQuestion', 'Error updating question'),
+        description:
+          error.response?.data?.message || translateMessage('toasts.internalServerError', 'Internal server error')
       });
-    },
+    }
   });
 }

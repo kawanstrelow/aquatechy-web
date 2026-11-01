@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -75,6 +76,7 @@ const generatePaymentTermsText = (paymentTerm: PaymentTermsDays | string | null 
 };
 
 function CreateInvoicePage() {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientIdFromQuery = searchParams.get('clientId');
@@ -132,7 +134,10 @@ function CreateInvoicePage() {
     if (!company) return null;
     // assume dueDate is 30 days from issuedDate
     const dueDate = new Date(form.getValues('issuedDate') || new Date());
-    dueDate.setDate(dueDate.getDate() + paymentTermsDaysToNumber(company.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultPaymentTerm));
+    dueDate.setDate(
+      dueDate.getDate() +
+        paymentTermsDaysToNumber(company.preferences?.invoiceSettingsPreferences?.defaultValues?.defaultPaymentTerm)
+    );
     form.setValue('dueDate', dueDate, { shouldDirty: false });
 
     return company.preferences?.invoiceSettingsPreferences?.defaultValues;
@@ -258,7 +263,7 @@ function CreateInvoicePage() {
     const taxAmount = items.reduce((sum, item) => {
       const amount = Number(item.amount) || 0;
       const taxRate = Number(item.taxRate) ?? 0;
-      const itemTax = Math.round((amount * taxRate / 100) * 100) / 100;
+      const itemTax = Math.round(((amount * taxRate) / 100) * 100) / 100;
       return sum + itemTax;
     }, 0);
     const total = Math.round((subtotal + taxAmount) * 100) / 100;
@@ -270,7 +275,8 @@ function CreateInvoicePage() {
     if (!selectedClient) return null;
 
     const clientAddress = [
-      selectedClient.address, selectedClient.addressLine2,
+      selectedClient.address,
+      selectedClient.addressLine2,
       `${selectedClient.city}, ${selectedClient.state} ${selectedClient.zip},`.trim()
     ]
       .filter(Boolean)
@@ -313,7 +319,7 @@ function CreateInvoicePage() {
           unitPrice: Number(item.unitPrice) || 0,
           amount: Number(item.amount) || 0,
           taxRate: Number(item.taxRate) ?? 0,
-          taxAmount: Math.round((Number(item.amount) || 0) * (Number(item.taxRate) ?? 0) / 100 * 100) / 100
+          taxAmount: Math.round((((Number(item.amount) || 0) * (Number(item.taxRate) ?? 0)) / 100) * 100) / 100
         })),
       subtotal: invoiceTotals.subtotal,
       taxAmount: invoiceTotals.taxAmount,
@@ -365,15 +371,16 @@ function CreateInvoicePage() {
   const handleLineItemChange = (index: number, field: keyof InvoiceLineItem, value: string | number) => {
     const currentItems = form.getValues('lineItems');
     const updatedItems = [...currentItems];
-    const numValue = (field === 'quantity' || field === 'unitPrice' || field === 'amount' || field === 'taxRate')
-      ? Number(value) ?? 0
-      : value;
+    const numValue =
+      field === 'quantity' || field === 'unitPrice' || field === 'amount' || field === 'taxRate'
+        ? Number(value) ?? 0
+        : value;
 
     updatedItems[index] = { ...updatedItems[index], [field]: numValue };
 
     if (field === 'quantity' || field === 'unitPrice') {
-      const quantity = field === 'quantity' ? (Number(value) || 0) : Number(updatedItems[index].quantity) || 0;
-      const unitPrice = field === 'unitPrice' ? (Number(value) || 0) : Number(updatedItems[index].unitPrice) || 0;
+      const quantity = field === 'quantity' ? Number(value) || 0 : Number(updatedItems[index].quantity) || 0;
+      const unitPrice = field === 'unitPrice' ? Number(value) || 0 : Number(updatedItems[index].unitPrice) || 0;
       updatedItems[index].amount = Math.round(quantity * unitPrice * 100) / 100;
     }
 
@@ -414,17 +421,17 @@ function CreateInvoicePage() {
 
     // Validate required fields
     if (!formData.clientId) {
-      form.setError('clientId', { message: 'Client is required' }, { shouldFocus: true });
+      form.setError('clientId', { message: 'invoices.errors.clientRequired' }, { shouldFocus: true });
       return null;
     }
 
     if (!formData.issuedDate) {
-      form.setError('issuedDate', { message: 'Issued date is required' }, { shouldFocus: true });
+      form.setError('issuedDate', { message: 'invoices.errors.issuedDateRequired' }, { shouldFocus: true });
       return null;
     }
 
     if (!formData.dueDate) {
-      form.setError('dueDate', { message: 'Due date is required' }, { shouldFocus: true });
+      form.setError('dueDate', { message: 'invoices.errors.dueDateRequired' }, { shouldFocus: true });
       return null;
     }
 
@@ -449,7 +456,11 @@ function CreateInvoicePage() {
 
     if (validLineItems.length === 0) {
       // Set error on the first line item for better UX
-      form.setError('lineItems.0.description', { message: 'At least one valid line item is required. Please fill description, quantity, and unit price.' }, { shouldFocus: true });
+      form.setError(
+        'lineItems.0.description',
+        { message: 'invoices.errors.lineItemRequiredDetailed' },
+        { shouldFocus: true }
+      );
       return null;
     }
 
@@ -583,13 +594,13 @@ function CreateInvoicePage() {
           <div className="flex items-center gap-4">
             <Button variant="outline" onClick={() => router.back()}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {t('actions.back')}
             </Button>
-            <h1 className="text-2xl font-bold">Create Invoice</h1>
+            <h1 className="text-2xl font-bold">{t('invoiceForm.createTitle')}</h1>
           </div>
           <Button variant="outline" onClick={handleSwitchToRecurring}>
             <Repeat className="mr-2 h-4 w-4" />
-            Create Recurring Template
+            {t('invoiceForm.createRecurring')}
           </Button>
         </div>
 
@@ -598,26 +609,26 @@ function CreateInvoicePage() {
           {/* Left: Form */}
           <div className="flex flex-col gap-6">
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Invoice Details</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.invoiceDetails')}</h2>
               <div className="space-y-4">
                 <SelectField
                   name="clientId"
-                  label="Client"
-                  placeholder="Select client"
+                  label={t('fields.client')}
+                  placeholder={t('placeholders.selectClient')}
                   options={clientOptions}
                 />
 
                 <div className={`grid grid-cols-1 gap-4 ${companyDefaults ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
                   <DatePickerField
                     name="issuedDate"
-                    label="Issued Date"
-                    placeholder="Select issued date"
+                    label={t('fields.issuedDate')}
+                    placeholder={t('placeholders.selectIssuedDate')}
                   />
                   {companyDefaults && (
                     <DatePickerField
                       name="dueDate"
-                      label="Due Date"
-                      placeholder="Select due date"
+                      label={t('fields.dueDate')}
+                      placeholder={t('placeholders.selectDueDate')}
                     />
                   )}
                 </div>
@@ -627,24 +638,21 @@ function CreateInvoicePage() {
             {/* Line Items */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Line Items</h2>
+                <h2 className="text-lg font-semibold">{t('fields.lineItems')}</h2>
                 <Button type="button" variant="outline" size="sm" onClick={handleAddLineItem}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Item
+                  {t('actions.addItem')}
                 </Button>
               </div>
               <div className="space-y-4">
                 {watchedLineItems.map((item, index) => (
                   <div key={index} className="rounded-lg border p-4">
                     <div className="mb-3 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Item {index + 1}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {t('fields.itemNumber', { number: index + 1 })}
+                      </span>
                       {watchedLineItems.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveLineItem(index)}
-                        >
+                        <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveLineItem(index)}>
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       )}
@@ -652,14 +660,14 @@ function CreateInvoicePage() {
                     <div className="space-y-3">
                       <InputField
                         name={`lineItems.${index}.description`}
-                        label="Description"
-                        placeholder="Item description"
+                        label={t('fields.description')}
+                        placeholder={t('placeholders.itemDescription')}
                         type={FieldType.TextArea}
                       />
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         <InputField
                           name={`lineItems.${index}.quantity`}
-                          label="Quantity"
+                          label={t('fields.quantity')}
                           placeholder="1"
                           type={FieldType.Number}
                           props={{
@@ -671,7 +679,7 @@ function CreateInvoicePage() {
                         />
                         <InputField
                           name={`lineItems.${index}.unitPrice`}
-                          label="Unit Price"
+                          label={t('fields.unitPrice')}
                           placeholder="0.00"
                           type={FieldType.Number}
                           props={{
@@ -683,7 +691,7 @@ function CreateInvoicePage() {
                         />
                         <InputField
                           name={`lineItems.${index}.taxRate`}
-                          label="Tax Rate (%)"
+                          label={t('fields.taxRate')}
                           placeholder="0"
                           type={FieldType.Number}
                           props={{
@@ -696,7 +704,7 @@ function CreateInvoicePage() {
                         />
                       </div>
                       <div className="text-right">
-                        <span className="text-sm text-gray-600">Amount: </span>
+                        <span className="text-sm text-gray-600">{t('fields.amount')} </span>
                         <span className="font-semibold">${(Number(item.amount) || 0).toFixed(2)}</span>
                       </div>
                     </div>
@@ -707,20 +715,20 @@ function CreateInvoicePage() {
 
             {/* Tax and Totals */}
             <div className="rounded-lg border bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Tax & Totals</h2>
+              <h2 className="mb-4 text-lg font-semibold">{t('fields.taxAndTotals')}</h2>
               <div className="space-y-2 rounded-lg bg-gray-50 p-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="text-gray-600">{t('fields.subtotal')}</span>
                   <span className="font-semibold">${invoiceTotals.subtotal.toFixed(2)}</span>
                 </div>
                 {invoiceTotals.taxAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax:</span>
+                    <span className="text-gray-600">{t('fields.tax')}</span>
                     <span className="font-semibold">${invoiceTotals.taxAmount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-gray-300 pt-2 text-lg font-bold">
-                  <span>Total:</span>
+                  <span>{t('fields.total')}</span>
                   <span>${invoiceTotals.total.toFixed(2)}</span>
                 </div>
               </div>
@@ -728,63 +736,59 @@ function CreateInvoicePage() {
 
             {/* Payment Terms and Notes */}
             {selectedClient && (
-                <div className="rounded-lg border bg-white p-6 shadow-sm">
-                  <h2 className="mb-4 text-lg font-semibold">Additional Information</h2>
-                  <div className="space-y-4">
-                    <InputField
-                      name="paymentTerms"
-                      label="Payment Terms"
-                      placeholder="Payment terms"
-                      type={FieldType.TextArea}
-                    />
-                    <InputField
-                      name="notes"
-                      label="Notes"
-                      placeholder="Additional notes (optional)"
-                      type={FieldType.TextArea}
-                    />
-                    <InputField
-                      name="paymentInstructions"
-                      label="Payment Instructions"
-                      placeholder="Payment instructions"
-                      type={FieldType.TextArea}
-                    />
-                  </div>
+              <div className="rounded-lg border bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-semibold">{t('fields.additionalInformation')}</h2>
+                <div className="space-y-4">
+                  <InputField
+                    name="paymentTerms"
+                    label={t('fields.paymentTerms')}
+                    placeholder={t('placeholders.paymentTerms')}
+                    type={FieldType.TextArea}
+                  />
+                  <InputField
+                    name="notes"
+                    label={t('fields.notes')}
+                    placeholder={t('placeholders.notesOptional')}
+                    type={FieldType.TextArea}
+                  />
+                  <InputField
+                    name="paymentInstructions"
+                    label={t('fields.paymentInstructions')}
+                    placeholder={t('placeholders.paymentInstructions')}
+                    type={FieldType.TextArea}
+                  />
                 </div>
-              )
-            }
-
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3">
               <Button
                 variant="outline"
                 onClick={handleSaveDraft}
-                className="flex-1 min-w-[120px]"
+                className="min-w-[120px] flex-1"
                 disabled={isCreatingDraft || isCreatingOnly || isCreatingAndSending}
               >
-                {isCreatingDraft ? 'Saving...' : 'Save as Draft'}
+                {isCreatingDraft ? t('actions.saving') : t('invoiceForm.saveAsDraft')}
               </Button>
               <Button
                 variant="outline"
                 onClick={handleCreateOnly}
-                className="flex-1 min-w-[120px]"
+                className="min-w-[120px] flex-1"
                 disabled={isCreatingDraft || isCreatingOnly || isCreatingAndSending}
               >
-                {isCreatingOnly ? 'Creating...' : 'Create Only'}
+                {isCreatingOnly ? t('actions.creating') : t('invoiceForm.createOnly')}
               </Button>
               <Button
                 onClick={handleCreateInvoice}
-                className="flex-1 min-w-[120px]"
+                className="min-w-[120px] flex-1"
                 disabled={isCreatingDraft || isCreatingOnly || isCreatingAndSending}
               >
-                {isCreatingAndSending ? 'Creating & Sending...' : 'Create & Send'}
+                {isCreatingAndSending ? t('invoiceForm.creatingAndSending') : t('invoiceForm.createAndSend')}
               </Button>
             </div>
             {isInvoiceSmsEnabled(company) && (
-              <p className="text-sm text-gray-500">
-                Create & Send will email the invoice and send an SMS if the client has a phone number.
-              </p>
+              <p className="text-sm text-gray-500">{t('invoiceForm.createAndSendHint')}</p>
             )}
           </div>
 
@@ -794,7 +798,7 @@ function CreateInvoicePage() {
               <InvoicePreview invoice={previewInvoice} />
             ) : (
               <div className="rounded-lg border bg-white p-12 text-center shadow-sm">
-                <p className="text-gray-500">Select a client to preview the invoice</p>
+                <p className="text-gray-500">{t('invoiceForm.previewEmpty')}</p>
               </div>
             )}
           </div>
@@ -811,4 +815,3 @@ export default function Page() {
     </Suspense>
   );
 }
-

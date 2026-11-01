@@ -3,6 +3,8 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -23,14 +25,14 @@ export const useUnlinkPhotoGroup = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-types'] });
       toast({
-        title: 'Photo group unlinked successfully',
+        title: translateMessage('toasts.photoGroupUnlinkedSuccessfully', 'Photo group unlinked successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error unlinking photo group',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUnlinkingPhotoGroup', 'Error unlinking photo group'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

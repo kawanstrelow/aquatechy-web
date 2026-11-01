@@ -4,23 +4,23 @@ import { AxiosError } from 'axios';
 import { toast } from '@/components/ui/use-toast';
 
 import { clientAxios } from '../../../lib/clientAxios';
-import {
-  InvoiceCompanyInformation,
-  InvoiceDefaultValues,
-  InvoiceCommunication
-} from '@/ts/interfaces/Company';
+import { InvoiceCompanyInformation, InvoiceDefaultValues, InvoiceCommunication } from '@/ts/interfaces/Company';
 import { RecurringInvoiceFrequency, PaymentTermsDays } from '@/ts/interfaces/RecurringInvoiceTemplate';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
-  message?: string | Array<{
-    code: string;
-    message: string;
-    path?: (string | number)[];
-    validation?: string;
-    minimum?: number;
-    type?: string;
-    inclusive?: boolean;
-  }>;
+  message?:
+    | string
+    | Array<{
+        code: string;
+        message: string;
+        path?: (string | number)[];
+        validation?: string;
+        minimum?: number;
+        type?: string;
+        inclusive?: boolean;
+      }>;
   issues?: Array<{
     code: string;
     message: string;
@@ -37,10 +37,7 @@ export const useUpdateInvoiceCommunicationSettings = (companyId: string) => {
 
   return useMutation({
     mutationFn: async (settings: InvoiceCommunication) => {
-      const response = await clientAxios.patch(
-        `/companies/${companyId}/invoice-settings/communication`,
-        settings
-      );
+      const response = await clientAxios.patch(`/companies/${companyId}/invoice-settings/communication`, settings);
       return response.data;
     },
     onSuccess: () => {
@@ -51,15 +48,18 @@ export const useUpdateInvoiceCommunicationSettings = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
 
       toast({
-        title: 'Communication settings updated successfully',
+        title: translateMessage(
+          'toasts.communicationSettingsUpdatedSuccessfully',
+          'Communication settings updated successfully'
+        ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       console.error('Error updating communication settings:', error);
-      
+
       // Extract error message from response
-      let errorMessage = 'An error occurred';
+      let errorMessage = translateMessage('toasts.anErrorOccurred', 'An error occurred');
       if (error.response?.data?.message) {
         // Handle both string and array formats for message
         if (typeof error.response.data.message === 'string') {
@@ -68,11 +68,11 @@ export const useUpdateInvoiceCommunicationSettings = (companyId: string) => {
           errorMessage = error.response.data.message.map((issue) => issue.message || String(issue)).join(', ');
         }
       } else if (error.response?.data?.issues && error.response.data.issues.length > 0) {
-        errorMessage = error.response.data.issues.map(issue => issue.message).join(', ');
+        errorMessage = error.response.data.issues.map((issue) => issue.message).join(', ');
       }
 
       toast({
-        title: 'Error updating communication settings',
+        title: translateMessage('toasts.errorUpdatingCommunicationSettings', 'Error updating communication settings'),
         description: errorMessage,
         variant: 'error'
       });
@@ -114,7 +114,10 @@ export const useUpdateInvoiceCompanyInformation = (
       queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
 
       toast({
-        title: 'Company information updated successfully',
+        title: translateMessage(
+          'toasts.companyInformationUpdatedSuccessfully',
+          'Company information updated successfully'
+        ),
         variant: 'success'
       });
 
@@ -123,8 +126,8 @@ export const useUpdateInvoiceCompanyInformation = (
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       console.error('Error updating company information:', error);
-      
-      let errorMessage = 'An error occurred';
+
+      let errorMessage = translateMessage('toasts.anErrorOccurred', 'An error occurred');
       if (error.response?.data?.message) {
         // Handle both string and array formats for message
         if (typeof error.response.data.message === 'string') {
@@ -133,11 +136,11 @@ export const useUpdateInvoiceCompanyInformation = (
           errorMessage = error.response.data.message.map((issue) => issue.message || String(issue)).join(', ');
         }
       } else if (error.response?.data?.issues && error.response.data.issues.length > 0) {
-        errorMessage = error.response.data.issues.map(issue => issue.message).join(', ');
+        errorMessage = error.response.data.issues.map((issue) => issue.message).join(', ');
       }
 
       toast({
-        title: 'Error updating company information',
+        title: translateMessage('toasts.errorUpdatingCompanyInformation', 'Error updating company information'),
         description: errorMessage,
         variant: 'error'
       });
@@ -174,10 +177,7 @@ export const useUpdateInvoiceDefaultValues = (
         defaultPaymentTerm: (settings.defaultPaymentTerm as PaymentTermsDays) ?? PaymentTermsDays.ThirtyDays
       };
 
-      const response = await clientAxios.patch(
-        `/companies/${companyId}/invoice-settings/default-values`,
-        requestBody
-      );
+      const response = await clientAxios.patch(`/companies/${companyId}/invoice-settings/default-values`, requestBody);
       return response.data;
     },
     onSuccess: (data, variables) => {
@@ -187,7 +187,7 @@ export const useUpdateInvoiceDefaultValues = (
       queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
 
       toast({
-        title: 'Default values updated successfully',
+        title: translateMessage('toasts.defaultValuesUpdatedSuccessfully', 'Default values updated successfully'),
         variant: 'success'
       });
 
@@ -196,8 +196,8 @@ export const useUpdateInvoiceDefaultValues = (
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       console.error('Error updating default values:', error);
-      
-      let errorMessage = 'An error occurred';
+
+      let errorMessage = translateMessage('toasts.anErrorOccurred', 'An error occurred');
       if (error.response?.data?.message) {
         // Handle both string and array formats for message
         if (typeof error.response.data.message === 'string') {
@@ -206,15 +206,14 @@ export const useUpdateInvoiceDefaultValues = (
           errorMessage = error.response.data.message.map((issue) => issue.message || String(issue)).join(', ');
         }
       } else if (error.response?.data?.issues && error.response.data.issues.length > 0) {
-        errorMessage = error.response.data.issues.map(issue => issue.message).join(', ');
+        errorMessage = error.response.data.issues.map((issue) => issue.message).join(', ');
       }
 
       toast({
-        title: 'Error updating default values',
+        title: translateMessage('toasts.errorUpdatingDefaultValues', 'Error updating default values'),
         description: errorMessage,
         variant: 'error'
       });
     }
   });
 };
-

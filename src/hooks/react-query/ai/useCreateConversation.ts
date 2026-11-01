@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { CreateAiConversationRequest, CreateAiConversationResponse } from '@/ts/interfaces/AiChat';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export function useCreateConversation() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -28,12 +30,12 @@ export function useCreateConversation() {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to create conversation';
+        : errorMessage || translateMessage('toasts.failedToCreateConversation', 'Failed to create conversation');
 
       toast({
         duration: 3000,
         variant: 'error',
-        title: 'Error creating chat',
+        title: translateMessage('toasts.errorCreatingChat', 'Error creating chat'),
         description: message
       });
     }

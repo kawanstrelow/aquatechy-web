@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { PortalSessionFlow, PortalSessionResponse } from '@/ts/interfaces/Subscription';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export default function useCreatePortalSession() {
   const { toast } = useToast();
 
@@ -19,8 +21,10 @@ export default function useCreatePortalSession() {
     onError: (error: AxiosError<{ message?: string }>) => {
       toast({
         variant: 'error',
-        title: 'Could not open billing portal',
-        description: error.response?.data?.message ?? 'Please try again later or contact support.'
+        title: translateMessage('toasts.couldNotOpenBillingPortal', 'Could not open billing portal'),
+        description:
+          error.response?.data?.message ??
+          translateMessage('toasts.pleaseTryAgainLaterOrContactSupport2', 'Please try again later or contact support.')
       });
     }
   });

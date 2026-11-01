@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { format, getDay } from 'date-fns';
 import { Loader2Icon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -21,26 +22,26 @@ import { FieldType, Frequency } from '@/ts/enums/enums';
 import { CreateAssignment } from '@/ts/interfaces/Assignments';
 
 const recurringVisitSchema = z.object({
-  assignmentToId: z.string().min(1, { message: 'Technician is required.' }),
+  assignmentToId: z.string().min(1, { message: 'clients.errors.technicianRequired' }),
   serviceTypeId: z.string().optional(),
   instructions: z.string().optional(),
   frequency: z.string().optional(),
   weekday: defaultSchemas.weekday,
-  startOn: z.string().min(1, { message: 'Start date is required.' }),
+  startOn: z.string().min(1, { message: 'clients.errors.startDateRequired' }),
   scheduledDate: z.string().optional()
 });
 
 const onceVisitSchema = z.object({
-  assignmentToId: z.string().min(1, { message: 'Technician is required.' }),
+  assignmentToId: z.string().min(1, { message: 'clients.errors.technicianRequired' }),
   serviceTypeId: z.string().optional(),
   instructions: z.string().optional(),
   frequency: z.literal('ONCE', {
-    required_error: 'Frequency is required.',
-    invalid_type_error: 'Frequency is required.'
+    required_error: 'clients.errors.frequencyRequired',
+    invalid_type_error: 'clients.errors.frequencyRequired'
   }),
   weekday: z.string().optional(),
   startOn: z.string().optional(),
-  scheduledDate: z.string().min(1, { message: 'Scheduled date is required.' })
+  scheduledDate: z.string().min(1, { message: 'clients.errors.scheduledDateRequired' })
 });
 
 type VisitFormValues = z.infer<typeof recurringVisitSchema>;
@@ -128,9 +129,10 @@ export function LeadVisitForm({
   onCollect,
   onPrevious,
   scheduleOnce = false,
-  submitLabel = 'Schedule visit',
+  submitLabel,
   isSubmitting = false
 }: Props) {
+  const t = useTranslations('clients');
   const queryClient = useQueryClient();
   const { mutate, isPending } = useCreateAssignment();
   const pending = isSubmitting || isPending;
@@ -201,18 +203,16 @@ export function LeadVisitForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="w-full space-y-4">
         {scheduleOnce ? (
-          <p className="text-sm text-gray-500">
-            Schedule one visit, or skip this step. This schedules one visit on the selected day.
-          </p>
+          <p className="text-sm text-gray-500">{t('leads.scheduleOrSkip')}</p>
         ) : (
-          <p className="text-sm text-gray-500">This schedules one visit on the selected day.</p>
+          <p className="text-sm text-gray-500">{t('leads.oneVisit')}</p>
         )}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <SelectField
               name="assignmentToId"
-              label="Technician"
-              placeholder={technicians.length ? 'Technician' : 'No technicians available'}
+              label={t('fields.technician')}
+              placeholder={technicians.length ? t('fields.technician') : t('leads.noTechnicians')}
               disabled={technicians.length === 0}
               options={technicians.map((member) => ({
                 key: member.id,
@@ -220,17 +220,17 @@ export function LeadVisitForm({
                 value: member.id
               }))}
             />
-            {technicians.length === 0 && <p className="mt-1 text-sm text-gray-500">No technicians available</p>}
+            {technicians.length === 0 && <p className="mt-1 text-sm text-gray-500">{t('leads.noTechnicians')}</p>}
           </div>
           <SelectField
             name="serviceTypeId"
-            label="Service type"
+            label={t('fields.serviceType')}
             placeholder={
               isServiceTypesLoading
-                ? 'Loading service types...'
+                ? t('leads.loadingServiceTypes')
                 : serviceTypes.length
-                  ? 'Pool Cleaning if left blank'
-                  : 'No service types available'
+                  ? t('leads.poolCleaningDefault')
+                  : t('leads.noServiceTypes')
             }
             disabled={isServiceTypesLoading}
             options={serviceTypes.map((serviceType) => ({
@@ -243,54 +243,83 @@ export function LeadVisitForm({
         {showInstructions && (
           <InputField
             name="instructions"
-            label="Instructions"
-            placeholder="Enter instructions for this visit"
+            label={t('fields.instructions')}
+            placeholder={t('fields.instructionsPlaceholder')}
             type={FieldType.TextArea}
           />
         )}
         {scheduleOnce ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <SelectField name="frequency" label="Frequency" placeholder="Frequency" options={onceFrequencyOptions} />
+            <SelectField
+              name="frequency"
+              label={t('fields.frequency')}
+              placeholder={t('fields.frequency')}
+              options={onceFrequencyOptions.map((option) => ({ ...option, name: t('frequency.onlyOnce') }))}
+            />
             <SelectField
               name="scheduledDate"
-              label="Scheduled date"
-              placeholder="Scheduled date"
+              label={t('fields.scheduledDate')}
+              placeholder={t('fields.scheduledDate')}
               options={scheduledToDates}
             />
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <SelectField name="weekday" label="Weekday" placeholder="Weekday" options={Weekdays} />
-            {weekday && <SelectField name="startOn" label="Visit date" placeholder="Visit date" options={startDates} />}
+            <SelectField
+              name="weekday"
+              label={t('fields.weekday')}
+              placeholder={t('fields.weekday')}
+              options={Weekdays}
+            />
+            {weekday && (
+              <SelectField
+                name="startOn"
+                label={t('fields.visitDate')}
+                placeholder={t('fields.visitDate')}
+                options={startDates}
+              />
+            )}
           </div>
         )}
-        <div className={scheduleOnce ? 'flex items-center justify-between gap-4' : 'flex gap-4'}>
+        <div
+          className={
+            scheduleOnce
+              ? 'flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
+              : 'flex gap-4'
+          }
+        >
           {onPrevious && (
             <Button
               type="button"
               variant="outline"
-              className="border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50"
+              className="w-full border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50 sm:w-auto"
               onClick={onPrevious}
               disabled={pending}
             >
-              Previous
+              {t('leads.previous')}
             </Button>
           )}
-          <div className={scheduleOnce ? 'ml-auto flex items-center gap-4' : 'flex flex-1 gap-4'}>
+          <div
+            className={
+              scheduleOnce
+                ? 'flex w-full min-w-0 flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row sm:items-center'
+                : 'flex flex-1 gap-4'
+            }
+          >
             {onSkip && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onSkip}
-                className="h-9 whitespace-nowrap px-4"
+                className="h-9 w-full px-4 sm:w-auto"
                 disabled={pending}
               >
-                Skip visit for now
+                {t('leads.skipVisit')}
               </Button>
             )}
-            <Button type="submit" disabled={pending} className={scheduleOnce ? 'h-9 whitespace-nowrap px-4' : 'flex-1'}>
+            <Button type="submit" disabled={pending} className={scheduleOnce ? 'h-9 w-full px-4 sm:w-auto' : 'flex-1'}>
               {pending && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-              {submitLabel}
+              {submitLabel ?? t('leads.scheduleVisit')}
             </Button>
           </div>
         </div>

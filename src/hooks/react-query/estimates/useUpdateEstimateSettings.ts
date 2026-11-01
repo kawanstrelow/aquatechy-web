@@ -6,6 +6,8 @@ import { buildEstimateCommunicationPayload } from '@/app/(authenticated)/invoice
 import { clientAxios } from '@/lib/clientAxios';
 import { EstimateCommunication } from '@/ts/interfaces/Company';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message?: string | string[];
 };
@@ -28,12 +30,15 @@ export const useUpdateEstimateCommunicationSettings = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['companies', companyId] });
 
       toast({
-        title: 'Estimate communication settings updated successfully',
+        title: translateMessage(
+          'toasts.estimateCommunicationSettingsUpdatedSuccessfully',
+          'Estimate communication settings updated successfully'
+        ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      let errorMessage = 'An error occurred';
+      let errorMessage = translateMessage('toasts.anErrorOccurred', 'An error occurred');
       if (error.response?.data?.message) {
         if (typeof error.response.data.message === 'string') {
           errorMessage = error.response.data.message;
@@ -43,7 +48,10 @@ export const useUpdateEstimateCommunicationSettings = (companyId: string) => {
       }
 
       toast({
-        title: 'Error updating estimate communication settings',
+        title: translateMessage(
+          'toasts.errorUpdatingEstimateCommunicationSettings',
+          'Error updating estimate communication settings'
+        ),
         description: errorMessage,
         variant: 'error'
       });

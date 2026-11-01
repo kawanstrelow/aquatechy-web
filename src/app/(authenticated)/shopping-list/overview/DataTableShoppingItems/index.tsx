@@ -1,6 +1,7 @@
 'use client';
 
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { useTranslations } from 'next-intl';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ShoppingListRow } from '@/ts/interfaces/Shopping';
@@ -11,6 +12,7 @@ interface DataTableShoppingItemsProps<TValue> {
 }
 
 export function DataTableShoppingItems<TValue>({ columns, data }: DataTableShoppingItemsProps<TValue>) {
+  const t = useTranslations('shopping');
   const table = useReactTable({
     data,
     columns,
@@ -34,10 +36,7 @@ export function DataTableShoppingItems<TValue>({ columns, data }: DataTableShopp
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="border-b border-gray-100 transition-colors hover:bg-gray-50/50"
-              >
+              <TableRow key={row.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50/50">
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
@@ -52,7 +51,7 @@ export function DataTableShoppingItems<TValue>({ columns, data }: DataTableShopp
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500">
-                No shopping list items found.
+                {t('noItems')}
               </TableCell>
             </TableRow>
           )}

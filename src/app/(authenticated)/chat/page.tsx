@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { History } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -29,6 +30,7 @@ function visibleChatMessages(messages: AiMessage[]) {
 }
 
 function ChatPage() {
+  const t = useTranslations('chat');
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -36,8 +38,8 @@ function ChatPage() {
   const managementCompanies = useMemo(() => getManagementCompanies(companies), [companies]);
 
   // Backend-issued conversation id only (from POST /ai/conversations or URL/history)
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(
-    () => searchParams.get('conversationId')
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(() =>
+    searchParams.get('conversationId')
   );
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
@@ -111,14 +113,14 @@ function ChatPage() {
       toast({
         duration: 3000,
         variant: 'error',
-        title: 'Conversation unavailable',
-        description: 'This chat was removed or you no longer have access.'
+        title: t('conversationUnavailable'),
+        description: t('conversationUnavailableDescription')
       });
       setConversationId(null);
       setThreadMessages([]);
       queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
     }
-  }, [isConversationError, conversationError, activeConversationId, isSending, queryClient, setConversationId]);
+  }, [isConversationError, conversationError, activeConversationId, isSending, queryClient, setConversationId, t]);
 
   // Sync thread from server when opening a conversation (skip while a send is in flight).
   useEffect(() => {
@@ -181,8 +183,8 @@ function ChatPage() {
       toast({
         duration: 3000,
         variant: 'error',
-        title: 'Select a company',
-        description: 'Choose a company before starting a chat.'
+        title: t('selectCompany'),
+        description: t('selectCompanyDescription')
       });
       return;
     }
@@ -276,22 +278,22 @@ function ChatPage() {
             <SheetTrigger asChild>
               <Button type="button" variant="outline" size="sm" className="gap-1.5">
                 <History className="h-4 w-4" />
-                History
+                {t('history')}
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[280px] p-0">
               <SheetHeader className="sr-only">
-                <SheetTitle>Chat history</SheetTitle>
+                <SheetTitle>{t('chatHistory')}</SheetTitle>
               </SheetHeader>
               <ChatSidebar {...sidebarProps} />
             </SheetContent>
           </Sheet>
           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
-            AI Chat
+            {t('aiChat')}
             <BetaBadge />
           </span>
           <Button type="button" variant="outline" size="sm" onClick={handleNewChat}>
-            New
+            {t('new')}
           </Button>
         </div>
 

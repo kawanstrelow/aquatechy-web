@@ -5,6 +5,8 @@ import { clientAxios } from '@/lib/clientAxios';
 import { DeclineEstimateRequest, DeclineEstimateResponse } from '@/ts/interfaces/Estimate';
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface DeclineEstimateParams {
   estimateId: string;
   data?: DeclineEstimateRequest;
@@ -16,10 +18,7 @@ export const useDeclineEstimate = () => {
 
   const { mutate, mutateAsync, isPending, isSuccess } = useMutation({
     mutationFn: async ({ estimateId, data }: DeclineEstimateParams): Promise<DeclineEstimateResponse> => {
-      const response = await clientAxios.post<DeclineEstimateResponse>(
-        `/estimates/${estimateId}/decline`,
-        data ?? {}
-      );
+      const response = await clientAxios.post<DeclineEstimateResponse>(`/estimates/${estimateId}/decline`, data ?? {});
       return response.data;
     },
     onSuccess: (_response, variables) => {
@@ -28,7 +27,7 @@ export const useDeclineEstimate = () => {
 
       toast({
         duration: 2000,
-        title: 'Estimate declined',
+        title: translateMessage('toasts.estimateDeclined', 'Estimate declined'),
         variant: 'success'
       });
     },
@@ -36,12 +35,12 @@ export const useDeclineEstimate = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to decline estimate';
+        : errorMessage || translateMessage('toasts.failedToDeclineEstimate', 'Failed to decline estimate');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error declining estimate',
+        title: translateMessage('toasts.errorDecliningEstimate', 'Error declining estimate'),
         description: message
       });
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { CreditCard, Loader2 } from 'lucide-react';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function StripeSaveCardSection({ client, variant = 'inline' }: Props) {
+  const t = useTranslations('clients');
   const { data: companies = [], isLoading: companiesLoading } = useGetCompanies();
   const membership = companies.find((c) => c.id === client.companyOwnerId);
   const role = membership?.role;
@@ -47,22 +49,22 @@ export default function StripeSaveCardSection({ client, variant = 'inline' }: Pr
   const inner = (
     <div className="w-full space-y-3 text-left">
       {!isPayments ? (
-        <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">Online payments</div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t('payments.online')}</div>
       ) : (
         <>
-          <h2 className="text-base font-semibold text-gray-900">Card on file</h2>
-          <p className="text-sm text-muted-foreground">
-            Saved card is used for “charge card on file” on invoices after the client completes Stripe’s secure setup.
-          </p>
+          <h2 className="text-base font-semibold text-gray-900">{t('payments.cardOnFile')}</h2>
+          <p className="text-muted-foreground text-sm">{t('payments.cardOnFileHelp')}</p>
         </>
       )}
       {client.cardOnFileLast4 ? (
         <p className="text-sm text-gray-700">
-          Card on file: {[client.cardOnFileBrand, `••••${client.cardOnFileLast4}`].filter(Boolean).join(' ')}{' '}
-          {client.cardOnFileExp ? `(exp ${client.cardOnFileExp})` : null}
+          {t('payments.cardLine', {
+            details: [client.cardOnFileBrand, `••••${client.cardOnFileLast4}`].filter(Boolean).join(' ')
+          })}{' '}
+          {client.cardOnFileExp ? t('payments.exp', { date: client.cardOnFileExp }) : null}
         </p>
       ) : (
-        <p className="text-sm text-gray-600">No card saved for recurring charges.</p>
+        <p className="text-sm text-gray-600">{t('payments.noCard')}</p>
       )}
       <Button
         type="button"
@@ -70,14 +72,10 @@ export default function StripeSaveCardSection({ client, variant = 'inline' }: Pr
         className="w-full sm:w-auto"
         disabled={connectLoading || !stripeReady || setup.isPending}
         onClick={() => void handleSetup()}
-        title={
-          !stripeReady
-            ? 'Connect Stripe and enable charges under Payments (account menu) or Invoice Settings → Online Payments.'
-            : undefined
-        }
+        title={!stripeReady ? t('payments.stripeNotReady') : undefined}
       >
         {setup.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
-        Open Stripe link to save card
+        {t('payments.openStripe')}
       </Button>
     </div>
   );

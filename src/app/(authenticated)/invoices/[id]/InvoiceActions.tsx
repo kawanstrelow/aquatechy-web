@@ -1,19 +1,9 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ArrowLeft,
-  CreditCard,
-  Loader2,
-  Send,
-  Mail,
-  Download,
-  Edit,
-  Ban,
-  RotateCcw,
-  Banknote
-} from 'lucide-react';
+import { ArrowLeft, CreditCard, Loader2, Send, Mail, Download, Edit, Ban, RotateCcw, Banknote } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -102,6 +92,7 @@ export function InvoiceActions({
   isExternalRefundLoading = false,
   smsEnabled = false
 }: InvoiceActionsProps) {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const [showSendInvoiceDialog, setShowSendInvoiceDialog] = useState(false);
   const [showSendReminderDialog, setShowSendReminderDialog] = useState(false);
@@ -171,12 +162,12 @@ export function InvoiceActions({
         const raw = partialRefundDollars.trim().replace(/,/g, '');
         const n = Number.parseFloat(raw);
         if (!Number.isFinite(n) || n <= 0) {
-          setPartialRefundError('Enter a valid amount greater than zero.');
+          setPartialRefundError(t('errors.amountGreaterThanZero'));
           return;
         }
         const amountCents = Math.round(n * 100);
         if (amountCents < 1) {
-          setPartialRefundError('Amount must be at least $0.01.');
+          setPartialRefundError(t('errors.amountMinimum'));
           return;
         }
         await onRefundStripe({ amountCents });
@@ -193,17 +184,19 @@ export function InvoiceActions({
     const raw = externalRefundDollars.trim().replace(/,/g, '');
     const n = Number.parseFloat(raw);
     if (!Number.isFinite(n) || n <= 0) {
-      setExternalRefundError('Enter a valid amount greater than zero.');
+      setExternalRefundError(t('errors.amountGreaterThanZero'));
       return;
     }
     const amountCents = Math.round(n * 100);
     if (amountCents < 1) {
-      setExternalRefundError('Amount must be at least $0.01.');
+      setExternalRefundError(t('errors.amountMinimum'));
       return;
     }
     if (amountCents > externalRefundMaxCents) {
       setExternalRefundError(
-        `Amount cannot exceed the remaining recordable total ($${(externalRefundMaxCents / 100).toFixed(2)}).`
+        t('errors.amountExceedsRemaining', {
+          amount: `$${(externalRefundMaxCents / 100).toFixed(2)}`
+        })
       );
       return;
     }
@@ -217,37 +210,49 @@ export function InvoiceActions({
 
   // Determine which buttons to show based on status
   const showSendInvoice = invoice.status === 'draft';
-  const showSendReminder = invoice.status !== 'cancelled' && (invoice.status === 'unpaid' || invoice.status === 'overdue');
-  const showCancelInvoice =
-    onCancelInvoice && invoice.status !== 'paid' && invoice.status !== 'cancelled';
+  const showSendReminder =
+    invoice.status !== 'cancelled' && (invoice.status === 'unpaid' || invoice.status === 'overdue');
+  const showCancelInvoice = onCancelInvoice && invoice.status !== 'paid' && invoice.status !== 'cancelled';
   const hasClientCardOnFile = !!invoice.defaultStripePaymentMethodId;
   const clientHasPhone = Boolean(invoice.clientPhone?.trim());
-  const sendInvoiceLabel = smsEnabled ? 'Send Invoice' : 'Send Invoice Email';
+  const sendInvoiceLabel = smsEnabled ? t('invoiceDetail.sendInvoice') : t('invoiceDetail.sendInvoiceEmail');
+  const sendTarget = { number: invoice.invoiceNumber ?? '', name: invoice.clientName };
   const sendInvoiceDescription = smsEnabled
     ? clientHasPhone
-      ? `Are you sure you want to send invoice #${invoice.invoiceNumber} to ${invoice.clientName}? The invoice will be sent via email and SMS.`
-      : `Are you sure you want to send invoice #${invoice.invoiceNumber} to ${invoice.clientName}? The invoice will be sent via email. SMS is enabled, but this client has no phone number.`
-    : `Are you sure you want to send invoice #${invoice.invoiceNumber} to ${invoice.clientName}? The invoice will be sent via email.`;
-  const sendReminderLabel = smsEnabled ? 'Send reminder' : 'Send reminder email';
-  const sendReminderConfirmLabel = smsEnabled ? 'Send reminder' : 'Send Reminder Email';
+      ? t('invoiceDetail.sendInvoiceSms', sendTarget)
+      : t('invoiceDetail.sendInvoiceNoPhone', sendTarget)
+    : t('invoiceDetail.sendInvoiceEmailOnly', sendTarget);
+  const sendReminderLabel = smsEnabled ? t('invoiceDetail.sendReminder') : t('invoiceDetail.sendReminderEmail');
+  const sendReminderConfirmLabel = smsEnabled
+    ? t('invoiceDetail.sendReminder')
+    : t('invoiceDetail.sendReminderEmailConfirm');
   const sendReminderDescription = smsEnabled
     ? clientHasPhone
-      ? `Are you sure you want to send a reminder for invoice #${invoice.invoiceNumber} to ${invoice.clientName}? This will remind them about the outstanding payment via email and SMS.`
-      : `Are you sure you want to send a reminder for invoice #${invoice.invoiceNumber} to ${invoice.clientName}? This will remind them about the outstanding payment via email. SMS is enabled, but this client has no phone number.`
-    : `Are you sure you want to send a reminder email for invoice #${invoice.invoiceNumber} to ${invoice.clientName}? This will remind them about the outstanding payment.`;
+      ? t('invoiceDetail.sendReminderSms', sendTarget)
+      : t('invoiceDetail.sendReminderNoPhone', sendTarget)
+    : t('invoiceDetail.sendReminderEmailOnly', sendTarget);
 
   return (
     <div className="mb-6 flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="outline" onClick={handleBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Invoices
+          {t('actions.backToInvoices')}
         </Button>
         {showStripePayActions && onPayCheckout && (
           <>
-            <Button type="button" variant="default" disabled={isStripeReadyLoading || isCheckoutLoading} onClick={() => void onPayCheckout()}>
-              {isCheckoutLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
-              Pay
+            <Button
+              type="button"
+              variant="default"
+              disabled={isStripeReadyLoading || isCheckoutLoading}
+              onClick={() => void onPayCheckout()}
+            >
+              {isCheckoutLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-4 w-4" />
+              )}
+              {t('actions.pay')}
             </Button>
             {onChargeCardOnFile && (
               <Button
@@ -256,43 +261,39 @@ export function InvoiceActions({
                 disabled={isStripeReadyLoading || isChargeLoading || isCheckoutLoading}
                 onClick={() => void onChargeCardOnFile()}
               >
-                {isChargeLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
-                Charge card on file
+                {isChargeLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="mr-2 h-4 w-4" />
+                )}
+                {t('invoiceDetail.chargeCardOnFile')}
               </Button>
             )}
           </>
         )}
         {showStripePayActions && isStripeReadyLoading && (
-          <span className="self-center text-sm text-muted-foreground">Checking Stripe status…</span>
+          <span className="text-muted-foreground self-center text-sm">{t('invoiceDetail.checkingStripe')}</span>
         )}
         {showStripeRefund && onRefundStripe && (
           <>
             <Button type="button" variant="outline" onClick={() => setRefundDialogOpen(true)}>
               <RotateCcw className="mr-2 h-4 w-4" />
-              Refund via Stripe
+              {t('invoiceDetail.refundViaStripe')}
             </Button>
             <Dialog open={refundDialogOpen} onOpenChange={setRefundDialogOpen}>
               <DialogContent aria-describedby="invoice-refund-description">
                 <DialogHeader>
-                  <DialogTitle>Refund payment</DialogTitle>
+                  <DialogTitle>{t('refund.title')}</DialogTitle>
                   <DialogDescription id="invoice-refund-description" asChild>
                     <div className="space-y-3 text-sm text-slate-500">
+                      <p>{t('refund.intro')}</p>
                       <p>
-                        Refunds run on your connected Stripe account and update this invoice&apos;s refund
-                        fields.
-                      </p>
-                      <p>
-                        A <span className="font-medium text-slate-700">full</span> refund requests everything
-                        Stripe still allows on this charge (after any earlier partial refunds). That amount can
-                        differ from the invoice total in rare cases.
+                        {t.rich('refund.fullExplanation', {
+                          full: (chunks) => <span className="font-medium text-slate-700">{chunks}</span>
+                        })}
                       </p>
                       {totalRefundedCents > 0 ? (
-                        <p>
-                          Cumulative refunded on this invoice (Stripe):{' '}
-                          <span className="font-medium text-slate-700">
-                            ${(totalRefundedCents / 100).toFixed(2)}
-                          </span>
-                        </p>
+                        <p>{t('refund.cumulative', { amount: `$${(totalRefundedCents / 100).toFixed(2)}` })}</p>
                       ) : null}
                     </div>
                   </DialogDescription>
@@ -307,10 +308,10 @@ export function InvoiceActions({
                       <RadioGroupItem value="full" id="refund-full" className="mt-1" />
                       <div className="grid gap-1">
                         <Label htmlFor="refund-full" className="font-normal">
-                          Full remaining refundable balance
+                          {t('refund.fullBalance')}
                         </Label>
-                        <span className="text-xs text-muted-foreground">
-                          Invoice total (reference): ${invoice.total.toFixed(2)}
+                        <span className="text-muted-foreground text-xs">
+                          {t('refund.invoiceTotalReference', { amount: `$${invoice.total.toFixed(2)}` })}
                         </span>
                       </div>
                     </div>
@@ -318,10 +319,10 @@ export function InvoiceActions({
                       <RadioGroupItem value="partial" id="refund-partial" className="mt-1" />
                       <div className="grid flex-1 gap-2">
                         <Label htmlFor="refund-partial" className="font-normal">
-                          Partial amount
+                          {t('refund.partialAmount')}
                         </Label>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">$</span>
+                          <span className="text-muted-foreground text-sm">$</span>
                           <Input
                             id="refund-partial-amount"
                             type="text"
@@ -334,16 +335,14 @@ export function InvoiceActions({
                             autoComplete="off"
                           />
                         </div>
-                        {partialRefundError ? (
-                          <p className="text-xs text-red-600">{partialRefundError}</p>
-                        ) : null}
+                        {partialRefundError ? <p className="text-xs text-red-600">{partialRefundError}</p> : null}
                       </div>
                     </div>
                   </RadioGroup>
                 </div>
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setRefundDialogOpen(false)}>
-                    Cancel
+                    {t('actions.cancel')}
                   </Button>
                   <Button
                     type="button"
@@ -352,7 +351,7 @@ export function InvoiceActions({
                     onClick={() => void handleStripeRefund()}
                   >
                     {isRefundLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Submit refund
+                    {t('refund.submit')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -363,32 +362,27 @@ export function InvoiceActions({
           <>
             <Button type="button" variant="outline" onClick={() => setExternalRefundDialogOpen(true)}>
               <Banknote className="mr-2 h-4 w-4" />
-              Record offline refund
+              {t('invoiceDetail.recordOfflineRefund')}
             </Button>
             <Dialog open={externalRefundDialogOpen} onOpenChange={setExternalRefundDialogOpen}>
               <DialogContent aria-describedby="external-refund-description">
                 <DialogHeader>
-                  <DialogTitle>Record offline refund</DialogTitle>
+                  <DialogTitle>{t('refund.offlineTitle')}</DialogTitle>
                   <DialogDescription id="external-refund-description" asChild>
                     <div className="space-y-2 text-sm text-slate-500">
+                      <p>{t('refund.offlineIntro')}</p>
                       <p>
-                        This invoice was marked paid outside Stripe. Each submission adds to the cumulative refund
-                        on the invoice (it does not move money in Stripe).
-                      </p>
-                      <p>
-                        You can record up to{' '}
-                        <span className="font-medium text-slate-700">
-                          ${(externalRefundMaxCents / 100).toFixed(2)}
-                        </span>{' '}
-                        more so total refunds do not exceed the invoice total.
+                        {t('refund.offlineLimit', {
+                          amount: `$${(externalRefundMaxCents / 100).toFixed(2)}`
+                        })}
                       </p>
                     </div>
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-2 py-2">
-                  <Label htmlFor="external-refund-amount">Refund amount</Label>
+                  <Label htmlFor="external-refund-amount">{t('fields.refundAmount')}</Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">$</span>
+                    <span className="text-muted-foreground text-sm">$</span>
                     <Input
                       id="external-refund-amount"
                       type="text"
@@ -404,7 +398,7 @@ export function InvoiceActions({
                 </div>
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setExternalRefundDialogOpen(false)}>
-                    Cancel
+                    {t('actions.cancel')}
                   </Button>
                   <Button
                     type="button"
@@ -413,7 +407,7 @@ export function InvoiceActions({
                     onClick={() => void handleExternalRefundSubmit()}
                   >
                     {isExternalRefundLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Record refund
+                    {t('refund.record')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -426,21 +420,21 @@ export function InvoiceActions({
             variant="outline"
             disabled={isStripeReadyLoading || isSaveClientCardLoading}
             onClick={() => void onSaveClientCard()}
-            title={
-              hasClientCardOnFile
-                ? 'Opens Stripe so this client can update their saved card.'
-                : 'Opens Stripe so this client’s card can be saved on file.'
-            }
+            title={hasClientCardOnFile ? t('invoiceDetail.editCardTitle') : t('invoiceDetail.saveCardTitle')}
           >
-            {isSaveClientCardLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
-            {hasClientCardOnFile ? 'Edit card on file' : 'Save card on file'}
+            {isSaveClientCardLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <CreditCard className="mr-2 h-4 w-4" />
+            )}
+            {hasClientCardOnFile ? t('invoiceDetail.editCard') : t('invoiceDetail.saveCard')}
           </Button>
         )}
         {showSendInvoice && (
           <>
             <Button onClick={() => setShowSendInvoiceDialog(true)} disabled={isSendingInvoice}>
               <Send className="mr-2 h-4 w-4" />
-              {isSendingInvoice ? 'Sending...' : sendInvoiceLabel}
+              {isSendingInvoice ? t('actions.sending') : sendInvoiceLabel}
             </Button>
             <ConfirmActionDialog
               open={showSendInvoiceDialog}
@@ -448,7 +442,7 @@ export function InvoiceActions({
               title={sendInvoiceLabel}
               description={sendInvoiceDescription}
               confirmText={sendInvoiceLabel}
-              cancelText="Cancel"
+              cancelText={t('actions.cancel')}
               onConfirm={handleSendInvoice}
               variant="default"
             />
@@ -459,15 +453,15 @@ export function InvoiceActions({
           <>
             <Button variant="outline" onClick={() => setShowSendReminderDialog(true)} disabled={isSendingReminder}>
               <Mail className="mr-2 h-4 w-4" />
-              {isSendingReminder ? 'Sending...' : sendReminderLabel}
+              {isSendingReminder ? t('actions.sending') : sendReminderLabel}
             </Button>
             <ConfirmActionDialog
               open={showSendReminderDialog}
               onOpenChange={setShowSendReminderDialog}
-              title="Send Invoice Reminder"
+              title={t('invoiceDetail.sendReminderTitle')}
               description={sendReminderDescription}
               confirmText={sendReminderConfirmLabel}
-              cancelText="Cancel"
+              cancelText={t('actions.cancel')}
               onConfirm={handleSendReminder}
               variant="default"
             />
@@ -476,12 +470,12 @@ export function InvoiceActions({
 
         <Button variant="outline" onClick={handleEdit}>
           <Edit className="mr-2 h-4 w-4" />
-          Edit
+          {t('actions.edit')}
         </Button>
 
         <Button variant="outline" onClick={handleDownload} disabled={isDownloading}>
           <Download className="mr-2 h-4 w-4" />
-          {isDownloading ? 'Downloading...' : 'Download'}
+          {isDownloading ? t('actions.downloading') : t('actions.download')}
         </Button>
 
         {showCancelInvoice ? (
@@ -489,22 +483,22 @@ export function InvoiceActions({
             variant="outline"
             onClick={onCancelInvoice}
             disabled={isCancellingInvoice}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="text-red-600 hover:bg-red-50 hover:text-red-700"
           >
             <Ban className="mr-2 h-4 w-4" />
-            {isCancellingInvoice ? 'Cancelling…' : 'Cancel invoice'}
+            {isCancellingInvoice ? t('actions.cancelling') : t('list.cancelInvoiceConfirm')}
           </Button>
         ) : null}
       </div>
 
       {recoverMessage ? (
         <Alert>
-          <AlertTitle>Additional authentication may be needed</AlertTitle>
+          <AlertTitle>{t('invoiceDetail.authNeeded')}</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center gap-3">
             <span>{recoverMessage}</span>
             {onRecoverViaCheckout && (
               <Button type="button" size="sm" variant="outline" onClick={() => void onRecoverViaCheckout()}>
-                Pay
+                {t('actions.pay')}
               </Button>
             )}
           </AlertDescription>
@@ -513,4 +507,3 @@ export function InvoiceActions({
     </div>
   );
 }
-

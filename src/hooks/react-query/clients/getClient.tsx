@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export default function useGetClient(clientId: string) {
   const { data, isLoading, isSuccess, isError } = useQuery({
     queryKey: ['clients', clientId],
@@ -9,7 +11,7 @@ export default function useGetClient(clientId: string) {
       const response = await clientAxios(`/client/${clientId}`);
 
       if (response.status === 404) {
-        throw new Error('Client not found');
+        throw new Error(translateMessage('toasts.clientNotFound', 'Client not found'));
       }
 
       if (response.data.clientWithLastService) {
@@ -18,7 +20,7 @@ export default function useGetClient(clientId: string) {
 
       return { ...response.data.clientWithLastService };
     },
-    staleTime: Infinity,
+    staleTime: Infinity
   });
   return { data, isLoading, isSuccess, isError };
 }

@@ -1,4 +1,5 @@
 import { addDays, format, getDay } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -23,6 +24,7 @@ import { Frequency } from '@/ts/enums/enums';
 import { FormSchema } from './page';
 
 export function DialogNewAssignment() {
+  const t = useTranslations('routes');
   const form = useFormContext<FormSchema>();
   const { user } = useUserStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,15 +55,14 @@ export function DialogNewAssignment() {
   const { data: clients = [], isLoading } = useGetAllClients();
   const clientId = form.watch('client');
   const selectedClient = clients.find((c: Client) => c.id === clientId);
-  const { data: pools = [], isLoading: isPoolsLoading } = useGetPoolsByClientId(
-    isModalOpen ? clientId : null
-  );
+  const { data: pools = [], isLoading: isPoolsLoading } = useGetPoolsByClientId(isModalOpen ? clientId : null);
   const { data: serviceTypesData, isLoading: isServiceTypesLoading } = useGetServiceTypes(
     selectedClient?.companyOwner.id || ''
   );
 
   const { mutate, isPending } = useCreateAssignment();
-  const { mutate: mutateSpecificService, isPending: isPendingSpecificService } = useCreateAssignmentForSpecificService();
+  const { mutate: mutateSpecificService, isPending: isPendingSpecificService } =
+    useCreateAssignmentForSpecificService();
 
   const isOnlyOnce = frequency === Frequency.ONCE;
 
@@ -104,10 +105,10 @@ export function DialogNewAssignment() {
   const serviceTypes = serviceTypesData?.serviceTypes || [];
   const hasClients = clients.length > 0;
   const hasServiceTypes = serviceTypes.length > 0;
-  
+
   // Watch serviceTypeId to check if it's "Pool Cleaning"
   const serviceTypeId = form.watch('serviceTypeId');
-  const selectedServiceType = serviceTypes.find(st => st.id === serviceTypeId);
+  const selectedServiceType = serviceTypes.find((st) => st.id === serviceTypeId);
   const showInstructions = selectedServiceType?.name !== 'Pool Cleaning';
 
   function getNext10DatesForStartOnBasedOnWeekday(weekday: string) {
@@ -116,7 +117,7 @@ export function DialogNewAssignment() {
     const targetWeekday = weekdays.indexOf(weekday.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -155,7 +156,7 @@ export function DialogNewAssignment() {
     const dates: { name: string; key: string; value: string }[] = [];
 
     dates.push({
-      name: 'No end',
+      name: t('noEnd'),
       key: 'No end',
       value: 'No end'
     });
@@ -277,15 +278,15 @@ export function DialogNewAssignment() {
     <Dialog open={isModalOpen} onOpenChange={isCreating ? undefined : setIsModalOpen}>
       <DialogTrigger asChild className="w-full">
         <Button className="w-full" type="button">
-          New Assignment
+          {t('newAssignment')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen w-96 rounded-md md:w-[680px]">
-        <DialogTitle>Create Assignment</DialogTitle>
+        <DialogTitle>{t('createAssignment')}</DialogTitle>
         {isCreating ? (
           <div className="flex flex-col items-center gap-4 py-8">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-            <p className="text-sm text-gray-600">Creating assignment...</p>
+            <p className="text-sm text-gray-600">{t('creatingAssignment')}</p>
           </div>
         ) : isLoading || isServiceTypesLoading || (clientId && isPoolsLoading) ? (
           <div className="flex items-center justify-center py-8">
@@ -304,8 +305,8 @@ export function DialogNewAssignment() {
                         name: `${c.firstName} ${c.lastName}`,
                         value: c.id
                       }))}
-                    label="Clients"
-                    placeholder={hasClients ? 'Client' : 'No clients available'}
+                    label={t('clients')}
+                    placeholder={hasClients ? t('client') : t('noClients')}
                     name="client"
                   />
                   {clientId && (
@@ -317,8 +318,10 @@ export function DialogNewAssignment() {
                           name: formatPoolNameWithBodyOfWater(pool),
                           value: pool.id
                         }))}
-                      label="Location"
-                      placeholder={isPoolsLoading ? 'Loading pools...' : pools.length === 0 ? 'No pools available' : 'Location'}
+                      label={t('location')}
+                      placeholder={
+                        isPoolsLoading ? t('loadingPools') : pools.length === 0 ? t('noPools') : t('location')
+                      }
                       name="poolId"
                     />
                   )}
@@ -331,30 +334,35 @@ export function DialogNewAssignment() {
                           name: serviceType.name,
                           value: serviceType.id
                         }))}
-                      label="Service Type"
-                      placeholder={hasServiceTypes ? 'Select service type' : 'No service types available'}
+                      label={t('serviceType')}
+                      placeholder={hasServiceTypes ? t('selectServiceType') : t('noServiceTypes')}
                       name="serviceTypeId"
                     />
                   )}
                   {clientId && serviceTypeId && showInstructions && (
                     <InputField
                       name="instructions"
-                      label="Instructions"
-                      placeholder="Enter detailed instructions for this assignment"
+                      label={t('instructions')}
+                      placeholder={t('assignmentInstructionsPlaceholder')}
                       type={FieldType.TextArea}
                     />
                   )}
                 </div>
                 <div className="flex gap-4">
-                  <SelectField name="frequency" placeholder="Frequency" label="Frequency" options={Frequencies} />
+                  <SelectField
+                    name="frequency"
+                    placeholder={t('frequency')}
+                    label={t('frequency')}
+                    options={Frequencies}
+                  />
                 </div>
 
                 {isOnlyOnce ? (
                   <div className="mt-4 flex gap-4">
                     <SelectField
-                      label="Scheduled to"
+                      label={t('scheduledTo')}
                       name="scheduledTo"
-                      placeholder="Scheduled to"
+                      placeholder={t('scheduledTo')}
                       options={scheduledToOptions.map((date) => ({
                         key: date.key,
                         name: date.name,
@@ -365,9 +373,9 @@ export function DialogNewAssignment() {
                 ) : (
                   <div className="mt-4 flex gap-4">
                     <SelectField
-                      label="Start on"
+                      label={t('startOn')}
                       name="startOn"
-                      placeholder="Start on"
+                      placeholder={t('startOn')}
                       options={next10WeekdaysStartOn.map((date) => ({
                         key: date.key,
                         name: date.name,
@@ -375,9 +383,9 @@ export function DialogNewAssignment() {
                       }))}
                     />
                     <SelectField
-                      label="End after"
+                      label={t('endAfter')}
                       name="endAfter"
-                      placeholder="End after"
+                      placeholder={t('endAfter')}
                       options={next10WeekdaysEndAfter.map((date) => ({
                         key: date.key,
                         name: date.name,
@@ -392,10 +400,12 @@ export function DialogNewAssignment() {
         )}
         {!isCreating && !isLoading && !isServiceTypesLoading && (
           <div className="flex justify-around gap-4 pt-4">
-            <Button className='w-full' onClick={createNewAssignment}>Create</Button>
+            <Button className="w-full" onClick={createNewAssignment}>
+              {t('create')}
+            </Button>
 
-            <Button variant="outline" className='w-full' onClick={() => setIsModalOpen(false)}>
-              Cancel
+            <Button variant="outline" className="w-full" onClick={() => setIsModalOpen(false)}>
+              {t('cancel')}
             </Button>
           </div>
         )}

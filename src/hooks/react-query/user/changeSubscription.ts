@@ -7,6 +7,8 @@ import { UserSubscription } from '@/ts/enums/enums';
 
 import { clientAxios } from '../../../lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useChangeSubscription = (subscriptionPlan: UserSubscription) => {
   const user = useUserStore((state) => state.user);
   const { toast } = useToast();
@@ -28,8 +30,11 @@ export const useChangeSubscription = (subscriptionPlan: UserSubscription) => {
     onError: (error): Error | AxiosError => {
       toast({
         variant: 'error',
-        title: 'Error on request to change subscription',
-        description: 'Please try again later or contact support'
+        title: translateMessage('toasts.errorOnRequestToChangeSubscription', 'Error on request to change subscription'),
+        description: translateMessage(
+          'toasts.pleaseTryAgainLaterOrContactSupport',
+          'Please try again later or contact support'
+        )
       });
       return error;
     }

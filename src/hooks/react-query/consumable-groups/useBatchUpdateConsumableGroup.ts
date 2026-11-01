@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { CrudConsumableGroupRequest, CrudConsumableGroupResponse } from '../../../ts/interfaces/ConsumableGroups';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -18,7 +20,7 @@ export const useBatchUpdateConsumableGroup = (companyId: string) => {
       data
     }: {
       consumableGroupId: string;
-      data: CrudConsumableGroupRequest
+      data: CrudConsumableGroupRequest;
     }): Promise<CrudConsumableGroupResponse> => {
       const response = await clientAxios.put(`/consumable-groups/${consumableGroupId}/crud`, data);
       return response.data;
@@ -28,15 +30,20 @@ export const useBatchUpdateConsumableGroup = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['consumable-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Consumable definitions updated successfully',
-        description: 'All changes have been saved',
+        title: translateMessage(
+          'toasts.consumableDefinitionsUpdatedSuccessfully',
+          'Consumable definitions updated successfully'
+        ),
+        description: translateMessage('toasts.allChangesHaveBeenSaved', 'All changes have been saved'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating consumable definitions',
-        description: error.response?.data?.message || 'An error occurred while saving changes',
+        title: translateMessage('toasts.errorUpdatingConsumableDefinitions', 'Error updating consumable definitions'),
+        description:
+          error.response?.data?.message ||
+          translateMessage('toasts.anErrorOccurredWhileSavingChanges', 'An error occurred while saving changes'),
         variant: 'error'
       });
     }

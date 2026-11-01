@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
 import { SHOPPING_ITEM_STATUS_LABELS, SHOPPING_ITEM_STATUS_STYLES } from '@/constants/shopping';
+import { translateMessage } from '@/i18n/runtime';
 import { ShoppingListRow } from '@/ts/interfaces/Shopping';
 
 import { ShoppingItemActions } from './components/ShoppingItemActions';
@@ -15,7 +16,7 @@ export const createColumns = (
 ): ColumnDef<ShoppingListRow>[] => [
   {
     accessorKey: 'productName',
-    header: 'Product',
+    header: () => translateMessage('shopping.columns.product', 'Product'),
     cell: ({ row }) => (
       <div>
         <div className="font-medium text-gray-900">{row.original.productName}</div>
@@ -25,33 +26,33 @@ export const createColumns = (
   },
   {
     accessorKey: 'clientName',
-    header: 'Client',
+    header: () => translateMessage('shopping.columns.client', 'Client'),
     cell: ({ row }) => <div className="text-gray-700">{row.original.clientName}</div>
   },
   {
     accessorKey: 'poolName',
-    header: 'Pool',
+    header: () => translateMessage('shopping.columns.pool', 'Pool'),
     cell: ({ row }) => <div className="text-gray-700">{row.original.poolName}</div>
   },
   {
     accessorKey: 'quantity',
-    header: 'Qty',
+    header: () => translateMessage('shopping.columns.qty', 'Qty'),
     cell: ({ row }) => <div className="font-medium text-gray-900">{row.original.quantity}</div>
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: () => translateMessage('shopping.columns.status', 'Status'),
     cell: ({ row }) => (
       <span
         className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold ${SHOPPING_ITEM_STATUS_STYLES[row.original.status]}`}
       >
-        {SHOPPING_ITEM_STATUS_LABELS[row.original.status]}
+        {translateMessage(`shopping.statuses.${row.original.status}`, SHOPPING_ITEM_STATUS_LABELS[row.original.status])}
       </span>
     )
   },
   {
     accessorKey: 'notes',
-    header: 'Notes',
+    header: () => translateMessage('shopping.columns.notes', 'Notes'),
     cell: ({ row }) => (
       <div className="max-w-[200px] truncate text-gray-700" title={row.original.notes ?? undefined}>
         {row.original.notes || '—'}
@@ -60,7 +61,7 @@ export const createColumns = (
   },
   {
     accessorKey: 'updatedAt',
-    header: 'Updated',
+    header: () => translateMessage('shopping.columns.updated', 'Updated'),
     cell: ({ row }) => <div className="text-gray-700">{format(new Date(row.original.updatedAt), 'MMM dd, yyyy')}</div>
   },
   {

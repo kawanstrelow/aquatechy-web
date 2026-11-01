@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Clock, Info, Timer } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -64,6 +65,7 @@ function toEditPoolFormValues(values: {
 }
 
 export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
+  const t = useTranslations('clients');
   const { mutate, isPending: isPendingUpdatePool } = useUpdatePool();
   const isPending = isPendingUpdatePool;
   const {
@@ -235,7 +237,7 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
             <div className="flex flex-col gap-2">
               <div className="flex h-5 w-full justify-between text-sm font-medium">
                 <Typography element="h3" className="text-md">
-                  Service insights
+                  {t('pool.serviceInsights')}
                 </Typography>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -244,13 +246,12 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
                     <Clock className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-gray-600">Avg. completion time of day</p>
+                    <p className="text-xs font-medium text-gray-600">{t('pool.avgCompletion')}</p>
                     <p className="text-lg font-semibold text-gray-900">
                       {serviceStats.averageCompletionTimeOfDay ?? '—'}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Based on {serviceStats.completedCount} completed service
-                      {serviceStats.completedCount === 1 ? '' : 's'}
+                      {t('pool.completedServices', { count: serviceStats.completedCount })}
                     </p>
                   </div>
                 </div>
@@ -260,11 +261,10 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
                     <Timer className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-gray-600">Avg. time spent on site</p>
+                    <p className="text-xs font-medium text-gray-600">{t('pool.avgTimeOnSite')}</p>
                     <p className="text-lg font-semibold text-gray-900">{serviceStats.averageDurationLabel ?? '—'}</p>
                     <p className="text-xs text-gray-500">
-                      Based on {serviceStats.durationCount} service
-                      {serviceStats.durationCount === 1 ? '' : 's'} with start &amp; end times
+                      {t('pool.durationServices', { count: serviceStats.durationCount })}
                     </p>
                   </div>
                 </div>
@@ -277,62 +277,60 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
 
         <div className="flex h-5 w-full justify-between text-sm font-medium">
           <Typography element="h3" className="text-md">
-            Basic information
+            {t('fields.basicInformation')}
           </Typography>
         </div>
 
         {pool.estimatesConvertedFrom != null && (
-          <p className="text-sm text-gray-600">Created from estimate #{pool.estimatesConvertedFrom}</p>
+          <p className="text-sm text-gray-600">
+            {t('pool.createdFromEstimate', { number: pool.estimatesConvertedFrom })}
+          </p>
         )}
 
         <AddressInput
           name="address"
-          label="Address"
-          placeholder="Enter address"
+          label={t('fields.address')}
+          placeholder={t('fields.enterAddress')}
           onAddressSelect={({ state, city, zipCode, timezone }) => {
             form.setValue('state', state, { shouldValidate: true });
             form.setValue('city', city, { shouldValidate: true });
             form.setValue('zip', zipCode, { shouldValidate: true });
           }}
         />
-        <InputField name="addressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+        <InputField name="addressLine2" label={t('fields.addressLine2')} placeholder={t('fields.aptSuite')} />
         <div className="Form inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
           <StateAndCitySelect cityName="city" stateName="state" />
-          <InputField name="zip" label="Zip code" placeholder="Zip code" type={FieldType.Zip} />
+          <InputField name="zip" label={t('fields.zipCode')} placeholder={t('fields.zipCode')} type={FieldType.Zip} />
         </div>
         <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-2">
           <InputField
-            label="Latitude"
+            label={t('fields.latitude')}
             name="lat"
-            placeholder="e.g. 26.1224"
+            placeholder={t('fields.latitudeExample')}
             type={FieldType.Number}
             props={{ min: -90, max: 90, step: 'any' }}
           />
           <InputField
-            label="Longitude"
+            label={t('fields.longitude')}
             name="lng"
-            placeholder="e.g. -80.1373"
+            placeholder={t('fields.longitudeExample')}
             type={FieldType.Number}
             props={{ min: -180, max: 180, step: 'any' }}
           />
         </div>
-        <p className="text-xs text-gray-500">
-          Save latitude and longitude together when Google places the pin in the wrong spot. If you change the address
-          and leave these unchanged, Google sets the pin again.
-        </p>
-        <div className="Form inline-flex flex-wrap items-start justify-start gap-4 self-stretch md:flex-nowrap">
+        <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-2">
           <InputField
-            label="Monthly Payment"
+            label={t('fields.monthlyPaymentTitle')}
             name="monthlyPayment"
-            placeholder="Monthly payment"
+            placeholder={t('fields.monthlyPayment')}
             type={FieldType.CurrencyValue}
           />
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="min-w-0 flex-1">
               <InputField
-                label="Payment Unit"
+                label={t('fields.paymentUnit')}
                 name="paymentUnit"
-                placeholder="e.g. 1.5"
+                placeholder={t('fields.paymentUnitExample')}
                 type={FieldType.Number}
                 props={{ min: 1, step: 'any' }}
               />
@@ -344,32 +342,28 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
                 </HoverCardTrigger>
                 <HoverCardContent className="w-80">
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">Payment Unit</h4>
-                    <p className="text-sm text-gray-600">
-                      This variable multiplies the fixed amount when generating payment reports.
-                    </p>
+                    <h4 className="text-sm font-semibold">{t('fields.paymentUnit')}</h4>
+                    <p className="text-sm text-gray-600">{t('pool.paymentUnitHelp')}</p>
                     <div className="text-sm">
-                      <p className="font-medium">Example:</p>
-                      <p className="text-gray-600">
-                        If service payment is $50 and payment unit is 1.5, the technician will receive $75 (1.5 × $50).
-                      </p>
+                      <p className="font-medium">{t('shared.example')}</p>
+                      <p className="text-gray-600">{t('pool.paymentUnitExample')}</p>
                     </div>
                   </div>
                 </HoverCardContent>
               </HoverCard>
             </div>
           </div>
-          <InputField label="Gate Code" name="lockerCode" placeholder="Gate Code" />
         </div>
         <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-2">
-          <InputField label="Enter Side" name="enterSide" placeholder="Enter side" />
-          <InputField label="Body of water" name="bodyOfWater" placeholder="e.g. Main pool, spa" />
+          <InputField label={t('fields.gateCodeTitle')} name="lockerCode" placeholder={t('fields.gateCodeTitle')} />
+          <InputField label={t('fields.enterSideTitle')} name="enterSide" placeholder={t('fields.enterSide')} />
         </div>
         <div className="Form grid grid-cols-1 gap-4 self-stretch sm:grid-cols-2">
+          <InputField label={t('fields.bodyOfWater')} name="bodyOfWater" placeholder={t('fields.bodyOfWaterExample')} />
           <InputField
-            label="Volume (gallons)"
+            label={t('fields.volumeGallons')}
             name="volumeInGallons"
-            placeholder="e.g. 15000"
+            placeholder={t('fields.volumeExample')}
             type={FieldType.Number}
             props={{ min: 1, step: 1 }}
           />
@@ -377,19 +371,15 @@ export default function PoolInfoTab({ pool, clientId }: PoolInfoTabProps) {
 
         <div className="mt-2 flex flex-col gap-2">
           <div className="inline-flex items-start justify-start gap-2">
-            <InputField
-              name="animalDanger"
-              type={FieldType.Checkbox}
-              placeholder="Is there a danger of animal attack?"
-            />
+            <InputField name="animalDanger" type={FieldType.Checkbox} placeholder={t('fields.animalDangerQuestion')} />
           </div>
         </div>
 
         <div className="mt-2 w-full">
-          <InputField type={FieldType.TextArea} name="notes" placeholder="Location notes..." />
+          <InputField type={FieldType.TextArea} name="notes" placeholder={t('fields.locationNotes')} />
         </div>
         <Button disabled={isEmpty(changedFields)} className="mt-4" type="submit">
-          Save
+          {t('shared.save')}
         </Button>
       </form>
     </Form>

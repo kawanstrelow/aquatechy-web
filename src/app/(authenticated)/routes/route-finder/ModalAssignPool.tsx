@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { addDays, format, getDay } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -34,17 +35,18 @@ interface Props {
 }
 
 export function DialogAssignPool({ open, setOpen, pool }: Props) {
+  const t = useTranslations('routes');
   const { members } = useMembersStore(
     useShallow((state) => ({
       members: state.members
     }))
   );
   const selectedWeekday = useWeekdayStore((state) => state.selectedWeekday);
-  
+
   // Get service types based on the pool's company
   const companyId = pool?.companyOwnerId || '';
   const { data: serviceTypesData, isLoading: isServiceTypesLoading } = useGetServiceTypes(companyId);
-  
+
   const [next10WeekdaysStartOn, setNext10WeekdaysStartOn] = useState<
     {
       name: string;
@@ -100,7 +102,8 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
   };
 
   const { mutate, isPending } = useCreateAssignment();
-  const { mutate: mutateSpecificService, isPending: isPendingSpecificService } = useCreateAssignmentForSpecificService();
+  const { mutate: mutateSpecificService, isPending: isPendingSpecificService } =
+    useCreateAssignmentForSpecificService();
 
   function generateScheduledToOptions() {
     const today = new Date();
@@ -173,7 +176,7 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
     const targetWeekday = weekdays.indexOf(weekday.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -213,7 +216,7 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
     const dates: { name: string; key: string; value: string }[] = [];
 
     dates.push({
-      name: 'No end',
+      name: t('noEnd'),
       key: 'No end',
       value: 'No end'
     });
@@ -279,11 +282,11 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
   return (
     <Dialog open={open} onOpenChange={isCreating ? undefined : setOpen}>
       <DialogContent className="max-h-screen w-96 max-w-[580px] overflow-y-scroll rounded-md md:w-[580px]">
-        <DialogTitle>Assign Pool: {formatPoolNameWithBodyOfWater(pool)}</DialogTitle>
+        <DialogTitle>{t('assignPoolTitle', { name: formatPoolNameWithBodyOfWater(pool) })}</DialogTitle>
         {isCreating ? (
           <div className="flex flex-col items-center gap-4 py-8">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-            <p className="text-sm text-gray-600">Creating assignment...</p>
+            <p className="text-sm text-gray-600">{t('creatingAssignment')}</p>
           </div>
         ) : (
           <Form {...form}>
@@ -292,8 +295,8 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
                 <div className="basis-full">
                   <SelectField
                     name="assignmentToId"
-                    placeholder="Technician..."
-                    label="Technician"
+                    placeholder={t('technicianPlaceholder')}
+                    label={t('technician')}
                     options={uniqueMembers.map((m) => ({
                       key: m.id,
                       value: m.id,
@@ -313,34 +316,36 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
                   <SelectField
                     name="serviceTypeId"
                     disabled={!companyId || isServiceTypesLoading}
-                    placeholder={serviceTypesData?.serviceTypes?.length ? "Service Type" : "No service types available"}
-                    label="Service Type"
-                    options={serviceTypesData?.serviceTypes
-                      ?.filter((serviceType) => serviceType.isActive)
-                      .map((serviceType) => ({
-                        key: serviceType.id,
-                        name: serviceType.name,
-                        value: serviceType.id
-                      })) || []}
+                    placeholder={serviceTypesData?.serviceTypes?.length ? t('serviceType') : t('noServiceTypes')}
+                    label={t('serviceType')}
+                    options={
+                      serviceTypesData?.serviceTypes
+                        ?.filter((serviceType) => serviceType.isActive)
+                        .map((serviceType) => ({
+                          key: serviceType.id,
+                          name: serviceType.name,
+                          value: serviceType.id
+                        })) || []
+                    }
                   />
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <SelectField 
-                  name="frequency" 
-                  placeholder="Frequency" 
-                  label="Frequency" 
-                  options={Frequencies} 
+                <SelectField
+                  name="frequency"
+                  placeholder={t('frequency')}
+                  label={t('frequency')}
+                  options={Frequencies}
                 />
               </div>
 
               {isOnlyOnce ? (
                 <div className="mt-4 flex gap-4">
                   <SelectField
-                    label="Scheduled to"
+                    label={t('scheduledTo')}
                     name="scheduledTo"
-                    placeholder="Scheduled to"
+                    placeholder={t('scheduledTo')}
                     options={scheduledToOptions.map((date) => ({
                       key: date.key,
                       name: date.name,
@@ -352,9 +357,9 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
                 <div className="mt-1">
                   <div className="flex flex-col gap-4 md:flex-row">
                     <SelectField
-                      label="Start on"
+                      label={t('startOn')}
                       name="startOn"
-                      placeholder="Start on"
+                      placeholder={t('startOn')}
                       options={next10WeekdaysStartOn.map((date) => ({
                         key: date.key,
                         name: date.name,
@@ -362,9 +367,9 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
                       }))}
                     />
                     <SelectField
-                      label="End after"
+                      label={t('endAfter')}
                       name="endAfter"
-                      placeholder="End after"
+                      placeholder={t('endAfter')}
                       options={next10WeekdaysEndAfter.map((date) => ({
                         key: date.key,
                         name: date.name,
@@ -378,7 +383,7 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
           </Form>
         )}
         <div className="flex justify-around">
-          <Button onClick={assignPool}>Assign</Button>
+          <Button onClick={assignPool}>{t('assign')}</Button>
 
           <Button
             variant="outline"
@@ -387,10 +392,10 @@ export function DialogAssignPool({ open, setOpen, pool }: Props) {
               setOpen(false);
             }}
           >
-            Cancel
+            {t('cancel')}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
-} 
+}

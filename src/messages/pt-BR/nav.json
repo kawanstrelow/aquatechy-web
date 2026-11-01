@@ -1,0 +1,179 @@
+{
+  "quickstart": {
+    "text": "Início rápido",
+    "title": "Guia de início rápido",
+    "description": "Comece a usar a Aquatechy em poucos passos"
+  },
+  "dashboard": {
+    "text": "Painel",
+    "title": "Painel",
+    "description": "Visão geral das suas piscinas como técnico ou gestor"
+  },
+  "chat": {
+    "text": "Chat",
+    "title": "Chat com IA",
+    "description": "Faça perguntas sobre os dados da sua empresa"
+  },
+  "clients": {
+    "text": "Clientes",
+    "title": "Clientes",
+    "description": "Gerencie seus clientes e edite as informações deles"
+  },
+  "myClients": {
+    "text": "Meus clientes",
+    "title": "Meus clientes"
+  },
+  "leads": {
+    "text": "Leads",
+    "title": "Leads",
+    "description": "Acompanhe leads, agende uma visita e converta-os em clientes"
+  },
+  "newClient": {
+    "text": "Novo cliente",
+    "title": "Novo cliente",
+    "description": "Crie um cliente, adicione uma piscina e atribua um técnico"
+  },
+  "quickbooksImport": {
+    "text": "Importar QuickBooks",
+    "title": "Importar clientes do QuickBooks",
+    "description": "Importe clientes a partir de um arquivo do QuickBooks"
+  },
+  "fileImport": {
+    "text": "Importar Excel / CSV",
+    "title": "Importar clientes de Excel ou CSV",
+    "description": "Importe clientes usando nosso modelo de Excel ou CSV"
+  },
+  "skimmerImport": {
+    "text": "Importar Skimmer",
+    "title": "Importar clientes do Skimmer",
+    "description": "Importe clientes a partir do arquivo Excel do Skimmer"
+  },
+  "routes": {
+    "text": "Rotas",
+    "title": "Rotas",
+    "description": "Veja sua agenda e encontre a melhor rota para uma nova piscina"
+  },
+  "schedule": {
+    "text": "Agenda",
+    "title": "Agenda",
+    "description": "Veja sua agenda e as piscinas que você precisa atender"
+  },
+  "routeFinder": {
+    "text": "Localizador de rota",
+    "title": "Localizador de rota",
+    "description": "Encontre a melhor rota para uma nova piscina"
+  },
+  "requests": {
+    "text": "Solicitações",
+    "title": "Solicitações",
+    "description": "Gerencie suas solicitações e acompanhe o status"
+  },
+  "services": {
+    "text": "Serviços",
+    "title": "Serviços",
+    "description": "Veja os serviços feitos pela sua empresa"
+  },
+  "invoices": {
+    "text": "Faturas",
+    "title": "Faturas",
+    "description": "Gerencie suas faturas e acompanhe os pagamentos"
+  },
+  "invoicesOverview": {
+    "text": "Visão geral",
+    "title": "Visão geral das faturas",
+    "description": "Veja e gerencie todas as suas faturas"
+  },
+  "estimates": {
+    "text": "Orçamentos",
+    "title": "Orçamentos",
+    "description": "Crie e gerencie orçamentos para clientes"
+  },
+  "recurring": {
+    "text": "Recorrentes",
+    "title": "Faturas recorrentes",
+    "description": "Gerencie modelos de faturas recorrentes"
+  },
+  "invoiceSettings": {
+    "text": "Configurações",
+    "title": "Configurações de fatura",
+    "description": "Configure as preferências de fatura"
+  },
+  "shopping": {
+    "text": "Lista de compras",
+    "title": "Lista de compras",
+    "description": "Gerencie seu catálogo de produtos e listas de compras"
+  },
+  "shoppingOverview": {
+    "text": "Visão geral",
+    "title": "Visão geral da lista de compras",
+    "description": "Acompanhe itens de compra por cliente e piscina"
+  },
+  "products": {
+    "text": "Produtos",
+    "title": "Produtos",
+    "description": "Veja e gerencie os produtos do seu catálogo"
+  },
+  "workOrders": {
+    "text": "Ordens de serviço",
+    "title": "Ordens de serviço",
+    "description": "Gerencie ordens de serviço e acompanhe o andamento"
+  },
+  "workOrdersOverview": {
+    "text": "Visão geral",
+    "title": "Visão geral das ordens de serviço",
+    "description": "Veja e gerencie as ordens de serviço"
+  },
+  "addWorkOrder": {
+    "text": "Nova ordem de serviço",
+    "title": "Nova ordem de serviço",
+    "description": "Crie uma nova ordem de serviço"
+  },
+  "reports": {
+    "text": "Relatórios",
+    "title": "Relatórios",
+    "description": "Gere relatórios e análises"
+  },
+  "clientReports": {
+    "text": "Relatórios de clientes",
+    "title": "Relatórios de clientes",
+    "description": "Atividade dos clientes e manutenção das piscinas"
+  },
+  "serviceReports": {
+    "text": "Relatórios de serviços",
+    "title": "Relatórios de serviços",
+    "description": "Serviços concluídos e relatórios de técnicos"
+  },
+  "teamReports": {
+    "text": "Relatórios da equipe",
+    "title": "Relatórios da equipe",
+    "description": "Desempenho e produtividade da equipe"
+  },
+  "poolReports": {
+    "text": "Relatórios de piscinas",
+    "title": "Relatórios de piscinas",
+    "description": "Equipamentos e manutenção de filtros"
+  },
+  "settings": {
+    "text": "Configurações",
+    "title": "Configurações"
+  },
+  "profile": {
+    "text": "Perfil",
+    "title": "Perfil"
+  },
+  "subscription": {
+    "text": "Assinatura",
+    "title": "Assinatura",
+    "description": "Gerencie sua assinatura e veja os planos"
+  },
+  "preferences": {
+    "text": "Preferências",
+    "title": "Preferências",
+    "description": "Gerencie as preferências da empresa."
+  },
+  "companies": {
+    "text": "Empresas",
+    "title": "Empresas",
+    "description": "Gerencie suas empresas e edite as informações delas."
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ interface ServiceActionsProps {
 }
 
 export function ServiceActions({ service }: ServiceActionsProps) {
+  const t = useTranslations('routes');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -41,9 +43,9 @@ export function ServiceActions({ service }: ServiceActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => handleActionSelect('transfer')}>Transfer Service</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => handleActionSelect('transfer')}>{t('transferService')}</DropdownMenuItem>
           <DropdownMenuItem onSelect={() => handleActionSelect('delete')} className="text-red-500">
-            Delete Service
+            {t('deleteService')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

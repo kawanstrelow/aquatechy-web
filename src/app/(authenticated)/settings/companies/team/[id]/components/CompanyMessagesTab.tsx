@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 
 import { MessageLogList } from '@/components/messaging/MessageLogList';
@@ -17,6 +19,8 @@ function InlineSpinner() {
 }
 
 export function CompanyMessagesTab({ companyId }: Props) {
+  const t = useTranslations('settings');
+
   const [channel, setChannel] = useState<MessagingChannel>('email');
   const usageQuery = useGetCompanyMessagingUsage(companyId);
   const logQuery = useGetCompanyMessagingLog(companyId, channel);
@@ -30,8 +34,8 @@ export function CompanyMessagesTab({ companyId }: Props) {
         </div>
       ) : usageQuery.isError || !usageQuery.data ? (
         <div className="flex w-full flex-col items-center justify-center gap-2 py-8 text-center">
-          <h3 className="text-lg font-semibold text-gray-900">Unable to load messaging allowance</h3>
-          <p className="text-sm text-gray-500">You may not have permission to view this company&apos;s usage.</p>
+          <h3 className="text-lg font-semibold text-gray-900">{t('messages.unableToLoad')}</h3>
+          <p className="text-sm text-gray-500">{t('messages.noPermissionUsage')}</p>
         </div>
       ) : (
         <MessagingUsageMeters usage={usageQuery.data} />
@@ -46,7 +50,7 @@ export function CompanyMessagesTab({ companyId }: Props) {
               channel === 'email' ? 'bg-gray-800 font-semibold text-white' : 'text-gray-500'
             }`}
           >
-            Email
+            {t('fields.email')}
           </button>
           <button
             type="button"
@@ -55,7 +59,7 @@ export function CompanyMessagesTab({ companyId }: Props) {
               channel === 'sms' ? 'bg-gray-800 font-semibold text-white' : 'text-gray-500'
             }`}
           >
-            Text
+            {t('messages.text')}
           </button>
         </div>
         <MessageLogList
@@ -74,8 +78,8 @@ export function CompanyMessagesTab({ companyId }: Props) {
           isFetchingNextPage={logQuery.isFetchingNextPage}
           hasNextPage={Boolean(logQuery.hasNextPage)}
           onLoadMore={() => logQuery.fetchNextPage()}
-          emptyDescription={channel === 'email' ? 'No emails in this log yet.' : 'No texts in this log yet.'}
-          errorDescription="You may not have permission to view this company's messages."
+          emptyDescription={channel === 'email' ? t('messages.noEmails') : t('messages.noTexts')}
+          errorDescription={t('messages.noPermissionMessages')}
         />
       </div>
     </div>

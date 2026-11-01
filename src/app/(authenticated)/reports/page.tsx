@@ -1,36 +1,38 @@
 'use client';
 
 import { ListChecks, UserPlus, Users, Waves } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { ReportOptionCard } from './_components/ReportChrome';
 
 export default function ReportsPage() {
+  const t = useTranslations('reports');
   const reportCategories = [
     {
-      title: 'Client Reports',
-      description: 'Client activity and pool maintenance reports',
-      detail: 'Chemical costs and other client reports for a selected date range.',
+      title: t('categories.clientsTitle'),
+      description: t('categories.clientsDescription'),
+      detail: t('categories.clientsDetail'),
       href: '/reports/clients',
       icon: Users
     },
     {
-      title: 'Service Reports',
-      description: 'Service completion and technician reports',
-      detail: 'Technician pay reports and planned route efficiency.',
+      title: t('categories.servicesTitle'),
+      description: t('categories.servicesDescription'),
+      detail: t('categories.servicesDetail'),
       href: '/reports/services',
       icon: ListChecks
     },
     {
-      title: 'Team Reports',
-      description: 'Team performance and productivity reports',
-      detail: 'Filter cleaning punctuality for each technician.',
+      title: t('categories.teamTitle'),
+      description: t('categories.teamDescription'),
+      detail: t('categories.teamDetail'),
       href: '/reports/team',
       icon: UserPlus
     },
     {
-      title: 'Pool Reports',
-      description: 'Pool equipment and filter maintenance reports',
-      detail: 'Filter replacement schedules across company pools.',
+      title: t('categories.poolsTitle'),
+      description: t('categories.poolsDescription'),
+      detail: t('categories.poolsDetail'),
       href: '/reports/pools',
       icon: Waves
     }

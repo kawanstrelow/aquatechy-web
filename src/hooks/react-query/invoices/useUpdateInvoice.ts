@@ -6,6 +6,8 @@ import { UpdateInvoiceRequest, UpdateInvoiceResponse } from '@/ts/interfaces/Inv
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useUpdateInvoice = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -31,13 +33,13 @@ export const useUpdateInvoice = () => {
     onSuccess: (response, variables) => {
       // Invalidate invoices list queries
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      
+
       // Invalidate the specific invoice query to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['invoice', variables.invoiceId] });
 
       toast({
         duration: 2000,
-        title: 'Invoice updated successfully',
+        title: translateMessage('toasts.invoiceUpdatedSuccessfully', 'Invoice updated successfully'),
         variant: 'success'
       });
     },
@@ -49,12 +51,12 @@ export const useUpdateInvoice = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to update invoice';
+        : errorMessage || translateMessage('toasts.failedToUpdateInvoice', 'Failed to update invoice');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating invoice',
+        title: translateMessage('toasts.errorUpdatingInvoice', 'Error updating invoice'),
         description: message
       });
     }
@@ -62,4 +64,3 @@ export const useUpdateInvoice = () => {
 
   return { mutate, mutateAsync, isPending, isSuccess };
 };
-

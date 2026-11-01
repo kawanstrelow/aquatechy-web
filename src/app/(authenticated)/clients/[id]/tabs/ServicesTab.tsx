@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 
@@ -14,6 +15,7 @@ interface ServicesTabProps {
 }
 
 export default function ServicesTab({ services, pool }: ServicesTabProps) {
+  const t = useTranslations('clients');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -28,10 +30,13 @@ export default function ServicesTab({ services, pool }: ServicesTabProps) {
     <>
       <Alert className="mb-4 border-blue-200 bg-blue-50 dark:border-blue-900/50 dark:bg-blue-950/30">
         <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-        <AlertTitle className="font-semibold text-blue-900 dark:text-blue-100">Recent services only</AlertTitle>
+        <AlertTitle className="font-semibold text-blue-900 dark:text-blue-100">
+          {t('servicesTab.recentTitle')}
+        </AlertTitle>
         <AlertDescription className="mt-2 text-blue-800 dark:text-blue-200">
-          This tab shows services from the last four months. To view older services, open{' '}
-          <span className="font-medium">Services</span> from the left sidebar.
+          {t.rich('servicesTab.recentDescription', {
+            services: (chunks) => <span className="font-medium">{chunks}</span>
+          })}
         </AlertDescription>
       </Alert>
 

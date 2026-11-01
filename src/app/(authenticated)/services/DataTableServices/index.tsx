@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -19,6 +20,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTableServices<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+  const t = useTranslations('services');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
@@ -35,7 +37,7 @@ export function DataTableServices<TData, TValue>({ columns, data }: DataTablePro
     },
     initialState: {
       columnVisibility: {
-        deactivatedAt: false,
+        deactivatedAt: false
         // completedAt: false
       }
     }
@@ -73,7 +75,7 @@ export function DataTableServices<TData, TValue>({ columns, data }: DataTablePro
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                {t('noResults')}
               </TableCell>
             </TableRow>
           )}

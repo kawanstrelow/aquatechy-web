@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { UpdatePhotoDefinitionRequest, PhotoDefinitionResponse } from '../../../ts/interfaces/PhotoGroups';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -13,7 +15,13 @@ export const useUpdatePhotoDefinition = (companyId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ photoDefinitionId, data }: { photoDefinitionId: string; data: UpdatePhotoDefinitionRequest }): Promise<PhotoDefinitionResponse> => {
+    mutationFn: async ({
+      photoDefinitionId,
+      data
+    }: {
+      photoDefinitionId: string;
+      data: UpdatePhotoDefinitionRequest;
+    }): Promise<PhotoDefinitionResponse> => {
       const response = await clientAxios.put(`/photo-definitions/${photoDefinitionId}`, data);
       return response.data;
     },
@@ -22,17 +30,16 @@ export const useUpdatePhotoDefinition = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['photo-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Photo definition updated successfully',
+        title: translateMessage('toasts.photoDefinitionUpdatedSuccessfully', 'Photo definition updated successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating photo definition',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingPhotoDefinition', 'Error updating photo definition'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }
   });
 };
-

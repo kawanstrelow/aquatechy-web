@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import { Client } from '@/ts/interfaces/Client';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useDeletePool = (queryKey: string[], poolId: string) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -22,7 +24,7 @@ export const useDeletePool = (queryKey: string[], poolId: string) => {
       });
       toast({
         duration: 2000,
-        title: 'Deleted pool successfully',
+        title: translateMessage('toasts.deletedPoolSuccessfully', 'Deleted pool successfully'),
         variant: 'success'
       });
     },
@@ -34,8 +36,10 @@ export const useDeletePool = (queryKey: string[], poolId: string) => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error deleting pool',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorDeletingPool', 'Error deleting pool'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

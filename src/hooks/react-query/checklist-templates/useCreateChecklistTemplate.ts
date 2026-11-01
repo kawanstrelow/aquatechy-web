@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { CreateChecklistTemplateRequest, ChecklistTemplateResponse } from '../../../ts/interfaces/ChecklistTemplates';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -22,14 +24,17 @@ export const useCreateChecklistTemplate = () => {
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       queryClient.invalidateQueries({ queryKey: ['service-types'] });
       toast({
-        title: 'Checklist template created successfully',
+        title: translateMessage(
+          'toasts.checklistTemplateCreatedSuccessfully',
+          'Checklist template created successfully'
+        ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error creating checklist template',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorCreatingChecklistTemplate', 'Error creating checklist template'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }

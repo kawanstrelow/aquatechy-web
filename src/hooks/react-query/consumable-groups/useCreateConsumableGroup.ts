@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { CreateConsumableGroupRequest, ConsumableGroupResponse } from '../../../ts/interfaces/ConsumableGroups';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -21,17 +23,16 @@ export const useCreateConsumableGroup = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['consumable-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Consumable group created successfully',
+        title: translateMessage('toasts.consumableGroupCreatedSuccessfully', 'Consumable group created successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error creating consumable group',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorCreatingConsumableGroup', 'Error creating consumable group'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }
   });
 };
-

@@ -6,6 +6,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { Company } from '@/ts/interfaces/Company';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ServicePreferencesData = {
   allowAnticipatedServices: boolean;
 };
@@ -25,7 +27,7 @@ export const useUpdateServicePreferences = (companyId: string) => {
       // Update the company cache directly instead of invalidating
       queryClient.setQueryData(['companies', companyId], (oldData: Company | undefined) => {
         if (!oldData) return oldData;
-        
+
         return {
           ...oldData,
           preferences: {
@@ -41,9 +43,9 @@ export const useUpdateServicePreferences = (companyId: string) => {
       // Also update the companies list cache if it exists
       queryClient.setQueryData(['companies'], (oldData: Company[] | undefined) => {
         if (!oldData) return oldData;
-        
-        return oldData.map(company => 
-          company.id === companyId 
+
+        return oldData.map((company) =>
+          company.id === companyId
             ? {
                 ...company,
                 preferences: {
@@ -59,18 +61,20 @@ export const useUpdateServicePreferences = (companyId: string) => {
       });
 
       toast({
-        title: 'Service preferences updated successfully',
+        title: translateMessage(
+          'toasts.servicePreferencesUpdatedSuccessfully',
+          'Service preferences updated successfully'
+        ),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       console.log('error', error);
       toast({
-        title: 'Error updating service preferences',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorUpdatingServicePreferences', 'Error updating service preferences'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }
   });
 };
-

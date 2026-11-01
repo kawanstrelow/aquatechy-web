@@ -2,6 +2,7 @@
 
 import { format } from 'date-fns';
 import { AlertCircle, ArrowRight, Clock, Waves } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -41,28 +42,28 @@ function overdueTone(count: number): 'success' | 'warning' | 'danger' {
   return 'danger';
 }
 
-const poolColumns: DataPanelColumn<UnassignedPool>[] = [
-  {
-    id: 'clientName',
-    header: 'Client Name',
-    className: 'font-medium',
-    cell: (pool) => pool.clientName
-  },
-  {
-    id: 'poolName',
-    header: 'Pool Name',
-    className: 'text-ink-muted',
-    cell: (pool) => pool.poolName
-  },
-  {
-    id: 'address',
-    header: 'Address',
-    className: 'text-ink-muted',
-    cell: (pool) => pool.address
-  }
-];
-
 export default function Page() {
+  const t = useTranslations('dashboard');
+  const poolColumns: DataPanelColumn<UnassignedPool>[] = [
+    {
+      id: 'clientName',
+      header: t('columns.clientName'),
+      className: 'font-medium',
+      cell: (pool) => pool.clientName
+    },
+    {
+      id: 'poolName',
+      header: t('columns.poolName'),
+      className: 'text-ink-muted',
+      cell: (pool) => pool.poolName
+    },
+    {
+      id: 'address',
+      header: t('columns.address'),
+      className: 'text-ink-muted',
+      cell: (pool) => pool.address
+    }
+  ];
   const { dashboard } = useUserStore((state) => state);
   const user = useUserStore((state) => state.user);
   const router = useRouter();
@@ -84,22 +85,19 @@ export default function Page() {
         <DashboardTechniciansProgress techniciansProgress={techniciansProgress} className="h-full min-w-0" />
 
         <Surface
-          title="Recent pending issues"
+          title={t('recentPendingIssues')}
           icon={AlertCircle}
           className="h-full min-w-0"
           bodyClassName="p-0"
           action={
             <Button size="sm" className={accentButtonClassName} onClick={() => router.push('/requests')}>
-              All requests
+              {t('allRequests')}
               <ArrowRight className="h-4 w-4" />
             </Button>
           }
         >
           {!recentIssues?.length ? (
-            <EmptyState
-              title="No pending issues yet"
-              description="Issues will appear here as your team reports them during service visits."
-            />
+            <EmptyState title={t('noPendingIssuesTitle')} description={t('noPendingIssuesDescription')} />
           ) : (
             <ul className="divide-y divide-line">
               {recentIssues.map((issue) => (
@@ -118,12 +116,12 @@ export default function Page() {
         </Surface>
 
         <Surface
-          title="Filter cleaning punctuality"
+          title={t('filterCleaningPunctuality')}
           icon={Clock}
           className="h-full min-w-0"
           action={
             <Button size="sm" className={accentButtonClassName} onClick={() => router.push('/reports/team')}>
-              All reports
+              {t('allReports')}
               <ArrowRight className="h-4 w-4" />
             </Button>
           }
@@ -137,16 +135,18 @@ export default function Page() {
               tone: punctualityTone(tech.onTimePercentage),
               detail: (
                 <span className="flex items-center gap-2">
-                  <StatusBadge tone={overdueTone(tech.overdueCount)}>{tech.overdueCount} overdue</StatusBadge>
-                  <span className="text-sm text-ink-muted">{tech.assignedPools} pools</span>
+                  <StatusBadge tone={overdueTone(tech.overdueCount)}>
+                    {t('overdueCount', { count: tech.overdueCount })}
+                  </StatusBadge>
+                  <span className="text-sm text-ink-muted">{t('poolsCount', { count: tech.assignedPools })}</span>
                 </span>
               )
             }))}
             empty={
               <EmptyState
                 className="px-0 py-6"
-                title="No filter cleaning data yet"
-                description="Performance metrics will appear here once your technicians start completing filter cleanings."
+                title={t('noFilterDataTitle')}
+                description={t('noFilterDataDescription')}
               />
             }
           />
@@ -154,11 +154,11 @@ export default function Page() {
       </div>
 
       <DataPanel
-        title="Pools without assignment"
+        title={t('poolsWithoutAssignment')}
         icon={Waves}
         action={
           <Button size="sm" className={accentButtonClassName} onClick={() => router.push('/clients')}>
-            All clients
+            {t('allClients')}
             <ArrowRight className="h-4 w-4" />
           </Button>
         }
@@ -166,8 +166,8 @@ export default function Page() {
         rows={poolsWithoutAssignment}
         getRowKey={(pool) => pool.id}
         onRowClick={(pool) => router.push(`/clients/${pool.clientId}`)}
-        emptyTitle="All pools have assignments"
-        emptyDescription="Great! All your pools are currently assigned to technicians."
+        emptyTitle={t('allPoolsAssignedTitle')}
+        emptyDescription={t('allPoolsAssignedDescription')}
       />
     </div>
   );

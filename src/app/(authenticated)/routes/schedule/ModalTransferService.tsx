@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { differenceInDays, format, getDay } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -50,6 +51,7 @@ type DateOption = {
 };
 
 export function DialogTransferService({ open, setOpen, service }: Props) {
+  const t = useTranslations('routes');
   const { members } = useMembersStore(
     useShallow((state) => ({
       members: state.members,
@@ -150,7 +152,7 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
     const targetWeekday = weekdays.indexOf(selected.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -184,7 +186,7 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
     const targetWeekday = weekdays.indexOf(selected.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -218,7 +220,7 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
     const startDate = new Date(startOnDate);
     const dates: DateOption[] = [
       {
-        name: 'No end',
+        name: t('noEnd'),
         key: 'No end',
         value: 'No end'
       }
@@ -334,12 +336,12 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
         }
       >
         <DialogContent className="max-h-[calc(100dvh-2rem)] w-full max-w-[580px] overflow-y-auto rounded-md">
-          <DialogTitle className="mb-4">Transfer Service</DialogTitle>
+          <DialogTitle className="mb-4">{t('transferService')}</DialogTitle>
           {isPending ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
               <p className="text-sm text-gray-600">
-                {isPermanentTransfer ? 'Transferring assignment...' : 'Transferring service...'}
+                {isPermanentTransfer ? t('transferringAssignment') : t('transferringService')}
               </p>
             </div>
           ) : (
@@ -348,10 +350,8 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
                 {isOneTimeService && (
                   <Alert className="border-amber-200 bg-amber-50 text-amber-950 [&>svg]:text-amber-700">
                     <Info className="h-4 w-4" />
-                    <AlertTitle>One-time service</AlertTitle>
-                    <AlertDescription>
-                      This service is a one-time service and is not part of a recurring assignment.
-                    </AlertDescription>
+                    <AlertTitle>{t('oneTimeService')}</AlertTitle>
+                    <AlertDescription>{t('oneTimeServiceDescription')}</AlertDescription>
                   </Alert>
                 )}
 
@@ -372,9 +372,9 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
                     <RadioGroupItem value="this_service" id="transfer-scope-this-service" className="mt-1" />
                     <div className="grid gap-1">
                       <Label htmlFor="transfer-scope-this-service" className="cursor-pointer font-normal">
-                        This service only
+                        {t('thisServiceOnly')}
                       </Label>
-                      <span className="text-muted-foreground text-xs">Move just this scheduled visit.</span>
+                      <span className="text-muted-foreground text-xs">{t('moveThisVisit')}</span>
                     </div>
                   </div>
                   <div className={`flex items-start gap-3 ${!isRecurringAssignment ? 'opacity-50' : ''}`}>
@@ -391,19 +391,17 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
                           !isRecurringAssignment ? 'cursor-not-allowed font-normal' : 'cursor-pointer font-normal'
                         }
                       >
-                        All recurring services permanently
+                        {t('allRecurringPermanently')}
                       </Label>
-                      <span className="text-muted-foreground text-xs">
-                        Transfer the whole recurring assignment to a new technician and schedule.
-                      </span>
+                      <span className="text-muted-foreground text-xs">{t('transferWholeRecurring')}</span>
                     </div>
                   </div>
                 </RadioGroup>
 
                 {isPermanentTransfer && (
                   <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
-                    <p className="font-semibold">This moves the entire recurring assignment, not just this visit.</p>
-                    <p className="mt-1">Future services will follow the weekday, start, and end dates you select.</p>
+                    <p className="font-semibold">{t('movesEntireAssignment')}</p>
+                    <p className="mt-1">{t('futureServicesFollow')}</p>
                   </div>
                 )}
 
@@ -411,8 +409,8 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
                   <div className="basis-full">
                     <SelectField
                       name="assignedToId"
-                      placeholder="Technician..."
-                      label="Technician"
+                      placeholder={t('technicianPlaceholder')}
+                      label={t('technician')}
                       options={uniqueMembers.map((m) => ({
                         key: m.id,
                         value: m.id,
@@ -431,9 +429,9 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
                   <div className="mt-1">
                     <div className="flex flex-col gap-4 md:flex-row">
                       <SelectField
-                        label="Start on"
+                        label={t('startOn')}
                         name="startOn"
-                        placeholder="Select start on date"
+                        placeholder={t('selectStartOnDate')}
                         options={next10WeekdaysStartOn.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -441,9 +439,9 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
                         }))}
                       />
                       <SelectField
-                        label="End after"
+                        label={t('endAfter')}
                         name="endAfter"
-                        placeholder="Select end after date"
+                        placeholder={t('selectEndAfterDate')}
                         options={next10WeekdaysEndAfter.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -456,9 +454,9 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
                   <div className="mt-1">
                     <div className="flex flex-col gap-4 md:flex-row">
                       <SelectField
-                        label="Schedule to"
+                        label={t('scheduleTo')}
                         name="scheduledTo"
-                        placeholder="Schedule to"
+                        placeholder={t('scheduleTo')}
                         options={next10DatesWithChosenWeekday.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -474,7 +472,7 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
           {!isPending && (
             <div className="flex justify-around gap-4 pt-4">
               <Button className="w-full" onClick={transferService}>
-                Transfer
+                {t('transfer')}
               </Button>
               <Button
                 variant="outline"
@@ -484,7 +482,7 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
                   setOpen(false);
                 }}
               >
-                Cancel
+                {t('cancel')}
               </Button>
             </div>
           )}
@@ -494,11 +492,11 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
       <AlertDialog open={!!errorMessage} onOpenChange={(shown) => !shown && setErrorMessage(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Error transferring assignment</AlertDialogTitle>
+            <AlertDialogTitle>{t('errorTransferringAssignment')}</AlertDialogTitle>
             <AlertDialogDescription className="text-red-600">{errorMessage}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setErrorMessage(null)}>Close</AlertDialogAction>
+            <AlertDialogAction onClick={() => setErrorMessage(null)}>{t('close')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

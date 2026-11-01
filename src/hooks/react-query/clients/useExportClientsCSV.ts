@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export type ExportClientsFormat = 'csv' | 'xlsx';
 
 export interface ExportClientsCSVParams {
@@ -58,13 +60,16 @@ export const useExportClientsCSV = () => {
     onSuccess: () => {
       toast({
         duration: 2000,
-        title: 'Clients exported successfully',
+        title: translateMessage('toasts.clientsExportedSuccessfully', 'Clients exported successfully'),
         variant: 'success'
       });
     },
     onError: async (error: AxiosError) => {
-      const permissionDeniedMessage = 'You need Owner, Admin, or Office access on every selected company.';
-      let errorMessage = 'Failed to export clients';
+      const permissionDeniedMessage = translateMessage(
+        'toasts.youNeedOwnerAdminOrOfficeAccessOnEverySelectedCompany',
+        'You need Owner, Admin, or Office access on every selected company.'
+      );
+      let errorMessage = translateMessage('toasts.failedToExportClients', 'Failed to export clients');
 
       if (error.response?.status === 403) {
         errorMessage = permissionDeniedMessage;
@@ -77,7 +82,10 @@ export const useExportClientsCSV = () => {
             : errorData.message || errorData.error || errorMessage;
         } catch {
           if (error.response?.status === 400) {
-            errorMessage = 'companyIds must contain at least one company ID.';
+            errorMessage = translateMessage(
+              'toasts.companyidsMustContainAtLeastOneCompanyId',
+              'companyIds must contain at least one company ID.'
+            );
           }
         }
       } else {
@@ -92,7 +100,7 @@ export const useExportClientsCSV = () => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error exporting clients',
+        title: translateMessage('toasts.errorExportingClients', 'Error exporting clients'),
         description: errorMessage
       });
     }

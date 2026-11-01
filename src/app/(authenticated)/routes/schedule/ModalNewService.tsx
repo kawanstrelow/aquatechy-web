@@ -1,4 +1,5 @@
 import { addDays, format, getDay } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useShallow } from 'zustand/react/shallow';
@@ -34,6 +35,7 @@ export function DialogNewService({
   className?: string;
   defaultTechnicianId?: string;
 } = {}) {
+  const t = useTranslations('routes');
   const form = useFormContext<FormSchema>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const user = useUserStore((state) => state.user);
@@ -184,7 +186,7 @@ export function DialogNewService({
     const targetWeekday = weekdays.indexOf(selectedWeekday.toLowerCase());
 
     if (targetWeekday === -1) {
-      throw new Error('Invalid weekday. Please use a valid weekday name.');
+      throw new Error(t('errors.invalidWeekday'));
     }
 
     const today = new Date();
@@ -223,7 +225,7 @@ export function DialogNewService({
     const dates: { name: string; key: string; value: string }[] = [];
 
     dates.push({
-      name: 'No end',
+      name: t('noEnd'),
       key: 'No end',
       value: 'No end'
     });
@@ -256,7 +258,7 @@ export function DialogNewService({
       const isoDate = String(nextDate);
 
       dates.push({
-        name: i === 0 ? `Today, ${formattedDate}` : formattedDate,
+        name: i === 0 ? t('todayCommaDate', { date: formattedDate }) : formattedDate,
         key: isoDate,
         value: isoDate
       });
@@ -340,15 +342,15 @@ export function DialogNewService({
           className={cn('h-9 shrink-0 whitespace-nowrap px-4 py-2', fullWidth ? 'w-full' : 'w-auto', className)}
           type="button"
         >
-          New service
+          {t('newService')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[calc(100dvh-2rem)] w-full max-w-[680px] overflow-y-auto rounded-md">
-        <DialogTitle className="mb-4">Create service</DialogTitle>
+        <DialogTitle className="mb-4">{t('createService')}</DialogTitle>
         {isCreating ? (
           <div className="flex flex-col items-center gap-4 py-8">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-            <p className="text-sm text-gray-600">Creating service...</p>
+            <p className="text-sm text-gray-600">{t('creatingService')}</p>
           </div>
         ) : isLoading || isServiceTypesLoading || (clientId && isPoolsLoading) ? (
           <div className="flex items-center justify-center py-8">
@@ -361,8 +363,8 @@ export function DialogNewService({
                 <div className="flex flex-col gap-4">
                   <SelectField
                     options={technicianOptions}
-                    label="Technician"
-                    placeholder="Technician"
+                    label={t('technician')}
+                    placeholder={t('technician')}
                     name="assignedToId"
                   />
                   <SelectField
@@ -373,8 +375,8 @@ export function DialogNewService({
                         name: `${c.firstName} ${c.lastName}`,
                         value: c.id
                       }))}
-                    label="Clients"
-                    placeholder={hasClients ? 'Client' : 'No clients available'}
+                    label={t('clients')}
+                    placeholder={hasClients ? t('client') : t('noClients')}
                     name="clientId"
                   />
                   {clientId && (
@@ -386,9 +388,9 @@ export function DialogNewService({
                           name: formatPoolNameWithBodyOfWater(pool),
                           value: pool.id
                         }))}
-                      label="Location"
+                      label={t('location')}
                       placeholder={
-                        isPoolsLoading ? 'Loading pools...' : pools.length === 0 ? 'No pools available' : 'Location'
+                        isPoolsLoading ? t('loadingPools') : pools.length === 0 ? t('noPools') : t('location')
                       }
                       name="poolId"
                     />
@@ -402,31 +404,36 @@ export function DialogNewService({
                           name: serviceType.name,
                           value: serviceType.id
                         }))}
-                      label="Service Type"
-                      placeholder={hasServiceTypes ? 'Select service type' : 'No service types available'}
+                      label={t('serviceType')}
+                      placeholder={hasServiceTypes ? t('selectServiceType') : t('noServiceTypes')}
                       name="serviceTypeId"
                     />
                   )}
                   {clientId && serviceTypeId && showInstructions && (
                     <InputField
                       name="instructions"
-                      label="Instructions"
-                      placeholder="Enter detailed instructions for this service"
+                      label={t('instructions')}
+                      placeholder={t('serviceInstructionsPlaceholder')}
                       type={FieldType.TextArea}
                     />
                   )}
                 </div>
 
                 <div className="mt-2 flex gap-4">
-                  <SelectField name="frequency" placeholder="Frequency" label="Frequency" options={Frequencies} />
+                  <SelectField
+                    name="frequency"
+                    placeholder={t('frequency')}
+                    label={t('frequency')}
+                    options={Frequencies}
+                  />
                 </div>
 
                 {isOnlyOnce ? (
                   <div className="mt-2 flex gap-4">
                     <SelectField
-                      label="Schedule to"
+                      label={t('scheduleTo')}
                       name="scheduledTo"
-                      placeholder="Schedule on"
+                      placeholder={t('scheduleOn')}
                       options={scheduledToOptions.map((date) => ({
                         key: date.key,
                         name: date.name,
@@ -444,9 +451,9 @@ export function DialogNewService({
                     </div>
                     <div className="mt-2 flex flex-col gap-4 sm:flex-row">
                       <SelectField
-                        label="Start on"
+                        label={t('startOn')}
                         name="startOn"
-                        placeholder="Start on"
+                        placeholder={t('startOn')}
                         options={next10WeekdaysStartOn.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -454,9 +461,9 @@ export function DialogNewService({
                         }))}
                       />
                       <SelectField
-                        label="End after"
+                        label={t('endAfter')}
                         name="endAfter"
-                        placeholder="End after"
+                        placeholder={t('endAfter')}
                         options={next10WeekdaysEndAfter.map((date) => ({
                           key: date.key,
                           name: date.name,
@@ -473,11 +480,11 @@ export function DialogNewService({
         {!isCreating && !isLoading && !isServiceTypesLoading && !(clientId && isPoolsLoading) && (
           <div className="flex justify-around gap-4 pt-4">
             <Button className="w-full" onClick={createNewService}>
-              Create
+              {t('create')}
             </Button>
 
             <Button variant="outline" className="w-full" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
           </div>
         )}

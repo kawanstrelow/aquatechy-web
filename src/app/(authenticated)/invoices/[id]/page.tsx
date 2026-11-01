@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { notFound, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -42,10 +43,8 @@ function transformInvoiceToDetailed(apiInvoice: Invoice): DetailedInvoice {
     apiInvoice.client.state,
     apiInvoice.client.zip
   ].filter(Boolean);
-  
-  const clientAddress = clientAddressParts.length > 0
-    ? clientAddressParts.join(', ')
-    : undefined;
+
+  const clientAddress = clientAddressParts.length > 0 ? clientAddressParts.join(', ') : undefined;
 
   // Backend stores prices in cents; convert to dollars for display
   const toDollars = (cents: number) => (cents ?? 0) / 100;
@@ -63,7 +62,7 @@ function transformInvoiceToDetailed(apiInvoice: Invoice): DetailedInvoice {
     dueDate: new Date(apiInvoice.dueDate),
     amount: toDollars(apiInvoice.total), // Use total instead of deprecated amount
     status: apiInvoice.status,
-    lineItems: apiInvoice.lineItems.map(item => ({
+    lineItems: apiInvoice.lineItems.map((item) => ({
       description: item.description,
       quantity: item.quantity,
       unitPrice: toDollars(item.unitPrice),
@@ -119,6 +118,7 @@ function remainingExternalRefundMaxCents(inv: DetailedInvoice): number {
 }
 
 export default function InvoicePage({ params: { id } }: Props) {
+  const t = useTranslations('invoices');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const { toast } = useToast();
@@ -157,8 +157,8 @@ export default function InvoicePage({ params: { id } }: Props) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error loading invoice</h2>
-          <p className="text-gray-600">{errorMessage || 'An unexpected error occurred'}</p>
+          <h2 className="mb-2 text-xl font-semibold text-gray-900">{t('errors.loadInvoice')}</h2>
+          <p className="text-gray-600">{errorMessage || t('empty.unexpectedError')}</p>
         </div>
       </div>
     );
@@ -172,17 +172,14 @@ export default function InvoicePage({ params: { id } }: Props) {
   const stripeReady = !!(connectStatus?.chargesEnabled && connectStatus?.payoutsEnabled);
   const membership = companies.find((c) => c.id === invoice.companyOwnerId);
   const role = membership?.role;
-  const canManageClientPaymentMethods =
-    role === 'Owner' || role === 'Admin' || role === 'Office';
+  const canManageClientPaymentMethods = role === 'Owner' || role === 'Admin' || role === 'Office';
   const showPayActions =
     stripeReady &&
     invoice.status !== 'draft' &&
     invoice.status !== 'cancelled' &&
     (invoice.status === 'unpaid' || invoice.status === 'overdue');
-  const showSaveClientCardOnInvoice =
-    stripeReady && canManageClientPaymentMethods && invoice.status !== 'cancelled';
-  const showStripeRefundActions =
-    stripeReady && canManageClientPaymentMethods && canRefundStripePaidInvoice(invoice);
+  const showSaveClientCardOnInvoice = stripeReady && canManageClientPaymentMethods && invoice.status !== 'cancelled';
+  const showStripeRefundActions = stripeReady && canManageClientPaymentMethods && canRefundStripePaidInvoice(invoice);
   const showExternalRefundActions =
     canManageClientPaymentMethods && canRecordExternalRefund(invoice) && remainingExternalRefundMaxCents(invoice) > 0;
   const hasCardOnFile = !!invoice.defaultStripePaymentMethodId;
@@ -204,14 +201,14 @@ export default function InvoicePage({ params: { id } }: Props) {
     if (res.status === 'succeeded') {
       toast({
         variant: 'success',
-        title: 'Payment succeeded',
-        description: `Payment intent completed.`
+        title: t('invoiceDetail.paymentSucceeded'),
+        description: t('invoiceDetail.paymentSucceededDescription')
       });
     } else if (res.status === 'requires_action') {
       setPaymentRecoverMessage(res.message);
       toast({
         variant: 'default',
-        title: 'Action required',
+        title: t('invoiceDetail.actionRequired'),
         description: res.message
       });
     }
@@ -287,10 +284,10 @@ export default function InvoicePage({ params: { id } }: Props) {
       <ConfirmActionDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}
-        title="Cancel invoice"
-        description={`Cancel invoice #${invoice.invoiceNumber}? It will remain in your records as cancelled.`}
-        confirmText={isCancelling ? 'Cancelling…' : 'Cancel invoice'}
-        cancelText="Close"
+        title={t('list.cancelInvoiceTitle')}
+        description={t('list.cancelInvoiceDescription', { number: invoice.invoiceNumber ?? '' })}
+        confirmText={isCancelling ? t('actions.cancelling') : t('list.cancelInvoiceConfirm')}
+        cancelText={t('actions.close')}
         onConfirm={handleConfirmCancelInvoice}
         variant="destructive"
       />
@@ -305,4 +302,3 @@ export default function InvoicePage({ params: { id } }: Props) {
     </div>
   );
 }
-

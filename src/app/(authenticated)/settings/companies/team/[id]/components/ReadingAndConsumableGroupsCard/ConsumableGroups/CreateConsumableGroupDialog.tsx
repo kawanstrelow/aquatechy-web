@@ -1,11 +1,20 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,8 +23,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CreateConsumableGroupRequest } from '@/ts/interfaces/ConsumableGroups';
 
 const createConsumableGroupSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isDefault: z.boolean().default(false)
 });
 
@@ -26,7 +35,14 @@ interface CreateConsumableGroupDialogProps {
   isLoading: boolean;
 }
 
-export function CreateConsumableGroupDialog({ open, onOpenChange, onSubmit, isLoading }: CreateConsumableGroupDialogProps) {
+export function CreateConsumableGroupDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading
+}: CreateConsumableGroupDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof createConsumableGroupSchema>>({
     resolver: zodResolver(createConsumableGroupSchema),
     defaultValues: {
@@ -49,10 +65,8 @@ export function CreateConsumableGroupDialog({ open, onOpenChange, onSubmit, isLo
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Consumable Group</DialogTitle>
-          <DialogDescription>
-            Create a new consumable group to organize related consumable definitions for your service reports.
-          </DialogDescription>
+          <DialogTitle>{t('consumables.createGroup')}</DialogTitle>
+          <DialogDescription>{t('consumables.createGroupDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -62,9 +76,9 @@ export function CreateConsumableGroupDialog({ open, onOpenChange, onSubmit, isLo
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name *</FormLabel>
+                  <FormLabel>{t('fields.nameRequired')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Chemicals" {...field} />
+                    <Input placeholder={t('consumables.groupPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -76,10 +90,10 @@ export function CreateConsumableGroupDialog({ open, onOpenChange, onSubmit, isLo
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Brief description of what consumables this group contains..."
+                    <Textarea
+                      placeholder={t('consumables.groupDescriptionPlaceholder')}
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -115,10 +129,10 @@ export function CreateConsumableGroupDialog({ open, onOpenChange, onSubmit, isLo
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Group'}
+                {isLoading ? t('actions.creating') : t('actions.createGroup')}
               </Button>
             </DialogFooter>
           </form>
@@ -127,4 +141,3 @@ export function CreateConsumableGroupDialog({ open, onOpenChange, onSubmit, isLo
     </Dialog>
   );
 }
-

@@ -6,6 +6,8 @@ import { SendInvoiceRequest, SendInvoiceResponse } from '@/ts/interfaces/Invoice
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useSendInvoice = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -18,13 +20,13 @@ export const useSendInvoice = () => {
     onSuccess: (response) => {
       // Invalidate invoices list queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      
+
       // Invalidate the specific invoice query to refetch updated status
       queryClient.invalidateQueries({ queryKey: ['invoice', response.invoiceId] });
 
       toast({
         duration: 2000,
-        title: 'Invoice sent successfully',
+        title: translateMessage('toasts.invoiceSentSuccessfully', 'Invoice sent successfully'),
         variant: 'success'
       });
     },
@@ -36,12 +38,12 @@ export const useSendInvoice = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to send invoice';
+        : errorMessage || translateMessage('toasts.failedToSendInvoice', 'Failed to send invoice');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error sending invoice',
+        title: translateMessage('toasts.errorSendingInvoice', 'Error sending invoice'),
         description: message
       });
     }
@@ -49,4 +51,3 @@ export const useSendInvoice = () => {
 
   return { mutate, mutateAsync, isPending, isSuccess };
 };
-

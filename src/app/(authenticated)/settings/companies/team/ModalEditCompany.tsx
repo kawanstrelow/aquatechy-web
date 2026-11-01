@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -19,72 +20,72 @@ import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 export const updateCompanySchema = z.object({
   companyId: z
     .string({
-      required_error: 'companyId is required.',
-      invalid_type_error: 'companyId must be a string.'
+      required_error: 'settings.errors.companyIdRequired',
+      invalid_type_error: 'settings.errors.companyIdInvalidType'
     })
     .trim()
-    .min(1, { message: 'companyId must be at least 1 character.' }),
+    .min(1, { message: 'settings.errors.companyIdMin' }),
   name: z
     .string({
-      required_error: 'name is required.',
-      invalid_type_error: 'name must be a string.'
+      required_error: 'settings.errors.nameRequired',
+      invalid_type_error: 'settings.errors.nameInvalidType'
     })
     .trim()
-    .min(1, { message: 'name must be at least 1 character.' })
+    .min(1, { message: 'settings.errors.nameMin' })
     .optional(),
   phone: z
     .string({
-      required_error: 'Phone is required.',
-      invalid_type_error: 'Phone must be a string.'
+      required_error: 'settings.errors.phoneRequired',
+      invalid_type_error: 'settings.errors.phoneInvalidType'
     })
     .trim()
-    .min(1, { message: 'phone1 must be at least 1 character.' })
+    .min(1, { message: 'settings.errors.phoneMin' })
     .optional(),
   address: z
     .string({
-      required_error: 'address is required.',
-      invalid_type_error: 'address must be a string.'
+      required_error: 'settings.errors.addressRequired',
+      invalid_type_error: 'settings.errors.addressInvalidType'
     })
     .trim()
-    .min(1, { message: 'address must be at least 1 character.' })
+    .min(1, { message: 'settings.errors.addressMin' })
     .optional(),
   city: z
     .string({
-      required_error: 'city is required.',
-      invalid_type_error: 'city must be a string.'
+      required_error: 'settings.errors.cityRequired',
+      invalid_type_error: 'settings.errors.cityInvalidType'
     })
     .trim()
-    .min(1, { message: 'city must be at least 1 character.' })
+    .min(1, { message: 'settings.errors.cityMin' })
     .optional(),
   state: z
     .string({
-      required_error: 'state is required.',
-      invalid_type_error: 'state must be a string.'
+      required_error: 'settings.errors.stateRequired',
+      invalid_type_error: 'settings.errors.stateInvalidType'
     })
     .trim()
-    .min(1, { message: 'state must be at least 1 character.' })
+    .min(1, { message: 'settings.errors.stateMin' })
     .optional(),
   zip: z
     .string({
-      required_error: 'zip is required.',
-      invalid_type_error: 'zip must be a string.'
+      required_error: 'settings.errors.zipRequired',
+      invalid_type_error: 'settings.errors.zipInvalidType'
     })
     .trim()
-    .min(1, { message: 'zip must be at least 1 character.' })
+    .min(1, { message: 'settings.errors.zipMin' })
     .optional(),
   status: z
     .enum(['Active', 'Inactive'], {
-      required_error: 'status is required.',
-      invalid_type_error: "status must be 'Active' or 'Inactive'."
+      required_error: 'settings.errors.statusRequired',
+      invalid_type_error: 'settings.errors.statusInvalid'
     })
     .optional(),
   email: z
     .string({
-      required_error: 'email is required.',
-      invalid_type_error: 'email must be a string.'
+      required_error: 'settings.errors.emailRequired',
+      invalid_type_error: 'settings.errors.emailInvalidType'
     })
     .trim(),
-    addressLine2: z.optional(z.string().trim())
+  addressLine2: z.optional(z.string().trim())
 });
 
 export type FormSchema = z.infer<typeof updateCompanySchema>;
@@ -95,6 +96,8 @@ type PropsEdit = {
 };
 
 export function ModalEditCompany({ children, companyId }: PropsEdit) {
+  const t = useTranslations('settings');
+
   const { data: companies, isLoading, isSuccess } = useGetCompanies();
   const { handleSubmit } = useEditCompany();
 
@@ -138,44 +141,44 @@ export function ModalEditCompany({ children, companyId }: PropsEdit) {
       <DialogTrigger asChild>{children}</DialogTrigger>
 
       <DialogContent>
-        <DialogTitle>Edit company</DialogTitle>
+        <DialogTitle>{t('companies.editCompany')}</DialogTitle>
         <DialogHeader></DialogHeader>
         <Form {...form}>
           <form onSubmit={handleEditCompany}>
             <div className="inline-flex w-full flex-col items-start justify-start gap-8 bg-white">
               <div className="justify-start self-stretch">
                 <div className="mb-4">
-                  <InputField name="name" label="Name" placeholder="name" />
+                  <InputField name="name" label={t('fields.name')} placeholder={t('fields.nameLower')} />
                 </div>
 
                 <div className="mb-4">
-                  <InputField name="email" label="E-mail" placeholder="E-mail" />
+                  <InputField name="email" label={t('email')} placeholder={t('email')} />
                 </div>
 
                 <div className="mb-4">
-                  <InputField name="phone" label="Phone" placeholder="phone" />
+                  <InputField name="phone" label={t('phone')} placeholder={t('fields.phoneLower')} />
                 </div>
 
                 <div className="mb-4">
-                  <InputField name="address" label="Address" placeholder="Address" />
+                  <InputField name="address" label={t('address')} placeholder={t('address')} />
                 </div>
 
                 <div className="mb-4">
-                  <InputField name="city" label="City" placeholder="City" />
+                  <InputField name="city" label={t('city')} placeholder={t('city')} />
                 </div>
 
                 <div className="mb-4">
-                  <InputField name="state" label="State" placeholder="State" />
+                  <InputField name="state" label={t('state')} placeholder={t('state')} />
                 </div>
 
                 <div className="mb-4">
-                  <InputField name="zip" label="Zip" placeholder="Zip" />
+                  <InputField name="zip" label={t('fields.zip')} placeholder={t('fields.zip')} />
                 </div>
               </div>
 
               <DialogTrigger asChild>
                 <Button className="w-full" type="submit">
-                  Save
+                  {t('actions.save')}
                 </Button>
               </DialogTrigger>
             </div>

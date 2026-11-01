@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { RiMenu2Fill } from 'react-icons/ri';
 
@@ -51,6 +52,7 @@ function SideMenuPanel() {
 export function MobileSideMenu() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations('common');
 
   useEffect(() => {
     setOpen(false);
@@ -58,7 +60,7 @@ export function MobileSideMenu() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <button type="button" onClick={() => setOpen(true)} className="inline-flex text-ink" aria-label="Open menu">
+        <button type="button" onClick={() => setOpen(true)} className="inline-flex text-ink" aria-label={t('openMenu')}>
         <RiMenu2Fill size={28} />
       </button>
       <SheetContent side="left" className="w-[248px] border-r border-line bg-surface p-0 [&>button]:text-ink">

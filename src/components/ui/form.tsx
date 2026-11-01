@@ -3,6 +3,8 @@ import { Slot } from '@radix-ui/react-slot';
 import * as React from 'react';
 import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from 'react-hook-form';
 
+import { translateIfKeyed } from '@/i18n/runtime';
+
 import { cn } from '../../lib/utils';
 import { Label } from './label';
 
@@ -125,7 +127,8 @@ FormDescription.displayName = 'FormDescription';
 const FormMessage = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, children, ...props }, ref) => {
     const { error, formMessageId } = useFormField();
-    const body = error ? String(error?.message) : children;
+    const raw = error ? String(error?.message) : children;
+    const body = typeof raw === 'string' ? translateIfKeyed(raw) : raw;
 
     if (!body) {
       return null;

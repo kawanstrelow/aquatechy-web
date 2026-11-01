@@ -19,7 +19,7 @@ function addContactIssues(data: { email?: string; phone?: string }, ctx: z.Refin
   if (email && !z.string().email().safeParse(email).success) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Invalid e-mail.',
+      message: 'validation.email.invalid',
       path: ['email']
     });
   }
@@ -27,7 +27,7 @@ function addContactIssues(data: { email?: string; phone?: string }, ctx: z.Refin
   if (!phoneBlank && phoneDigits(data.phone).length !== 11) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Phone number is incomplete',
+      message: 'validation.phone.incomplete',
       path: ['phone']
     });
   }
@@ -35,12 +35,12 @@ function addContactIssues(data: { email?: string; phone?: string }, ctx: z.Refin
   if (!email && phoneBlank) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'A lead needs an email or a phone number.',
+      message: 'clients.errors.leadContactRequired',
       path: ['email']
     });
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'A lead needs an email or a phone number.',
+      message: 'clients.errors.leadContactRequired',
       path: ['phone']
     });
   }
@@ -48,7 +48,7 @@ function addContactIssues(data: { email?: string; phone?: string }, ctx: z.Refin
 
 export const createLeadSchema = z
   .object({
-    companyOwnerId: z.string().min(1, { message: 'Company owner is required.' }),
+    companyOwnerId: z.string().min(1, { message: 'clients.errors.ownerRequired' }),
     firstName: defaultSchemas.firstName,
     lastName: defaultSchemas.lastName,
     address: defaultSchemas.address,
@@ -58,8 +58,8 @@ export const createLeadSchema = z
     zip: defaultSchemas.zipCode,
     notes: z.string().trim().optional(),
     contactMethod: z.enum(['email', 'phone'], {
-      required_error: 'Choose a phone number or an email.',
-      invalid_type_error: 'Choose a phone number or an email.'
+      required_error: 'clients.errors.chooseContact',
+      invalid_type_error: 'clients.errors.chooseContact'
     }),
     email: z.string().trim().optional(),
     phone: z.string().trim().optional()
@@ -70,7 +70,7 @@ export const createLeadSchema = z
       if (!email || !z.string().email().safeParse(email).success) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: email ? 'Invalid e-mail.' : 'Email is required.',
+          message: email ? 'validation.email.invalid' : 'validation.email.required',
           path: ['email']
         });
       }
@@ -80,7 +80,7 @@ export const createLeadSchema = z
     if (isBlankPhone(data.phone) || phoneDigits(data.phone).length !== 11) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Phone number is incomplete',
+        message: 'validation.phone.incomplete',
         path: ['phone']
       });
     }
@@ -108,7 +108,7 @@ export function buildUpdateLeadSchema(originalPhone?: string | null) {
       if (email && !z.string().email().safeParse(email).success) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Invalid e-mail.',
+          message: 'validation.email.invalid',
           path: ['email']
         });
       }
@@ -116,7 +116,7 @@ export function buildUpdateLeadSchema(originalPhone?: string | null) {
       if (!phoneBlank && !phoneUnchanged && phoneDigits(data.phone).length !== 11) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Phone number is incomplete',
+          message: 'validation.phone.incomplete',
           path: ['phone']
         });
       }
@@ -124,12 +124,12 @@ export function buildUpdateLeadSchema(originalPhone?: string | null) {
       if (!email && phoneBlank) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'A lead needs an email or a phone number.',
+          message: 'clients.errors.leadContactRequired',
           path: ['email']
         });
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'A lead needs an email or a phone number.',
+          message: 'clients.errors.leadContactRequired',
           path: ['phone']
         });
       }
@@ -140,15 +140,18 @@ export const convertLeadSchema = z.object({
   email: defaultSchemas.email,
   phone: defaultSchemas.phone,
   city: defaultSchemas.city,
-  state: z.string({ required_error: 'State is required.' }).trim().length(2, { message: 'State must be 2 letters.' }),
+  state: z
+    .string({ required_error: 'validation.state.required' })
+    .trim()
+    .length(2, { message: 'clients.errors.stateTwoLetters' }),
   zip: defaultSchemas.zipCode,
   clientType: z.enum(['Residential', 'Commercial'], {
-    required_error: 'Client type is required.'
+    required_error: 'validation.clientType.required'
   }),
   address: z.string().trim().optional(),
   addressLine2: z.string().trim().optional(),
   notes: z.string().trim().optional(),
-  invoiceEmail: z.union([z.literal(''), z.string().trim().email({ message: 'Invalid e-mail.' })]).optional(),
+  invoiceEmail: z.union([z.literal(''), z.string().trim().email({ message: 'validation.email.invalid' })]).optional(),
   customerCode: z.string().trim().optional(),
   clientCompany: z.string().trim().optional()
 });

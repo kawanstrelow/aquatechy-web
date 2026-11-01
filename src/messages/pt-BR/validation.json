@@ -1,0 +1,83 @@
+{
+  "address": {
+    "required": "Endereço é obrigatório.",
+    "invalidType": "Endereço deve ser um texto.",
+    "min": "Endereço deve ter pelo menos 1 caractere."
+  },
+  "city": {
+    "required": "Cidade é obrigatória.",
+    "invalidType": "Cidade deve ser um texto.",
+    "min": "Cidade deve ter pelo menos 1 caractere."
+  },
+  "name": {
+    "required": "Nome é obrigatório.",
+    "invalidType": "Nome deve ser um texto.",
+    "min": "Nome deve ter pelo menos 2 caracteres."
+  },
+  "firstName": {
+    "required": "Nome é obrigatório.",
+    "invalidType": "Nome deve ser um texto.",
+    "min": "Nome deve ter pelo menos 2 caracteres."
+  },
+  "lastName": {
+    "required": "Sobrenome é obrigatório.",
+    "invalidType": "Sobrenome deve ser um texto.",
+    "min": "Sobrenome deve ter pelo menos 2 caracteres."
+  },
+  "company": {
+    "required": "Empresa é obrigatória.",
+    "invalidType": "Empresa deve ser um texto.",
+    "min": "Empresa deve ter pelo menos 2 caracteres."
+  },
+  "state": {
+    "required": "Estado é obrigatório.",
+    "invalidType": "Estado deve ser um texto.",
+    "min": "Estado deve ter pelo menos 2 caracteres."
+  },
+  "email": {
+    "required": "E-mail é obrigatório.",
+    "invalid": "E-mail inválido."
+  },
+  "password": {
+    "min": "A senha deve ter pelo menos 8 caracteres"
+  },
+  "phone": {
+    "incomplete": "O telefone está incompleto"
+  },
+  "zipCode": {
+    "min": "O CEP deve ter pelo menos 5 caracteres",
+    "invalid": "CEP inválido"
+  },
+  "language": {
+    "required": "Idioma é obrigatório.",
+    "invalidType": "O idioma deve ser inglês, português ou espanhol."
+  },
+  "paymentUnit": {
+    "min": "A unidade de pagamento deve ser 1 ou maior."
+  },
+  "volume": {
+    "min": "O volume deve ser maior que 0."
+  },
+  "clientType": {
+    "required": "O tipo de cliente é obrigatório.",
+    "invalidType": "O tipo de cliente deve ser Residencial ou Empresa."
+  },
+  "weekday": {
+    "required": "O dia da semana é obrigatório.",
+    "invalidType": "O dia da semana é inválido."
+  },
+  "csvFile": {
+    "invalid": "Arquivo inválido ou o arquivo deve ter menos de 7MB e estar no formato .csv."
+  },
+  "imageFile": {
+    "invalid": "Imagem inválida ou o arquivo deve ter menos de 7MB e estar no formato .jpeg ou .png."
+  },
+  "poolType": {
+    "required": "O tipo de piscina é obrigatório.",
+    "invalidType": "O tipo de piscina deve ser Sal, Cloro ou Outro."
+  },
+  "timezone": {
+    "required": "Fuso horário é obrigatório.",
+    "invalid": "Fuso horário inválido."
+  }
+}

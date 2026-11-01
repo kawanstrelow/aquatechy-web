@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { CheckSquare, Plus, Trash2, Edit3 } from 'lucide-react';
 
@@ -15,9 +16,10 @@ interface ChecklistTabProps {
 }
 
 export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabProps) {
+  const t = useTranslations('clients');
   // Get existing checklist template from pool
   const existingTemplate = pool.checklistTemplates?.[0];
-  
+
   const [customChecklist, setCustomChecklist] = useState<ChecklistTemplateItem[]>(
     existingTemplate?.items?.map((item: any) => ({
       ...item,
@@ -37,7 +39,7 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
   const { mutate: createChecklistTemplate, isPending: isCreatingTemplate } = useCreateChecklistTemplate();
   const { mutate: updateChecklistTemplate, isPending: isUpdatingTemplate } = useUpdateChecklistTemplate();
   const { mutate: deleteChecklistTemplate, isPending: isDeletingTemplate } = useDeleteChecklistTemplate();
-  
+
   // Combine all loading states
   const isSaving = isCreatingTemplate || isUpdatingTemplate || isDeletingTemplate;
 
@@ -46,7 +48,10 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
 
   // Checklist management functions
   const addChecklistItem = () => {
-    if (newChecklistItem.label.trim() && !customChecklist.some(item => item.label === newChecklistItem.label.trim())) {
+    if (
+      newChecklistItem.label.trim() &&
+      !customChecklist.some((item) => item.label === newChecklistItem.label.trim())
+    ) {
       const newItem: ChecklistTemplateItem = {
         id: Date.now().toString(),
         label: newChecklistItem.label.trim(),
@@ -112,17 +117,17 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
           onSuccess: (data) => {
             // Update local state with the updated template data from backend
             if (data?.template) {
-              const itemsWithDateConversion = data.template.items.map(item => ({
+              const itemsWithDateConversion = data.template.items.map((item) => ({
                 ...item,
                 createdAt: new Date(item.createdAt)
               }));
               setCustomChecklist(itemsWithDateConversion || []);
             }
-            
+
             // Reset editing states
             setEditingIndex(null);
             setEditingText('');
-            
+
             // Reset the new item input field
             setNewChecklistItem({
               id: '',
@@ -136,7 +141,7 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
     } else {
       // Create new checklist template
       const companyId = pool.companyOwnerId;
-      
+
       createChecklistTemplate(
         {
           companyId,
@@ -147,17 +152,17 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
           onSuccess: (data) => {
             // Update local state with the new template data from backend
             if (data?.template) {
-              const itemsWithDateConversion = data.template.items.map(item => ({
+              const itemsWithDateConversion = data.template.items.map((item) => ({
                 ...item,
                 createdAt: new Date(item.createdAt)
               }));
               setCustomChecklist(itemsWithDateConversion || []);
             }
-            
+
             // Reset editing states
             setEditingIndex(null);
             setEditingText('');
-            
+
             // Reset the new item input field
             setNewChecklistItem({
               id: '',
@@ -174,7 +179,7 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
   const handleDeleteChecklist = () => {
     if (!existingTemplate || !isUpdating) return;
 
-    if (!confirm('Are you sure you want to delete this checklist? This action cannot be undone.')) {
+    if (!confirm(t('checklist.deleteConfirm'))) {
       return;
     }
 
@@ -199,13 +204,10 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-800">
-            {isUpdating ? 'Edit Custom Checklist' : 'Create Custom Checklist'}
+            {isUpdating ? t('checklist.editTitle') : t('checklist.createTitle')}
           </h3>
           <p className="text-sm text-gray-600">
-            {isUpdating 
-              ? 'Edit the existing personalized checklist template for this pool\'s service reports.'
-              : 'Create a personalized checklist template for this specific pool\'s service reports.'
-            }
+            {isUpdating ? t('checklist.editDescription') : t('checklist.createDescription')}
           </p>
         </div>
 
@@ -215,15 +217,15 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
             type="text"
             value={newChecklistItem.label}
             onChange={(e) => setNewChecklistItem({ ...newChecklistItem, label: e.target.value })}
-            placeholder="Enter new checklist item..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+            placeholder={t('checklist.placeholder')}
+            className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
             onKeyPress={(e) => e.key === 'Enter' && addChecklistItem()}
           />
           <Button
             type="button"
             onClick={addChecklistItem}
             disabled={!newChecklistItem.label.trim()}
-            className="bg-gray-600 hover:bg-gray-700 text-white border-1 border-blue-600"
+            className="border-1 border-blue-600 bg-gray-600 text-white hover:bg-gray-700"
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -231,21 +233,21 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
 
         {/* Checklist Items */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-gray-800">Checklist Items:</h4>
+          <h4 className="text-sm font-semibold text-gray-800">{t('checklist.items')}</h4>
           {customChecklist.length === 0 ? (
-            <p className="text-sm text-gray-500 italic">No checklist items yet. Add your first item above.</p>
+            <p className="text-sm italic text-gray-500">{t('checklist.empty')}</p>
           ) : (
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+            <div className="max-h-60 space-y-2 overflow-y-auto">
               {customChecklist.map((item, index) => (
-                <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                  <CheckSquare className="h-4 w-4 text-gray-600 flex-shrink-0" />
+                <div key={index} className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <CheckSquare className="h-4 w-4 flex-shrink-0 text-gray-600" />
                   {editingIndex === index ? (
-                    <div className="flex-1 flex gap-2">
+                    <div className="flex flex-1 gap-2">
                       <input
                         type="text"
                         value={editingText}
                         onChange={(e) => setEditingText(e.target.value)}
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        className="flex-1 rounded border border-gray-300 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-gray-500"
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') saveEdit();
                           if (e.key === 'Escape') cancelEdit();
@@ -256,18 +258,12 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
                         type="button"
                         size="sm"
                         onClick={saveEdit}
-                        className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 h-8"
+                        className="h-8 bg-green-600 px-2 py-1 text-white hover:bg-green-700"
                       >
-                        Save
+                        {t('shared.save')}
                       </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={cancelEdit}
-                        className="px-2 py-1 h-8"
-                      >
-                        Cancel
+                      <Button type="button" size="sm" variant="outline" onClick={cancelEdit} className="h-8 px-2 py-1">
+                        {t('shared.cancel')}
                       </Button>
                     </div>
                   ) : (
@@ -278,7 +274,7 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
                         size="sm"
                         variant="ghost"
                         onClick={() => startEditing(index)}
-                        className="p-1 h-8 w-8 text-gray-600 hover:text-gray-700 hover:bg-gray-100"
+                        className="h-8 w-8 p-1 text-gray-600 hover:bg-gray-100 hover:text-gray-700"
                       >
                         <Edit3 className="h-4 w-4" />
                       </Button>
@@ -287,7 +283,7 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
                         size="sm"
                         variant="ghost"
                         onClick={() => removeChecklistItem(index)}
-                        className="p-1 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
+                        className="h-8 w-8 p-1 text-red-600 hover:bg-red-100 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -299,9 +295,9 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
           )}
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
           <p className="text-sm text-gray-800">
-            <strong>Note:</strong> This custom checklist will be used specifically for this pool's service reports and will override the company's default template.
+            <strong>{t('shared.note')}</strong> {t('checklist.noteBody')}
           </p>
         </div>
         {/* Action Buttons */}
@@ -312,27 +308,28 @@ export default function ChecklistTab({ poolId, clientId, pool }: ChecklistTabPro
                 variant="destructive"
                 onClick={handleDeleteChecklist}
                 disabled={isSaving}
-                className="text-white w-full"
+                className="w-full text-white"
               >
-                Delete Checklist
+                {t('checklist.delete')}
               </Button>
             )}
             <Button
               onClick={handleSaveChecklist}
               disabled={customChecklist.length === 0 || isSaving}
-              className="flex bg-gray-600 hover:bg-gray-700 text-whit w-full text-white"
+              className="text-whit flex w-full bg-gray-600 text-white hover:bg-gray-700"
             >
               {isSaving ? (
                 <>
-                  <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent mr-2" />
-                  Saving...
+                  <div className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
+                  {t('shared.saving')}
                 </>
+              ) : isUpdating ? (
+                t('checklist.update')
               ) : (
-                isUpdating ? 'Update checklist' : 'Save checklist'
+                t('checklist.save')
               )}
             </Button>
           </div>
-          
         </div>
       </div>
     </div>

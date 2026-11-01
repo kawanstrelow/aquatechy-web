@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { CrudPhotoGroupRequest, CrudPhotoGroupResponse } from '../../../ts/interfaces/PhotoGroups';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -18,7 +20,7 @@ export const useBatchUpdatePhotoGroup = (companyId: string) => {
       data
     }: {
       photoGroupId: string;
-      data: CrudPhotoGroupRequest
+      data: CrudPhotoGroupRequest;
     }): Promise<CrudPhotoGroupResponse> => {
       const response = await clientAxios.put(`/photo-groups/${photoGroupId}/crud`, data);
       return response.data;
@@ -28,15 +30,17 @@ export const useBatchUpdatePhotoGroup = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['photo-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Photo definitions updated successfully',
-        description: 'All changes have been saved',
+        title: translateMessage('toasts.photoDefinitionsUpdatedSuccessfully', 'Photo definitions updated successfully'),
+        description: translateMessage('toasts.allChangesHaveBeenSaved', 'All changes have been saved'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error updating photo definitions',
-        description: error.response?.data?.message || 'An error occurred while saving changes',
+        title: translateMessage('toasts.errorUpdatingPhotoDefinitions', 'Error updating photo definitions'),
+        description:
+          error.response?.data?.message ||
+          translateMessage('toasts.anErrorOccurredWhileSavingChanges', 'An error occurred while saving changes'),
         variant: 'error'
       });
     }

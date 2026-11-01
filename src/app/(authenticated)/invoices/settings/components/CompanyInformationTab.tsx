@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -16,6 +17,7 @@ interface CompanyInformationTabProps {
 }
 
 export function CompanyInformationTab({ companyId }: CompanyInformationTabProps) {
+  const t = useTranslations('invoices');
   const form = useFormContext<{ company: InvoiceCompanyInformation }>();
   const { data: company, isLoading: isLoadingCompany } = useGetCompany(companyId || '');
 
@@ -77,18 +79,18 @@ export function CompanyInformationTab({ companyId }: CompanyInformationTabProps)
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Company Information</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t('settings.companyInformation')}</h2>
           <div className="space-y-4">
             <InputField
               name="company.replyToEmail"
-              label="Reply-to Email"
-              placeholder="Enter reply-to email (defaults to company email)"
+              label={t('fields.replyToEmail')}
+              placeholder={t('placeholders.enterReplyToEmail')}
             />
           </div>
 
           <div className="mt-6">
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Company Information'}
+              {isPending ? t('actions.saving') : t('settings.saveCompanyInformation')}
             </Button>
           </div>
         </div>

@@ -4,6 +4,8 @@ import { AxiosError } from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface UnsubscribeParams {
   token: string;
 }
@@ -23,14 +25,16 @@ export const useUnsubscribeUser = () => {
       toast({
         duration: 5000,
         variant: 'error',
-        title: 'Error unsubscribing',
+        title: translateMessage('toasts.errorUnsubscribing', 'Error unsubscribing'),
         description: error.response?.data?.message
           ? error.response.data.message
-          : 'An error occurred. Please try again later or contact support.'
+          : translateMessage(
+              'toasts.anErrorOccurredPleaseTryAgainLaterOrContactSupport',
+              'An error occurred. Please try again later or contact support.'
+            )
       });
     }
   });
 
   return { mutate, isPending, isSuccess, isError };
 };
-

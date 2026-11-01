@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 import Cookies from 'js-cookie';
+import { translateMessage } from '@/i18n/runtime';
+
 export const useUpdateClient = <T>() => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -23,10 +25,9 @@ export const useUpdateClient = <T>() => {
 
       toast({
         duration: 5000,
-        title: 'Client updated successfully',
+        title: translateMessage('toasts.clientUpdatedSuccessfully', 'Client updated successfully'),
         variant: 'success'
       });
-      
     },
     onError: (
       error: AxiosError<{
@@ -36,8 +37,10 @@ export const useUpdateClient = <T>() => {
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating client',
-        description: error.response?.data?.message ? error.response.data.message : 'Internal server error'
+        title: translateMessage('toasts.errorUpdatingClient', 'Error updating client'),
+        description: error.response?.data?.message
+          ? error.response.data.message
+          : translateMessage('toasts.internalServerError', 'Internal server error')
       });
     }
   });

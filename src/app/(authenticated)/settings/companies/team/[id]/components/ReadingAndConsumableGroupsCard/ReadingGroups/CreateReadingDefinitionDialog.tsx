@@ -1,11 +1,20 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,36 +22,45 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 import { CreateReadingDefinitionRequest } from '@/ts/interfaces/ReadingGroups';
 
-const createReadingDefinitionSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  unit: z.string().min(1, 'Unit is required').max(20, 'Unit must be less than 20 characters'),
-  minValue: z.coerce.number({
-    required_error: 'Minimum value is required',
-    message: 'Minimum value is required'
-  }),
-  maxValue: z.coerce.number({
-    required_error: 'Maximum value is required',
-    message: 'Maximum value is required'
-  }),
-  goalValue: z.coerce.number().optional(),
-  step: z.coerce.number({
-    required_error: 'Step is required',
-    message: 'Step is required'
-  }).positive('Step must be positive'),
-  isRequired: z.boolean().default(false),
-  description: z.string({
-    required_error: 'Description is required',
-    message: 'Description is required'
-  }).max(500, 'Description must be less than 500 characters')
-}).refine((data) => {
-  if (data.minValue !== undefined && data.maxValue !== undefined) {
-    return data.minValue <= data.maxValue;
-  }
-  return true;
-}, {
-  message: 'Minimum value must be less than or equal to maximum value',
-  path: ['maxValue']
-});
+const createReadingDefinitionSchema = z
+  .object({
+    name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+    unit: z.string().min(1, 'settings.errors.unitRequired').max(20, 'settings.errors.unitMax'),
+    minValue: z.coerce.number({
+      required_error: 'settings.errors.minValueRequired',
+      message: 'settings.errors.minValueRequired'
+    }),
+    maxValue: z.coerce.number({
+      required_error: 'settings.errors.maxValueRequired',
+      message: 'settings.errors.maxValueRequired'
+    }),
+    goalValue: z.coerce.number().optional(),
+    step: z.coerce
+      .number({
+        required_error: 'settings.errors.stepRequired',
+        message: 'settings.errors.stepRequired'
+      })
+      .positive('settings.errors.stepPositive'),
+    isRequired: z.boolean().default(false),
+    description: z
+      .string({
+        required_error: 'settings.errors.descriptionRequired',
+        message: 'settings.errors.descriptionRequired'
+      })
+      .max(500, 'settings.errors.descriptionMax')
+  })
+  .refine(
+    (data) => {
+      if (data.minValue !== undefined && data.maxValue !== undefined) {
+        return data.minValue <= data.maxValue;
+      }
+      return true;
+    },
+    {
+      message: 'settings.errors.minLteMax',
+      path: ['maxValue']
+    }
+  );
 
 interface CreateReadingDefinitionDialogProps {
   open: boolean;
@@ -51,11 +69,17 @@ interface CreateReadingDefinitionDialogProps {
   isLoading: boolean;
 }
 
-export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, isLoading }: CreateReadingDefinitionDialogProps) {
+export function CreateReadingDefinitionDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading
+}: CreateReadingDefinitionDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof createReadingDefinitionSchema>>({
     resolver: zodResolver(createReadingDefinitionSchema),
     defaultValues: {
-
       goalValue: undefined,
       step: undefined,
       isRequired: false,
@@ -84,12 +108,10 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create Reading Definition</DialogTitle>
-          <DialogDescription>
-            Create a new reading definition to specify what readings can be recorded for this group.
-          </DialogDescription>
+          <DialogTitle>{t('readings.createDefinition')}</DialogTitle>
+          <DialogDescription>{t('readings.createDefinitionDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -100,9 +122,9 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name *</FormLabel>
+                    <FormLabel>{t('fields.nameRequired')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Chlorine" {...field} />
+                      <Input placeholder={t('readings.namePlaceholder')} {...field} />
                     </FormControl>
                     {/* <FormMessage /> */}
                   </FormItem>
@@ -114,9 +136,9 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
                 name="unit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit *</FormLabel>
+                    <FormLabel>{t('fields.unitRequired')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., ppm" {...field} />
+                      <Input placeholder={t('readings.unitPlaceholder')} {...field} />
                     </FormControl>
                     {/* <FormMessage /> */}
                   </FormItem>
@@ -129,10 +151,10 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of this reading..."
+                      placeholder={t('readings.definitionDescriptionPlaceholder')}
                       className="resize-none"
                       rows={2}
                       {...field}
@@ -149,14 +171,9 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
                 name="minValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Minimum Value</FormLabel>
+                    <FormLabel>{t('fields.minimumValue')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="e.g., 0.0"
-                        {...field}
-                      />
+                      <Input type="number" step="any" placeholder={t('fields.exampleZero')} {...field} />
                     </FormControl>
                     {/* <FormMessage /> */}
                   </FormItem>
@@ -168,14 +185,9 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
                 name="maxValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Maximum Value</FormLabel>
+                    <FormLabel>{t('fields.maximumValue')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="e.g., 10.0"
-                        {...field}
-                      />
+                      <Input type="number" step="any" placeholder={t('fields.exampleTen')} {...field} />
                     </FormControl>
                     {/* <FormMessage /> */}
                   </FormItem>
@@ -189,14 +201,9 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
                 name="goalValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Goal Value</FormLabel>
+                    <FormLabel>{t('readings.goalValue')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="e.g., 3.0"
-                        {...field}
-                      />
+                      <Input type="number" step="any" placeholder={t('fields.exampleThree')} {...field} />
                     </FormControl>
                     {/* <FormMessage /> */}
                   </FormItem>
@@ -208,14 +215,9 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
                 name="step"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Step Size</FormLabel>
+                    <FormLabel>{t('fields.stepSize')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="any"
-                        placeholder="e.g., 0.1"
-                        {...field}
-                      />
+                      <Input type="number" step="any" placeholder={t('fields.exampleStep')} {...field} />
                     </FormControl>
                     {/* <FormMessage /> */}
                   </FormItem>
@@ -229,16 +231,11 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Required reading
-                    </FormLabel>
-                    <p className="text-sm text-muted-foreground">
+                    <FormLabel>{t('readings.requiredReading')}</FormLabel>
+                    <p className="text-muted-foreground text-sm">
                       This reading must be recorded for every service report
                     </p>
                   </div>
@@ -246,12 +243,12 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
               )}
             />
 
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end w-full">
+            <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Definition'}
+                {isLoading ? t('actions.creating') : t('actions.createDefinition')}
               </Button>
             </DialogFooter>
           </form>
@@ -260,4 +257,3 @@ export function CreateReadingDefinitionDialog({ open, onOpenChange, onSubmit, is
     </Dialog>
   );
 }
-

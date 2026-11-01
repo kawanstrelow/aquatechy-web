@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeftIcon } from 'lucide-react';
@@ -20,26 +22,21 @@ import { useInviteMemberToACompany } from '@/hooks/react-query/companies/inviteM
 import { cn } from '@/lib/utils';
 import { Company } from '@/ts/interfaces/Company';
 import { FieldType, IanaTimeZones } from '@/ts/enums/enums';
-import {
-  AssignableMemberRole,
-  canManageCompanyTeam,
-  getAssignableMemberRoles,
-  MEMBER_ROLE_DESCRIPTIONS
-} from '@/utils/companyRoles';
+import { AssignableMemberRole, canManageCompanyTeam, getAssignableMemberRoles } from '@/utils/companyRoles';
 
 const emailSchema = z.object({
-  email: z.string().email({ message: 'Invalid email format.' })
+  email: z.string().email({ message: 'settings.errors.emailInvalid' })
 });
 
 const profileSchema = z.object({
-  firstName: z.string().min(1, { message: 'First name is required.' }),
-  lastName: z.string().min(1, { message: 'Last name is required.' }),
-  company: z.string().min(1, { message: 'Company is required.' }),
-  phone: z.string().min(1, { message: 'Phone is required.' }),
-  address: z.string().min(1, { message: 'Address is required.' }),
-  city: z.string().min(1, { message: 'City is required.' }),
-  state: z.string().min(1, { message: 'State is required.' }),
-  zip: z.string().min(1, { message: 'ZIP code is required.' }),
+  firstName: z.string().min(1, { message: 'settings.errors.firstNameRequired' }),
+  lastName: z.string().min(1, { message: 'settings.errors.lastNameRequired' }),
+  company: z.string().min(1, { message: 'settings.errors.companyRequired' }),
+  phone: z.string().min(1, { message: 'settings.errors.phoneRequired' }),
+  address: z.string().min(1, { message: 'settings.errors.addressRequired' }),
+  city: z.string().min(1, { message: 'settings.errors.cityRequired' }),
+  state: z.string().min(1, { message: 'settings.errors.stateRequired' }),
+  zip: z.string().min(1, { message: 'settings.errors.zipRequired' }),
   addressLine2: z.optional(z.string().trim())
 });
 
@@ -85,6 +82,8 @@ export default function AddMemberPage({ params: { id } }: Props) {
 }
 
 function AddMemberContent({ id, myRole, company }: { id: string; myRole: string; company?: Company }) {
+  const t = useTranslations('settings');
+
   const router = useRouter();
   const { mutate: inviteMember, isPending } = useInviteMemberToACompany();
   const { mutate: checkAccount, isPending: isChecking } = useCheckAccountExists();
@@ -198,16 +197,16 @@ function AddMemberContent({ id, myRole, company }: { id: string; myRole: string;
   return (
     <div className="mx-auto w-full max-w-2xl">
       <div className="rounded-xl border border-line bg-surface px-6 py-8 shadow-lift sm:px-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">Add member</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">{t('team.addMember')}</h1>
         {companyName ? <p className="mt-1 text-sm text-ink-muted">{companyName}</p> : null}
 
         {step === 'email' && (
           <Form {...emailForm}>
             <form onSubmit={emailForm.handleSubmit(handleEmailSubmit)} className="mt-8 space-y-6">
-              <InputField name="email" label="E-mail" placeholder="Enter email address" />
+              <InputField name="email" label={t('email')} placeholder={t('fields.enterEmail')} />
               <div className="flex justify-end">
                 <Button type="submit" className={accentButtonClassName} disabled={isChecking}>
-                  {isChecking ? 'Checking...' : 'Next'}
+                  {isChecking ? t('actions.checking') : t('actions.next')}
                 </Button>
               </div>
             </form>
@@ -218,35 +217,35 @@ function AddMemberContent({ id, myRole, company }: { id: string; myRole: string;
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(() => setStep('position'))} className="mt-8 space-y-6">
               <p className="text-sm text-ink-muted">
-                <span className="font-medium text-ink">{email}</span> does not have an Aquatechy account yet.
+                <span className="font-medium text-ink">{email}</span> {t('team.noAccountSuffix')}
               </p>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <InputField name="firstName" label="First Name" placeholder="Enter first name" />
-                <InputField name="lastName" label="Last Name" placeholder="Enter last name" />
-                <InputField name="company" label="Company" placeholder="Enter company name" />
+                <InputField name="firstName" label={t('firstName')} placeholder={t('fields.enterFirstName')} />
+                <InputField name="lastName" label={t('lastName')} placeholder={t('fields.enterLastName')} />
+                <InputField name="company" label={t('company')} placeholder={t('fields.enterCompanyName')} />
               </div>
-              <InputField name="phone" label="Phone" placeholder="Enter phone number" type={FieldType.Phone} />
+              <InputField name="phone" label={t('phone')} placeholder={t('fields.enterPhone')} type={FieldType.Phone} />
               <div className="space-y-4">
                 <AddressInput
                   name="address"
-                  label="Address"
-                  placeholder="Enter address"
+                  label={t('address')}
+                  placeholder={t('fields.enterAddress')}
                   onAddressSelect={handleAddressSelect}
                 />
-                <InputField name="addressLine2" label="Address Line 2" placeholder="Apt, suite, unit" />
+                <InputField name="addressLine2" label={t('addressLine2')} placeholder={t('addressLine2Placeholder')} />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <InputField name="state" label="State" placeholder="State" />
-                  <InputField name="city" label="City" placeholder="City" />
-                  <InputField name="zip" label="ZIP Code" placeholder="ZIP code" />
+                  <InputField name="state" label={t('state')} placeholder={t('state')} />
+                  <InputField name="city" label={t('city')} placeholder={t('city')} />
+                  <InputField name="zip" label={t('fields.zipCode')} placeholder={t('fields.zipCodeLower')} />
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={goBack}>
                   <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                  Back
+                  {t('actions.back')}
                 </Button>
                 <Button type="submit" className={accentButtonClassName}>
-                  Next
+                  {t('actions.next')}
                 </Button>
               </div>
             </form>
@@ -256,7 +255,7 @@ function AddMemberContent({ id, myRole, company }: { id: string; myRole: string;
         {step === 'position' && (
           <div className="mt-8">
             <p className="text-sm text-ink-muted">
-              Choose what <span className="font-medium text-ink">{email}</span> can do.
+              {t('team.chooseWhatPrefix')} <span className="font-medium text-ink">{email}</span> {t('team.canDoSuffix')}
             </p>
             <div className="mt-4 flex flex-col gap-3">
               {roleOptions.map((option) => {
@@ -271,9 +270,9 @@ function AddMemberContent({ id, myRole, company }: { id: string; myRole: string;
                       selected ? 'border-accent bg-accent-soft' : 'border-line bg-surface hover:bg-canvas'
                     )}
                   >
-                    <span className="block text-sm font-semibold text-ink">{option}</span>
+                    <span className="block text-sm font-semibold text-ink">{t(`roles.${option}`)}</span>
                     <span className="mt-1 block text-sm leading-6 text-ink-muted">
-                      {MEMBER_ROLE_DESCRIPTIONS[option]}
+                      {t(`roles.descriptions.${option}`)}
                     </span>
                   </button>
                 );
@@ -282,7 +281,7 @@ function AddMemberContent({ id, myRole, company }: { id: string; myRole: string;
             <div className="mt-6 flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={goBack}>
                 <ArrowLeftIcon className="mr-2 h-4 w-4" />
-                Back
+                {t('actions.back')}
               </Button>
               <Button
                 type="button"
@@ -290,7 +289,7 @@ function AddMemberContent({ id, myRole, company }: { id: string; myRole: string;
                 disabled={!role || isPending}
                 onClick={() => handleInvite(accountExists ? undefined : profileForm.getValues())}
               >
-                {isPending ? 'Inviting...' : 'Invite member'}
+                {isPending ? t('team.inviting') : t('team.inviteMember')}
               </Button>
             </div>
           </div>

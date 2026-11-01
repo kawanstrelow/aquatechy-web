@@ -1,12 +1,21 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,8 +24,8 @@ import { Switch } from '@/components/ui/switch';
 import { ReadingGroup, UpdateReadingGroupRequest } from '@/ts/interfaces/ReadingGroups';
 
 const updateReadingGroupSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  name: z.string().min(1, 'settings.errors.nameRequiredShort').max(100, 'settings.errors.nameMax'),
+  description: z.string().max(500, 'settings.errors.descriptionMax').optional(),
   isActive: z.boolean()
 });
 
@@ -28,7 +37,15 @@ interface EditReadingGroupDialogProps {
   isLoading: boolean;
 }
 
-export function EditReadingGroupDialog({ open, onOpenChange, readingGroup, onSubmit, isLoading }: EditReadingGroupDialogProps) {
+export function EditReadingGroupDialog({
+  open,
+  onOpenChange,
+  readingGroup,
+  onSubmit,
+  isLoading
+}: EditReadingGroupDialogProps) {
+  const t = useTranslations('settings');
+
   const form = useForm<z.infer<typeof updateReadingGroupSchema>>({
     resolver: zodResolver(updateReadingGroupSchema),
     defaultValues: {
@@ -65,10 +82,8 @@ export function EditReadingGroupDialog({ open, onOpenChange, readingGroup, onSub
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Reading Group</DialogTitle>
-          <DialogDescription>
-            Update the reading group information. Note that default groups cannot be deactivated.
-          </DialogDescription>
+          <DialogTitle>{t('readings.editGroup')}</DialogTitle>
+          <DialogDescription>{t('readings.editGroupDescription')}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -78,9 +93,9 @@ export function EditReadingGroupDialog({ open, onOpenChange, readingGroup, onSub
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name *</FormLabel>
+                  <FormLabel>{t('fields.nameRequired')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Water Chemistry" {...field} />
+                    <Input placeholder={t('readings.groupPlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -92,10 +107,10 @@ export function EditReadingGroupDialog({ open, onOpenChange, readingGroup, onSub
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('fields.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of what readings this group contains..."
+                      placeholder={t('readings.groupDescriptionPlaceholder')}
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -113,12 +128,12 @@ export function EditReadingGroupDialog({ open, onOpenChange, readingGroup, onSub
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">
-                      Active
+                      {t('statuses.Active')}
                     </FormLabel>
                     <p className="text-sm text-muted-foreground">
                       {readingGroup.isDefault
-                        ? 'This is a default group and cannot be deactivated'
-                        : 'Deactivate to hide this group from new service reports'
+                        ? t('groups.defaultCannotDeactivate')
+                        : t('groups.deactivateHint')
                       }
                     </p>
                   </div>
@@ -133,12 +148,12 @@ export function EditReadingGroupDialog({ open, onOpenChange, readingGroup, onSub
               )}
             /> */}
 
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end w-full">
+            <DialogFooter className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update Group'}
+                {isLoading ? t('actions.updating') : t('actions.updateGroup')}
               </Button>
             </DialogFooter>
           </form>
@@ -147,4 +162,3 @@ export function EditReadingGroupDialog({ open, onOpenChange, readingGroup, onSub
     </Dialog>
   );
 }
-

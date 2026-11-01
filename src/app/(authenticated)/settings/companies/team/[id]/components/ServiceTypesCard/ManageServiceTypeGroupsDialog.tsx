@@ -1,8 +1,17 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Plus } from 'lucide-react';
@@ -34,6 +43,8 @@ export function ManageServiceTypeGroupsDialog({
   onLinkConsumableGroup,
   onUnlinkConsumableGroup
 }: ManageServiceTypeGroupsDialogProps) {
+  const t = useTranslations('settings');
+
   const [selectedReadingGroup, setSelectedReadingGroup] = useState<string>('');
   const [selectedConsumableGroup, setSelectedConsumableGroup] = useState<string>('');
 
@@ -64,42 +75,43 @@ export function ManageServiceTypeGroupsDialog({
   };
 
   // Get available groups (not already linked)
-  const linkedReadingGroupIds = serviceType.readingGroups?.map(g => g.id) || [];
-  const linkedConsumableGroupIds = serviceType.consumableGroups?.map(g => g.id) || [];
-  
+  const linkedReadingGroupIds = serviceType.readingGroups?.map((g) => g.id) || [];
+  const linkedConsumableGroupIds = serviceType.consumableGroups?.map((g) => g.id) || [];
+
   const availableReadingGroupsToLink = availableReadingGroups.filter(
-    group => !linkedReadingGroupIds.includes(group.id)
+    (group) => !linkedReadingGroupIds.includes(group.id)
   );
   const availableConsumableGroupsToLink = availableConsumableGroups.filter(
-    group => !linkedConsumableGroupIds.includes(group.id)
+    (group) => !linkedConsumableGroupIds.includes(group.id)
   );
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Manage Groups for {serviceType.name}</DialogTitle>
+          <DialogTitle>{t('serviceTypes.manageGroups', { name: serviceType.name })}</DialogTitle>
           <DialogDescription>
-            Link reading groups and consumable groups to this service type. These groups will be available when creating services of this type.
+            Link reading groups and consumable groups to this service type. These groups will be available when creating
+            services of this type.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Reading Groups Section */}
           <div>
-            <h3 className="text-lg font-medium mb-3">Reading Groups</h3>
-            
+            <h3 className="mb-3 text-lg font-medium">{t('readings.groupsTitle')}</h3>
+
             {/* Linked Reading Groups */}
-            <div className="space-y-2 mb-4">
+            <div className="mb-4 space-y-2">
               {serviceType.readingGroups && serviceType.readingGroups.length > 0 ? (
                 serviceType.readingGroups.map((group, index) => (
-                  <div key={group.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div key={group.id} className="bg-muted flex items-center justify-between rounded-lg p-3">
                     <div>
                       <div className="font-medium">{group.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {group.description || 'No description'}
+                      <div className="text-muted-foreground text-sm">
+                        {group.description || t('fields.noDescription')}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-muted-foreground text-xs">
                         {group.readingDefinitions?.length || 0} definitions
                       </div>
                     </div>
@@ -107,15 +119,15 @@ export function ManageServiceTypeGroupsDialog({
                       variant="ghost"
                       size="sm"
                       onClick={() => onUnlinkReadingGroup(serviceType.id, group.id)}
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive h-8 w-8 p-0"
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
-                  No reading groups linked
+                <div className="text-muted-foreground bg-muted rounded-lg p-3 text-sm">
+                  {t('serviceTypes.noReadingLinked')}
                 </div>
               )}
             </div>
@@ -125,7 +137,7 @@ export function ManageServiceTypeGroupsDialog({
               <div className="flex gap-2">
                 <Select value={selectedReadingGroup} onValueChange={setSelectedReadingGroup}>
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select a reading group to link" />
+                    <SelectValue placeholder={t('serviceTypes.selectReadingToLink')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableReadingGroupsToLink.map((group) => (
@@ -135,12 +147,8 @@ export function ManageServiceTypeGroupsDialog({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button 
-                  onClick={handleLinkReadingGroup} 
-                  disabled={!selectedReadingGroup}
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
+                <Button onClick={handleLinkReadingGroup} disabled={!selectedReadingGroup} size="sm">
+                  <Plus className="mr-1 h-4 w-4" />
                   Link
                 </Button>
               </div>
@@ -149,19 +157,19 @@ export function ManageServiceTypeGroupsDialog({
 
           {/* Consumable Groups Section */}
           <div>
-            <h3 className="text-lg font-medium mb-3">Consumable Groups</h3>
-            
+            <h3 className="mb-3 text-lg font-medium">{t('consumables.groupsTitle')}</h3>
+
             {/* Linked Consumable Groups */}
-            <div className="space-y-2 mb-4">
+            <div className="mb-4 space-y-2">
               {serviceType.consumableGroups && serviceType.consumableGroups.length > 0 ? (
                 serviceType.consumableGroups.map((group, index) => (
-                  <div key={group.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div key={group.id} className="bg-muted flex items-center justify-between rounded-lg p-3">
                     <div>
                       <div className="font-medium">{group.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {group.description || 'No description'}
+                      <div className="text-muted-foreground text-sm">
+                        {group.description || t('fields.noDescription')}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-muted-foreground text-xs">
                         {group.consumableDefinitions?.length || 0} definitions
                       </div>
                     </div>
@@ -169,15 +177,15 @@ export function ManageServiceTypeGroupsDialog({
                       variant="ghost"
                       size="sm"
                       onClick={() => onUnlinkConsumableGroup(serviceType.id, group.id)}
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive h-8 w-8 p-0"
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
-                  No consumable groups linked
+                <div className="text-muted-foreground bg-muted rounded-lg p-3 text-sm">
+                  {t('serviceTypes.noConsumableLinked')}
                 </div>
               )}
             </div>
@@ -187,7 +195,7 @@ export function ManageServiceTypeGroupsDialog({
               <div className="flex gap-2">
                 <Select value={selectedConsumableGroup} onValueChange={setSelectedConsumableGroup}>
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select a consumable group to link" />
+                    <SelectValue placeholder={t('serviceTypes.selectConsumableToLink')} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableConsumableGroupsToLink.map((group) => (
@@ -197,12 +205,8 @@ export function ManageServiceTypeGroupsDialog({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button 
-                  onClick={handleLinkConsumableGroup} 
-                  disabled={!selectedConsumableGroup}
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
+                <Button onClick={handleLinkConsumableGroup} disabled={!selectedConsumableGroup} size="sm">
+                  <Plus className="mr-1 h-4 w-4" />
                   Link
                 </Button>
               </div>
@@ -212,7 +216,7 @@ export function ManageServiceTypeGroupsDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
-            Close
+            {t('actions.close')}
           </Button>
         </DialogFooter>
       </DialogContent>

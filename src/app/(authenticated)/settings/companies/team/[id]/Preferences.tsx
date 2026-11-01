@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -66,6 +68,8 @@ const schema = z.object({
 });
 
 export default function Page({ company }: { company: Company }) {
+  const t = useTranslations('settings');
+
   const { isPending: isEmailPending, mutate: updateEmailPrefs } = useUpdateCompanyPreferences(company.id);
   const { isPending: isServicePrefsPending, mutate: updateServicePrefs } = useUpdateServicePreferences(company.id);
   const { isFreePlan } = useUserStore(
@@ -93,19 +97,31 @@ export default function Page({ company }: { company: Company }) {
       //   : company.preferences?.serviceEmailPreferences?.attachServicePhotos || false,
       ccEmail: company.preferences?.serviceEmailPreferences?.ccEmail || undefined,
       sendSkippedServiceEmails: company.preferences?.serviceEmailPreferences?.sendSkippedServiceEmails || false,
-      filterCleaningIntervalDays: company.preferences?.equipmentMaintenancePreferences?.filterCleaningIntervalDays || 28,
-      filterReplacementIntervalDays: company.preferences?.equipmentMaintenancePreferences?.filterReplacementIntervalDays || 365,
+      filterCleaningIntervalDays:
+        company.preferences?.equipmentMaintenancePreferences?.filterCleaningIntervalDays || 28,
+      filterReplacementIntervalDays:
+        company.preferences?.equipmentMaintenancePreferences?.filterReplacementIntervalDays || 365,
       filterCleaningMustHavePhotos: isFreePlan
         ? false
         : company.preferences?.equipmentMaintenancePreferences?.filterCleaningMustHavePhotos || false,
-      sendFilterCleaningEmails: isFreePlan ? false : company.preferences?.serviceEmailPreferences?.sendFilterCleaningEmails || false,
+      sendFilterCleaningEmails: isFreePlan
+        ? false
+        : company.preferences?.serviceEmailPreferences?.sendFilterCleaningEmails || false,
 
       // New fields
-      attachReadingsGroups: isFreePlan ? false : company.preferences?.serviceEmailPreferences?.attachReadingsGroups || false,
-      attachConsumablesGroups: isFreePlan ? false : company.preferences?.serviceEmailPreferences?.attachConsumablesGroups || false,
+      attachReadingsGroups: isFreePlan
+        ? false
+        : company.preferences?.serviceEmailPreferences?.attachReadingsGroups || false,
+      attachConsumablesGroups: isFreePlan
+        ? false
+        : company.preferences?.serviceEmailPreferences?.attachConsumablesGroups || false,
       attachPhotoGroups: isFreePlan ? false : company.preferences?.serviceEmailPreferences?.attachPhotoGroups || false,
-      attachSelectorsGroups: isFreePlan ? false : company.preferences?.serviceEmailPreferences?.attachSelectorsGroups || false,
-      attachCustomChecklist: isFreePlan ? false : company.preferences?.serviceEmailPreferences?.attachCustomChecklist || false,
+      attachSelectorsGroups: isFreePlan
+        ? false
+        : company.preferences?.serviceEmailPreferences?.attachSelectorsGroups || false,
+      attachCustomChecklist: isFreePlan
+        ? false
+        : company.preferences?.serviceEmailPreferences?.attachCustomChecklist || false,
       allowAnticipatedServices: company.preferences?.servicePreferences?.allowAnticipatedServices || false
     }
   });
@@ -113,27 +129,30 @@ export default function Page({ company }: { company: Company }) {
   const sendEmails = form.watch('sendEmails');
 
   // Use useCallback to prevent infinite re-renders
-  const handleEmailsChange = useCallback((newSendEmails: boolean) => {
-    if (newSendEmails) {
-      // form.setValue('attachChemicalsReadings', true, { shouldDirty: true });
-      // form.setValue('attachChecklist', true, { shouldDirty: true });
-      // form.setValue('attachServicePhotos', true, { shouldDirty: true });
-      form.setValue('attachReadingsGroups', true, { shouldDirty: true });
-      form.setValue('attachConsumablesGroups', true, { shouldDirty: true });
-      form.setValue('attachPhotoGroups', true, { shouldDirty: true });
-      form.setValue('attachSelectorsGroups', true, { shouldDirty: true });
-      form.setValue('attachCustomChecklist', true, { shouldDirty: true });
-    } else {
-      // form.setValue('attachChemicalsReadings', false, { shouldDirty: true });
-      // form.setValue('attachChecklist', false, { shouldDirty: true });
-      // form.setValue('attachServicePhotos', false, { shouldDirty: true });
-      form.setValue('attachReadingsGroups', false, { shouldDirty: true });
-      form.setValue('attachConsumablesGroups', false, { shouldDirty: true });
-      form.setValue('attachPhotoGroups', false, { shouldDirty: true });
-      form.setValue('attachSelectorsGroups', false, { shouldDirty: true });
-      form.setValue('attachCustomChecklist', false, { shouldDirty: true });
-    }
-  }, [form]);
+  const handleEmailsChange = useCallback(
+    (newSendEmails: boolean) => {
+      if (newSendEmails) {
+        // form.setValue('attachChemicalsReadings', true, { shouldDirty: true });
+        // form.setValue('attachChecklist', true, { shouldDirty: true });
+        // form.setValue('attachServicePhotos', true, { shouldDirty: true });
+        form.setValue('attachReadingsGroups', true, { shouldDirty: true });
+        form.setValue('attachConsumablesGroups', true, { shouldDirty: true });
+        form.setValue('attachPhotoGroups', true, { shouldDirty: true });
+        form.setValue('attachSelectorsGroups', true, { shouldDirty: true });
+        form.setValue('attachCustomChecklist', true, { shouldDirty: true });
+      } else {
+        // form.setValue('attachChemicalsReadings', false, { shouldDirty: true });
+        // form.setValue('attachChecklist', false, { shouldDirty: true });
+        // form.setValue('attachServicePhotos', false, { shouldDirty: true });
+        form.setValue('attachReadingsGroups', false, { shouldDirty: true });
+        form.setValue('attachConsumablesGroups', false, { shouldDirty: true });
+        form.setValue('attachPhotoGroups', false, { shouldDirty: true });
+        form.setValue('attachSelectorsGroups', false, { shouldDirty: true });
+        form.setValue('attachCustomChecklist', false, { shouldDirty: true });
+      }
+    },
+    [form]
+  );
 
   // Only trigger handleEmailsChange when sendEmails actually changes (not on initial render)
   useEffect(() => {
@@ -196,8 +215,17 @@ export default function Page({ company }: { company: Company }) {
   // Check if email fields have changed
   const emailFieldsChanged = () => {
     // const emailFields = ['sendEmails', 'attachChemicalsReadings', 'attachChecklist', 'attachServicePhotos', 'ccEmail'];
-    const emailFields = ['sendEmails', 'attachReadingsGroups', 'attachConsumablesGroups', 'attachPhotoGroups', 'attachSelectorsGroups', 'attachCustomChecklist', 'ccEmail', 'sendSkippedServiceEmails'];
-    return emailFields.some(field => {
+    const emailFields = [
+      'sendEmails',
+      'attachReadingsGroups',
+      'attachConsumablesGroups',
+      'attachPhotoGroups',
+      'attachSelectorsGroups',
+      'attachCustomChecklist',
+      'ccEmail',
+      'sendSkippedServiceEmails'
+    ];
+    return emailFields.some((field) => {
       const currentValue = watchedValues[field as keyof typeof watchedValues];
       const originalValue = getOriginalValue(field);
       return currentValue !== originalValue;
@@ -206,8 +234,13 @@ export default function Page({ company }: { company: Company }) {
 
   // Check if filter fields have changed
   const filterFieldsChanged = () => {
-    const filterFields = ['filterCleaningIntervalDays', 'filterReplacementIntervalDays', 'filterCleaningMustHavePhotos', 'sendFilterCleaningEmails'];
-    return filterFields.some(field => {
+    const filterFields = [
+      'filterCleaningIntervalDays',
+      'filterReplacementIntervalDays',
+      'filterCleaningMustHavePhotos',
+      'sendFilterCleaningEmails'
+    ];
+    return filterFields.some((field) => {
       const currentValue = watchedValues[field as keyof typeof watchedValues];
       const originalValue = getOriginalValue(field);
       return currentValue !== originalValue;
@@ -217,7 +250,7 @@ export default function Page({ company }: { company: Company }) {
   // Check if general fields have changed
   const generalFieldsChanged = () => {
     const generalFields = ['allowAnticipatedServices'];
-    return generalFields.some(field => {
+    return generalFields.some((field) => {
       const currentValue = watchedValues[field as keyof typeof watchedValues];
       const originalValue = getOriginalValue(field);
       return currentValue !== originalValue;
@@ -268,10 +301,9 @@ export default function Page({ company }: { company: Company }) {
 
   // Handle CC email submission
   const handleCcEmailSubmit = (ccEmail: string, _sendSkippedFromForm: boolean) => {
-    const preservedSkipped =
-      isFreePlan
-        ? (company.preferences?.serviceEmailPreferences?.sendSkippedServiceEmails ?? false)
-        : form.getValues('sendSkippedServiceEmails');
+    const preservedSkipped = isFreePlan
+      ? company.preferences?.serviceEmailPreferences?.sendSkippedServiceEmails ?? false
+      : form.getValues('sendSkippedServiceEmails');
 
     const updateData = {
       serviceEmailPreferences: {
@@ -383,15 +415,11 @@ export default function Page({ company }: { company: Company }) {
     }
   }, [ccEmail, originalCcEmail, form]);
 
-  useEffect(() => {
-  }, [form.formState.isDirty, ccEmail, form]);
-
-
+  useEffect(() => {}, [form.formState.isDirty, ccEmail, form]);
 
   if (isEmailPending || isServicePrefsPending) {
     return <LoadingSpinner />;
   }
-
 
   return (
     <div className="w-full space-y-4 md:space-y-8">
@@ -401,7 +429,7 @@ export default function Page({ company }: { company: Company }) {
             value="email"
             className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
           >
-            Communication
+            {t('invoices.communication')}
           </TabsTrigger>
           <TabsTrigger
             value="invoice-settings"
@@ -425,7 +453,7 @@ export default function Page({ company }: { company: Company }) {
             value="service-types"
             className="flex-1 items-center justify-center rounded-md px-2 py-1.5 text-sm transition-all data-[state=active]:bg-white data-[state=active]:text-slate-950 data-[state=active]:shadow"
           >
-            Service Types
+            {t('serviceTypes.title')}
           </TabsTrigger>
         </TabsList>
 
@@ -491,50 +519,49 @@ export default function Page({ company }: { company: Company }) {
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent>
           <DialogHeader className="text-left">
-            <DialogTitle className="text-xl mb-4">
+            <DialogTitle className="mb-4 text-xl">
               {modalType === 'email'
-                ? 'Update Email Preferences'
+                ? t('prefsConfirm.emailTitle')
                 : modalType === 'filter'
-                ? 'Update Equipment Maintenance'
-                : 'Update General Preferences'
-              }
+                  ? t('prefsConfirm.filterTitle')
+                  : t('prefsConfirm.generalTitle')}
             </DialogTitle>
 
             <DialogDescription className="mt-4 text-left">
-              {modalType === 'email'
-                ? (
-                  <>
-                    This action will set the email notification preferences for all NEW CLIENTS created from now on under this company.
-                    <br /><br />
-                    Clients created before this change will need to be updated manually in their individual settings on the clients page or using the bulk actions page.
-                    <br /><br />
-                    <strong>Note:</strong> In order to send service emails, both the client preferences AND company preferences must be enabled.
-                  </>
-                )
-                : modalType === 'filter'
-                ? (
-                  <>
-                    This action will change the filter maintenance preferences for all NEW CLIENTS created from now on under this company. This includes cleaning intervals, replacement schedules, and photo requirements.
-                    <br /><br />
-                    Clients created before this change will need to be updated manually in their individual settings on the clients page or using the bulk actions page. The photo requirement to filter cleaning is the only preference that will be updated for all clients including the previous ones.
-                    <br /><br />
-                    <strong>Note:</strong> In order to send filter cleaning emails, both the client preferences AND company preferences must be enabled.
-                  </>
-                )
-                : (
-                  <>
-                    This action will update the general preferences for this company.
-                    <br /><br />
-                    Changes to general preferences will apply to all services and clients under this company.
-                  </>
-                )
-              }
+              {modalType === 'email' ? (
+                <>
+                  {t('prefsConfirm.emailBody1')}
+                  <br />
+                  <br />
+                  {t('prefsConfirm.emailBody2')}
+                  <br />
+                  <br />
+                  <strong>{t('actions.note')}</strong> {t('prefsConfirm.emailNote')}
+                </>
+              ) : modalType === 'filter' ? (
+                <>
+                  {t('prefsConfirm.filterBody1')}
+                  <br />
+                  <br />
+                  {t('prefsConfirm.filterBody2')}
+                  <br />
+                  <br />
+                  <strong>{t('actions.note')}</strong> {t('prefsConfirm.filterNote')}
+                </>
+              ) : (
+                <>
+                  {t('prefsConfirm.generalBody1')}
+                  <br />
+                  <br />
+                  {t('prefsConfirm.generalBody2')}
+                </>
+              )}
             </DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="mt-6">
             <Button variant="outline" onClick={() => setShowConfirmModal(false)}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button
               onClick={() => {
@@ -550,14 +577,11 @@ export default function Page({ company }: { company: Company }) {
                 setShowConfirmModal(false);
               }}
             >
-              Confirm
+              {t('actions.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
     </div>
   );
 }
-

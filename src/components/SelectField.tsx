@@ -3,6 +3,7 @@ import React, { forwardRef, useEffect } from 'react';
 import { ControllerRenderProps, FieldValues, UseFormReturn } from 'react-hook-form';
 
 import { withFormControl } from '@/hoc/withFormControl';
+import { translateOptionLabel } from '@/i18n/runtime';
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -47,7 +48,7 @@ const SelectField = forwardRef<HTMLDivElement, Props & SelectFieldProps>(
           <SelectGroup>
             {options.map((d) => (
               <SelectItem key={d.key} value={d.value} className={itemClassName}>
-                {d.name}
+                {translateOptionLabel(d)}
               </SelectItem>
             ))}
           </SelectGroup>

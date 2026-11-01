@@ -2,6 +2,8 @@ import { useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { clientAxios } from '@/lib/clientAxios';
 
+import { translateMessage } from '@/i18n/runtime';
+
 interface GenerateChemicalCostsReportParams {
   from: string; // ISO date string
   to: string; // ISO date string
@@ -15,7 +17,7 @@ export const useGenerateChemicalCostsReport = () => {
       const params = {
         from,
         to,
-        companyId,
+        companyId
       };
 
       const response = await clientAxios.post(
@@ -26,8 +28,8 @@ export const useGenerateChemicalCostsReport = () => {
           responseType: 'blob',
           headers: {
             Accept: 'application/pdf',
-            'Content-Type': 'application/json',
-          },
+            'Content-Type': 'application/json'
+          }
         }
       );
 
@@ -42,7 +44,8 @@ export const useGenerateChemicalCostsReport = () => {
       // Get filename from Content-Disposition header or create default
       const contentDisposition = response.headers['content-disposition'];
       const filename = contentDisposition
-        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') || `chemical-costs-report-${format(new Date(from), 'yyyy-MM-dd')}-to-${format(new Date(to), 'yyyy-MM-dd')}.pdf`
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') ||
+          `chemical-costs-report-${format(new Date(from), 'yyyy-MM-dd')}-to-${format(new Date(to), 'yyyy-MM-dd')}.pdf`
         : `chemical-costs-report-${format(new Date(from), 'yyyy-MM-dd')}-to-${format(new Date(to), 'yyyy-MM-dd')}.pdf`;
 
       link.download = filename;
@@ -59,9 +62,11 @@ export const useGenerateChemicalCostsReport = () => {
     },
     onError: (error: any) => {
       console.error('Error generating chemical costs report:', error);
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || 'Failed to generate report. Please try again.';
+      const errorMessage =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        translateMessage('toasts.failedToGenerateReportPleaseTryAgain', 'Failed to generate report. Please try again.');
       throw new Error(errorMessage);
     }
   });
 };
-

@@ -5,6 +5,8 @@ import { toast } from '@/components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 import { CreateReadingGroupRequest, ReadingGroupResponse } from '../../../ts/interfaces/ReadingGroups';
 
+import { translateMessage } from '@/i18n/runtime';
+
 type ErrorResponse = {
   message: string;
 };
@@ -21,17 +23,16 @@ export const useCreateReadingGroup = (companyId: string) => {
       queryClient.invalidateQueries({ queryKey: ['reading-groups', companyId] });
       queryClient.invalidateQueries({ queryKey: ['companies'] });
       toast({
-        title: 'Reading group created successfully',
+        title: translateMessage('toasts.readingGroupCreatedSuccessfully', 'Reading group created successfully'),
         variant: 'success'
       });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast({
-        title: 'Error creating reading group',
-        description: error.response?.data?.message || 'An error occurred',
+        title: translateMessage('toasts.errorCreatingReadingGroup', 'Error creating reading group'),
+        description: error.response?.data?.message || translateMessage('toasts.anErrorOccurred', 'An error occurred'),
         variant: 'error'
       });
     }
   });
 };
-

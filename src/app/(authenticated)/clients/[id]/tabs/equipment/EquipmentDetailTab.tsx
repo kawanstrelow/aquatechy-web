@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
@@ -8,6 +9,7 @@ import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Pencil } from 'lucide-react';
 
+import { translateMessage } from '@/i18n/runtime';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import InputField from '@/components/InputField';
@@ -23,10 +25,7 @@ const filterSchema = z.object({
   serialNumber: z.string().optional(),
   type: z.enum(['Sand', 'Cartridge', 'DE', 'Other']).optional().nullable(),
   condition: z.enum(['Excellent', 'Good', 'Fair', 'Poor', 'NeedsReplacement']).optional().nullable(),
-  recommendedCleaningIntervalDays: z.preprocess(
-    (val) => (val === '' ? undefined : Number(val)),
-    z.number().optional()
-  ),
+  recommendedCleaningIntervalDays: z.preprocess((val) => (val === '' ? undefined : Number(val)), z.number().optional()),
   warrantyExpirationDate: z.string().optional(),
   replacementDate: z.string().optional(),
   lastCleaningDate: z.string().optional()
@@ -52,25 +51,20 @@ function getFilterFormValues(filter: Filter | null | undefined): FilterFormValue
 }
 
 function formatCondition(condition?: EquipmentCondition) {
-  if (!condition) return 'Not specified';
-  if (condition === EquipmentCondition.NeedsReplacement) return 'Needs Replacement';
-  return condition;
+  if (!condition) return translateMessage('clients.shared.notSpecified', 'Not specified');
+  if (condition === EquipmentCondition.NeedsReplacement) {
+    return translateMessage('clients.equipment.needsReplacement', 'Needs Replacement');
+  }
+  const key = condition.charAt(0).toLowerCase() + condition.slice(1);
+  return translateMessage(`clients.equipment.${key}`, condition);
 }
 
-function DetailField({
-  label,
-  value,
-  onEdit
-}: {
-  label: string;
-  value: string;
-  onEdit: () => void;
-}) {
+function DetailField({ label, value, onEdit }: { label: string; value: string; onEdit: () => void }) {
   return (
     <button
       type="button"
       onClick={onEdit}
-      aria-label={`Edit ${label}`}
+      aria-label={translateMessage('clients.equipment.editField', 'Edit {label}').replace('{label}', label)}
       className="group relative w-full rounded-lg border border-gray-100 bg-gray-50/70 px-4 py-3 text-left transition-colors hover:border-sky-200 hover:bg-sky-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
     >
       <Pencil
@@ -91,6 +85,7 @@ interface EquipmentDetailTabProps {
 }
 
 export function EquipmentDetailTab({ filter, poolId, clientId, onViewPhoto }: EquipmentDetailTabProps) {
+  const t = useTranslations('clients');
   const [isEditing, setIsEditing] = useState(false);
   const [focusField, setFocusField] = useState<keyof FilterFormValues | null>(null);
   const { mutate: updateFilter, isPending } = useUpdateFilter();
@@ -161,45 +156,59 @@ export function EquipmentDetailTab({ filter, poolId, clientId, onViewPhoto }: Eq
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <InputField name="model" label="Model" placeholder="Enter model" />
-            <InputField name="serialNumber" label="Serial Number" placeholder="Enter serial number" />
+            <InputField name="model" label={t('equipment.model')} placeholder={t('equipment.enterModel')} />
+            <InputField
+              name="serialNumber"
+              label={t('equipment.serialNumber')}
+              placeholder={t('equipment.enterSerial')}
+            />
             <SelectField
               name="type"
-              label="Filter Type"
-              placeholder="Select filter type"
+              label={t('equipment.filterType')}
+              placeholder={t('equipment.selectFilterType')}
               options={[
-                { key: 'Sand', value: 'Sand', name: 'Sand' },
-                { key: 'Cartridge', value: 'Cartridge', name: 'Cartridge' },
-                { key: 'DE', value: 'DE', name: 'DE' },
-                { key: 'Other', value: 'Other', name: 'Other' }
+                { key: 'Sand', value: 'Sand', name: t('equipment.sand') },
+                { key: 'Cartridge', value: 'Cartridge', name: t('equipment.cartridge') },
+                { key: 'DE', value: 'DE', name: t('equipment.de') },
+                { key: 'Other', value: 'Other', name: t('equipment.other') }
               ]}
             />
             <SelectField
               name="condition"
-              label="Condition"
-              placeholder="Select condition"
+              label={t('equipment.condition')}
+              placeholder={t('equipment.selectCondition')}
               options={[
-                { key: 'Excellent', value: 'Excellent', name: 'Excellent' },
-                { key: 'Good', value: 'Good', name: 'Good' },
-                { key: 'Fair', value: 'Fair', name: 'Fair' },
-                { key: 'Poor', value: 'Poor', name: 'Poor' },
-                { key: 'NeedsReplacement', value: 'NeedsReplacement', name: 'Needs Replacement' }
+                { key: 'Excellent', value: 'Excellent', name: t('equipment.excellent') },
+                { key: 'Good', value: 'Good', name: t('equipment.good') },
+                { key: 'Fair', value: 'Fair', name: t('equipment.fair') },
+                { key: 'Poor', value: 'Poor', name: t('equipment.poor') },
+                { key: 'NeedsReplacement', value: 'NeedsReplacement', name: t('equipment.needsReplacement') }
               ]}
             />
             <InputField
               name="recommendedCleaningIntervalDays"
-              label="Cleaning Interval (Days)"
+              label={t('equipment.cleaningInterval')}
               type={FieldType.Number}
-              placeholder="Enter days"
+              placeholder={t('equipment.enterDays')}
             />
-            <InputField name="lastCleaningDate" label="Last Cleaning Date" type={FieldType.Date} placeholder="Select date" />
+            <InputField
+              name="lastCleaningDate"
+              label={t('equipment.lastCleaningDate')}
+              type={FieldType.Date}
+              placeholder={t('shared.selectDate')}
+            />
             <InputField
               name="warrantyExpirationDate"
-              label="Warranty Expiration"
+              label={t('equipment.warrantyExpiration')}
               type={FieldType.Date}
-              placeholder="Enter date"
+              placeholder={t('equipment.enterDate')}
             />
-            <InputField name="replacementDate" label="Replacement Date" type={FieldType.Date} placeholder="Enter date" />
+            <InputField
+              name="replacementDate"
+              label={t('equipment.replacementDate')}
+              type={FieldType.Date}
+              placeholder={t('equipment.enterDate')}
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button
@@ -214,7 +223,7 @@ export function EquipmentDetailTab({ filter, poolId, clientId, onViewPhoto }: Eq
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving...' : 'Save Changes'}
+              {isPending ? t('shared.saving') : t('shared.saveChanges')}
             </Button>
           </div>
         </form>
@@ -225,45 +234,71 @@ export function EquipmentDetailTab({ filter, poolId, clientId, onViewPhoto }: Eq
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <DetailField label="Model" value={filter?.model || 'Not specified'} onEdit={() => startEditing('model')} />
         <DetailField
-          label="Serial Number"
-          value={filter?.serialNumber || 'Not specified'}
+          label={t('equipment.model')}
+          value={filter?.model || t('shared.notSpecified')}
+          onEdit={() => startEditing('model')}
+        />
+        <DetailField
+          label={t('equipment.serialNumber')}
+          value={filter?.serialNumber || t('shared.notSpecified')}
           onEdit={() => startEditing('serialNumber')}
         />
-        <DetailField label="Type" value={filter?.type || 'Not specified'} onEdit={() => startEditing('type')} />
         <DetailField
-          label="Condition"
+          label={t('equipment.type')}
+          value={
+            filter?.type
+              ? translateMessage(
+                  (
+                    {
+                      Sand: 'clients.equipment.sand',
+                      Cartridge: 'clients.equipment.cartridge',
+                      DE: 'clients.equipment.de',
+                      Other: 'clients.equipment.other'
+                    } as Record<string, string>
+                  )[filter.type] ?? '',
+                  filter.type
+                )
+              : t('shared.notSpecified')
+          }
+          onEdit={() => startEditing('type')}
+        />
+        <DetailField
+          label={t('equipment.condition')}
           value={formatCondition(filter?.condition)}
           onEdit={() => startEditing('condition')}
         />
         <DetailField
-          label="Recommended Cleaning Interval"
+          label={t('equipment.recommendedInterval')}
           value={
             filter?.recommendedCleaningIntervalDays
-              ? `${filter.recommendedCleaningIntervalDays} days`
-              : 'Not specified'
+              ? t('equipment.daysCount', { count: filter.recommendedCleaningIntervalDays })
+              : t('shared.notSpecified')
           }
           onEdit={() => startEditing('recommendedCleaningIntervalDays')}
         />
         <DetailField
-          label="Last Cleaning Date"
+          label={t('equipment.lastCleaningDate')}
           value={
-            filter?.lastCleaningDate ? format(new Date(filter.lastCleaningDate), 'MM/dd/yyyy') : 'Not specified'
+            filter?.lastCleaningDate
+              ? format(new Date(filter.lastCleaningDate), 'MM/dd/yyyy')
+              : t('shared.notSpecified')
           }
           onEdit={() => startEditing('lastCleaningDate')}
         />
         <DetailField
-          label="Replacement Date"
-          value={filter?.replacementDate ? format(new Date(filter.replacementDate), 'MM/dd/yyyy') : 'Not recorded'}
+          label={t('equipment.replacementDate')}
+          value={
+            filter?.replacementDate ? format(new Date(filter.replacementDate), 'MM/dd/yyyy') : t('shared.notRecorded')
+          }
           onEdit={() => startEditing('replacementDate')}
         />
         <DetailField
-          label="Warranty Expires"
+          label={t('equipment.warrantyExpires')}
           value={
             filter?.warrantyExpirationDate
               ? format(new Date(filter.warrantyExpirationDate), 'MM/dd/yyyy')
-              : 'Not recorded'
+              : t('shared.notRecorded')
           }
           onEdit={() => startEditing('warrantyExpirationDate')}
         />
@@ -271,18 +306,20 @@ export function EquipmentDetailTab({ filter, poolId, clientId, onViewPhoto }: Eq
 
       {photos.length > 0 && (
         <div>
-          <h4 className="mb-2 text-sm font-medium text-gray-500">Equipment Photos</h4>
+          <h4 className="mb-2 text-sm font-medium text-gray-500">{t('equipment.photos')}</h4>
           <div className="flex flex-wrap gap-3">
             {photos.map((photo, index) => (
               <button
                 key={`${photo}-${index}`}
                 type="button"
-                onClick={() => onViewPhoto({ url: photo, alt: `Filter photo ${index + 1}`, index })}
+                onClick={() =>
+                  onViewPhoto({ url: photo, alt: t('equipment.filterPhoto', { index: index + 1 }), index })
+                }
                 className="overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600"
               >
                 <img
                   src={photo}
-                  alt={`Filter photo ${index + 1}`}
+                  alt={t('equipment.filterPhoto', { index: index + 1 })}
                   className="h-24 w-24 object-cover transition-opacity hover:opacity-80"
                 />
               </button>

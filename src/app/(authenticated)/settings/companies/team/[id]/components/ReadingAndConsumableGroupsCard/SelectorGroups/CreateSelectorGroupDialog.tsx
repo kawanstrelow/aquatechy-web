@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,7 +9,14 @@ import { useEffect, useState } from 'react';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,7 +33,7 @@ const SELECTOR_LIMITS = {
   groupDescription: { max: 500 },
   definitionQuestion: { min: 1, max: 200 },
   optionText: { min: 1, max: 50 },
-  optionValue: { min: 1, max: 50 },
+  optionValue: { min: 1, max: 50 }
 } as const;
 
 function generateSelectorOptionValueFromText(text: string): string {
@@ -40,36 +49,27 @@ function generateSelectorOptionValueFromText(text: string): string {
 const selectorGroupNameSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.groupName.min, 'Name is required')
-  .max(SELECTOR_LIMITS.groupName.max, `Name must be at most ${SELECTOR_LIMITS.groupName.max} characters`);
+  .min(SELECTOR_LIMITS.groupName.min, 'settings.errors.nameRequiredShort')
+  .max(SELECTOR_LIMITS.groupName.max, 'settings.errors.nameMax');
 
 const selectorDefinitionQuestionSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.definitionQuestion.min, 'Question is required')
-  .max(
-    SELECTOR_LIMITS.definitionQuestion.max,
-    `Question must be at most ${SELECTOR_LIMITS.definitionQuestion.max} characters`
-  );
+  .min(SELECTOR_LIMITS.definitionQuestion.min, 'settings.errors.questionRequired')
+  .max(SELECTOR_LIMITS.definitionQuestion.max, 'settings.errors.questionMax');
 
 const selectorOptionTextSchema = z
   .string()
   .trim()
-  .min(SELECTOR_LIMITS.optionText.min, 'Display text is required')
-  .max(SELECTOR_LIMITS.optionText.max, `Display text must be at most ${SELECTOR_LIMITS.optionText.max} characters`);
+  .min(SELECTOR_LIMITS.optionText.min, 'settings.errors.displayTextRequired')
+  .max(SELECTOR_LIMITS.optionText.max, 'settings.errors.displayTextMax');
 
-const nonNegativeOrderSchema = z.number().int().min(0, 'Order must be 0 or greater');
+const nonNegativeOrderSchema = z.number().int().min(0, 'settings.errors.orderMin');
 
 const createSelectorGroupSchema = z
   .object({
     name: selectorGroupNameSchema,
-    description: z
-      .string()
-      .trim()
-      .max(
-        SELECTOR_LIMITS.groupDescription.max,
-        `Description must be at most ${SELECTOR_LIMITS.groupDescription.max} characters`
-      ),
+    description: z.string().trim().max(SELECTOR_LIMITS.groupDescription.max, 'settings.errors.descriptionMaxDynamic'),
     isDefault: z.boolean().optional(),
     selectorDefinitions: z
       .array(
@@ -81,13 +81,13 @@ const createSelectorGroupSchema = z
             .array(
               z.object({
                 text: selectorOptionTextSchema,
-                order: nonNegativeOrderSchema,
+                order: nonNegativeOrderSchema
               })
             )
-            .optional(),
+            .optional()
         })
       )
-      .optional(),
+      .optional()
   })
   .superRefine((data, ctx) => {
     data.selectorDefinitions?.forEach((def, di) => {
@@ -99,8 +99,8 @@ const createSelectorGroupSchema = z
             message:
               value.length > SELECTOR_LIMITS.optionValue.max
                 ? `Value is too long (max ${SELECTOR_LIMITS.optionValue.max} characters). Shorten this option's text.`
-                : 'Display text must produce a non-empty value (use letters or numbers).',
-            path: ['selectorDefinitions', di, 'options', oi, 'text'],
+                : 'settings.errors.displayTextProduce',
+            path: ['selectorDefinitions', di, 'options', oi, 'text']
           });
         }
       });
@@ -120,8 +120,10 @@ export function CreateSelectorGroupDialog({
   open,
   onOpenChange,
   onSubmit,
-  isLoading = false,
+  isLoading = false
 }: CreateSelectorGroupDialogProps) {
+  const t = useTranslations('settings');
+
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const form = useForm<CreateSelectorGroupFormData>({
@@ -130,13 +132,17 @@ export function CreateSelectorGroupDialog({
       name: '',
       description: '',
       isDefault: false,
-      selectorDefinitions: [],
-    },
+      selectorDefinitions: []
+    }
   });
 
-  const { fields: definitionFields, append: appendDefinition, remove: removeDefinition } = useFieldArray({
+  const {
+    fields: definitionFields,
+    append: appendDefinition,
+    remove: removeDefinition
+  } = useFieldArray({
     control: form.control,
-    name: 'selectorDefinitions',
+    name: 'selectorDefinitions'
   });
 
   // Reset form when dialog opens
@@ -146,7 +152,7 @@ export function CreateSelectorGroupDialog({
         name: '',
         description: '',
         isDefault: false,
-        selectorDefinitions: [],
+        selectorDefinitions: []
       });
       setShowAdvanced(false);
     }
@@ -157,7 +163,7 @@ export function CreateSelectorGroupDialog({
       name: data.name.trim(),
       description: data.description?.trim() ? data.description.trim() : undefined,
       isDefault: data.isDefault,
-      order: 0, // Will be set by backend
+      order: 0 // Will be set by backend
     };
 
     // Process selector definitions if provided
@@ -166,7 +172,7 @@ export function CreateSelectorGroupDialog({
         const definition: CreateSelectorGroupDefinitionRequest = {
           question: def.question.trim(),
           isRequired: def.isRequired || false,
-          order: defIndex,
+          order: defIndex
         };
 
         // Process options if provided
@@ -174,7 +180,7 @@ export function CreateSelectorGroupDialog({
           definition.options = def.options.map((option, optionIndex) => ({
             text: option.text.trim(),
             value: generateSelectorOptionValueFromText(option.text),
-            order: optionIndex,
+            order: optionIndex
           }));
         }
 
@@ -187,12 +193,12 @@ export function CreateSelectorGroupDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Create Selector Group</DialogTitle>
+          <DialogTitle>{t('selectors.createGroup')}</DialogTitle>
           <DialogDescription>
-            Create a new selector group to organize questions for your services.
-            You can optionally add questions and options now or add them later.
+            Create a new selector group to organize questions for your services. You can optionally add questions and
+            options now or add them later.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -204,10 +210,10 @@ export function CreateSelectorGroupDialog({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name *</FormLabel>
+                    <FormLabel>{t('fields.nameRequired')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g., Basic Questions, Equipment Status"
+                        placeholder={t('selectors.groupPlaceholder')}
                         disabled={isLoading}
                         maxLength={SELECTOR_LIMITS.groupName.max}
                         {...field}
@@ -222,10 +228,10 @@ export function CreateSelectorGroupDialog({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t('fields.description')}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Optional description for this selector group"
+                        placeholder={t('selectors.groupDescriptionPlaceholder')}
                         className="resize-none"
                         disabled={isLoading}
                         maxLength={SELECTOR_LIMITS.groupDescription.max}
@@ -242,7 +248,7 @@ export function CreateSelectorGroupDialog({
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
-                      <FormLabel>Default Group</FormLabel>
+                      <FormLabel>{t('selectors.defaultGroup')}</FormLabel>
                       <div className="text-sm text-muted-foreground">
                         Make this the default selector group for new services
                       </div>
@@ -263,12 +269,10 @@ export function CreateSelectorGroupDialog({
 
             {/* Advanced Options */}
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 className="text-lg font-medium">Questions & Options</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Add questions and multiple choice options to this group
-                  </p>
+                  <h3 className="text-lg font-medium">{t('selectors.questionsAndOptions')}</h3>
+                  <p className="text-muted-foreground text-sm">{t('selectors.addQuestionsHint')}</p>
                 </div>
 
                 <Button
@@ -277,12 +281,11 @@ export function CreateSelectorGroupDialog({
                   size="sm"
                   onClick={() => setShowAdvanced(!showAdvanced)}
                   disabled={isLoading}
-                  className="w-full sm:w-auto mt-2 sm:mt-0"
+                  className="mt-2 w-full sm:mt-0 sm:w-auto"
                 >
-                  {showAdvanced ? 'Hide' : 'Add Questions'}
+                  {showAdvanced ? t('actions.hide') : t('selectors.addQuestions')}
                 </Button>
               </div>
-
 
               {showAdvanced && (
                 <div className="space-y-4">
@@ -291,16 +294,16 @@ export function CreateSelectorGroupDialog({
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-base">Question {index + 1}</CardTitle>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeDefinition(index)}
-                              disabled={isLoading}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeDefinition(index)}
+                            disabled={isLoading}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -309,10 +312,10 @@ export function CreateSelectorGroupDialog({
                           name={`selectorDefinitions.${index}.question`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Question *</FormLabel>
+                              <FormLabel>{t('fields.questionRequired')}</FormLabel>
                               <FormControl>
                                 <Input
-                                  placeholder="e.g., Was the gate closed?"
+                                  placeholder={t('selectors.questionPlaceholder')}
                                   disabled={isLoading}
                                   maxLength={SELECTOR_LIMITS.definitionQuestion.max}
                                   {...field}
@@ -328,17 +331,11 @@ export function CreateSelectorGroupDialog({
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                               <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                  disabled={isLoading}
-                                />
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} disabled={isLoading} />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel>Required question</FormLabel>
-                                <p className="text-sm text-muted-foreground">
-                                  This question must be answered
-                                </p>
+                                <FormLabel>{t('selectors.requiredQuestionLower')}</FormLabel>
+                                <p className="text-muted-foreground text-sm">{t('selectors.questionRequiredHint')}</p>
                               </div>
                             </FormItem>
                           )}
@@ -347,7 +344,7 @@ export function CreateSelectorGroupDialog({
                         {/* Options for this question */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium">Options</label>
+                            <label className="text-sm font-medium">{t('fields.options')}</label>
                             <Button
                               type="button"
                               variant="outline"
@@ -361,14 +358,14 @@ export function CreateSelectorGroupDialog({
                               }}
                               disabled={isLoading}
                             >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Add Option
+                              <Plus className="mr-1 h-4 w-4" />
+                              {t('selectors.addOption')}
                             </Button>
                           </div>
 
                           {form.watch(`selectorDefinitions.${index}.options`)?.map((option, optionIndex) => (
                             <div key={optionIndex} className="flex items-center space-x-2">
-                              <GripVertical className="h-4 w-4 text-muted-foreground" />
+                              <GripVertical className="text-muted-foreground h-4 w-4" />
                               <FormField
                                 control={form.control}
                                 name={`selectorDefinitions.${index}.options.${optionIndex}.text`}
@@ -376,7 +373,7 @@ export function CreateSelectorGroupDialog({
                                   <FormItem className="flex-1">
                                     <FormControl>
                                       <Input
-                                        placeholder="e.g., Yes, No, Excellent, Good"
+                                        placeholder={t('selectors.optionPlaceholder')}
                                         disabled={isLoading}
                                         maxLength={SELECTOR_LIMITS.optionText.max}
                                         {...field}
@@ -410,28 +407,30 @@ export function CreateSelectorGroupDialog({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => appendDefinition({
-                      question: '',
-                      isRequired: false,
-                      order: definitionFields.length,
-                      options: []
-                    })}
+                    onClick={() =>
+                      appendDefinition({
+                        question: '',
+                        isRequired: false,
+                        order: definitionFields.length,
+                        options: []
+                      })
+                    }
                     disabled={isLoading}
                     className="w-full"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Question
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('selectors.addQuestion')}
                   </Button>
                 </div>
               )}
             </div>
 
-            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                Cancel
+                {t('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Selector Group'}
+                {isLoading ? t('actions.creating') : t('selectors.createGroup')}
               </Button>
             </DialogFooter>
           </form>

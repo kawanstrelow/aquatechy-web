@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 
+import { translateMessage } from '@/i18n/runtime';
 import { Client } from '@/ts/interfaces/Client';
 
 import NamePhoto from './CellNamePhoto';
@@ -11,7 +12,7 @@ import { ActionButtons } from './CallActionButtons';
 export const columns: ColumnDef<Client>[] = [
   {
     accessorKey: 'firstName',
-    header: 'Name',
+    header: () => translateMessage('clients.columns.name', 'Name'),
     cell: (props) => <NamePhoto {...props} />,
     enableGlobalFilter: true
   },
@@ -35,17 +36,18 @@ export const columns: ColumnDef<Client>[] = [
   },
   {
     accessorKey: 'phone',
-    header: 'Phone',
+    header: () => translateMessage('clients.columns.phone', 'Phone'),
     cell: (props) => <Phones {...props} />,
     enableGlobalFilter: true
   },
   {
     accessorKey: 'city',
-    header: 'Address',
+    header: () => translateMessage('clients.columns.address', 'Address'),
     cell: (props) => {
       return (
         <div className="">
-          {props.row.original.city}, {props.row.original.address} {props.row.original.addressLine2}, {props.row.original.state}, {props.row.original.zip}.
+          {props.row.original.city}, {props.row.original.address} {props.row.original.addressLine2},{' '}
+          {props.row.original.state}, {props.row.original.zip}.
         </div>
       );
     },

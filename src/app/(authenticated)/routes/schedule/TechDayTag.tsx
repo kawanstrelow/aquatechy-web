@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { cn } from '@/lib/utils';
 
 const TECH_TAG_COLORS = [
@@ -29,11 +31,13 @@ type Props = {
 };
 
 export function TechDayTag({ techId, name, count, onClick }: Props) {
+  const t = useTranslations('routes');
+
   return (
     <button
       type="button"
       onClick={onClick}
-      title={`Open ${name}'s route`}
+      title={t('openTechRoute', { name })}
       className={cn(
         'flex w-full flex-col items-start rounded-md border px-1 py-0.5 text-left transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-1 sm:px-1.5',
         getTechTagColor(techId)

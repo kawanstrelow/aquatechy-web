@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 
@@ -19,6 +20,7 @@ interface ProductActionsProps {
 }
 
 export function ProductActions({ product, onEdit, canEdit = true }: ProductActionsProps) {
+  const common = useTranslations('common');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleDropdownClick = (e: React.MouseEvent) => {
@@ -45,7 +47,7 @@ export function ProductActions({ product, onEdit, canEdit = true }: ProductActio
             }}
             className="cursor-pointer"
           >
-            Edit
+            {common('edit')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

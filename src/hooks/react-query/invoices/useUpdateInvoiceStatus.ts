@@ -6,6 +6,8 @@ import { UpdateInvoiceStatusRequest, UpdateInvoiceStatusResponse } from '@/ts/in
 
 import { useToast } from '@/components/ui/use-toast';
 
+import { translateMessage } from '@/i18n/runtime';
+
 export const useUpdateInvoiceStatus = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -25,14 +27,20 @@ export const useUpdateInvoiceStatus = () => {
     onSuccess: (response, variables) => {
       // Invalidate invoices list queries
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      
+
       // Invalidate the specific invoice query to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['invoice', variables.invoiceId] });
 
-      const statusLabel = variables.status.charAt(0).toUpperCase() + variables.status.slice(1);
+      const statusLabel = translateMessage(
+        `toasts.invoiceStatus.${variables.status}`,
+        variables.status.charAt(0).toUpperCase() + variables.status.slice(1)
+      );
       toast({
         duration: 2000,
-        title: `Invoice status updated to ${statusLabel}`,
+        title: translateMessage('toasts.invoiceStatusUpdatedToStatus', 'Invoice status updated to {status}').replace(
+          '{status}',
+          statusLabel
+        ),
         variant: 'success'
       });
     },
@@ -44,12 +52,12 @@ export const useUpdateInvoiceStatus = () => {
       const errorMessage = error.response?.data?.message;
       const message = Array.isArray(errorMessage)
         ? errorMessage.join(', ')
-        : errorMessage || 'Failed to update invoice status';
+        : errorMessage || translateMessage('toasts.failedToUpdateInvoiceStatus', 'Failed to update invoice status');
 
       toast({
         duration: 2000,
         variant: 'error',
-        title: 'Error updating invoice status',
+        title: translateMessage('toasts.errorUpdatingInvoiceStatus', 'Error updating invoice status'),
         description: message
       });
     }
@@ -57,4 +65,3 @@ export const useUpdateInvoiceStatus = () => {
 
   return { mutate, mutateAsync, isPending, isSuccess };
 };
-

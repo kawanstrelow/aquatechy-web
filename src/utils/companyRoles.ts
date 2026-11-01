@@ -1,3 +1,5 @@
+import { translateMessage } from '@/i18n/runtime';
+
 export type CompanyRole = 'Owner' | 'Admin' | 'Office' | 'Technician' | 'Cleaner';
 export type AssignableMemberRole = Exclude<CompanyRole, 'Owner'>;
 
@@ -28,10 +30,27 @@ export function toAssignableRoleEnum(actorRole?: string | null): [AssignableMemb
 }
 
 export const MEMBER_ROLE_DESCRIPTIONS: Record<AssignableMemberRole, string> = {
-  Admin: 'Same access as the owner, except they cannot delete the company.',
-  Office: 'Can see all clients, routes, invoices, and estimates, add clients, and move routes.',
-  Technician: 'Sees only their own clients and routes. Can clean pools and do repairs.',
-  Cleaner: 'Sees only their own clients and routes. Cleans pools.'
+  get Admin() {
+    return translateMessage(
+      'shell.roleAdminDescription',
+      'Same access as the owner, except they cannot delete the company.'
+    );
+  },
+  get Office() {
+    return translateMessage(
+      'shell.roleOfficeDescription',
+      'Can see all clients, routes, invoices, and estimates, add clients, and move routes.'
+    );
+  },
+  get Technician() {
+    return translateMessage(
+      'shell.roleTechnicianDescription',
+      'Sees only their own clients and routes. Can clean pools and do repairs.'
+    );
+  },
+  get Cleaner() {
+    return translateMessage('shell.roleCleanerDescription', 'Sees only their own clients and routes. Cleans pools.');
+  }
 };
 
 export function getMemberRoleSelectOptions(actorRole?: string | null) {
