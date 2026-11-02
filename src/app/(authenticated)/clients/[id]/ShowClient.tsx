@@ -8,7 +8,8 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useSendClientWelcomeEmail } from '@/hooks/react-query/clients/useSendClientWelcomeEmail';
 import { useUpdateClient } from '@/hooks/react-query/clients/updateClient';
 import { Client } from '@/ts/interfaces/Client';
 import { calculateTotalAssignmentsOfAllPools, calculateTotalMonthlyOfAllPools } from '@/utils';
@@ -38,6 +39,7 @@ export default function ShowClient({ client }: Props) {
   const t = useTranslations('clients');
   const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [welcomeEmailOpen, setWelcomeEmailOpen] = useState(false);
   const { mutate: updateClient, isPending } = useUpdateClient<{ isActive: boolean }>();
   const { mutate: deleteClient, isPending: isDeleting } = useDeleteClient();
   const router = useRouter();
@@ -46,6 +48,12 @@ export default function ShowClient({ client }: Props) {
   const canViewBilling = membership?.role === 'Owner' || membership?.role === 'Admin';
   const canViewPayments = membership?.role === 'Owner' || membership?.role === 'Admin' || membership?.role === 'Office';
   const canViewMessages = isManagementRole(membership?.role);
+  const canSendWelcomeEmail = canViewMessages;
+  const hasClientEmail = Boolean(client.email?.trim());
+  const { mutate: sendWelcomeEmail, isPending: isSendingWelcomeEmail } = useSendClientWelcomeEmail(
+    client.id,
+    client.companyOwnerId
+  );
 
   const [tab, setTab] = useState<ClientTab>('client_info');
   const [failedCoverUrl, setFailedCoverUrl] = useState<string | null>(null);
@@ -98,6 +106,12 @@ export default function ShowClient({ client }: Props) {
 
   const handleAddPool = () => {
     router.push(`/clients/add-pool?clientId=${client.id}`);
+  };
+
+  const handleSendWelcomeEmail = () => {
+    sendWelcomeEmail(undefined, {
+      onSuccess: () => setWelcomeEmailOpen(false)
+    });
   };
 
   return (
@@ -201,6 +215,24 @@ export default function ShowClient({ client }: Props) {
                     {t('fields.emailHyphen')}
                   </Button>
                 </a>
+                {canSendWelcomeEmail && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full whitespace-normal"
+                      disabled={!hasClientEmail || isSendingWelcomeEmail}
+                      onClick={() => setWelcomeEmailOpen(true)}
+                    >
+                      {t('profile.sendWelcomeEmail')}
+                    </Button>
+                    {!hasClientEmail && (
+                      <p className="whitespace-normal text-center text-xs font-normal text-slate-500">
+                        {t('profile.welcomeEmailMissing')}
+                      </p>
+                    )}
+                  </>
+                )}
                 <Button onClick={handleAddPool} className="w-full" variant={'default'} disabled={shouldDisableNewPools}>
                   {t('profile.addPool')}
                 </Button>
@@ -372,6 +404,30 @@ export default function ShowClient({ client }: Props) {
           </div>
         </div>
       </div>
+
+      <Dialog open={welcomeEmailOpen} onOpenChange={(open) => !isSendingWelcomeEmail && setWelcomeEmailOpen(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="mb-2">{t('shared.areYouSure')}</DialogTitle>
+            <DialogDescription className="text-start">
+              {t('profile.welcomeEmailConfirm', { name: client.fullName, email: client.email })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-around">
+            <Button type="button" onClick={handleSendWelcomeEmail} disabled={isSendingWelcomeEmail}>
+              {isSendingWelcomeEmail ? t('shared.sending') : t('shared.send')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setWelcomeEmailOpen(false)}
+              disabled={isSendingWelcomeEmail}
+            >
+              {t('shared.cancel')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Deactivate Client Modal */}
       <Dialog open={deactivateModalOpen} onOpenChange={setDeactivateModalOpen}>
