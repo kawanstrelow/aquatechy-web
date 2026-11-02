@@ -135,7 +135,7 @@ export default function Page() {
   if (requestsQuery.isLoading) return <LoadingSpinner />;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" data-tour="requests">
       <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
         <Form {...filtersForm}>
           <form className="flex w-full flex-col" onSubmit={filtersForm.handleSubmit(onSubmit)}>

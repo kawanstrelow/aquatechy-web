@@ -210,7 +210,7 @@ function RouteFinderContent() {
   if (!isLoaded) return <LoadingSpinner />;
 
   return (
-    <div className="flex h-full flex-col gap-4 p-4">
+    <div className="flex h-full flex-col gap-4 p-4" data-tour="route-finder">
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="w-full lg:w-1/3">
           <div className="mb-4 space-y-4">

@@ -196,7 +196,7 @@ function AddMemberContent({ id, myRole, company }: { id: string; myRole: string;
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <div className="rounded-xl border border-line bg-surface px-6 py-8 shadow-lift sm:px-8">
+      <div className="rounded-xl border border-line bg-surface px-6 py-8 shadow-lift sm:px-8" data-tour="add-member">
         <h1 className="text-2xl font-semibold tracking-tight text-ink">{t('team.addMember')}</h1>
         {companyName ? <p className="mt-1 text-sm text-ink-muted">{companyName}</p> : null}
 

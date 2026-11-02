@@ -1,6 +1,9 @@
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
+import { isProductTourAudience } from '@/product-tour/steps';
+import { replayProductTour } from '@/product-tour/storage';
 import { useUserStore } from '@/store/user';
 import { getInitials } from '@/utils/others';
 
@@ -21,7 +24,16 @@ export function AccountDropdownMenu({ handleLogout }: Props) {
   const { user } = useUserStore();
   const router = useRouter();
   const t = useTranslations('common');
+  const tour = useTranslations('productTour');
+  const { data: companies = [] } = useGetCompanies();
   const isLoaded = Boolean(user.firstName && user.lastName);
+  const canReplayTour = isProductTourAudience(companies);
+
+  const handleReplayTour = () => {
+    if (!user.id) return;
+    replayProductTour(user.id);
+    router.push('/dashboard');
+  };
 
   return (
     <DropdownMenu>
@@ -37,6 +49,7 @@ export function AccountDropdownMenu({ handleLogout }: Props) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuItem onClick={() => router.push('/quickstart')}>{t('quickStart')}</DropdownMenuItem>
+        {canReplayTour ? <DropdownMenuItem onClick={handleReplayTour}>{tour('showMeAround')}</DropdownMenuItem> : null}
         <DropdownMenuItem onSelect={() => router.push('/settings/profile')}>{t('profile')}</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

@@ -366,7 +366,7 @@ export default function InvoicesPage() {
         {/* Action Buttons and Date Filters */}
         <form className="flex w-full flex-col gap-2 rounded-xl border border-line bg-surface px-5 py-4 shadow-lift sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button type="button" onClick={handleCreateInvoice}>
+            <Button type="button" onClick={handleCreateInvoice} data-tour="create-invoice">
               <PlusIcon className="mr-2" />
               {t('list.createInvoice')}
             </Button>
