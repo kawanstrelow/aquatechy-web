@@ -33,6 +33,7 @@ import { ServiceTypeEmailPreferences } from '@/ts/interfaces/ServiceTypeEmailPre
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 
 import { CompanySmsSettingsCard } from '../CompanySmsSettingsCard/CompanySmsSettingsCard';
+import { WelcomeEmailPreferencesCard } from '../WelcomeEmailPreferencesCard/WelcomeEmailPreferencesCard';
 
 const EMAIL_CONTENT_VARIABLES = [
   { variable: '%client.firstName%', replacedWith: 'emailPrefs.clientFirstName' },
@@ -346,6 +347,7 @@ function EmailPreferencesContent({
           <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
           <span className="ml-2 text-sm">{t('emailPrefs.loadingServiceTypes')}</span>
         </div>
+        <WelcomeEmailPreferencesCard company={company} />
       </CardContent>
     );
   }
@@ -357,6 +359,7 @@ function EmailPreferencesContent({
           <Mail className="mx-auto mb-4 h-12 w-12 text-gray-300" />
           <p>{t('emailPrefs.noServiceTypes')}</p>
         </div>
+        <WelcomeEmailPreferencesCard company={company} />
       </CardContent>
     );
   }
@@ -611,6 +614,8 @@ function EmailPreferencesContent({
       </Dialog>
 
       <CompanySmsSettingsCard companyId={company.id} />
+
+      <WelcomeEmailPreferencesCard company={company} />
 
       <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
         <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>

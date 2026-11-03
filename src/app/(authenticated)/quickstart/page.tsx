@@ -6,8 +6,11 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { VideoModal } from '@/components/VideoModal';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
+import { isProductTourAudience } from '@/product-tour/steps';
+import { replayProductTour } from '@/product-tour/storage';
 import { useUserStore } from '@/store/user';
 import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import { canManageCompanyTeam } from '@/utils/companyRoles';
@@ -53,6 +56,7 @@ function canAccessInvoiceSettings(role: string | undefined): boolean {
 
 export default function QuickStartPage() {
   const t = useTranslations('dashboard');
+  const tour = useTranslations('productTour');
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
   const router = useRouter();
   const user = useUserStore((state) => state.user);
@@ -141,6 +145,14 @@ export default function QuickStartPage() {
     });
   };
 
+  const canReplayTour = isProductTourAudience(companies);
+
+  const handleReplayTour = () => {
+    if (!user.id) return;
+    replayProductTour(user.id);
+    router.push('/dashboard');
+  };
+
   const handleRedirect = (url: string) => {
     if (url.startsWith('http')) {
       window.open(url, '_blank', 'noopener,noreferrer');
@@ -152,6 +164,17 @@ export default function QuickStartPage() {
   return (
     <>
       <div className="w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lift">
+        {canReplayTour ? (
+          <div className="flex flex-col gap-3 border-b border-line px-5 py-5 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+            <div>
+              <h1 className="text-lg font-semibold text-ink">{tour('replayTitle')}</h1>
+              <p className="mt-1 text-sm text-ink-muted">{tour('replayHint')}</p>
+            </div>
+            <Button type="button" onClick={handleReplayTour}>
+              {tour('showMeAround')}
+            </Button>
+          </div>
+        ) : null}
         <div className="space-y-3 px-5 py-5 lg:px-8 lg:py-6">
           {steps.map((step) => {
             const completed = completedIds.includes(step.id);

@@ -488,6 +488,22 @@
       "unresponsiveDescription": "Could not reach the client to get access or confirmation.",
       "debris": "Excess Debris / Post-Storm",
       "debrisDescription": "The volume of leaves or storm debris was too high to complete the service."
+    },
+    "welcome": {
+      "title": "Welcome email",
+      "description": "Subject and body used when you send a welcome email from a client page.",
+      "subject": "Email subject",
+      "body": "Email body",
+      "subjectPlaceholder": "Welcome to %company_name%",
+      "bodyPlaceholder": "Write the welcome email",
+      "save": "Save welcome email",
+      "saved": "Welcome email saved",
+      "saveError": "Could not save the welcome email",
+      "required": "Enter a subject and a body. Blank text is not allowed.",
+      "viewOnlyTitle": "View only",
+      "viewOnly": "Only owners and admins can update the welcome email for this company.",
+      "variablesTitle": "Available variables",
+      "variablesHelp": "You can use these variables in the subject and body. They are replaced when the email is sent."
     }
   },
   "errors": {

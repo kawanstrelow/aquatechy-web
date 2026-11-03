@@ -488,6 +488,22 @@
       "unresponsiveDescription": "No se pudo contactar al cliente para obtener acceso o confirmación.",
       "debris": "Exceso de residuos / postormenta",
       "debrisDescription": "El volumen de hojas o residuos de la tormenta era demasiado alto para completar el servicio."
+    },
+    "welcome": {
+      "title": "Correo de bienvenida",
+      "description": "Asunto y cuerpo que se usan al enviar un correo de bienvenida desde la página del cliente.",
+      "subject": "Asunto del correo",
+      "body": "Cuerpo del correo",
+      "subjectPlaceholder": "Bienvenido a %company_name%",
+      "bodyPlaceholder": "Escribe el correo de bienvenida",
+      "save": "Guardar correo de bienvenida",
+      "saved": "Correo de bienvenida guardado",
+      "saveError": "No se pudo guardar el correo de bienvenida",
+      "required": "Escribe un asunto y un cuerpo. El texto en blanco no está permitido.",
+      "viewOnlyTitle": "Solo lectura",
+      "viewOnly": "Solo los propietarios y administradores pueden actualizar el correo de bienvenida de esta empresa.",
+      "variablesTitle": "Variables disponibles",
+      "variablesHelp": "Puedes usar estas variables en el asunto y en el cuerpo. Se reemplazan cuando se envía el correo."
     }
   },
   "errors": {

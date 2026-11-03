@@ -115,7 +115,12 @@ export function DataTableRecurringInvoices<TValue>({
         <div className="flex w-full flex-col gap-4 border-b border-line bg-surface px-5 py-4 md:flex-row md:items-center">
           {/* Create Button - First */}
           {onCreateTemplate && (
-            <Button type="button" onClick={onCreateTemplate} className="w-full py-4 md:max-w-96">
+            <Button
+              type="button"
+              onClick={onCreateTemplate}
+              className="w-full py-4 md:max-w-96"
+              data-tour="create-recurring-invoice"
+            >
               <PlusIcon className="mr-2" />
               {t('list.createRecurringTemplate')}
             </Button>

@@ -70,6 +70,11 @@ export interface EstimateSettingsPreferences {
   communication?: EstimateCommunication | null;
 }
 
+export interface WelcomeEmailPreferences {
+  emailSubject: string;
+  emailBody: string;
+}
+
 export type CompanyMember = {
   status: Status;
   id: string;
@@ -130,6 +135,7 @@ export interface Company {
     };
     invoiceSettingsPreferences?: InvoiceSettingsPreferences | null;
     estimateSettingsPreferences?: EstimateSettingsPreferences | null;
+    welcomeEmailPreferences?: WelcomeEmailPreferences | null;
     paymentsPreferences?: {
       allowCardOnFile?: boolean;
       applicationFeeBps?: number;

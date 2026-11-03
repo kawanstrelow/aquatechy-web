@@ -9,6 +9,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { I18nProvider } from 'react-aria';
 
+import { ProductTour } from '@/components/product-tour/ProductTour';
 import { VideoModal } from '@/components/VideoModal';
 import useGetUser, { ensureClientUserLoad, hydrateUserBootstrap } from '@/hooks/react-query/user/getUser';
 import type { UserQueryData } from '@/hooks/react-query/user/getUser';
@@ -108,6 +109,7 @@ function ShellFrame({ children, initialData }: { children: React.ReactNode; init
   const pathname = usePathname();
   const t = useTranslations('common');
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
+  const [tourEnabled, setTourEnabled] = useState(false);
   const { data } = useGetUser();
   const user = data?.user ?? initialData?.user;
   const userId = user?.id;
@@ -132,7 +134,10 @@ function ShellFrame({ children, initialData }: { children: React.ReactNode; init
 
   useLayoutEffect(() => {
     if (isUserLoading || !userId) return;
-    if (localStorage.getItem(`welcome-video-${userId}`)) return;
+    if (localStorage.getItem(`welcome-video-${userId}`)) {
+      setTourEnabled(true);
+      return;
+    }
     setShowWelcomeVideo(true);
   }, [isUserLoading, userId]);
 
@@ -141,10 +146,12 @@ function ShellFrame({ children, initialData }: { children: React.ReactNode; init
       localStorage.setItem(`welcome-video-${userId}`, 'true');
     }
     setShowWelcomeVideo(false);
+    setTourEnabled(true);
   };
 
   return (
     <UserBootstrapProvider initialData={initialData}>
+      <ProductTour enabled={tourEnabled && !showWelcomeVideo && pathname !== '/onboarding'} userId={userId} />
       {!isUserLoading && showWelcomeVideo && (
         <VideoModal
           isOpen={showWelcomeVideo}

@@ -195,7 +195,7 @@ export default function Page() {
 
   return (
     <FormProvider {...form}>
-      <div className="flex h-full w-full flex-col">
+      <div className="flex h-full w-full flex-col" data-tour="schedule">
         {/* List/calendar switch — hidden while schedule is calendar-only. Restore this block to bring list view back. */}
         {false && (
           <Tabs value={view} onValueChange={handleViewChange} className="mb-2">

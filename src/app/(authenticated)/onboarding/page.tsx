@@ -43,6 +43,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { CompanyPreferencesOnCreate } from '@/ts/interfaces/Company';
+import { markProductTourActive } from '@/product-tour/storage';
 
 // Step 1: Personal Data Schema
 const personalDataSchema = z.object({
@@ -257,7 +258,12 @@ export default function OnboardingPage() {
   const { data: members } = useGetMembersOfAllCompaniesByUserId(user.id);
   const { data: companies, isLoading: isCompaniesLoading, isSuccess: isCompaniesSuccess } = useGetCompanies();
   const { mutateAsync: createClientWithAssignments, isPending: isCreatingClient } =
-    useCreateClientWithMultipleAssignments({ redirectTo: '/quickstart' });
+    useCreateClientWithMultipleAssignments({
+      redirectTo: '/dashboard',
+      onSuccess: () => {
+        if (user.id) markProductTourActive(user.id);
+      }
+    });
 
   const clientForm = useForm<PoolAndClientSchema>({
     resolver: zodResolver(poolAndClientSchema),

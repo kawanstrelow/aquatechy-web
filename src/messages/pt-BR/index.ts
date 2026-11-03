@@ -16,8 +16,30 @@ import requests from './requests.json';
 import chat from './chat.json';
 import account from './account.json';
 import onboarding from './onboarding.json';
+import productTour from './productTour.json';
 import toasts from './toasts.json';
 
-const messages = { common, nav, validation, options, shell, dashboard, clients, routes, services, workOrders, invoices, reports, settings, shopping, requests, chat, account, onboarding, toasts };
+const messages = {
+  common,
+  nav,
+  validation,
+  options,
+  shell,
+  dashboard,
+  clients,
+  routes,
+  services,
+  workOrders,
+  invoices,
+  reports,
+  settings,
+  shopping,
+  requests,
+  chat,
+  account,
+  onboarding,
+  productTour,
+  toasts
+};
 
 export default messages;

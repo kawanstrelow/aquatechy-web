@@ -488,6 +488,22 @@
       "unresponsiveDescription": "Não foi possível falar com o cliente para obter acesso ou confirmação.",
       "debris": "Excesso de detritos / pós-tempestade",
       "debrisDescription": "O volume de folhas ou detritos da tempestade era grande demais para concluir o serviço."
+    },
+    "welcome": {
+      "title": "E-mail de boas-vindas",
+      "description": "Assunto e corpo usados ao enviar um e-mail de boas-vindas na página do cliente.",
+      "subject": "Assunto do e-mail",
+      "body": "Corpo do e-mail",
+      "subjectPlaceholder": "Bem-vindo à %company_name%",
+      "bodyPlaceholder": "Escreva o e-mail de boas-vindas",
+      "save": "Salvar e-mail de boas-vindas",
+      "saved": "E-mail de boas-vindas salvo",
+      "saveError": "Não foi possível salvar o e-mail de boas-vindas",
+      "required": "Informe um assunto e um corpo. Texto em branco não é permitido.",
+      "viewOnlyTitle": "Somente visualização",
+      "viewOnly": "Somente proprietários e administradores podem atualizar o e-mail de boas-vindas desta empresa.",
+      "variablesTitle": "Variáveis disponíveis",
+      "variablesHelp": "Você pode usar estas variáveis no assunto e no corpo. Elas são substituídas quando o e-mail é enviado."
     }
   },
   "errors": {
