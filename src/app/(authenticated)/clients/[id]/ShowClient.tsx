@@ -407,19 +407,20 @@ export default function ShowClient({ client }: Props) {
 
       <Dialog open={welcomeEmailOpen} onOpenChange={(open) => !isSendingWelcomeEmail && setWelcomeEmailOpen(open)}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="mb-2">{t('shared.areYouSure')}</DialogTitle>
+          <DialogHeader className="space-y-6">
+            <DialogTitle>{t('shared.areYouSure')}</DialogTitle>
             <DialogDescription className="text-start">
               {t('profile.welcomeEmailConfirm', { name: client.fullName, email: client.email })}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-around">
-            <Button type="button" onClick={handleSendWelcomeEmail} disabled={isSendingWelcomeEmail}>
+          <div className="grid w-full grid-cols-2 gap-2">
+            <Button type="button" className="w-full" onClick={handleSendWelcomeEmail} disabled={isSendingWelcomeEmail}>
               {isSendingWelcomeEmail ? t('shared.sending') : t('shared.send')}
             </Button>
             <Button
               type="button"
               variant="outline"
+              className="w-full"
               onClick={() => setWelcomeEmailOpen(false)}
               disabled={isSendingWelcomeEmail}
             >
