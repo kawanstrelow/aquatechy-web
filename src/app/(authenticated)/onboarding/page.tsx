@@ -11,6 +11,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import InputField from '@/components/InputField';
 import SelectField from '@/components/SelectField';
+import TimezoneField from '@/components/TimezoneField';
 import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import CompanyStateAndCitySelect from '@/components/CompanyStateAndCitySelect';
 import { Typography } from '@/components/Typography';
@@ -24,6 +25,7 @@ import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { useUserStore } from '@/store/user';
 import { languageForForm, languageSelectOptions, type AppLocale } from '@/i18n/locale';
 import { FieldType, Frequency, IanaTimeZones, STATE_TIMEZONE_MAP } from '@/ts/enums/enums';
+import { isIanaTimeZone } from '@/utils/ianaTimeZones';
 import { isEmpty } from '@/utils';
 import useGetMembersOfAllCompaniesByUserId from '@/hooks/react-query/companies/getMembersOfAllCompaniesByUserId';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
@@ -57,7 +59,8 @@ const personalDataSchema = z.object({
   zip: defaultSchemas.zipCode,
   state: defaultSchemas.state,
   city: defaultSchemas.city,
-  language: defaultSchemas.language
+  language: defaultSchemas.language,
+  timezone: defaultSchemas.timezone
 });
 
 export type IPersonalDataSchema = z.infer<typeof personalDataSchema>;
@@ -159,6 +162,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const locale = useLocale() as AppLocale;
   const common = useTranslations('common');
+  const settings = useTranslations('settings');
   const t = useTranslations('onboarding');
   const { toast } = useToast();
   const { width } = useWindowDimensions();
@@ -211,7 +215,8 @@ export default function OnboardingPage() {
       zip: user?.zip || '',
       state: user?.state || '',
       city: user?.city || '',
-      language: languageForForm(user?.language, locale)
+      language: languageForForm(user?.language, locale),
+      timezone: user?.timezone && isIanaTimeZone(user.timezone) ? user.timezone : IanaTimeZones.NY
     },
     resolver: zodResolver(personalDataSchema)
   });
@@ -418,6 +423,7 @@ export default function OnboardingPage() {
     personalDataForm.setValue('state', address.state);
     personalDataForm.setValue('city', address.city);
     personalDataForm.setValue('zip', address.zipCode);
+    personalDataForm.setValue('timezone', address.timezone, { shouldValidate: true });
   };
 
   // Step 2 Handlers — validate and advance; company is created with preferences on step 3
@@ -956,6 +962,11 @@ export default function OnboardingPage() {
                     placeholder={common('selectLanguage')}
                     options={languageSelectOptions}
                   />
+                  <TimezoneField
+                    name="timezone"
+                    label={settings('timezone')}
+                    placeholder={settings('selectTimezone')}
+                  />
                 </div>
 
                 <div className="flex justify-end">
@@ -1151,15 +1162,10 @@ export default function OnboardingPage() {
                           { key: 'Commercial', name: t('clientTypes.commercial'), value: 'Commercial' }
                         ]}
                       />
-                      <SelectField
+                      <TimezoneField
                         placeholder={t('fields.selectTimezone')}
                         name="timezone"
                         label={t('fields.clientTimezone')}
-                        options={Object.values(IanaTimeZones).map((tz) => ({
-                          key: tz,
-                          name: tz,
-                          value: tz
-                        }))}
                       />
                     </div>
 

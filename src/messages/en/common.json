@@ -25,6 +25,7 @@
   "loading": "Loading",
   "saving": "Saving...",
   "search": "Search",
+  "noTimezoneFound": "No time zone found.",
   "confirm": "Confirm",
   "update": "Update",
   "accountUpdated": "Account updated successfully",

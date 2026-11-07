@@ -37,14 +37,7 @@ export type CreateManyClientsInput = {
   clientZip: string;
   clientCompany?: string;
   clientType: 'Commercial' | 'Residential';
-  timezone:
-    | 'America/New_York'
-    | 'America/Chicago'
-    | 'America/Denver'
-    | 'America/Los_Angeles'
-    | 'America/Anchorage'
-    | 'America/Adak'
-    | 'Pacific/Honolulu';
+  timezone: string;
   companyOwnerId: string;
   poolAddress: string;
   animalDanger: boolean;

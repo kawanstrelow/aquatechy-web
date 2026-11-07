@@ -25,6 +25,7 @@
   "loading": "Carregando",
   "saving": "Salvando...",
   "search": "Buscar",
+  "noTimezoneFound": "Nenhum fuso horário encontrado.",
   "confirm": "Confirmar",
   "update": "Atualizar",
   "accountUpdated": "Conta atualizada com sucesso",

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { Frequency, IanaTimeZones } from '@/ts/enums/enums';
+import { Frequency } from '@/ts/enums/enums';
+import { isIanaTimeZone } from '@/utils/ianaTimeZones';
 
 function commonStringSchema(field: string, min: number = 1) {
   return z
@@ -87,9 +88,13 @@ export const defaultSchemas = {
     invalid_type_error: 'validation.poolType.invalidType'
   }),
   date: z.coerce.date(),
-  timezone: z.nativeEnum(IanaTimeZones, {
-    required_error: 'validation.timezone.required',
-    invalid_type_error: 'validation.timezone.invalid'
-  }),
+  timezone: z
+    .string({
+      required_error: 'validation.timezone.required',
+      invalid_type_error: 'validation.timezone.invalid'
+    })
+    .trim()
+    .min(1, { message: 'validation.timezone.required' })
+    .refine(isIanaTimeZone, { message: 'validation.timezone.invalid' }),
   frequency: z.string(z.enum([Frequency.WEEKLY, Frequency.E2WEEKS, Frequency.E3WEEKS, Frequency.E4WEEKS])),
 };

@@ -13,6 +13,8 @@
   "contactInformation": "Información de contacto",
   "phone": "Teléfono",
   "email": "Correo",
+  "timezone": "Zona horaria",
+  "selectTimezone": "Selecciona la zona horaria",
   "updateAccount": "Actualizar cuenta",
   "welcomeDescription": "Antes de empezar a usar la aplicación, debes completar tu perfil.",
   "actions": {

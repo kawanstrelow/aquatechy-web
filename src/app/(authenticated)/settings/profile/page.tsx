@@ -12,6 +12,7 @@ import ChangePasswordDialog from '@/app/(authenticated)/account/change-password-
 import { AddressInput } from '@/components/AddressInput';
 import InputField from '@/components/InputField';
 import SelectField from '@/components/SelectField';
+import TimezoneField from '@/components/TimezoneField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Typography } from '@/components/Typography';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { languageForForm, languageSelectOptions, type AppLocale } from '@/i18n/l
 import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { useUserStore } from '@/store/user';
 import { FieldType, IanaTimeZones } from '@/ts/enums/enums';
+import { isIanaTimeZone } from '@/utils/ianaTimeZones';
 
 const formSchema = z.object({
   firstName: defaultSchemas.firstName,
@@ -35,7 +37,8 @@ const formSchema = z.object({
   state: defaultSchemas.state,
   city: defaultSchemas.city,
   language: defaultSchemas.language,
-  addressLine2: defaultSchemas.addressLine2
+  addressLine2: defaultSchemas.addressLine2,
+  timezone: defaultSchemas.timezone
 });
 
 export type IUserSchema = z.infer<typeof formSchema>;
@@ -60,7 +63,8 @@ export default function Page() {
       state: user?.state || '',
       city: user?.city || '',
       language: languageForForm(user?.language, locale),
-      addressLine2: user?.addressLine2 || ''
+      addressLine2: user?.addressLine2 || '',
+      timezone: user?.timezone && isIanaTimeZone(user.timezone) ? user.timezone : IanaTimeZones.NY
     },
     resolver: zodResolver(formSchema)
   });
@@ -111,6 +115,7 @@ export default function Page() {
     form.setValue('city', address.city);
     form.setValue('zip', address.zipCode);
     form.setValue('addressLine2', address.addressLine2 || '');
+    form.setValue('timezone', address.timezone, { shouldValidate: true });
   };
 
   return (
@@ -146,6 +151,7 @@ export default function Page() {
                 placeholder={common('selectLanguage')}
                 options={languageSelectOptions}
               />
+              <TimezoneField name="timezone" label={t('timezone')} placeholder={t('selectTimezone')} />
             </div>
           </div>
         </form>

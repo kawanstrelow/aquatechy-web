@@ -11,6 +11,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import InputField from '@/components/InputField';
 import SelectField from '@/components/SelectField';
+import TimezoneField from '@/components/TimezoneField';
 import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import { Typography } from '@/components/Typography';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ import { dateSchema } from '@/schemas/date';
 import { defaultSchemas } from '@/schemas/defaultSchemas';
 import { poolSchema } from '@/schemas/pool';
 import { useUserStore } from '@/store/user';
-import { FieldType, Frequency, IanaTimeZones } from '@/ts/enums/enums';
+import { FieldType, Frequency } from '@/ts/enums/enums';
 import { isEmpty } from '@/utils';
 import useGetMembersOfAllCompaniesByUserId from '@/hooks/react-query/companies/getMembersOfAllCompaniesByUserId';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
@@ -38,6 +39,7 @@ import {
 } from '@/hooks/react-query/clients/createClientWithMultipleAssignments';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
+
 // Update the schema to remove the old assignment fields
 const assignmentSchema = z.object({
   assignmentToId: z.string().min(1),
@@ -74,7 +76,6 @@ export default function Page() {
   const { toast } = useToast();
   const { width } = useWindowDimensions();
   const isMobile = width ? width < 640 : false;
-
   const { user } = useUserStore(
     useShallow((state) => ({
       user: state.user
@@ -701,15 +702,10 @@ export default function Page() {
                       }
                     ]}
                   />
-                  <SelectField
+                  <TimezoneField
                     placeholder={t('fields.selectTimeZone')}
                     name="timezone"
                     label={t('fields.clientTimeZone')}
-                    options={Object.values(IanaTimeZones).map((tz) => ({
-                      key: tz,
-                      name: tz,
-                      value: tz
-                    }))}
                   />
                 </div>
                 <Typography element="h2" className="mt-2 text-base">
