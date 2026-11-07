@@ -47,6 +47,8 @@ clientAxios.interceptors.response.use(
       // Public flows that must handle 401 on-page (global redirect hides the real error)
       const skipLoginRedirect =
         error.response?.data?.message?.includes('Invalid credentials.') ||
+        error.response?.data?.message?.includes('User not activated.') ||
+        requestUrl.includes('/sessions/v2') ||
         requestUrl.includes('/users/invitation/token');
 
       if (skipLoginRedirect) {
