@@ -17,12 +17,13 @@ import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import SelectField from '@/components/SelectField';
+import TimezoneField from '@/components/TimezoneField';
 import { Typography } from '@/components/Typography';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useUpdateClient } from '@/hooks/react-query/clients/updateClient';
 import { defaultSchemas } from '@/schemas/defaultSchemas';
-import { FieldType, IanaTimeZones } from '@/ts/enums/enums';
+import { FieldType } from '@/ts/enums/enums';
 import { Client } from '@/ts/interfaces/Client';
 
 const formSchema = z.object({
@@ -147,15 +148,10 @@ export default function ClientInfo({ client }: { client: Client }) {
                 }
               ]}
             />
-            <SelectField
+            <TimezoneField
               placeholder={t('fields.selectTimeZone')}
               name="timezone"
               label={t('fields.clientTimeZone')}
-              options={Object.values(IanaTimeZones).map((tz) => ({
-                key: tz,
-                name: tz,
-                value: tz
-              }))}
             />
           </div>
           <Typography element="h4" className="mt-2">

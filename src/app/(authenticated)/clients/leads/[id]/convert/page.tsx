@@ -19,6 +19,7 @@ import StateAndCitySelect from '@/components/ClientStateAndCitySelect';
 import InputField from '@/components/InputField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import SelectField from '@/components/SelectField';
+import TimezoneField from '@/components/TimezoneField';
 import { Stepper, useSteps } from '@/components/stepper';
 import { Typography } from '@/components/Typography';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ import { toConvertLeadRequest } from '@/schemas/lead';
 import { poolSchema } from '@/schemas/pool';
 import { useUserStore } from '@/store/user';
 import { FieldType, Frequency, IanaTimeZones } from '@/ts/enums/enums';
+import { isIanaTimeZone } from '@/utils/ianaTimeZones';
 import { Assignment as SavedAssignment } from '@/ts/interfaces/Assignments';
 import { Lead } from '@/ts/interfaces/Lead';
 
@@ -99,8 +101,7 @@ function formatPhone(value?: string | null) {
 }
 
 function knownTimezone(value?: string | null) {
-  const zones = Object.values(IanaTimeZones);
-  if (value && zones.includes(value as IanaTimeZones)) return value as IanaTimeZones;
+  if (value && isIanaTimeZone(value)) return value;
   return IanaTimeZones.NY;
 }
 
@@ -724,12 +725,10 @@ function ConvertLeadForm({ lead }: { lead: Lead }) {
                       { key: 'Commercial', name: t('fields.commercial'), value: 'Commercial' }
                     ]}
                   />
-                  <SelectField
+                  <TimezoneField
                     placeholder={t('fields.selectTimeZone')}
                     name="timezone"
                     label={t('fields.clientTimeZone')}
-                    disabled
-                    options={Object.values(IanaTimeZones).map((zone) => ({ key: zone, name: zone, value: zone }))}
                   />
                 </div>
                 <Typography element="h2" className="mt-2 text-base">

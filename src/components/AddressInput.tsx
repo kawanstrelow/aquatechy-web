@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Input } from './ui/input';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
+import { resolveTimezoneFromAddress } from '@/lib/resolveTimezone';
 import { IanaTimeZones, STATE_TIMEZONE_MAP } from '@/ts/enums/enums';
 import { parseGoogleAddressComponents } from '@/utils/parseGoogleAddressComponents';
 
@@ -38,7 +39,7 @@ export function AddressInput({ name, label, placeholder, className, disabled, on
     if (isLoaded && autocompleteRef.current && !autocomplete) {
       const newAutocomplete = new google.maps.places.Autocomplete(autocompleteRef.current, {
         componentRestrictions: { country: 'us' },
-        fields: ['address_components', 'formatted_address']
+        fields: ['address_components', 'formatted_address', 'geometry']
       });
       setAutocomplete(newAutocomplete);
     }
@@ -59,19 +60,38 @@ export function AddressInput({ name, label, placeholder, className, disabled, on
 
       const { fullAddress, city, state, zipCode } = parseGoogleAddressComponents(place.address_components);
 
-      // Update form values
       form.setValue(name, fullAddress, { shouldValidate: true });
 
-      // If callback provided, send all address data
-      if (onAddressSelect) {
+      if (!onAddressSelect) return;
+
+      const latitude = place.geometry?.location?.lat();
+      const longitude = place.geometry?.location?.lng();
+
+      void (async () => {
+        let timezone = STATE_TIMEZONE_MAP[state] || IanaTimeZones.NY;
+
+        try {
+          const resolved = await resolveTimezoneFromAddress({
+            address: fullAddress,
+            city,
+            state,
+            zip: zipCode,
+            latitude,
+            longitude
+          });
+          if (resolved) timezone = resolved;
+        } catch {
+          // Keep the state fallback when the preview request fails.
+        }
+
         onAddressSelect({
           fullAddress,
           state,
           city,
           zipCode,
-          timezone: STATE_TIMEZONE_MAP[state] || IanaTimeZones.NY // Default to NY timezone if state not found
+          timezone
         });
-      }
+      })();
     };
 
     autocomplete?.addListener('place_changed', handlePlaceSelect);

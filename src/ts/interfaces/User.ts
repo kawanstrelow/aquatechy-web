@@ -25,6 +25,7 @@ export type BasicData = {
   email: string;
   addressCoords?: Coords;
   addressLine2?: string;
+  timezone?: string | null;
 };
 
 export interface User extends BasicData {

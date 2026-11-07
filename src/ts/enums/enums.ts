@@ -55,15 +55,18 @@ export enum UserSubscription {
   PRO = 'PRO'
 }
 
-export enum IanaTimeZones {
-  NY = 'America/New_York',
-  CHICAGO = 'America/Chicago',
-  DENVER = 'America/Denver',
-  LA = 'America/Los_Angeles',
-  ANCHORAGE = 'America/Anchorage',
-  ADAK = 'America/Adak',
-  HONOLULU = 'Pacific/Honolulu'
-}
+export const IanaTimeZones = {
+  NY: 'America/New_York',
+  CHICAGO: 'America/Chicago',
+  DENVER: 'America/Denver',
+  LA: 'America/Los_Angeles',
+  ANCHORAGE: 'America/Anchorage',
+  ADAK: 'America/Adak',
+  HONOLULU: 'Pacific/Honolulu',
+  PHOENIX: 'America/Phoenix'
+} as const;
+
+export type IanaTimeZones = string;
 
 export enum Frequency {
   WEEKLY = 'WEEKLY',
@@ -170,7 +173,7 @@ export const STATE_TIMEZONE_MAP: { [key: string]: IanaTimeZones } = {
   WI: IanaTimeZones.CHICAGO,
 
   // Mountain Time Zone
-  AZ: IanaTimeZones.DENVER,
+  AZ: IanaTimeZones.PHOENIX,
   CO: IanaTimeZones.DENVER,
   ID: IanaTimeZones.DENVER,
   MT: IanaTimeZones.DENVER,

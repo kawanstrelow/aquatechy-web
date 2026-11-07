@@ -13,6 +13,8 @@
   "contactInformation": "Contact Information",
   "phone": "Phone",
   "email": "E-mail",
+  "timezone": "Time zone",
+  "selectTimezone": "Select time zone",
   "updateAccount": "Update account",
   "welcomeDescription": "Before you start using the app, you must complete your profile.",
   "actions": {
