@@ -22,6 +22,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
+import { rateLimitMessage } from '@/utils/rateLimit';
 import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
@@ -88,6 +89,12 @@ export default function Page() {
             variant: 'error',
             duration: 5000,
             title: 'Invalid email or password.'
+          });
+        } else if (isAxiosError(error) && error.response?.status === 429) {
+          toast({
+            variant: 'error',
+            duration: 5000,
+            title: rateLimitMessage(error.config?.url)
           });
         } else {
           toast({
