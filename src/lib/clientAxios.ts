@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
 
+import { applyRateLimitMessage } from '@/utils/rateLimit';
 import { applyCompanyPlanDeniedMessage } from '@/utils/subscriptionDenied';
 
 const baseUrl = process.env.API_URL;
@@ -15,7 +16,15 @@ export const clientAxios = axios.create({
 
 clientAxios.interceptors.request.use(
   async (config) => {
-    if (config.url?.startsWith('/login') || config.url?.startsWith('/signup') || config.url === '/server-offline' || config.url?.startsWith('/clients/unsubscribe') || config.url?.startsWith('/users/unsubscribe') || config.url?.startsWith('/userconfirmation') || config.url?.startsWith('/recoveraccount')) {
+    if (
+      config.url?.startsWith('/login') ||
+      config.url?.startsWith('/signup') ||
+      config.url === '/server-offline' ||
+      config.url?.startsWith('/clients/unsubscribe') ||
+      config.url?.startsWith('/users/unsubscribe') ||
+      config.url?.startsWith('/userconfirmation') ||
+      config.url?.startsWith('/recoveraccount')
+    ) {
       return config;
     }
 
@@ -66,6 +75,7 @@ clientAxios.interceptors.response.use(
     }
 
     applyCompanyPlanDeniedMessage(error);
+    applyRateLimitMessage(error);
     return Promise.reject(error);
   }
 );

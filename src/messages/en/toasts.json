@@ -349,6 +349,8 @@
   "successOfTotalServicesTransferred": "{success} of {total} services transferred",
   "theAssignmentHasBeenRemovedSuccessfully": "The assignment has been removed successfully",
   "thisCompanyIsNotOnThePlanRequiredForThisAction": "This company is not on the plan required for this action.",
+  "tooManyRequestsWaitOneMinute": "Too many requests. Please wait 1 minute and try again.",
+  "tooManyRequestsWaitTenMinutes": "Too many requests. Please wait 10 minutes and try again.",
   "unableToConvertLead": "Unable to convert lead",
   "unauthorizedPleaseLogInAgain": "Unauthorized. Please log in again.",
   "updatedAssignmentsSuccessfully": "Updated assignments successfully",

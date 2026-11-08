@@ -1,6 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 import { CLIENT_PORTAL_TOKEN_STORAGE_KEY } from '@/constants/clientPortal';
+import { applyRateLimitMessage } from '@/utils/rateLimit';
 
 const baseUrl = process.env.API_URL;
 
@@ -32,3 +33,11 @@ portalAxios.interceptors.request.use((config) => {
   }
   return config;
 });
+
+portalAxios.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    applyRateLimitMessage(error);
+    return Promise.reject(error);
+  }
+);
