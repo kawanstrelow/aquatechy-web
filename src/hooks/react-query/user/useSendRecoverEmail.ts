@@ -6,7 +6,7 @@ import { toast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
 import { translateMessage } from '@/i18n/runtime';
-import { rateLimitMessage } from '@/utils/rateLimit';
+import { isTooManyRequests, rateLimitMessage } from '@/utils/rateLimit';
 
 type SendRecoverEmail = {
   email: string;
@@ -28,15 +28,15 @@ export const useSendRecoverEmail = () => {
       router.push('/login');
     },
     onError: (error): Error | AxiosError => {
+      if (isTooManyRequests(error)) {
+        toast({
+          duration: 5000,
+          title: rateLimitMessage(error.config?.url),
+          variant: 'error'
+        });
+        return error;
+      }
       if (isAxiosError(error)) {
-        if (error.response?.status === 429) {
-          toast({
-            duration: 5000,
-            title: rateLimitMessage(error.config?.url),
-            variant: 'error'
-          });
-          return error;
-        }
         if (error.response?.status === 409) {
           toast({
             duration: 5000,

@@ -22,7 +22,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
-import { rateLimitMessage } from '@/utils/rateLimit';
+import { isTooManyRequests, rateLimitMessage } from '@/utils/rateLimit';
 import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
@@ -61,10 +61,18 @@ export default function Page() {
         window.location.href = '/dashboard';
       },
       onError: (error) => {
+        if (isTooManyRequests(error)) {
+          toast({
+            variant: 'error',
+            duration: 5000,
+            title: rateLimitMessage(error.config?.url)
+          });
+          return;
+        }
         if (
           isAxiosError(error) &&
           error.response?.status === 401 &&
-          error.response.data.message === 'User not activated.'
+          error.response.data?.message === 'User not activated.'
         ) {
           setActivationModal({
             isOpen: true,
@@ -73,7 +81,7 @@ export default function Page() {
         } else if (
           isAxiosError(error) &&
           error.response?.status === 404 &&
-          error.response.data.message === 'User not found.'
+          error.response.data?.message === 'User not found.'
         ) {
           toast({
             variant: 'error',
@@ -83,18 +91,12 @@ export default function Page() {
         } else if (
           isAxiosError(error) &&
           error.response?.status === 401 &&
-          error.response.data.message === 'Invalid credentials.'
+          error.response.data?.message === 'Invalid credentials.'
         ) {
           toast({
             variant: 'error',
             duration: 5000,
             title: 'Invalid email or password.'
-          });
-        } else if (isAxiosError(error) && error.response?.status === 429) {
-          toast({
-            variant: 'error',
-            duration: 5000,
-            title: rateLimitMessage(error.config?.url)
           });
         } else {
           toast({
