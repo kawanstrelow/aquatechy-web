@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/store/user';
 
 import { DashboardAfterServicePhotos } from './_components/DashboardAfterServicePhotos';
+import { DashboardShoppingCart } from './_components/DashboardShoppingCart';
 import { DashboardTechniciansProgress } from './_components/DashboardTechniciansProgress';
 
 type UnassignedPool = {
@@ -153,22 +154,25 @@ export default function Page() {
         </Surface>
       </div>
 
-      <DataPanel
-        title={t('poolsWithoutAssignment')}
-        icon={Waves}
-        action={
-          <Button size="sm" className={accentButtonClassName} onClick={() => router.push('/clients')}>
-            {t('allClients')}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        }
-        columns={poolColumns}
-        rows={poolsWithoutAssignment}
-        getRowKey={(pool) => pool.id}
-        onRowClick={(pool) => router.push(`/clients/${pool.clientId}`)}
-        emptyTitle={t('allPoolsAssignedTitle')}
-        emptyDescription={t('allPoolsAssignedDescription')}
-      />
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
+        <DataPanel
+          title={t('poolsWithoutAssignment')}
+          icon={Waves}
+          action={
+            <Button size="sm" className={accentButtonClassName} onClick={() => router.push('/clients')}>
+              {t('allClients')}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          }
+          columns={poolColumns}
+          rows={poolsWithoutAssignment}
+          getRowKey={(pool) => pool.id}
+          onRowClick={(pool) => router.push(`/clients/${pool.clientId}`)}
+          emptyTitle={t('allPoolsAssignedTitle')}
+          emptyDescription={t('allPoolsAssignedDescription')}
+        />
+        <DashboardShoppingCart />
+      </div>
     </div>
   );
 }
