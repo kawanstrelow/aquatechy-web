@@ -46,17 +46,21 @@ clientAxios.interceptors.response.use(
   (response) => {
     return response;
   },
-  async (error: AxiosError<{ message: string }>) => {
+  async (error: AxiosError<{ message?: string } | string>) => {
+    applyRateLimitMessage(error);
+
     if (error.code === 'ECONNABORTED' || error.message.includes('Network Error')) {
       // window.location.href = window.location.protocol + '//' + window.location.host + '/server-offline';
     }
 
     if (error.response?.status === 401) {
       const requestUrl = error.config?.url ?? '';
+      const responseMessage =
+        error.response.data && typeof error.response.data === 'object' ? error.response.data.message : undefined;
       // Public flows that must handle 401 on-page (global redirect hides the real error)
       const skipLoginRedirect =
-        error.response?.data?.message?.includes('Invalid credentials.') ||
-        error.response?.data?.message?.includes('User not activated.') ||
+        responseMessage?.includes('Invalid credentials.') ||
+        responseMessage?.includes('User not activated.') ||
         requestUrl.includes('/sessions/v2') ||
         requestUrl.includes('/users/invitation/token');
 
@@ -75,7 +79,6 @@ clientAxios.interceptors.response.use(
     }
 
     applyCompanyPlanDeniedMessage(error);
-    applyRateLimitMessage(error);
     return Promise.reject(error);
   }
 );

@@ -6,6 +6,7 @@ import { toast } from '../../../components/ui/use-toast';
 import { clientAxios } from '../../../lib/clientAxios';
 
 import { translateMessage } from '@/i18n/runtime';
+import { isTooManyRequests, rateLimitMessage } from '@/utils/rateLimit';
 
 type LoginData = {
   email: string;
@@ -35,16 +36,24 @@ export const useLoginUser = () => {
       // Redirect is handled by the caller (login page)
     },
     onError: (error): Error | AxiosError => {
+      if (isTooManyRequests(error)) {
+        toast({
+          variant: 'error',
+          duration: 5000,
+          title: rateLimitMessage(error.config?.url)
+        });
+        return error;
+      }
       if (isAxiosError(error)) {
         if (error.response?.status === 401) {
-          if (error.response?.data.message === 'Invalid email or password.') {
+          if (error.response?.data?.message === 'Invalid email or password.') {
             toast({
               variant: 'error',
               duration: 5000,
               title: translateMessage('toasts.invalidEmailOrPassword', 'Invalid email or password')
             });
             return error;
-          } else if (error.response?.data.message === 'User not activated.') {
+          } else if (error.response?.data?.message === 'User not activated.') {
             return error;
           } else {
             toast({

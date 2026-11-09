@@ -1,6 +1,8 @@
 // Inspired by react-hot-toast library
 import * as React from 'react';
 
+import { applyRateLimitToToast } from '@/utils/rateLimit';
+
 import type { ToastActionElement, ToastProps } from './toast';
 
 const TOAST_LIMIT = 1;
@@ -136,6 +138,7 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, 'id'>;
 
 function toast({ ...props }: Toast) {
+  props = applyRateLimitToToast(props);
   const id = genId();
 
   const update = (props: ToasterToast) =>

@@ -5,7 +5,7 @@ import { clientAxios } from '@/lib/clientAxios';
 import { useRouter } from 'next/navigation';
 
 import { translateMessage } from '@/i18n/runtime';
-import { rateLimitMessage } from '@/utils/rateLimit';
+import { isTooManyRequests, rateLimitMessage } from '@/utils/rateLimit';
 
 const formSchema = z
   .object({
@@ -39,7 +39,7 @@ export const useSignup = () => {
             translateMessage('toasts.userWithThisEMailAlreadyExists', 'User with this e-mail already exists.')
           );
         }
-        if (isAxiosError(error) && error.response?.status === 429) {
+        if (isTooManyRequests(error)) {
           throw new Error(rateLimitMessage(error.config?.url));
         }
         throw new Error(translateMessage('toasts.errorCreatingUser', 'Error creating user'));

@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import { AxiosError, isAxiosError } from 'axios';
 
 import { translateMessage } from '@/i18n/runtime';
 
@@ -7,6 +7,16 @@ const SHORT_WINDOW_PATHS = ['/sessions/v2', '/createuser', '/sendrecoverpassword
 type ErrorBody = {
   message?: string;
 };
+
+type ToastLike = {
+  variant?: string | null;
+  title?: unknown;
+  description?: unknown;
+};
+
+let pendingRateLimitMessage: string | null = null;
+let rateLimitToastShown = false;
+let clearTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function isShortRateLimitWindow(url: string | undefined) {
   if (!url) return false;
@@ -27,16 +37,85 @@ export function rateLimitMessage(url: string | undefined) {
   );
 }
 
+function responseStatus(error: AxiosError<unknown>) {
+  const fromResponse = error.response?.status;
+  if (typeof fromResponse === 'number') return fromResponse;
+
+  const request = error.request as { status?: number } | undefined;
+  return typeof request?.status === 'number' ? request.status : undefined;
+}
+
+// Cloudflare can answer 429 on the CORS preflight. The browser hides that OPTIONS response,
+// so Axios reports a network error and the real request never receives a status.
+function isPreflightBlocked(error: AxiosError<unknown>) {
+  if (error.response) return false;
+  if (error.code === 'ECONNABORTED' || error.code === 'ERR_CANCELED') return false;
+  const networkError = error.code === 'ERR_NETWORK' || error.message === 'Network Error';
+  if (!networkError) return false;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return false;
+  return true;
+}
+
+export function isTooManyRequests(error: unknown): error is AxiosError<unknown> {
+  if (!isAxiosError(error)) return false;
+  return responseStatus(error) === 429 || isPreflightBlocked(error);
+}
+
+function rememberRateLimitMessage(message: string) {
+  pendingRateLimitMessage = message;
+  rateLimitToastShown = false;
+
+  if (clearTimer) clearTimeout(clearTimer);
+  clearTimer = setTimeout(() => {
+    pendingRateLimitMessage = null;
+    rateLimitToastShown = false;
+    clearTimer = null;
+  }, 1500);
+
+  setTimeout(() => {
+    if (rateLimitToastShown || pendingRateLimitMessage !== message || typeof window === 'undefined') return;
+    rateLimitToastShown = true;
+    void import('@/components/ui/use-toast').then(({ toast }) => {
+      toast({
+        variant: 'error',
+        duration: 6000,
+        title: message
+      });
+    });
+  }, 50);
+}
+
+export function applyRateLimitToToast<T extends ToastLike>(props: T): T {
+  if (!pendingRateLimitMessage) return props;
+  if (props.variant === 'success' || props.variant === 'info') return props;
+  if (props.variant !== 'error' && props.variant !== 'destructive') return props;
+
+  rateLimitToastShown = true;
+  return {
+    ...props,
+    variant: 'error',
+    title: pendingRateLimitMessage,
+    description: undefined
+  } as T;
+}
+
 export function applyRateLimitMessage(error: AxiosError<unknown>) {
-  if (error.response?.status !== 429) return;
+  if (!isTooManyRequests(error)) return;
 
   const message = rateLimitMessage(error.config?.url);
-  const data = error.response.data;
+  error.message = message;
 
-  if (data && typeof data === 'object') {
-    (data as ErrorBody).message = message;
-    return;
+  if (error.response) {
+    error.response.data = { message } satisfies ErrorBody;
+  } else {
+    error.response = {
+      data: { message },
+      status: 429,
+      statusText: 'Too Many Requests',
+      headers: {},
+      config: error.config ?? {}
+    } as AxiosError<unknown>['response'];
   }
 
-  error.response.data = { message };
+  rememberRateLimitMessage(message);
 }
