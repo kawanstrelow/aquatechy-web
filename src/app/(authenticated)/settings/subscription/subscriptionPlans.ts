@@ -48,7 +48,7 @@ export const SUBSCRIPTION_PLANS: Plan[] = [
       'Everything in Route',
       'AI answers on your company data',
       'Chemical, team, and filter reports',
-      '1,100 texts a month, then $0.02 each, and priority email'
+      '900 texts a month, then $0.02 each, and priority email'
     ],
     buttonLabel: 'Choose Grow',
     subscriptionPlan: UserSubscription.GROW
@@ -86,7 +86,7 @@ export const FEATURE_COMPARISON = [
     grow: true,
     enterprise: true
   },
-  { feature: 'Texts a month', starter: false, route: '325, then $0.02', grow: '1,100, then $0.02', enterprise: 'Custom' },
+  { feature: 'Texts a month', starter: false, route: '325, then $0.02', grow: '900, then $0.02', enterprise: 'Custom' },
   { feature: 'AI answers on your company data', starter: false, route: false, grow: true, enterprise: true },
   { feature: 'Chemical, team, and filter reports', starter: false, route: false, grow: true, enterprise: true }
 ] as const;

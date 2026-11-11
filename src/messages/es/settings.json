@@ -807,7 +807,7 @@
           "0": "Todo lo de Route",
           "1": "Respuestas de IA con los datos de tu empresa",
           "2": "Reportes de químicos, equipo y filtros",
-          "3": "1,100 SMS al mes, luego US$ 0.02 cada uno, y correo prioritario"
+          "3": "900 SMS al mes, luego US$ 0.02 cada uno, y correo prioritario"
         }
       },
       "enterprise": {
@@ -869,7 +869,7 @@
       "9": {
         "feature": "SMS al mes",
         "route": "325, luego US$ 0.02",
-        "grow": "1,100, luego US$ 0.02",
+        "grow": "900, luego US$ 0.02",
         "enterprise": "Personalizado"
       },
       "10": {

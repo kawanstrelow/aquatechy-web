@@ -807,7 +807,7 @@
           "0": "Everything in Route",
           "1": "AI answers on your company data",
           "2": "Chemical, team, and filter reports",
-          "3": "1,100 texts a month, then $0.02 each, and priority email"
+          "3": "900 texts a month, then $0.02 each, and priority email"
         }
       },
       "enterprise": {
@@ -869,7 +869,7 @@
       "9": {
         "feature": "Texts a month",
         "route": "325, then $0.02",
-        "grow": "1,100, then $0.02",
+        "grow": "900, then $0.02",
         "enterprise": "Custom"
       },
       "10": {
