@@ -793,7 +793,7 @@
           "0": "Route optimization",
           "1": "Card and ACH payments in the client portal",
           "2": "Estimates, recurring invoices, and work orders",
-          "3": "Custom service emails and 150 texts a month"
+          "3": "Custom service emails and 325 texts a month, then $0.02 each"
         }
       },
       "grow": {
@@ -807,7 +807,7 @@
           "0": "Everything in Route",
           "1": "AI answers on your company data",
           "2": "Chemical, team, and filter reports",
-          "3": "1,000 texts a month and priority email"
+          "3": "1,100 texts a month, then $0.02 each, and priority email"
         }
       },
       "enterprise": {
@@ -868,8 +868,8 @@
       },
       "9": {
         "feature": "Texts a month",
-        "route": "150",
-        "grow": "1,000",
+        "route": "325, then $0.02",
+        "grow": "1,100, then $0.02",
         "enterprise": "Custom"
       },
       "10": {

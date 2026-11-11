@@ -793,7 +793,7 @@
           "0": "Optimización de ruta",
           "1": "Pagos con tarjeta y ACH en el portal del cliente",
           "2": "Cotizaciones, facturas recurrentes y órdenes de trabajo",
-          "3": "Correos de servicio personalizados y 150 SMS al mes"
+          "3": "Correos de servicio personalizados y 325 SMS al mes, luego US$ 0.02 cada uno"
         }
       },
       "grow": {
@@ -807,7 +807,7 @@
           "0": "Todo lo de Route",
           "1": "Respuestas de IA con los datos de tu empresa",
           "2": "Reportes de químicos, equipo y filtros",
-          "3": "1,000 SMS al mes y correo prioritario"
+          "3": "1,100 SMS al mes, luego US$ 0.02 cada uno, y correo prioritario"
         }
       },
       "enterprise": {
@@ -868,8 +868,8 @@
       },
       "9": {
         "feature": "SMS al mes",
-        "route": "150",
-        "grow": "1,000",
+        "route": "325, luego US$ 0.02",
+        "grow": "1,100, luego US$ 0.02",
         "enterprise": "Personalizado"
       },
       "10": {
