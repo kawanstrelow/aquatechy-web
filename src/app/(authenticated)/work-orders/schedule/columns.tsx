@@ -20,6 +20,10 @@ const statusOptions: Record<ServiceStatus, { label: string; className: string }>
     label: 'Skipped',
     className: 'bg-gray-100 text-gray-600'
   },
+  Cancelled: {
+    label: 'Cancelled',
+    className: 'bg-rose-100 text-rose-800'
+  },
   Completed: {
     label: 'Completed',
     className: 'bg-green-100 text-green-600'

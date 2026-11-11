@@ -140,8 +140,8 @@ function resolveUserTimeZone(state?: string | null) {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 }
 
-function isFinishedStatus(status: Service['status']): status is 'Completed' | 'Skipped' {
-  return status === 'Completed' || status === 'Skipped';
+function isFinishedStatus(status: Service['status']): status is 'Completed' | 'Skipped' | 'Cancelled' {
+  return status === 'Completed' || status === 'Skipped' || status === 'Cancelled';
 }
 
 function statusName(status: Service['status']) {
@@ -152,6 +152,8 @@ function statusName(status: Service['status']) {
       return translateMessage('routes.status.inProgress', 'In progress');
     case 'Skipped':
       return translateMessage('routes.status.skipped', 'Skipped');
+    case 'Cancelled':
+      return translateMessage('routes.status.cancelled', 'Cancelled');
     case 'Open':
       return translateMessage('routes.status.open', 'Open');
     default:
@@ -159,7 +161,11 @@ function statusName(status: Service['status']) {
   }
 }
 
-function formatFinishedStatus(status: 'Completed' | 'Skipped', completedAt: string | null, timeZone: string) {
+function formatFinishedStatus(
+  status: 'Completed' | 'Skipped' | 'Cancelled',
+  completedAt: string | null,
+  timeZone: string
+) {
   const label = statusName(status);
   if (!completedAt) return label;
 
@@ -184,6 +190,8 @@ function serviceStatusClass(status: Service['status']) {
       return 'bg-amber-100 text-amber-800';
     case 'Skipped':
       return 'bg-slate-100 text-slate-600';
+    case 'Cancelled':
+      return 'bg-rose-100 text-rose-800';
     default:
       return 'bg-blue-50 text-blue-700';
   }
@@ -298,8 +306,20 @@ export function ServiceItem({
             {etaLabel}
           </div>
         )}
-        <div className="flex h-8 min-w-16 items-center justify-center rounded-lg border border-gray-100 px-2">
-          <div className="whitespace-nowrap text-center text-sm font-semibold text-gray-800">{statusLabel}</div>
+        <div
+          className={cn(
+            'flex h-8 min-w-16 items-center justify-center rounded-lg border px-2',
+            service.status === 'Cancelled' ? 'border-transparent bg-rose-100' : 'border-gray-100'
+          )}
+        >
+          <div
+            className={cn(
+              'whitespace-nowrap text-center text-sm font-semibold',
+              service.status === 'Cancelled' ? 'text-rose-800' : 'text-gray-800'
+            )}
+          >
+            {statusLabel}
+          </div>
         </div>
         <ServiceActions service={service} />
       </div>

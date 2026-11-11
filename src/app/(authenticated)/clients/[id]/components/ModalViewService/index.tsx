@@ -8,6 +8,7 @@ import {
   FlaskConical,
   ImageIcon,
   Mail,
+  Info,
   MessageSquare,
   Download,
   MapPin,
@@ -25,8 +26,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { zipImages } from '@/lib/js-zip';
 import { format } from 'date-fns';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { Service } from '@/ts/interfaces/Service';
 import { Pool } from '@/ts/interfaces/Pool';
+import { canManageCompanyServices, serviceCompanyId } from '@/utils/companyRoles';
+import { DialogDeleteService } from '@/app/(authenticated)/routes/schedule/ModalDeleteService';
+import { DialogSetServiceStatus } from '@/app/(authenticated)/routes/schedule/ModalSetServiceStatus';
+import { DialogTransferService } from '@/app/(authenticated)/routes/schedule/ModalTransferService';
 import DeleteServiceDialog from '../services-datatable/cancel-dialog';
 import { formatServiceDurationModal, getServiceDurationTotalSeconds } from '@/utils/serviceDuration';
 import { useResendServiceEmail } from '@/hooks/react-query/services/useResendServiceEmail';
@@ -53,6 +59,7 @@ type Props = {
 
 export function ModalViewService({ service, pool, open, setOpen }: Props) {
   const t = useTranslations('clients');
+  const { data: companies = [] } = useGetCompanies();
   const resendEmailMutation = useResendServiceEmail();
   const resendSmsMutation = useResendServiceSms();
   const deletePhotoMutation = useDeleteServicePhoto();
@@ -63,6 +70,9 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
   const [showAddPhotoDialog, setShowAddPhotoDialog] = useState(false);
   const [showResendEmailDialog, setShowResendEmailDialog] = useState(false);
   const [showResendSmsDialog, setShowResendSmsDialog] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,6 +90,8 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
         return t('service.stillOpen');
       case 'Skipped':
         return t('service.skipped');
+      case 'Cancelled':
+        return t('service.cancelled');
       default:
         return '';
     }
@@ -371,10 +383,22 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
   };
 
   const completedDurationSecs = getServiceDurationTotalSeconds(currentService.startedAt, currentService.completedAt);
+  const canManageService = canManageCompanyServices(companies, serviceCompanyId(currentService));
+  const serviceForAction = { ...currentService, pool: currentService.pool ?? pool };
+  const childDialogOpen = transferOpen || deleteOpen || statusDialogOpen;
+
+  function keepParentOpen(event: { preventDefault: () => void }) {
+    if (!childDialogOpen) return;
+    event.preventDefault();
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto p-6">
+      <DialogContent
+        className="max-h-[90vh] max-w-4xl overflow-y-auto p-6"
+        onPointerDownOutside={keepParentOpen}
+        onFocusOutside={keepParentOpen}
+      >
         <DialogHeader>
           <div className="flex items-center gap-2">
             <ListChecks className="h-6 w-6 text-[#364D9D]" />
@@ -758,8 +782,40 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
             </div>
           </>
         ) : (
-          <div className="flex h-40 items-center justify-center text-lg text-gray-500">
-            {getStatusMessage(currentService.status)}
+          <div className="flex w-full flex-col gap-4">
+            <div className="w-full rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-4 dark:border-blue-400/40 dark:bg-blue-400/10">
+              <div className="flex items-start gap-3">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-300" />
+                <p className="text-sm font-medium leading-relaxed text-blue-950 dark:text-blue-100">
+                  {getStatusMessage(currentService.status)}
+                </p>
+              </div>
+            </div>
+            {canManageService && (
+              <div className="grid w-full grid-cols-3 gap-2">
+                <Button
+                  variant="outline"
+                  className="h-auto min-w-0 whitespace-normal px-2 text-center"
+                  onClick={() => setTransferOpen(true)}
+                >
+                  {t('service.transferService')}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto min-w-0 whitespace-normal px-2 text-center"
+                  onClick={() => setStatusDialogOpen(true)}
+                >
+                  {t('service.changeStatus')}
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="h-auto min-w-0 whitespace-normal px-2 text-center"
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  {t('service.deleteService')}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -841,6 +897,30 @@ export function ModalViewService({ service, pool, open, setOpen }: Props) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {currentService.status !== 'Completed' && canManageService && (
+          <>
+            <DialogTransferService
+              service={serviceForAction}
+              open={transferOpen}
+              setOpen={setTransferOpen}
+              onTransferred={() => setOpen(false)}
+            />
+            <DialogDeleteService
+              service={serviceForAction}
+              open={deleteOpen}
+              setOpen={setDeleteOpen}
+              clientId={currentService.clientOwnerId || pool.clientOwnerId}
+              onDeleted={() => setOpen(false)}
+            />
+            <DialogSetServiceStatus
+              open={statusDialogOpen}
+              setOpen={setStatusDialogOpen}
+              services={[serviceForAction]}
+              onFinished={() => setOpen(false)}
+            />
+          </>
+        )}
 
         {/* Resend SMS Confirmation Dialog */}
         <AlertDialog open={showResendSmsDialog} onOpenChange={setShowResendSmsDialog}>

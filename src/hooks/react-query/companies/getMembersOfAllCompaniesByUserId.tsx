@@ -22,6 +22,7 @@ export default function useGetMembersOfAllCompaniesByUserId(userId: string) {
     isSuccess
   } = useQuery({
     queryKey: ['companyMembers', userId],
+    enabled: Boolean(userId),
     queryFn: async () => {
       const response = await clientAxios.get(`/companies/members/${userId}`);
 

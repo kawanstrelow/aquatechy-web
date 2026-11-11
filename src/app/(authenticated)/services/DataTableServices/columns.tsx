@@ -25,6 +25,11 @@ const statusOptions: Record<ServiceStatus, { labelKey: string; fallback: string;
     fallback: 'Skipped',
     className: 'bg-gray-100 text-gray-600'
   },
+  Cancelled: {
+    labelKey: 'services.status.cancelled',
+    fallback: 'Cancelled',
+    className: 'bg-rose-100 text-rose-800'
+  },
   Completed: {
     labelKey: 'services.status.completed',
     fallback: 'Completed',

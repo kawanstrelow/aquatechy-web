@@ -72,6 +72,7 @@
     "open": "Open",
     "inProgress": "In progress",
     "skipped": "Skipped",
+    "cancelled": "Cancelled",
     "completed": "Completed",
     "unknown": "Unknown"
   },
