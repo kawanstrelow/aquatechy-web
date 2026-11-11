@@ -8,8 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { Service } from '@/ts/interfaces/Service';
+import { canManageCompanyServices, serviceCompanyId } from '@/utils/companyRoles';
 import { DialogDeleteService } from '../ModalDeleteService';
+import { DialogSetServiceStatus } from '../ModalSetServiceStatus';
 import { DialogTransferService } from '../ModalTransferService';
 
 interface ServiceActionsProps {
@@ -18,18 +21,22 @@ interface ServiceActionsProps {
 
 export function ServiceActions({ service }: ServiceActionsProps) {
   const t = useTranslations('routes');
+  const { data: companies = [] } = useGetCompanies();
+  const canManage = canManageCompanyServices(companies, serviceCompanyId(service));
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const handleActionSelect = (action: 'delete' | 'transfer') => {
-    setIsDropdownOpen(false); // Close dropdown first
+  const handleActionSelect = (action: 'delete' | 'transfer' | 'status') => {
+    setIsDropdownOpen(false);
     setTimeout(() => {
-      // Open modal after dropdown is closed
       if (action === 'delete') {
         setIsDeleteModalOpen(true);
-      } else {
+      } else if (action === 'transfer') {
         setIsTransferModalOpen(true);
+      } else {
+        setStatusDialogOpen(true);
       }
     }, 0);
   };
@@ -44,6 +51,9 @@ export function ServiceActions({ service }: ServiceActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => handleActionSelect('transfer')}>{t('transferService')}</DropdownMenuItem>
+          {canManage && (
+            <DropdownMenuItem onSelect={() => handleActionSelect('status')}>{t('changeStatus')}</DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={() => handleActionSelect('delete')} className="text-red-500">
             {t('deleteService')}
           </DropdownMenuItem>
@@ -58,6 +68,8 @@ export function ServiceActions({ service }: ServiceActionsProps) {
       />
 
       <DialogTransferService service={service} open={isTransferModalOpen} setOpen={setIsTransferModalOpen} />
+
+      <DialogSetServiceStatus open={statusDialogOpen} setOpen={setStatusDialogOpen} services={[service]} />
     </>
   );
 }

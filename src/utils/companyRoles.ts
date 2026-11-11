@@ -11,6 +11,21 @@ export function canManageCompanyTeam(role?: string | null): boolean {
   return Boolean(role && MANAGEMENT_ROLES.has(role as CompanyRole));
 }
 
+export function serviceCompanyId(service: {
+  companyOwnerId?: string | null;
+  company?: { id?: string | null } | null;
+}): string | null {
+  return service.companyOwnerId || service.company?.id || null;
+}
+
+export function canManageCompanyServices(
+  companies: { id: string; role?: string | null }[] | undefined,
+  companyOwnerId?: string | null
+): boolean {
+  if (!companyOwnerId || !companies) return false;
+  return canManageCompanyTeam(companies.find((company) => company.id === companyOwnerId)?.role);
+}
+
 export function getAssignableMemberRoles(actorRole?: string | null): AssignableMemberRole[] {
   if (actorRole === 'Owner' || actorRole === 'Admin') {
     return OWNER_ADMIN_ASSIGNABLE;

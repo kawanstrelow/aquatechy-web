@@ -17,9 +17,10 @@ type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
   clientId: string;
+  onDeleted?: () => void;
 };
 
-export function DialogDeleteService({ service, open, setOpen, clientId }: Props) {
+export function DialogDeleteService({ service, open, setOpen, clientId, onDeleted }: Props) {
   const t = useTranslations('routes');
   const { mutate: deleteService, isPending: isDeletingService } = useDeleteService(clientId);
   const { mutate: deleteAssignment, isPending: isDeletingAssignment } = useDeleteAssignment();
@@ -49,6 +50,7 @@ export function DialogDeleteService({ service, open, setOpen, clientId }: Props)
       deleteAssignment(serviceToDelete.assignmentId, {
         onSuccess: () => {
           setOpen(false);
+          onDeleted?.();
         }
       });
       return;
@@ -59,6 +61,7 @@ export function DialogDeleteService({ service, open, setOpen, clientId }: Props)
       {
         onSuccess: () => {
           setOpen(false);
+          onDeleted?.();
         }
       }
     );

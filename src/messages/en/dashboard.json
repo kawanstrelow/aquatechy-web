@@ -40,6 +40,18 @@
   "allClients": "All clients",
   "allPoolsAssignedTitle": "All pools have assignments",
   "allPoolsAssignedDescription": "Great! All your pools are currently assigned to technicians.",
+  "shoppingCart": {
+    "title": "Shopping cart",
+    "viewList": "Shopping list",
+    "columns": {
+      "description": "Description",
+      "amount": "Amount"
+    },
+    "quantity": "Qty {count}",
+    "emptyTitle": "Nothing to buy",
+    "emptyDescription": "Items waiting to be purchased will show up here.",
+    "loading": "Loading shopping cart…"
+  },
   "mapError": "Error loading maps",
   "owner": "Owner",
   "addressLabel": "Address",

@@ -1,7 +1,7 @@
 import { Client } from './Client';
 import { Pool } from './Pool';
 
-export type ServiceStatus = 'Open' | 'InProgress' | 'Completed' | 'Skipped';
+export type ServiceStatus = 'Open' | 'InProgress' | 'Completed' | 'Skipped' | 'Cancelled';
 
 export interface Service {
   id: string;
@@ -45,6 +45,10 @@ export interface Service {
   completedAt: string | null;
   photos: string[];
   companyOwnerId: string;
+  company?: {
+    id: string;
+    name: string;
+  } | null;
   // New structured properties
   structuredPhotos?: StructuredPhoto[];
   photosSnapshot?: PhotoGroup[];

@@ -21,6 +21,7 @@ export const useDeleteAssignment = () => {
       queryClient.invalidateQueries({ queryKey: ['assignments', userId] });
       queryClient.invalidateQueries({ queryKey: ['assignments', 'by-pool'] });
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
 
       toast({
         duration: 2000,

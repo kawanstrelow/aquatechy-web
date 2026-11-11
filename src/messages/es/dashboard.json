@@ -40,6 +40,18 @@
   "allClients": "Todos los clientes",
   "allPoolsAssignedTitle": "Todas las piscinas tienen asignación",
   "allPoolsAssignedDescription": "¡Excelente! Todas tus piscinas están asignadas a técnicos.",
+  "shoppingCart": {
+    "title": "Carrito de compras",
+    "viewList": "Lista de compras",
+    "columns": {
+      "description": "Descripción",
+      "amount": "Importe"
+    },
+    "quantity": "Cant. {count}",
+    "emptyTitle": "Nada por comprar",
+    "emptyDescription": "Los artículos pendientes de compra aparecerán aquí.",
+    "loading": "Cargando el carrito…"
+  },
   "mapError": "Error al cargar los mapas",
   "owner": "Propietario",
   "addressLabel": "Dirección",

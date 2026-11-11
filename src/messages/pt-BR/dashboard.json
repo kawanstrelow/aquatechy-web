@@ -40,6 +40,18 @@
   "allClients": "Todos os clientes",
   "allPoolsAssignedTitle": "Todas as piscinas têm recorrência",
   "allPoolsAssignedDescription": "Ótimo! Todas as piscinas estão atribuídas a técnicos.",
+  "shoppingCart": {
+    "title": "Carrinho de compras",
+    "viewList": "Lista de compras",
+    "columns": {
+      "description": "Descrição",
+      "amount": "Valor"
+    },
+    "quantity": "Qtd. {count}",
+    "emptyTitle": "Nada para comprar",
+    "emptyDescription": "Os itens pendentes de compra aparecem aqui.",
+    "loading": "Carregando o carrinho…"
+  },
   "mapError": "Erro ao carregar os mapas",
   "owner": "Proprietário",
   "addressLabel": "Endereço",

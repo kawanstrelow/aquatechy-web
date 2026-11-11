@@ -55,6 +55,7 @@ export const useTransferService = (
       // Necessary because it can return an error but some services may have been transferred successfully
       queryClient.invalidateQueries({ queryKey: ['assignments', userId] });
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
 
       const fullErrorMessage = issues ? `${errorMessage}: ${issues.map((i) => i.message).join(', ')}` : errorMessage;
 
@@ -74,6 +75,7 @@ export const useTransferService = (
     onSuccess: (data: ServiceTransferResponse) => {
       queryClient.invalidateQueries({ queryKey: ['assignments', userId] });
       queryClient.invalidateQueries({ queryKey: ['schedule', userId] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
 
       // Show toast based on results
       if (data.failureCount === 0) {

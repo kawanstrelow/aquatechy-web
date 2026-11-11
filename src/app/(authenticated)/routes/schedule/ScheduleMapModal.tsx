@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { toast } from '@/components/ui/use-toast';
 import { useAssignmentsContext } from '@/context/assignments';
 import { useUpdateAssignments } from '@/hooks/react-query/assignments/updateAssignments';
+import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useGetScheduledByTechnician } from '@/hooks/react-query/services/useGetScheduledByTechnician';
 import { useMapServicesUtils } from '@/hooks/useMapServicesUtils';
 import useWindowDimensions from '@/hooks/useWindowDimensions';
@@ -19,10 +20,12 @@ import { getDirectionsAndTime, getOptimizedRoute } from '@/services/here-maps';
 import { useUserStore } from '@/store/user';
 import { Assignment } from '@/ts/interfaces/Assignments';
 import { Service } from '@/ts/interfaces/Service';
+import { canManageCompanyServices, serviceCompanyId } from '@/utils/companyRoles';
 
 import { OptimizeRouteModal } from '../assignments/OptimizeRouteModal';
 import Map from './Map';
 import { DialogNewService } from './ModalNewService';
+import { DialogSetServiceStatus } from './ModalSetServiceStatus';
 import { DialogTransferMultipleServices } from './ModalTransferMultipleServices';
 import { scheduledDayKey } from './scheduleDate';
 import {
@@ -56,6 +59,7 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
   const { directions, isLoaded, loadError } = useMapServicesUtils();
   const { allAssignments } = useAssignmentsContext();
   const { user } = useUserStore();
+  const { data: companies = [] } = useGetCompanies();
   const { mutate: updateAssignments, isPending: isSaving } = useUpdateAssignments();
   const { width = 0 } = useWindowDimensions();
   const mdScreen = width < 900;
@@ -71,6 +75,7 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
   const [requiresRecalculation, setRequiresRecalculation] = useState(false);
   const [isOptimizeModalOpen, setIsOptimizeModalOpen] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 
   const modalServices = useMemo(() => {
     const services = data?.services ?? [];
@@ -96,6 +101,9 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
     ? t('loadingStops')
     : `${orderedServices.length} ${orderedServices.length === 1 ? t('stop') : t('stops')}`;
   const isBusy = isSaving || isRouting || isLoadingServices;
+  const statusTargets = orderedServices.filter((service) =>
+    canManageCompanyServices(companies, serviceCompanyId(service))
+  );
 
   function resetLocalState() {
     setHasChanges(false);
@@ -281,7 +289,7 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
           <DialogHeader
             className={cn(
               'flex shrink-0 flex-col gap-3 space-y-0 border-b border-slate-100',
-              mdScreen ? 'pb-3 pr-8' : 'pb-4 pr-10 sm:flex-row sm:items-center sm:justify-between'
+              mdScreen ? 'pb-3 pr-8' : 'pb-4 pr-10 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between'
             )}
           >
             <div className="min-w-0">
@@ -298,7 +306,10 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
             </div>
             {open && (
               <div
-                className={cn('flex h-auto shrink-0 items-center gap-2', mdScreen ? 'w-full flex-col' : 'flex-wrap')}
+                className={cn(
+                  'flex h-auto min-w-0 flex-wrap items-center gap-2',
+                  mdScreen ? 'w-full flex-col' : 'max-w-full flex-1 justify-end'
+                )}
               >
                 {orderedServices.length > 1 && (
                   <Button
@@ -332,6 +343,17 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
                     />
                     <DialogNewService fullWidth={false} defaultTechnicianId={memberId} />
                   </>
+                )}
+                {statusTargets.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn('h-9 whitespace-nowrap', mdScreen && 'w-full')}
+                    disabled={isBusy}
+                    onClick={() => setStatusDialogOpen(true)}
+                  >
+                    {t('changeStatus')}
+                  </Button>
                 )}
                 {hasChanges && (
                   <Button
@@ -405,6 +427,8 @@ export function ScheduleMapModal({ open, onOpenChange, title, techName, memberId
           technicianId={memberId}
         />
       )}
+
+      <DialogSetServiceStatus open={statusDialogOpen} setOpen={setStatusDialogOpen} services={statusTargets} />
     </>
   );
 }

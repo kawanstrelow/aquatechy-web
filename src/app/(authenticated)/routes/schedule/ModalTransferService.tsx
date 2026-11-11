@@ -25,9 +25,11 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAssignmentsContext } from '@/context/assignments';
 import { useTransferPermanentlyRoute } from '@/hooks/react-query/assignments/useTransferRoute';
+import useGetMembersOfAllCompaniesByUserId from '@/hooks/react-query/companies/getMembersOfAllCompaniesByUserId';
 import { useTransferService } from '@/hooks/react-query/services/transferService';
 import { transferServiceSchema } from '@/schemas/service';
 import { useMembersStore } from '@/store/members';
+import { useUserStore } from '@/store/user';
 import { useWeekdayStore } from '@/store/weekday';
 import { Assignment, TransferAssignment } from '@/ts/interfaces/Assignments';
 import { Service, TransferService } from '@/ts/interfaces/Service';
@@ -40,6 +42,7 @@ type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
   service: Service;
+  onTransferred?: () => void;
 };
 
 type FormValues = z.infer<typeof transferServiceSchema>;
@@ -50,8 +53,10 @@ type DateOption = {
   value: string;
 };
 
-export function DialogTransferService({ open, setOpen, service }: Props) {
+export function DialogTransferService({ open, setOpen, service, onTransferred }: Props) {
   const t = useTranslations('routes');
+  const userId = useUserStore((state) => state.user?.id);
+  useGetMembersOfAllCompaniesByUserId(userId || '');
   const { members } = useMembersStore(
     useShallow((state) => ({
       members: state.members,
@@ -131,6 +136,7 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
     setManualLoading(false);
     resetFormState();
     setOpen(false);
+    onTransferred?.();
   };
 
   const handlePermanentError = (message: string) => {
@@ -274,9 +280,12 @@ export function DialogTransferService({ open, setOpen, service }: Props) {
     };
 
     transferServiceOccurrence([payload], {
-      onSuccess: () => {
+      onSuccess: (result) => {
         resetFormState();
         setOpen(false);
+        if (result.failureCount === 0) {
+          onTransferred?.();
+        }
       }
     });
   }
