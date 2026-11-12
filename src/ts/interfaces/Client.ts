@@ -37,6 +37,15 @@ export interface Client {
   cardOnFileLast4?: string | null;
   cardOnFileBrand?: string | null;
   cardOnFileExp?: string | null;
+  googleReviewRequest?: {
+    enabled: boolean | null;
+    reviewed: boolean;
+    reviewedAt: string | null;
+    enrolledAt: string | null;
+    lastSentAt: string | null;
+    effectivelyEnabled: boolean;
+    eligible: boolean;
+  };
   preferences?: {
     serviceEmailPreferences: {
       sendEmails: boolean;

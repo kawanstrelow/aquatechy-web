@@ -9,6 +9,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useSendClientGoogleReviewRequest } from '@/hooks/react-query/clients/useSendClientGoogleReviewRequest';
 import { useSendClientWelcomeEmail } from '@/hooks/react-query/clients/useSendClientWelcomeEmail';
 import { useUpdateClient } from '@/hooks/react-query/clients/updateClient';
 import { Client } from '@/ts/interfaces/Client';
@@ -40,6 +41,8 @@ export default function ShowClient({ client }: Props) {
   const [deactivateModalOpen, setDeactivateModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [welcomeEmailOpen, setWelcomeEmailOpen] = useState(false);
+  const [googleReviewOpen, setGoogleReviewOpen] = useState(false);
+  const [googleReviewHintOpen, setGoogleReviewHintOpen] = useState(false);
   const { mutate: updateClient, isPending } = useUpdateClient<{ isActive: boolean }>();
   const { mutate: deleteClient, isPending: isDeleting } = useDeleteClient();
   const router = useRouter();
@@ -51,6 +54,12 @@ export default function ShowClient({ client }: Props) {
   const canSendWelcomeEmail = canViewMessages;
   const hasClientEmail = Boolean(client.email?.trim());
   const { mutate: sendWelcomeEmail, isPending: isSendingWelcomeEmail } = useSendClientWelcomeEmail(
+    client.id,
+    client.companyOwnerId
+  );
+  const canSendGoogleReview =
+    Boolean(client.googleReviewRequest?.effectivelyEnabled) && !client.googleReviewRequest?.reviewed;
+  const { mutate: sendGoogleReview, isPending: isSendingGoogleReview } = useSendClientGoogleReviewRequest(
     client.id,
     client.companyOwnerId
   );
@@ -112,6 +121,24 @@ export default function ShowClient({ client }: Props) {
     sendWelcomeEmail(undefined, {
       onSuccess: () => setWelcomeEmailOpen(false)
     });
+  };
+
+  const handleSendGoogleReview = () => {
+    sendGoogleReview(undefined, {
+      onSuccess: () => setGoogleReviewOpen(false)
+    });
+  };
+
+  const handleGoogleReviewClick = () => {
+    if (isSendingGoogleReview) return;
+    if (canSendGoogleReview) {
+      setGoogleReviewOpen(true);
+      return;
+    }
+    const hoverCapable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (!hoverCapable) {
+      setGoogleReviewHintOpen(true);
+    }
   };
 
   return (
@@ -231,6 +258,25 @@ export default function ShowClient({ client }: Props) {
                         {t('profile.welcomeEmailMissing')}
                       </p>
                     )}
+                    <div className="group relative w-full">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={`w-full whitespace-normal ${!canSendGoogleReview ? 'cursor-not-allowed opacity-50' : ''}`}
+                        disabled={isSendingGoogleReview}
+                        onClick={handleGoogleReviewClick}
+                      >
+                        {t('profile.sendGoogleReview')}
+                      </Button>
+                      {!canSendGoogleReview && (
+                        <div
+                          role="tooltip"
+                          className="pointer-events-none absolute left-0 right-0 top-full z-20 mt-2 hidden whitespace-normal rounded-md border border-slate-200 bg-white p-3 text-left text-xs font-normal text-slate-600 shadow-md md:group-hover:block"
+                        >
+                          {t('profile.googleReviewUnavailable')}
+                        </div>
+                      )}
+                    </div>
                   </>
                 )}
                 <Button onClick={handleAddPool} className="w-full" variant={'default'} disabled={shouldDisableNewPools}>
@@ -399,11 +445,45 @@ export default function ShowClient({ client }: Props) {
             ) : tab === 'messages' && canViewMessages ? (
               <MessagesTab clientId={client.id} />
             ) : (
-              <EmailPreferences client={client} />
+              <EmailPreferences client={client} showGoogleReview={canViewMessages} />
             )}
           </div>
         </div>
       </div>
+
+      <Dialog open={googleReviewHintOpen} onOpenChange={setGoogleReviewHintOpen}>
+        <DialogContent>
+          <DialogHeader className="space-y-4">
+            <DialogTitle>{t('profile.sendGoogleReview')}</DialogTitle>
+            <DialogDescription className="text-start">{t('profile.googleReviewUnavailable')}</DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={googleReviewOpen} onOpenChange={(open) => !isSendingGoogleReview && setGoogleReviewOpen(open)}>
+        <DialogContent>
+          <DialogHeader className="space-y-6">
+            <DialogTitle>{t('shared.areYouSure')}</DialogTitle>
+            <DialogDescription className="text-start">
+              {t('profile.googleReviewConfirm', { name: client.fullName })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid w-full grid-cols-2 gap-2">
+            <Button type="button" className="w-full" onClick={handleSendGoogleReview} disabled={isSendingGoogleReview}>
+              {isSendingGoogleReview ? t('shared.sending') : t('shared.send')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setGoogleReviewOpen(false)}
+              disabled={isSendingGoogleReview}
+            >
+              {t('shared.cancel')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={welcomeEmailOpen} onOpenChange={(open) => !isSendingWelcomeEmail && setWelcomeEmailOpen(open)}>
         <DialogContent>

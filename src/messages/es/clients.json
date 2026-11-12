@@ -287,6 +287,12 @@
     "welcomeEmailConfirm": "¿Enviar un correo de bienvenida a {name} en {email}?",
     "welcomeEmailQueued": "Correo de bienvenida en cola.",
     "welcomeEmailError": "No se pudo enviar el correo de bienvenida",
+    "sendGoogleReview": "Pedir una reseña en Google",
+    "googleReviewConfirm": "¿Enviar ahora una solicitud de reseña en Google a {name}? Esto no espera el calendario habitual.",
+    "googleReviewQueued": "Solicitud de reseña en cola.",
+    "googleReviewNotQueued": "La solicitud de reseña no se puso en cola. No se envió nada.",
+    "googleReviewError": "No se pudo enviar la solicitud de reseña",
+    "googleReviewUnavailable": "Activa a este cliente y quita la marca de reseña hecha antes de enviar una solicitud.",
     "monthlyPayment": "Pago mensual",
     "services": "Servicios",
     "pools": "Piscinas",
@@ -300,6 +306,17 @@
     "updateAddress": "Actualizar dirección",
     "updateAddressDescription": "Estás por cambiar la dirección del cliente. También tendrás que actualizar por separado la dirección de servicio de la piscina.",
     "updateOnlyClient": "Actualizar solo al cliente"
+  },
+  "googleReview": {
+    "title": "Solicitudes de reseña en Google",
+    "description": "Pide a este cliente una reseña en Google después de una visita completada.",
+    "participationOn": "Activado",
+    "participationOff": "Desactivado",
+    "participationDefault": "Seguir el ajuste de la empresa",
+    "reviewed": "Ya dejó una reseña",
+    "reviewedHelp": "Activa esto cuando el cliente publique una reseña. Las próximas solicitudes se detienen. Desactivarlo no cambia cuándo se envió la última solicitud.",
+    "saved": "Ajuste de reseña de Google guardado",
+    "saveError": "No se pudieron actualizar los ajustes de reseña de Google"
   },
   "pool": {
     "inactiveSince": "(Inactivo desde {date})",

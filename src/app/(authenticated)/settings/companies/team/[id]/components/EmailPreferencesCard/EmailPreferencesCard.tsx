@@ -8,7 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { z } from 'zod';
 import { useShallow } from 'zustand/react/shallow';
-import { Mail } from 'lucide-react';
+import { ChevronDown, Mail } from 'lucide-react';
 
 import InputField from '@/components/InputField';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ import { ServiceTypeEmailPreferences } from '@/ts/interfaces/ServiceTypeEmailPre
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 
 import { CompanySmsSettingsCard } from '../CompanySmsSettingsCard/CompanySmsSettingsCard';
+import { GoogleReviewRequestPreferencesCard } from '../GoogleReviewRequestPreferencesCard/GoogleReviewRequestPreferencesCard';
 import { WelcomeEmailPreferencesCard } from '../WelcomeEmailPreferencesCard/WelcomeEmailPreferencesCard';
 
 const EMAIL_CONTENT_VARIABLES = [
@@ -237,6 +238,7 @@ function EmailPreferencesContent({
   const { data: serviceTypesData, isLoading } = useGetServiceTypes(company.id);
   const [emailTextServiceTypeId, setEmailTextServiceTypeId] = useState<string | null>(null);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [completedEmailsOpen, setCompletedEmailsOpen] = useState(false);
   const [skippedReasonsModalOpen, setSkippedReasonsModalOpen] = useState(false);
   const [emailVariablesModalOpen, setEmailVariablesModalOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -348,6 +350,7 @@ function EmailPreferencesContent({
           <span className="ml-2 text-sm">{t('emailPrefs.loadingServiceTypes')}</span>
         </div>
         <WelcomeEmailPreferencesCard company={company} />
+        <GoogleReviewRequestPreferencesCard company={company} />
       </CardContent>
     );
   }
@@ -360,6 +363,7 @@ function EmailPreferencesContent({
           <p>{t('emailPrefs.noServiceTypes')}</p>
         </div>
         <WelcomeEmailPreferencesCard company={company} />
+        <GoogleReviewRequestPreferencesCard company={company} />
       </CardContent>
     );
   }
@@ -384,14 +388,27 @@ function EmailPreferencesContent({
       )}
 
       {/* CC Email Section */}
-      <div className="mb-8">
-        <Card className="border border-gray-200">
-          <CardContent className="space-y-6 p-6">
+      <div className="rounded-lg border bg-white shadow-sm">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-3 p-6 text-left"
+          aria-expanded={completedEmailsOpen}
+          onClick={() => setCompletedEmailsOpen((value) => !value)}
+        >
+          <div>
+            <h2 className="text-lg font-semibold">{t('emailPrefs.sendCompleted')}</h2>
+            <p className="text-muted-foreground mt-1 text-sm font-normal">{t('emailPrefs.sendCompletedHint')}</p>
+          </div>
+          <ChevronDown
+            className={cn(
+              'h-5 w-5 shrink-0 text-gray-600 transition-transform duration-200',
+              completedEmailsOpen ? 'rotate-0' : 'rotate-180'
+            )}
+          />
+        </button>
+        {completedEmailsOpen ? (
+          <div className="space-y-6 border-t border-gray-200 p-6">
             <div className="space-y-3">
-              <div>
-                <span className="text-sm font-semibold text-gray-800">{t('emailPrefs.sendCompleted')}</span>
-                <p className="text-muted-foreground text-sm font-normal">{t('emailPrefs.sendCompletedHint')}</p>
-              </div>
               <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200">
                 {serviceTypes.map((serviceType) => (
                   <div
@@ -502,8 +519,8 @@ function EmailPreferencesContent({
                 )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        ) : null}
       </div>
 
       <Dialog
@@ -616,6 +633,8 @@ function EmailPreferencesContent({
       <CompanySmsSettingsCard companyId={company.id} />
 
       <WelcomeEmailPreferencesCard company={company} />
+
+      <GoogleReviewRequestPreferencesCard company={company} />
 
       <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
         <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>

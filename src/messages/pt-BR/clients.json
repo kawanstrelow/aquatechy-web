@@ -287,6 +287,12 @@
     "welcomeEmailConfirm": "Enviar um e-mail de boas-vindas para {name} em {email}?",
     "welcomeEmailQueued": "E-mail de boas-vindas na fila.",
     "welcomeEmailError": "Não foi possível enviar o e-mail de boas-vindas",
+    "sendGoogleReview": "Pedir uma avaliação no Google",
+    "googleReviewConfirm": "Enviar agora um pedido de avaliação no Google para {name}? Isto não espera o calendário habitual.",
+    "googleReviewQueued": "Pedido de avaliação na fila.",
+    "googleReviewNotQueued": "O pedido de avaliação não entrou na fila. Nada foi enviado.",
+    "googleReviewError": "Não foi possível enviar o pedido de avaliação",
+    "googleReviewUnavailable": "Ative este cliente e desmarque a avaliação já feita antes de enviar um pedido.",
     "monthlyPayment": "Pagamento mensal",
     "services": "Serviços",
     "pools": "Piscinas",
@@ -300,6 +306,17 @@
     "updateAddress": "Atualizar endereço",
     "updateAddressDescription": "Você está prestes a alterar o endereço do cliente. Também será preciso atualizar o endereço de serviço da piscina separadamente.",
     "updateOnlyClient": "Atualizar apenas o cliente"
+  },
+  "googleReview": {
+    "title": "Pedidos de avaliação no Google",
+    "description": "Peça a este cliente uma avaliação no Google depois de uma visita concluída.",
+    "participationOn": "Ligado",
+    "participationOff": "Desligado",
+    "participationDefault": "Seguir o ajuste da empresa",
+    "reviewed": "Já deixou uma avaliação",
+    "reviewedHelp": "Ative isto quando o cliente publicar uma avaliação. Os próximos pedidos param. Desativar não muda quando o último pedido foi enviado.",
+    "saved": "Configuração de avaliação no Google salva",
+    "saveError": "Não foi possível atualizar as configurações de avaliação no Google"
   },
   "pool": {
     "inactiveSince": "(Inativo desde {date})",
