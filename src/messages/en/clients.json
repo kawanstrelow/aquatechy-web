@@ -287,6 +287,12 @@
     "welcomeEmailConfirm": "Send a welcome email to {name} at {email}?",
     "welcomeEmailQueued": "Welcome email queued.",
     "welcomeEmailError": "Could not send the welcome email",
+    "sendGoogleReview": "Request a Google review",
+    "googleReviewConfirm": "Send a Google review request to {name} now? This does not wait for the usual schedule.",
+    "googleReviewQueued": "Review request queued.",
+    "googleReviewNotQueued": "Review request was not queued. Nothing was sent.",
+    "googleReviewError": "Could not send the review request",
+    "googleReviewUnavailable": "Turn this client on and clear the already-reviewed mark before sending a request.",
     "monthlyPayment": "Monthly payment",
     "services": "Services",
     "pools": "Pools",
@@ -300,6 +306,17 @@
     "updateAddress": "Update Address",
     "updateAddressDescription": "You are about to change the client''s address. You will also need to update the pool service address separately.",
     "updateOnlyClient": "Update only client"
+  },
+  "googleReview": {
+    "title": "Google review requests",
+    "description": "Ask this client for a Google review after a completed visit.",
+    "participationOn": "On",
+    "participationOff": "Off",
+    "participationDefault": "Follow the company setting",
+    "reviewed": "Already left a review",
+    "reviewedHelp": "Turn this on after the client posts a review. Future requests stop. Turning it off does not change when the last request was sent.",
+    "saved": "Google review setting saved",
+    "saveError": "Could not update Google review settings"
   },
   "pool": {
     "inactiveSince": "(Inactive since {date})",

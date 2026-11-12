@@ -506,6 +506,49 @@
       "viewOnly": "Somente proprietários e administradores podem atualizar o e-mail de boas-vindas desta empresa.",
       "variablesTitle": "Variáveis disponíveis",
       "variablesHelp": "Você pode usar estas variáveis no assunto e no corpo. Elas são substituídas quando o e-mail é enviado."
+    },
+    "googleReviews": {
+      "title": "Pedidos de avaliação no Google",
+      "description": "Peça aos clientes uma avaliação no Google depois de uma visita concluída. Salvar estes ajustes não envia nenhuma mensagem até que os pedidos estejam ligados e os clientes estejam incluídos.",
+      "enabled": "Ativar mensagens pedindo uma avaliação no Google",
+      "enabledHelp": "Enquanto isto estiver desligado, nenhum pedido de avaliação é enviado.",
+      "reviewUrl": "Link da avaliação no Google",
+      "reviewUrlHelp": "Use um link http ou https, como o endereço para escrever uma avaliação no Google.",
+      "interval": "De quanto em quanto tempo pedir",
+      "intervals": {
+        "weekly": "Semanal",
+        "monthly": "Mensal",
+        "every3Months": "A cada 3 meses",
+        "every6Months": "A cada 6 meses",
+        "yearly": "Anual"
+      },
+      "sendSms": "Enviar mensagem de texto",
+      "sendEmail": "Enviar e-mail",
+      "channelsHelp": "Escolha texto, e-mail ou ambos antes de ligar os pedidos de avaliação.",
+      "defaultEnabled": "Incluir todos os clientes (você pode desligar isso para clientes individuais na página deles)",
+      "defaultEnabledHelp": "Clientes sem uma configuração própria seguem esta opção. Ela começa desligada, então salvar o link e os modelos não envia mensagens.",
+      "sendHour": "Hora de envio",
+      "sendHourHelp": "Depois que a visita é concluída, a mensagem espera até esta hora no horário local.",
+      "minimumServices": "Visitas concluídas antes do primeiro pedido",
+      "minimumServicesHelp": "Visitas puladas e canceladas não contam. Os pedidos seguintes também esperam o intervalo passar e outra visita ser concluída.",
+      "variablesTitle": "Variáveis da mensagem",
+      "variablesHelp": "Elas permanecem como foram escritas até uma mensagem ser enviada. Se um modelo não incluir o link da avaliação, o link é acrescentado no envio.",
+      "policyTitle": "Quem recebe o pedido",
+      "policy": "Os pedidos vão para cada cliente incluído. Não ofereça uma recompensa por uma avaliação.",
+      "smsBody": "Mensagem de texto",
+      "emailSubject": "Assunto do e-mail",
+      "emailBody": "Corpo do e-mail",
+      "save": "Salvar pedidos de avaliação",
+      "saved": "Ajustes de pedidos de avaliação salvos",
+      "saveError": "Não foi possível salvar os ajustes de pedidos de avaliação",
+      "urlError": "O link da avaliação precisa ser uma URL http ou https.",
+      "channelError": "Escolha texto, e-mail ou ambos antes de ligar os pedidos de avaliação.",
+      "smsRequired": "Escreva uma mensagem de texto antes de salvar com o texto ligado.",
+      "emailRequired": "Escreva um assunto e um corpo de e-mail antes de salvar com o e-mail ligado.",
+      "hourError": "Escolha uma hora entre 00:00 e 23:00.",
+      "minimumError": "Informe pelo menos 1 visita concluída.",
+      "viewOnlyTitle": "Somente visualização",
+      "viewOnly": "Somente proprietários, administradores e a equipe de escritório podem atualizar os pedidos de avaliação desta empresa."
     }
   },
   "errors": {
@@ -793,7 +836,7 @@
           "0": "Otimização de rota",
           "1": "Pagamentos com cartão e ACH no portal do cliente",
           "2": "Orçamentos, faturas recorrentes e ordens de serviço",
-          "3": "E-mails de serviço personalizados e 150 SMS por mês"
+          "3": "E-mails de serviço personalizados e 325 SMS por mês, depois US$ 0,02 cada"
         }
       },
       "grow": {
@@ -807,7 +850,7 @@
           "0": "Tudo do Route",
           "1": "Respostas de IA com os dados da sua empresa",
           "2": "Relatórios de químicos, equipe e filtros",
-          "3": "1.000 SMS por mês e e-mail prioritário"
+          "3": "900 SMS por mês, depois US$ 0,02 cada, e e-mail prioritário"
         }
       },
       "enterprise": {
@@ -868,8 +911,8 @@
       },
       "9": {
         "feature": "SMS por mês",
-        "route": "150",
-        "grow": "1.000",
+        "route": "325, depois US$ 0,02",
+        "grow": "900, depois US$ 0,02",
         "enterprise": "Personalizado"
       },
       "10": {

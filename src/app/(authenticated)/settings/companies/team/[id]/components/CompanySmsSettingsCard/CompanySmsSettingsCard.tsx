@@ -7,14 +7,13 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { ChevronDown, MessageSquare } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
 import ConfirmActionDialog from '@/components/confirm-action-dialog';
 import InputField from '@/components/InputField';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -283,24 +282,20 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
         : t('sms.saveAndTest');
 
   return (
-    <div className="mb-8">
-      <Card className="border border-gray-200">
+    <>
+      <div className="mt-8 rounded-lg border bg-white shadow-sm">
         <button
           type="button"
           className="flex w-full items-center justify-between gap-3 p-6 text-left"
+          aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
         >
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-gray-100 p-2">
-              <MessageSquare className="h-5 w-5 text-gray-600" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-gray-800">{t('sms.title')}</h3>
-              <p className="text-muted-foreground text-sm font-normal">
-                Choose Aquatechy’s number or your own Quo or Twilio account. Completed-service, invoice, and estimate
-                SMS use this number. Signup and verification still use Aquatechy.
-              </p>
-            </div>
+          <div>
+            <h2 className="text-lg font-semibold">{t('sms.title')}</h2>
+            <p className="text-muted-foreground mt-1 text-sm font-normal">
+              Choose Aquatechy’s number or your own Quo or Twilio account. Completed-service, invoice, and estimate SMS
+              use this number. Signup and verification still use Aquatechy.
+            </p>
           </div>
           <ChevronDown
             className={cn(
@@ -311,7 +306,7 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
         </button>
 
         {open ? (
-          <CardContent className="border-t border-gray-200 p-6">
+          <div className="border-t border-gray-200 p-6">
             {isLoading ? (
               <div className="flex justify-center py-6">
                 <div className="inline-block h-5 w-5 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]" />
@@ -472,9 +467,9 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
                 </div>
               </Form>
             )}
-          </CardContent>
+          </div>
         ) : null}
-      </Card>
+      </div>
 
       <ConfirmActionDialog
         open={wipeConfirmOpen}
@@ -484,6 +479,6 @@ export function CompanySmsSettingsCard({ companyId }: { companyId: string }) {
         confirmText="Use Aquatechy’s number"
         onConfirm={handleWipeConfirm}
       />
-    </div>
+    </>
   );
 }

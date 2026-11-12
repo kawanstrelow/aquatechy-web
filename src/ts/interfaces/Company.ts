@@ -75,6 +75,22 @@ export interface WelcomeEmailPreferences {
   emailBody: string;
 }
 
+export type GoogleReviewRequestInterval = 'weekly' | 'monthly' | 'every_3_months' | 'every_6_months' | 'yearly';
+
+export interface GoogleReviewRequestPreferences {
+  enabled: boolean;
+  reviewUrl: string | null;
+  interval: GoogleReviewRequestInterval;
+  sendSms: boolean;
+  sendEmail: boolean;
+  defaultEnabledForClients: boolean;
+  smsBody: string;
+  emailSubject: string;
+  emailBody: string;
+  sendHourLocal: number;
+  minimumCompletedServices: number;
+}
+
 export type CompanyMember = {
   status: Status;
   id: string;
@@ -136,6 +152,7 @@ export interface Company {
     invoiceSettingsPreferences?: InvoiceSettingsPreferences | null;
     estimateSettingsPreferences?: EstimateSettingsPreferences | null;
     welcomeEmailPreferences?: WelcomeEmailPreferences | null;
+    googleReviewRequestPreferences?: GoogleReviewRequestPreferences | null;
     paymentsPreferences?: {
       allowCardOnFile?: boolean;
       applicationFeeBps?: number;

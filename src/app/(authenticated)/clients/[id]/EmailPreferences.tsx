@@ -26,6 +26,8 @@ import { Client } from '@/ts/interfaces/Client';
 import { useUpdateClientPreferences } from '@/hooks/react-query/clients/updatePreferences';
 import { useUserStore } from '@/store/user';
 
+import ClientGoogleReviewRequestCard from './ClientGoogleReviewRequestCard';
+
 const schema = z.object({
   sendEmails: z.boolean(),
   sendSMS: z.boolean(),
@@ -59,7 +61,13 @@ function isGrowOnlyField(name: string): name is GrowOnlyField {
   return (GROW_ONLY_FIELDS as readonly string[]).includes(name);
 }
 
-export default function EmailPreferences({ client }: { client: Client }) {
+export default function EmailPreferences({
+  client,
+  showGoogleReview = false
+}: {
+  client: Client;
+  showGoogleReview?: boolean;
+}) {
   const t = useTranslations('clients');
   const labelText = (key: string) => t(key as never);
   const { isPending, mutate } = useUpdateClientPreferences(client.id);
@@ -247,6 +255,7 @@ export default function EmailPreferences({ client }: { client: Client }) {
                 </div>
               </div>
             ))}
+            {showGoogleReview ? <ClientGoogleReviewRequestCard client={client} /> : null}
             <Button disabled={!form.formState.isDirty} className="mt-2">
               {t('shared.save')}
             </Button>

@@ -506,6 +506,49 @@
       "viewOnly": "Only owners and admins can update the welcome email for this company.",
       "variablesTitle": "Available variables",
       "variablesHelp": "You can use these variables in the subject and body. They are replaced when the email is sent."
+    },
+    "googleReviews": {
+      "title": "Google review requests",
+      "description": "Ask clients for a Google review after a completed visit. Saving these settings does not message anyone until review requests are turned on and clients are included.",
+      "enabled": "Enable messages asking for a Google review",
+      "enabledHelp": "While this is off, no review requests are sent.",
+      "reviewUrl": "Google review link",
+      "reviewUrlHelp": "Use an http or https link, such as your Google write-a-review URL.",
+      "interval": "How often to ask",
+      "intervals": {
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "every3Months": "Every 3 months",
+        "every6Months": "Every 6 months",
+        "yearly": "Yearly"
+      },
+      "sendSms": "Send text message",
+      "sendEmail": "Send e-mail",
+      "channelsHelp": "Choose text, email, or both before turning review requests on.",
+      "defaultEnabled": "Include all clients (you can turn this off for individual clients on their page)",
+      "defaultEnabledHelp": "Clients without their own setting follow this. It starts off, so saving the link and templates does not message anyone.",
+      "sendHour": "Send hour",
+      "sendHourHelp": "After the visit is completed, the message waits until this hour in local time.",
+      "minimumServices": "Completed visits before the first request",
+      "minimumServicesHelp": "Skipped and cancelled visits do not count. Later requests also wait until the interval has passed and another visit is completed.",
+      "variablesTitle": "Message tokens",
+      "variablesHelp": "These stay as written until a message is sent. If a template leaves out the review link, the link is added when the message is sent.",
+      "policyTitle": "Who gets asked",
+      "policy": "Requests go to every client who is included. Do not offer a reward for a review.",
+      "smsBody": "Text message",
+      "emailSubject": "Email subject",
+      "emailBody": "Email body",
+      "save": "Save review requests",
+      "saved": "Review request settings saved",
+      "saveError": "Could not save review request settings",
+      "urlError": "The review link must be an http or https URL.",
+      "channelError": "Choose text, email, or both before turning review requests on.",
+      "smsRequired": "Enter a text message before saving with text turned on.",
+      "emailRequired": "Enter an email subject and body before saving with email turned on.",
+      "hourError": "Choose an hour from 12:00 AM through 11:00 PM.",
+      "minimumError": "Enter at least 1 completed visit.",
+      "viewOnlyTitle": "View only",
+      "viewOnly": "Only owners, admins, and office staff can update review requests for this company."
     }
   },
   "errors": {
@@ -793,7 +836,7 @@
           "0": "Route optimization",
           "1": "Card and ACH payments in the client portal",
           "2": "Estimates, recurring invoices, and work orders",
-          "3": "Custom service emails and 150 texts a month"
+          "3": "Custom service emails and 325 texts a month, then $0.02 each"
         }
       },
       "grow": {
@@ -807,7 +850,7 @@
           "0": "Everything in Route",
           "1": "AI answers on your company data",
           "2": "Chemical, team, and filter reports",
-          "3": "1,000 texts a month and priority email"
+          "3": "900 texts a month, then $0.02 each, and priority email"
         }
       },
       "enterprise": {
@@ -868,8 +911,8 @@
       },
       "9": {
         "feature": "Texts a month",
-        "route": "150",
-        "grow": "1,000",
+        "route": "325, then $0.02",
+        "grow": "900, then $0.02",
         "enterprise": "Custom"
       },
       "10": {
