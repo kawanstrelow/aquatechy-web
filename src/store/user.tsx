@@ -59,13 +59,18 @@ const useUserStoreBase = create<UserState>()(
   }))
 );
 
-const UserBootstrapContext = createContext<UserState | null>(null);
+const UserBootstrapContext = createContext<{ fallback: UserState | null; revision: number }>({
+  fallback: null,
+  revision: 0
+});
 
 export function UserBootstrapProvider({
   initialData,
+  revision,
   children
 }: {
   initialData?: UserBootstrapData | null;
+  revision: number;
   children: React.ReactNode;
 }) {
   const fallback = useMemo(() => {
@@ -77,20 +82,22 @@ export function UserBootstrapProvider({
     };
   }, [initialData]);
 
-  return <UserBootstrapContext.Provider value={fallback}>{children}</UserBootstrapContext.Provider>;
+  const value = useMemo(() => ({ fallback, revision }), [fallback, revision]);
+
+  return <UserBootstrapContext.Provider value={value}>{children}</UserBootstrapContext.Provider>;
 }
 
 function useUserStoreHook<T>(selector: (state: UserState) => T = (state) => state as T): T {
-  const fallback = useContext(UserBootstrapContext);
-  const live = useUserStoreBase(selector);
-  const hasLiveUser = useUserStoreBase((state) => Boolean(state.user?.id));
-  // Hydration reads the empty initial snapshot even after the store is filled.
-  // Stay on that snapshot's fallback until the store object itself changes, so logout
-  // (a later empty state) does not snap back to the server payload.
-  const isInitialSnapshot = useUserStoreBase((state) => state === useUserStoreBase.getInitialState());
-
-  if (!fallback || hasLiveUser || !isInitialSnapshot) return live;
-  return selector(fallback);
+  const { fallback, revision } = useContext(UserBootstrapContext);
+  // `revision` is bumped from a layout effect after the store is filled. Reading it here
+  // re-renders the page (a child of the shell) before paint. A Zustand subscription alone
+  // is patched in a passive effect, which can sit unflushed after login until a click.
+  void revision;
+  const live = useUserStoreBase.getState();
+  // The untouched startup snapshot is what hydration renders. Keep the server payload until
+  // the store object itself changes, so logout (a later empty state) does not snap back to it.
+  const source = fallback && live === useUserStoreBase.getInitialState() ? fallback : live;
+  return selector(source);
 }
 
 export const useUserStore = Object.assign(useUserStoreHook, useUserStoreBase) as typeof useUserStoreBase;

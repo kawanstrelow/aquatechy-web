@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 import Cookies from 'js-cookie';
-import { useSyncExternalStore } from 'react';
+import { useLayoutEffect, useState, useSyncExternalStore } from 'react';
 
 import { clientAxios } from '@/lib/clientAxios';
 import { useMembersStore } from '@/store/members';
@@ -22,6 +22,8 @@ type Snapshot = {
 const listeners = new Set<() => void>();
 const started = new Set<string>();
 let snapshot: Snapshot = { status: 'idle' };
+/** Stable server/hydration snapshot. The live snapshot must not be read while hydrating or a fast update is dropped until the next click. */
+const serverSnapshot: Snapshot = { status: 'idle' };
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -34,6 +36,10 @@ function subscribe(listener: () => void) {
 
 function getSnapshot() {
   return snapshot;
+}
+
+function getServerSnapshot() {
+  return serverSnapshot;
 }
 
 function applyUserData(data: UserQueryData) {
@@ -111,12 +117,22 @@ export function ensureClientUserLoad() {
 }
 
 export default function useGetUser() {
-  const snap = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const external = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [snap, setSnap] = useState<Snapshot | null>(null);
+
+  useLayoutEffect(() => {
+    setSnap(getSnapshot());
+    return subscribe(() => {
+      setSnap(getSnapshot());
+    });
+  }, []);
+
+  const current = snap ?? external;
 
   return {
-    data: snap.data,
-    isLoading: snap.status !== 'success',
-    isPending: snap.status !== 'success',
-    isSuccess: snap.status === 'success'
+    data: current.data,
+    isLoading: current.status !== 'success',
+    isPending: current.status !== 'success',
+    isSuccess: current.status === 'success'
   };
 }

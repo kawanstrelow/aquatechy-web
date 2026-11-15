@@ -17,7 +17,7 @@ import type { AppLocale } from '@/i18n/locale';
 import { resolveLocale } from '@/i18n/locale';
 import { loadMessages } from '@/i18n/loadMessages';
 import { setActiveMessages } from '@/i18n/runtime';
-import { UserBootstrapProvider } from '@/store/user';
+import { UserBootstrapProvider, useUserStore } from '@/store/user';
 
 import { HelpButton } from './HelpButton';
 import PageHeader from './PageHeader';
@@ -99,12 +99,23 @@ export default function AuthenticatedShell({ children, initialData, locale, mess
   );
 }
 
-function ShellFrame({ children, initialData }: { children: React.ReactNode; initialData?: UserQueryData | null }) {
-  useState(() => {
-    if (initialData) hydrateUserBootstrap(initialData);
-    return true;
-  });
+function usePublishUserBootstrap(initialData?: UserQueryData | null) {
+  const [revision, setRevision] = useState(0);
 
+  useLayoutEffect(() => {
+    if (initialData) hydrateUserBootstrap(initialData);
+    else ensureClientUserLoad();
+    setRevision((value) => value + 1);
+    return useUserStore.subscribe(() => {
+      setRevision((value) => value + 1);
+    });
+  }, [initialData]);
+
+  return revision;
+}
+
+function ShellFrame({ children, initialData }: { children: React.ReactNode; initialData?: UserQueryData | null }) {
+  const revision = usePublishUserBootstrap(initialData);
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations('common');
@@ -116,11 +127,6 @@ function ShellFrame({ children, initialData }: { children: React.ReactNode; init
   const profileIncomplete = needsOnboarding(user);
   const isRedirectingToOnboarding = profileIncomplete && pathname !== '/onboarding';
   const isUserLoading = (!data && !initialData) || isRedirectingToOnboarding;
-
-  useLayoutEffect(() => {
-    if (initialData) hydrateUserBootstrap(initialData);
-    else ensureClientUserLoad();
-  }, [initialData]);
 
   useLayoutEffect(() => {
     if (!Cookies.get('userId')) {
@@ -150,7 +156,7 @@ function ShellFrame({ children, initialData }: { children: React.ReactNode; init
   };
 
   return (
-    <UserBootstrapProvider initialData={initialData}>
+    <UserBootstrapProvider initialData={initialData} revision={revision}>
       <ProductTour enabled={tourEnabled && !showWelcomeVideo && pathname !== '/onboarding'} userId={userId} />
       {!isUserLoading && showWelcomeVideo && (
         <VideoModal
