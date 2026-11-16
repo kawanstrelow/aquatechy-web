@@ -20,9 +20,10 @@ type Props = {
   status: string;
   imageUrl?: string | null;
   href?: string;
+  userCompanyId?: string;
 };
 
-export function CompanyCard({ companyId, name, email, phone, role, status, imageUrl, href }: Props) {
+export function CompanyCard({ companyId, name, email, phone, role, status, imageUrl, href, userCompanyId }: Props) {
   const t = useTranslations('settings');
   const router = useRouter();
   const isPendingAcceptance = status !== 'Active';
@@ -72,6 +73,8 @@ export function CompanyCard({ companyId, name, email, phone, role, status, image
                 companyId={companyId}
                 companyName={name}
                 membershipStatus={status as 'Active' | 'Inactive'}
+                role={role}
+                userCompanyId={userCompanyId}
               />
             ) : null}
           </div>
