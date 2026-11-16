@@ -18,12 +18,17 @@ export interface ReportAdjustment {
   description: string;
 }
 
+export const TECHNICIAN_REPORT_STATUSES = ['Open', 'InProgress', 'Completed', 'Skipped', 'Cancelled'] as const;
+
+export type TechnicianReportStatus = (typeof TECHNICIAN_REPORT_STATUSES)[number];
+
 interface GenerateTechnicianReportParams {
   assignedToId: string;
   companyId: string;
   serviceTypes: ServiceTypeWithPayment[];
   fromDate: string;
   toDate: string;
+  statuses: TechnicianReportStatus[];
   extras?: ReportAdjustment;
   discounts?: ReportAdjustment;
 }
@@ -38,6 +43,7 @@ export const useGenerateTechnicianReport = () => {
       serviceTypes,
       fromDate,
       toDate,
+      statuses,
       extras,
       discounts
     }: GenerateTechnicianReportParams) => {
@@ -52,10 +58,11 @@ export const useGenerateTechnicianReport = () => {
       };
 
       const body: {
+        statuses: TechnicianReportStatus[];
         serviceTypes: ServiceTypeWithPayment[];
         extras?: ReportAdjustment;
         discounts?: ReportAdjustment;
-      } = { serviceTypes };
+      } = { statuses, serviceTypes };
 
       if (extras && extras.amount > 0) {
         body.extras = extras;

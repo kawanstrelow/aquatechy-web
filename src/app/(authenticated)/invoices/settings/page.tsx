@@ -80,6 +80,7 @@ function InvoiceSettingsRedirectContent() {
             role={company.role}
             status={company.status}
             imageUrl={company.imageUrl}
+            userCompanyId={company.userCompanyId}
             href={buildPreferencesHref(company.id, invoiceTab)}
           />
         ))}

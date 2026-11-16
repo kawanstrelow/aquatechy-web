@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, type SyntheticEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +17,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAcceptCompanyInvitation } from '@/hooks/react-query/companies/acceptCompanyInvitation';
 import { useDeleteCompanyMember } from '@/hooks/react-query/companies/deleteCompanyMember';
-import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
 import { useUserStore } from '@/store/user';
 
 const QUIT_CONFIRMATION = 'QUIT';
@@ -26,18 +25,16 @@ type Props = {
   companyId: string;
   companyName: string;
   membershipStatus: 'Active' | 'Inactive';
+  role?: string;
+  userCompanyId?: string;
 };
 
-export function CompanyMembershipAction({ companyId, companyName, membershipStatus }: Props) {
+export function CompanyMembershipAction({ companyId, companyName, membershipStatus, role, userCompanyId }: Props) {
   const t = useTranslations('settings');
   const common = useTranslations('common');
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { data: companies } = useGetCompanies();
   const user = useUserStore((state) => state.user);
-
-  const company = companies?.find((c) => c.id === companyId);
-  const role = company?.role;
 
   const [open, setOpen] = useState(false);
   const [quitConfirmText, setQuitConfirmText] = useState('');
@@ -45,12 +42,12 @@ export function CompanyMembershipAction({ companyId, companyName, membershipStat
   const { mutate: acceptInvitation, isPending: isAccepting } = useAcceptCompanyInvitation();
   const { mutate: removeMember, isPending: isQuitting } = useDeleteCompanyMember();
 
-  if (!company || role === 'Owner' || role === 'Admin') {
-    return null;
-  }
-
   const isActive = membershipStatus === 'Active';
+  const hideQuit = role === 'Owner' || role === 'Admin';
   const isBusy = isAccepting || isQuitting;
+
+  if (isActive && hideQuit) return null;
+  if (!isActive && !userCompanyId) return null;
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
@@ -71,17 +68,26 @@ export function CompanyMembershipAction({ companyId, companyName, membershipStat
   };
 
   const handleAccept = () => {
-    if (!company.userCompanyId) return;
-    acceptInvitation(
-      { userCompanyId: company.userCompanyId, status: 'Active' },
-      { onSuccess: () => handleOpenChange(false) }
-    );
+    if (!userCompanyId) return;
+    acceptInvitation({ userCompanyId, status: 'Active' }, { onSuccess: () => handleOpenChange(false) });
+  };
+
+  const roleLabel = role && t.has(`roles.${role}`) ? t(`roles.${role}`) : role ?? '';
+
+  const stopCardNavigation = (event: SyntheticEvent) => {
+    event.stopPropagation();
   };
 
   return (
     <>
-      <div className="flex w-full justify-center" onClick={(e) => e.stopPropagation()}>
-        <Button type="button" variant={isActive ? 'outline' : 'default'} size="sm" onClick={() => setOpen(true)}>
+      <div className="flex w-full justify-center" onClick={stopCardNavigation} onPointerDown={stopCardNavigation}>
+        <Button
+          type="button"
+          variant={isActive ? 'outline' : 'default'}
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={() => setOpen(true)}
+        >
           {isActive ? t('companies.quitCompany') : t('companies.acceptInvitation')}
         </Button>
       </div>
@@ -95,7 +101,7 @@ export function CompanyMembershipAction({ companyId, companyName, membershipStat
                 ? t('companies.leaveCompanyDescription', { companyName })
                 : t('companies.joinCompanyDescription', {
                     companyName,
-                    role: t.has(`roles.${company.role}`) ? t(`roles.${company.role}`) : company.role
+                    role: roleLabel
                   })}
             </DialogDescription>
           </DialogHeader>

@@ -62,6 +62,7 @@ export default function Page() {
                   role={company.role}
                   status={company.status}
                   imageUrl={company.imageUrl}
+                  userCompanyId={company.userCompanyId}
                 />
               ))}
             </div>

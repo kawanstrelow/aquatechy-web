@@ -55,6 +55,7 @@ export default function PreferencesPage() {
             role={company.role}
             status={company.status}
             imageUrl={company.imageUrl}
+            userCompanyId={company.userCompanyId}
             href={`/settings/companies/team/${company.id}?tab=preferences`}
           />
         ))}
