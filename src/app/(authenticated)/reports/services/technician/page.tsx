@@ -12,17 +12,32 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useUserStore } from '@/store/user';
 import useGetMembersOfAllCompaniesByUserId from '@/hooks/react-query/companies/getMembersOfAllCompaniesByUserId';
-import { useGenerateTechnicianReport } from '@/hooks/react-query/reports/useGenerateTechnicianReport';
+import {
+  TECHNICIAN_REPORT_STATUSES,
+  useGenerateTechnicianReport,
+  type TechnicianReportStatus
+} from '@/hooks/react-query/reports/useGenerateTechnicianReport';
 import { useGetServiceTypes } from '@/hooks/react-query/service-types/useGetServiceTypes';
 import { MultiSelect } from '@/components/MultiSelect';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 import { ReportHeader } from '../../_components/ReportChrome';
 
 const fieldControlClass = 'border border-slate-200 bg-white text-ink shadow-none hover:bg-slate-50';
 
 const MAX_ADJUSTMENT_DESCRIPTION_LENGTH = 120;
+
+const DEFAULT_REPORT_STATUSES: TechnicianReportStatus[] = ['Open', 'Skipped', 'Completed'];
+
+const STATUS_LABEL_KEYS: Record<TechnicianReportStatus, string> = {
+  Open: 'statusOpen',
+  InProgress: 'statusInProgress',
+  Completed: 'statusCompleted',
+  Skipped: 'statusSkipped',
+  Cancelled: 'statusCancelled'
+};
 
 /** Local calendar date as YYYY-MM-DD (avoids UTC day-shift from toISOString). */
 const toLocalDateString = (date: Date) => format(date, 'yyyy-MM-dd');
@@ -63,6 +78,7 @@ export default function TechnicianReportPage() {
       paymentPercentagePerService?: number | string;
     };
   }>({});
+  const [selectedStatuses, setSelectedStatuses] = useState<TechnicianReportStatus[]>(DEFAULT_REPORT_STATUSES);
   const [extrasAmount, setExtrasAmount] = useState<number | string>('');
   const [extrasDescription, setExtrasDescription] = useState('');
   const [discountsAmount, setDiscountsAmount] = useState<number | string>('');
@@ -218,6 +234,7 @@ export default function TechnicianReportPage() {
         serviceTypes: serviceTypesWithPayments,
         fromDate: fromDateString!,
         toDate: toDateString!,
+        statuses: TECHNICIAN_REPORT_STATUSES.filter((status) => selectedStatuses.includes(status)),
         ...(extrasValue !== null &&
           extrasValue > 0 && {
             extras: {
@@ -293,7 +310,8 @@ export default function TechnicianReportPage() {
     selectedServiceTypes.length > 0 &&
     validatePaymentConfiguration() &&
     validateAdjustment(extrasAmount, extrasDescription) &&
-    validateAdjustment(discountsAmount, discountsDescription);
+    validateAdjustment(discountsAmount, discountsDescription) &&
+    selectedStatuses.length > 0;
 
   if (membersLoading || isServiceTypesLoading) {
     return <LoadingSpinner />;
@@ -383,7 +401,7 @@ export default function TechnicianReportPage() {
                 const serviceType = filteredTypeOfService.find((s) => s.id === serviceTypeId);
                 const payment = serviceTypePayments[serviceTypeId];
                 return (
-                  <div key={serviceTypeId} className="space-y-3 rounded-lg border border-line bg-canvas p-4">
+                  <div key={serviceTypeId} className="space-y-3 rounded-lg border border-line bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
                       <div className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-gray-800">
@@ -504,157 +522,192 @@ export default function TechnicianReportPage() {
             </div>
           )}
 
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium">{t('technicianReport.fromDate')}</label>
+              <DatePicker
+                placeholder={t('technicianReport.selectStartDate')}
+                value={fromDate}
+                className={`w-full ${fieldControlClass}`}
+                onChange={(date) => {
+                  if (date) {
+                    const startOfDay = new Date(date);
+                    startOfDay.setHours(0, 0, 0, 0);
+                    setFromDate(startOfDay);
+                    setFromDateString(toLocalDateString(startOfDay));
+                  } else {
+                    setFromDate(undefined);
+                    setFromDateString(undefined);
+                  }
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium">{t('technicianReport.toDate')}</label>
+              <DatePicker
+                placeholder={t('technicianReport.selectEndDate')}
+                value={toDate}
+                className={`w-full ${fieldControlClass}`}
+                onChange={(date) => {
+                  if (date) {
+                    const endOfDay = new Date(date);
+                    endOfDay.setHours(23, 59, 59, 999);
+                    setToDate(endOfDay);
+                    setToDateString(toLocalDateString(endOfDay));
+                  } else {
+                    setToDate(undefined);
+                    setToDateString(undefined);
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">{t('technicianReport.statuses')}</label>
+            <p className="mb-2 mt-1 text-xs text-gray-500">{t('technicianReport.statusesHint')}</p>
+            <div role="group" aria-label={t('technicianReport.statuses')} className="flex flex-wrap gap-2">
+              {TECHNICIAN_REPORT_STATUSES.map((status) => {
+                const selected = selectedStatuses.includes(status);
+
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => {
+                      setSelectedStatuses((current) =>
+                        current.includes(status) ? current.filter((item) => item !== status) : [...current, status]
+                      );
+                    }}
+                    className={cn(
+                      'rounded-full border px-3.5 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2',
+                      selected
+                        ? 'border-accent bg-accent font-medium text-white hover:bg-accent/90'
+                        : 'border-line bg-white text-ink-muted hover:border-slate-300 hover:bg-slate-50'
+                    )}
+                  >
+                    {t(`technicianReport.${STATUS_LABEL_KEYS[status]}`)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="space-y-4">
             <label className="block text-sm font-medium">{t('technicianReport.adjustments')}</label>
             <p className="text-xs text-gray-500">{t('technicianReport.adjustmentsHint')}</p>
 
-            <div className="space-y-3 rounded-lg border border-line bg-canvas p-4">
-              <span className="text-sm font-medium text-gray-800">{t('technicianReport.extras')}</span>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">{t('technicianReport.amountUsd')}</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">$</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={extrasAmount}
-                    onChange={(e) => setExtrasAmount(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
-                    className={`text-sm ${
-                      parsePaymentValue(extrasAmount) !== null && parsePaymentValue(extrasAmount)! < 0
-                        ? 'border-red-500 focus:border-red-500'
-                        : ''
-                    }`}
-                  />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-3 rounded-lg border border-line bg-white p-4">
+                <span className="text-sm font-medium text-gray-800">{t('technicianReport.extras')}</span>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-600">{t('technicianReport.amountUsd')}</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">$</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={extrasAmount}
+                      onChange={(e) => setExtrasAmount(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
+                      className={`text-sm ${
+                        parsePaymentValue(extrasAmount) !== null && parsePaymentValue(extrasAmount)! < 0
+                          ? 'border-red-500 focus:border-red-500'
+                          : ''
+                      }`}
+                    />
+                  </div>
+                  {parsePaymentValue(extrasAmount) !== null && parsePaymentValue(extrasAmount)! < 0 && (
+                    <p className="text-xs text-red-500">{t('technicianReport.amountNegative')}</p>
+                  )}
                 </div>
-                {parsePaymentValue(extrasAmount) !== null && parsePaymentValue(extrasAmount)! < 0 && (
-                  <p className="text-xs text-red-500">{t('technicianReport.amountNegative')}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">{t('technicianReport.descriptionLabel')}</label>
-                <Textarea
-                  placeholder={t('technicianReport.extrasPlaceholder')}
-                  value={extrasDescription}
-                  maxLength={MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
-                  onChange={(e) => setExtrasDescription(e.target.value)}
-                  className={`min-h-[72px] text-sm ${
-                    parsePaymentValue(extrasAmount) !== null &&
-                    parsePaymentValue(extrasAmount)! > 0 &&
-                    extrasDescription.trim().length === 0
-                      ? 'border-red-500 focus:border-red-500'
-                      : ''
-                  }`}
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>
-                    {parsePaymentValue(extrasAmount) !== null &&
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-600">{t('technicianReport.descriptionLabel')}</label>
+                  <Textarea
+                    placeholder={t('technicianReport.extrasPlaceholder')}
+                    value={extrasDescription}
+                    maxLength={MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
+                    onChange={(e) => setExtrasDescription(e.target.value)}
+                    className={`min-h-[72px] text-sm ${
+                      parsePaymentValue(extrasAmount) !== null &&
                       parsePaymentValue(extrasAmount)! > 0 &&
-                      extrasDescription.trim().length === 0 && (
-                        <span className="text-red-500">{t('technicianReport.descriptionRequired')}</span>
-                      )}
-                  </span>
-                  <span>
-                    {extrasDescription.length}/{MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3 rounded-lg border border-line bg-canvas p-4">
-              <span className="text-sm font-medium text-gray-800">{t('technicianReport.discounts')}</span>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">{t('technicianReport.amountUsd')}</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">$</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={discountsAmount}
-                    onChange={(e) => setDiscountsAmount(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
-                    className={`text-sm ${
-                      parsePaymentValue(discountsAmount) !== null && parsePaymentValue(discountsAmount)! < 0
+                      extrasDescription.trim().length === 0
                         ? 'border-red-500 focus:border-red-500'
                         : ''
                     }`}
                   />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>
+                      {parsePaymentValue(extrasAmount) !== null &&
+                        parsePaymentValue(extrasAmount)! > 0 &&
+                        extrasDescription.trim().length === 0 && (
+                          <span className="text-red-500">{t('technicianReport.descriptionRequired')}</span>
+                        )}
+                    </span>
+                    <span>
+                      {extrasDescription.length}/{MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
+                    </span>
+                  </div>
                 </div>
-                {parsePaymentValue(discountsAmount) !== null && parsePaymentValue(discountsAmount)! < 0 && (
-                  <p className="text-xs text-red-500">{t('technicianReport.amountNegative')}</p>
-                )}
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-600">{t('technicianReport.descriptionLabel')}</label>
-                <Textarea
-                  placeholder={t('technicianReport.discountsPlaceholder')}
-                  value={discountsDescription}
-                  maxLength={MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
-                  onChange={(e) => setDiscountsDescription(e.target.value)}
-                  className={`min-h-[72px] text-sm ${
-                    parsePaymentValue(discountsAmount) !== null &&
-                    parsePaymentValue(discountsAmount)! > 0 &&
-                    discountsDescription.trim().length === 0
-                      ? 'border-red-500 focus:border-red-500'
-                      : ''
-                  }`}
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>
-                    {parsePaymentValue(discountsAmount) !== null &&
+
+              <div className="space-y-3 rounded-lg border border-line bg-white p-4">
+                <span className="text-sm font-medium text-gray-800">{t('technicianReport.discounts')}</span>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-600">{t('technicianReport.amountUsd')}</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">$</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={discountsAmount}
+                      onChange={(e) => setDiscountsAmount(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)}
+                      className={`text-sm ${
+                        parsePaymentValue(discountsAmount) !== null && parsePaymentValue(discountsAmount)! < 0
+                          ? 'border-red-500 focus:border-red-500'
+                          : ''
+                      }`}
+                    />
+                  </div>
+                  {parsePaymentValue(discountsAmount) !== null && parsePaymentValue(discountsAmount)! < 0 && (
+                    <p className="text-xs text-red-500">{t('technicianReport.amountNegative')}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-gray-600">{t('technicianReport.descriptionLabel')}</label>
+                  <Textarea
+                    placeholder={t('technicianReport.discountsPlaceholder')}
+                    value={discountsDescription}
+                    maxLength={MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
+                    onChange={(e) => setDiscountsDescription(e.target.value)}
+                    className={`min-h-[72px] text-sm ${
+                      parsePaymentValue(discountsAmount) !== null &&
                       parsePaymentValue(discountsAmount)! > 0 &&
-                      discountsDescription.trim().length === 0 && (
-                        <span className="text-red-500">{t('technicianReport.descriptionRequired')}</span>
-                      )}
-                  </span>
-                  <span>
-                    {discountsDescription.length}/{MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
-                  </span>
+                      discountsDescription.trim().length === 0
+                        ? 'border-red-500 focus:border-red-500'
+                        : ''
+                    }`}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>
+                      {parsePaymentValue(discountsAmount) !== null &&
+                        parsePaymentValue(discountsAmount)! > 0 &&
+                        discountsDescription.trim().length === 0 && (
+                          <span className="text-red-500">{t('technicianReport.descriptionRequired')}</span>
+                        )}
+                    </span>
+                    <span>
+                      {discountsDescription.length}/{MAX_ADJUSTMENT_DESCRIPTION_LENGTH}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">{t('technicianReport.fromDate')}</label>
-            <DatePicker
-              placeholder={t('technicianReport.selectStartDate')}
-              value={fromDate}
-              className={`w-full ${fieldControlClass}`}
-              onChange={(date) => {
-                if (date) {
-                  const startOfDay = new Date(date);
-                  startOfDay.setHours(0, 0, 0, 0);
-                  setFromDate(startOfDay);
-                  setFromDateString(toLocalDateString(startOfDay));
-                } else {
-                  setFromDate(undefined);
-                  setFromDateString(undefined);
-                }
-              }}
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">{t('technicianReport.toDate')}</label>
-            <DatePicker
-              placeholder={t('technicianReport.selectEndDate')}
-              value={toDate}
-              className={`w-full ${fieldControlClass}`}
-              onChange={(date) => {
-                if (date) {
-                  const endOfDay = new Date(date);
-                  endOfDay.setHours(23, 59, 59, 999);
-                  setToDate(endOfDay);
-                  setToDateString(toLocalDateString(endOfDay));
-                } else {
-                  setToDate(undefined);
-                  setToDateString(undefined);
-                }
-              }}
-            />
           </div>
 
           <Button
