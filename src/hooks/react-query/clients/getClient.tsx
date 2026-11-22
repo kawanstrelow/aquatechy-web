@@ -20,6 +20,7 @@ export default function useGetClient(clientId: string) {
 
       return { ...response.data.clientWithLastService };
     },
+    enabled: !!clientId,
     staleTime: Infinity
   });
   return { data, isLoading, isSuccess, isError };

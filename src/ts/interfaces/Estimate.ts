@@ -62,6 +62,7 @@ export interface Estimate {
   convertedInvoiceId: string | null;
   convertedAt: string | null;
   convertedInvoice: ConvertedInvoiceSummary | null;
+  requestId?: string | null;
   createdAt?: string;
   updatedAt: string | null;
   client: EstimateClient;
@@ -78,6 +79,7 @@ export interface CreateEstimateRequest {
   discountRate?: number;
   notes?: string;
   terms?: string;
+  requestId?: string;
 }
 
 export interface CreateEstimateResponse {
@@ -93,6 +95,7 @@ export interface UpdateEstimateRequest {
   discountRate?: number;
   notes?: string | null;
   terms?: string | null;
+  requestId?: string | null;
 }
 
 export interface UpdateEstimateResponse {

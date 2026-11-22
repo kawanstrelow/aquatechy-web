@@ -214,7 +214,7 @@ function PoolCard({ pool, services, clientId }: Props) {
             <EquipmentTab equipment={pool.equipment || null} poolId={pool.id} clientId={clientId} />
           )}
           {tab === 'checklist' && <ChecklistTab poolId={pool.id} clientId={clientId} pool={pool} />}
-          {tab === 'requests' && <RequestsTab requests={pool.requests || []} poolId={pool.id} clientId={clientId} />}
+          {tab === 'requests' && <RequestsTab requests={pool.requests || []} />}
         </div>
       </div>
     </>

@@ -431,6 +431,13 @@
     "manageHint": "Administra grupos de selección que se pueden usar en las preguntas de servicio",
     "manageQuestions": "Administrar preguntas de \"{name}\""
   },
+  "shoppingItems": {
+    "title": "Exigir una foto para marcar un artículo como instalado",
+    "description": "La primera vez que una línea se marca como instalada, se requiere al menos una foto. Desactívalo para que la foto sea opcional.",
+    "viewOnly": "Solo un propietario o administrador puede cambiar esto.",
+    "saved": "Preferencia de la lista de compras guardada",
+    "saveError": "No se pudo guardar la preferencia de la lista de compras"
+  },
   "emailPrefs": {
     "sendCompleted": "Enviar correos de servicio completado",
     "sendCompletedHint": "Activa o desactiva los correos de servicio completado para cada tipo de servicio",

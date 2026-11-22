@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 
+import { CompanyWithMyRole } from '@/ts/interfaces/Company';
 import { Dashboard } from '@/ts/interfaces/Dashboard';
 import { User } from '@/ts/interfaces/User';
 
@@ -38,6 +39,32 @@ export async function getCurrentUser(): Promise<UserBootstrapData | null> {
       user: body.data.user as User,
       dashboard: body.data.dashboard
     };
+  } catch {
+    return null;
+  }
+}
+
+export async function getCompanies(): Promise<CompanyWithMyRole[] | null> {
+  const cookieStore = cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
+  const apiUrl = process.env.API_URL;
+
+  if (!accessToken || !apiUrl) return null;
+
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/companies`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(BOOTSTRAP_TIMEOUT_MS)
+    });
+
+    if (!res.ok) return null;
+
+    const body = await res.json();
+    return Array.isArray(body?.companies) ? (body.companies as CompanyWithMyRole[]) : [];
   } catch {
     return null;
   }

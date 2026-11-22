@@ -9,9 +9,10 @@ import { ShoppingListRow } from '@/ts/interfaces/Shopping';
 interface DataTableShoppingItemsProps<TValue> {
   columns: ColumnDef<ShoppingListRow, TValue>[];
   data: ShoppingListRow[];
+  onEdit: (item: ShoppingListRow) => void;
 }
 
-export function DataTableShoppingItems<TValue>({ columns, data }: DataTableShoppingItemsProps<TValue>) {
+export function DataTableShoppingItems<TValue>({ columns, data, onEdit }: DataTableShoppingItemsProps<TValue>) {
   const t = useTranslations('shopping');
   const table = useReactTable({
     data,
@@ -36,7 +37,11 @@ export function DataTableShoppingItems<TValue>({ columns, data }: DataTableShopp
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50/50">
+              <TableRow
+                key={row.id}
+                className="cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50/50"
+                onClick={() => onEdit(row.original)}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}

@@ -37,6 +37,8 @@ export function useUpdateShoppingItem(companyId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items', companyId] });
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         title: translateMessage('toasts.shoppingItemUpdated', 'Shopping item updated'),
         variant: 'success'

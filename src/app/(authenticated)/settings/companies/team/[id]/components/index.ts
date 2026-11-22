@@ -7,6 +7,7 @@ export { ChecklistTemplatesCard } from './ChecklistTemplatesCard';
 export { ReadingAndConsumableGroupsCard } from './ReadingAndConsumableGroupsCard';
 export { ServiceTypesCard } from './ServiceTypesCard';
 export { InvoiceSettingsCard } from './InvoiceSettingsCard';
+export { ShoppingItemPreferencesCard } from './ShoppingItemPreferencesCard';
 
 // Reading Groups
 export * from './ReadingAndConsumableGroupsCard/ReadingGroups';

@@ -34,9 +34,13 @@ export const useUpdateEstimate = () => {
       const response = await clientAxios.patch<UpdateEstimateResponse>(`/estimates/${estimateId}`, payload);
       return response.data;
     },
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: ['estimates'] });
       queryClient.invalidateQueries({ queryKey: ['estimate', response.estimate.id] });
+      if (variables.data.requestId !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ['requests'] });
+        queryClient.invalidateQueries({ queryKey: ['clients'] });
+      }
 
       toast({
         duration: 2000,

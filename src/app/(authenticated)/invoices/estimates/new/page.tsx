@@ -3,7 +3,7 @@
 import { addDays } from 'date-fns';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 
@@ -15,6 +15,9 @@ import SelectField from '@/components/SelectField';
 import InputField from '@/components/InputField';
 import DatePickerField from '@/components/DatePickerField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { NO_REQUEST } from '@/app/(authenticated)/shopping-list/overview/_components/requestOptionLabel';
+
+import { EstimateRequestField } from '../_components/EstimateRequestField';
 import { EstimatePreview } from './EstimatePreview';
 import { FieldType } from '@/ts/enums/enums';
 import { useCreateEstimate } from '@/hooks/react-query/estimates/useCreateEstimate';
@@ -31,6 +34,7 @@ interface EstimateLineItem {
 
 interface EstimateFormData {
   clientId: string;
+  requestId: string;
   issuedDate: Date;
   validUntil: Date;
   lineItems: EstimateLineItem[];
@@ -46,6 +50,7 @@ function CreateEstimatePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientIdFromQuery = searchParams.get('clientId');
+  const requestIdFromQuery = searchParams.get('requestId');
   const user = useUserStore((state) => state.user);
   const { data: clients = [], isLoading: isLoadingClients } = useGetAllClients();
   const { mutate: createEstimate, isPending: isCreating } = useCreateEstimate();
@@ -53,6 +58,7 @@ function CreateEstimatePage() {
   const form = useForm<EstimateFormData>({
     defaultValues: {
       clientId: '',
+      requestId: NO_REQUEST,
       issuedDate: new Date(),
       validUntil: defaultValidUntil(),
       lineItems: [{ description: '', quantity: 1, unitPrice: 0, amount: 0, taxRate: 0, sku: '' }],
@@ -79,11 +85,23 @@ function CreateEstimatePage() {
     if (user.firstName === '') router.push('/onboarding');
   }, [user, router]);
 
+  const previousClientId = useRef('');
+
   useEffect(() => {
     if (clientIdFromQuery) {
       form.setValue('clientId', clientIdFromQuery, { shouldValidate: true });
     }
-  }, [clientIdFromQuery, form]);
+    if (requestIdFromQuery) {
+      form.setValue('requestId', requestIdFromQuery);
+    }
+  }, [clientIdFromQuery, form, requestIdFromQuery]);
+
+  useEffect(() => {
+    if (previousClientId.current && previousClientId.current !== watchedClientId) {
+      form.setValue('requestId', NO_REQUEST);
+    }
+    previousClientId.current = watchedClientId;
+  }, [form, watchedClientId]);
 
   useEffect(() => {
     if (company?.preferences?.invoiceSettingsPreferences?.defaultValues) {
@@ -292,6 +310,8 @@ function CreateEstimatePage() {
 
     const subtotalDollars = validLineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice) / 100, 0);
 
+    const requestId = formData.requestId && formData.requestId !== NO_REQUEST ? formData.requestId : undefined;
+
     return {
       clientId: formData.clientId,
       issuedDate: new Date(formData.issuedDate).toString(),
@@ -300,7 +320,8 @@ function CreateEstimatePage() {
       subtotal: Math.round(subtotalDollars * 100),
       discountRate: Number(formData.discountRate) || 0,
       notes: formData.notes || undefined,
-      terms: formData.terms || undefined
+      terms: formData.terms || undefined,
+      ...(requestId ? { requestId } : {})
     };
   };
 
@@ -340,6 +361,7 @@ function CreateEstimatePage() {
                   placeholder={t('placeholders.selectClient')}
                   options={clientOptions}
                 />
+                <EstimateRequestField clientId={watchedClientId} />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <DatePickerField
                     name="issuedDate"

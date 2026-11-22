@@ -42,7 +42,7 @@ export default function SideMenuNavLink({ route }: Props) {
   if (!submenu) {
     return (
       <Link href={href} className={rowClass}>
-        <Icon className="h-5 w-5 shrink-0" height={20} width={20} size={20} />
+        <Icon className="h-5 w-5 shrink-0" />
         <span className="leading-none">{label}</span>
       </Link>
     );
@@ -50,10 +50,10 @@ export default function SideMenuNavLink({ route }: Props) {
 
   return (
     <Accordion collapsible type="single" className="w-full">
-        <AccordionItem value={href} className="border-b-0">
+      <AccordionItem value={href} className="border-b-0">
         <AccordionTrigger className={cn(rowClass, 'hover:no-underline')}>
           <span className="flex items-center gap-3">
-            <Icon className="h-5 w-5 shrink-0" height={20} width={20} size={20} />
+            <Icon className="h-5 w-5 shrink-0" />
             <span className="leading-none">{label}</span>
           </span>
         </AccordionTrigger>

@@ -157,6 +157,7 @@ export interface Company {
       allowCardOnFile?: boolean;
       applicationFeeBps?: number;
     } | null;
+    requireShoppingItemInstallPhotos?: boolean | null;
   };
   imageUrl?: string | null;
   checklistTemplates: ChecklistTemplate[];

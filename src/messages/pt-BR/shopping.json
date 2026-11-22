@@ -39,6 +39,7 @@
     "qty": "Qtd.",
     "status": "Status",
     "notes": "Observações",
+    "request": "Solicitação",
     "updated": "Atualizado",
     "name": "Nome",
     "sku": "SKU",
@@ -79,13 +80,30 @@
     "adding": "Adicionando...",
     "submit": "Adicionar item"
   },
+  "linkedRequest": "Solicitação vinculada",
+  "managementOnly": "A lista de compras fica disponível para empresas em que você é proprietário, administrador ou escritório.",
+  "installPhotos": "Fotos da instalação",
+  "replaceInstallPhotos": "Fotos",
+  "updatingPhotos": "Atualizando fotos...",
+  "updatePhotos": "Atualizar fotos",
   "editDialog": {
     "title": "Editar item da lista",
-    "description": "Atualize o produto, a quantidade ou as observações. A quantidade substitui o valor desta linha. Cliente e piscina permanecem os mesmos.",
     "client": "Cliente",
     "pool": "Piscina",
+    "requestAttached": "Solicitação anexada",
+    "noRequest": "Sem solicitação vinculada",
+    "selectRequest": "Selecione uma solicitação",
+    "loadingRequests": "Carregando solicitações...",
     "saving": "Salvando...",
     "saveChanges": "Salvar alterações"
+  },
+  "installPhotosDialog": {
+    "title": "Fotos da instalação",
+    "description": "Adicione pelo menos uma foto para marcar {product} como instalado.",
+    "photos": "Fotos",
+    "selected": "{count} selecionadas",
+    "saving": "Salvando...",
+    "confirm": "Marcar como instalado"
   },
   "categoryDialog": {
     "title": "Adicionar categoria",

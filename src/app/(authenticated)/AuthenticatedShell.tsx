@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { setDefaultOptions } from 'date-fns';
 import { enUS, es as esLocale, ptBR } from 'date-fns/locale';
 import Cookies from 'js-cookie';
@@ -18,6 +19,7 @@ import { resolveLocale } from '@/i18n/locale';
 import { loadMessages } from '@/i18n/loadMessages';
 import { setActiveMessages } from '@/i18n/runtime';
 import { UserBootstrapProvider, useUserStore } from '@/store/user';
+import type { CompanyWithMyRole } from '@/ts/interfaces/Company';
 
 import { HelpButton } from './HelpButton';
 import PageHeader from './PageHeader';
@@ -42,12 +44,27 @@ function needsOnboarding(user?: { id?: string; firstName?: string | null; lastNa
 type Props = {
   children: React.ReactNode;
   initialData?: UserQueryData | null;
+  initialCompanies?: CompanyWithMyRole[] | null;
   locale: AppLocale;
   messages: AbstractIntlMessages;
   acceptLanguage?: string | null;
 };
 
-export default function AuthenticatedShell({ children, initialData, locale, messages, acceptLanguage }: Props) {
+function seedCompaniesCache(queryClient: ReturnType<typeof useQueryClient>, companies?: CompanyWithMyRole[] | null) {
+  if (companies == null || queryClient.getQueryData(['companies']) != null) return;
+  queryClient.setQueryData(['companies'], companies);
+}
+
+export default function AuthenticatedShell({
+  children,
+  initialData,
+  initialCompanies,
+  locale,
+  messages,
+  acceptLanguage
+}: Props) {
+  const queryClient = useQueryClient();
+  seedCompaniesCache(queryClient, initialCompanies);
   const { data } = useGetUser();
   const user = data?.user ?? initialData?.user;
   const resolvedLocale = resolveLocale(user?.language, acceptLanguage);

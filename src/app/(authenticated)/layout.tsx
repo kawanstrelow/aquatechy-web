@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { resolveLocale } from '@/i18n/locale';
 import { loadMessages } from '@/i18n/loadMessages';
-import { getCurrentUser } from '@/lib/getCurrentUser';
+import { getCompanies, getCurrentUser } from '@/lib/getCurrentUser';
 
 import AuthenticatedShell from './AuthenticatedShell';
 
@@ -18,7 +18,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
     redirect('/login');
   }
 
-  const initialData = await getCurrentUser();
+  const [initialData, initialCompanies] = await Promise.all([getCurrentUser(), getCompanies()]);
   const acceptLanguage = headers().get('accept-language');
   const locale = resolveLocale(initialData?.user?.language, acceptLanguage);
   const messages = await loadMessages(locale);
@@ -26,6 +26,7 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
   return (
     <AuthenticatedShell
       initialData={initialData}
+      initialCompanies={initialCompanies}
       locale={locale}
       messages={messages}
       acceptLanguage={acceptLanguage}

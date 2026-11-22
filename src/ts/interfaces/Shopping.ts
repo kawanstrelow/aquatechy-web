@@ -15,6 +15,8 @@ export interface ShoppingItem {
   onInventoryAt: string | null;
   onTechnicianTruckAt: string | null;
   installedAt: string | null;
+  requestId: string | null;
+  installPhotos: string[];
   createdAt: string;
   updatedAt: string;
   product: Product;
@@ -41,6 +43,7 @@ export type CreateShoppingItemRequest = {
   clientId: string;
   poolId: string;
   notes?: string;
+  requestId?: string;
 };
 
 export type UpdateShoppingItemStatusRequest = {
@@ -52,6 +55,7 @@ export type UpdateShoppingItemRequest = {
   quantity?: number;
   productId?: string;
   notes?: string;
+  requestId?: string | null;
 };
 
 export type ShoppingListRow = ShoppingItem & {

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
-import { DeleteRequest } from '@/app/(authenticated)/requests/ModalEditRequest';
+import { DeleteRequest } from '@/app/(authenticated)/requests/requestForm';
 import { useToast } from '@/components/ui/use-toast';
 import { clientAxios } from '@/lib/clientAxios';
 

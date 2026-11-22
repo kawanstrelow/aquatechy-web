@@ -31,7 +31,8 @@ import {
   FilterMaintenanceCard,
   ReadingAndConsumableGroupsCard,
   ServiceTypesCard,
-  InvoiceSettingsCard
+  InvoiceSettingsCard,
+  ShoppingItemPreferencesCard
 } from './components';
 
 const VALID_PREFS_TABS = ['email', 'filter', 'service-config', 'service-types', 'invoice-settings'] as const;
@@ -508,7 +509,10 @@ export default function Page({ company }: { company: Company }) {
         </Form>
 
         <TabsContent value="service-config" className="mt-6">
-          <ReadingAndConsumableGroupsCard company={company} />
+          <div className="w-full space-y-4">
+            <ReadingAndConsumableGroupsCard company={company} />
+            <ShoppingItemPreferencesCard company={company} />
+          </div>
         </TabsContent>
 
         <TabsContent value="invoice-settings" className="mt-6">

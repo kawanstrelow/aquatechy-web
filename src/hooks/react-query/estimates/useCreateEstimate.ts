@@ -29,9 +29,13 @@ export const useCreateEstimate = () => {
       const response = await clientAxios.post<CreateEstimateResponse>('/estimates', payload);
       return response.data;
     },
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: ['estimates'] });
       queryClient.setQueryData(['estimate', response.estimate.id], { estimate: response.estimate });
+      if (variables.requestId) {
+        queryClient.invalidateQueries({ queryKey: ['requests'] });
+        queryClient.invalidateQueries({ queryKey: ['clients'] });
+      }
 
       toast({
         duration: 2000,
