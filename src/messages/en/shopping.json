@@ -39,6 +39,7 @@
     "qty": "Qty",
     "status": "Status",
     "notes": "Notes",
+    "request": "Request",
     "updated": "Updated",
     "name": "Name",
     "sku": "SKU",
@@ -79,13 +80,30 @@
     "adding": "Adding...",
     "submit": "Add shopping item"
   },
+  "linkedRequest": "Linked request",
+  "managementOnly": "The shopping list is available for companies where you are an owner, admin, or office user.",
+  "installPhotos": "Install photos",
+  "replaceInstallPhotos": "Photos",
+  "updatingPhotos": "Updating photos...",
+  "updatePhotos": "Update photos",
   "editDialog": {
     "title": "Edit shopping item",
-    "description": "Update the product, quantity, or notes. Quantity replaces the amount on this line. Client and pool stay the same.",
     "client": "Client",
     "pool": "Pool",
+    "requestAttached": "Request attached",
+    "noRequest": "No linked request",
+    "selectRequest": "Select a request",
+    "loadingRequests": "Loading requests...",
     "saving": "Saving...",
     "saveChanges": "Save changes"
+  },
+  "installPhotosDialog": {
+    "title": "Install photos",
+    "description": "Add at least one photo to mark {product} as installed.",
+    "photos": "Photos",
+    "selected": "{count} selected",
+    "saving": "Saving...",
+    "confirm": "Mark installed"
   },
   "categoryDialog": {
     "title": "Add category",

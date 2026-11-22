@@ -1,15 +1,65 @@
 import { Pool } from './Pool';
 import { Client } from './Client';
+import { EstimateStatus } from './Estimate';
+import { ShoppingItemStatus } from './Shopping';
+
+export interface RequestEstimateSummary {
+  id: string;
+  requestId: string;
+  estimateNumber: string;
+  status: EstimateStatus;
+  total: number;
+}
+
+export interface RequestShoppingItem {
+  id: string;
+  requestId: string;
+  companyOwnerId?: string;
+  clientId?: string;
+  poolId?: string;
+  productId?: string;
+  quantity: number;
+  status: ShoppingItemStatus;
+  notes: string | null;
+  installPhotos: string[];
+  pendingPurchaseAt?: string | null;
+  onInventoryAt?: string | null;
+  onTechnicianTruckAt?: string | null;
+  installedAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  product: {
+    id: string;
+    name: string;
+    unit: string;
+  };
+}
+
+export interface InstallNoticePhoto {
+  url: string;
+  source: 'request' | 'shoppingItem';
+  shoppingItemId?: string;
+}
+
+export interface InstallNoticeShoppingItem {
+  id: string;
+  quantity: number;
+  status: ShoppingItemStatus;
+  installPhotos: string[];
+  productName: string;
+  unit: string;
+}
+
+export interface InstallNoticeDraft {
+  subject: string;
+  body: string;
+  photos: InstallNoticePhoto[];
+  shoppingItems: InstallNoticeShoppingItem[];
+}
 
 export interface Request {
-  createdByUser: CreatedByUser;
   id: string;
   category: string;
-  clientId: string;
-  addressedTo: string;
-  poolId: string;
-  createdAt: string;
-  description: string;
   status:
     | 'Pending'
     | 'Processing'
@@ -18,11 +68,22 @@ export interface Request {
     | 'WaintingClientApproval'
     | 'ApprovedByClient'
     | 'RejectedByClient';
-  updatedAt: string;
-  outcome: string;
+  description: string;
+  outcome: string | null;
   photos: string[];
-  pool: Pool;
+  photosMetadata?: unknown | null;
+  createdAt: string;
+  updatedAt: string;
+  companyOwnerId?: string;
+  clientId: string;
+  poolId: string;
+  createdByUserId?: string;
+  addressedTo?: string;
+  createdByUser: CreatedByUser;
   client: Client;
+  pool: Pool;
+  estimates?: RequestEstimateSummary[];
+  shoppingItems?: RequestShoppingItem[];
 }
 export interface Services {
   createdByUser: CreatedByUser;
@@ -90,5 +151,7 @@ export interface CreatedByUser {
   id: string;
   firstName: string;
   lastName: string;
-  company: string;
+  company?: string;
+  email?: string;
+  phone?: string;
 }

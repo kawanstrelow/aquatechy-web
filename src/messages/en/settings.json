@@ -431,6 +431,13 @@
     "manageHint": "Manage selector groups that can be used for service questions",
     "manageQuestions": "Manage questions for \"{name}\""
   },
+  "shoppingItems": {
+    "title": "Require a photo to mark a shopping item installed",
+    "description": "The first time a line is marked installed, at least one photo is required. Turn this off to make the photo optional.",
+    "viewOnly": "Only an owner or admin can change this.",
+    "saved": "Shopping list preference saved",
+    "saveError": "Could not save the shopping list preference"
+  },
   "emailPrefs": {
     "sendCompleted": "Send Completed Service Emails",
     "sendCompletedHint": "Turn completed-service emails on or off for each service type",

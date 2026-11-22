@@ -1,0 +1,135 @@
+How to set up readings, checklists, photos, and consumable prices — and generate a chemical cost report
+
+If you want to know what each pool visit actually costs in chemicals, the numbers have to be set up before the technician finishes the service. Aquatechy can turn those amounts into a PDF that shows chemical spend by client and by visit. This guide walks through company preferences the same way we do in the tutorial: readings, checklists, and photos first, then the prices on consumables, and finally the Cost of Services by Client report.
+
+
+Open company preferences
+
+Log in to your Aquatechy account.
+
+On the left menu, open Settings, then Preferences.
+
+If you manage more than one company, you will see a card for each company you can manage. Open the company you want to configure. If you only manage one, Preferences opens that company for you.
+
+The company screen has four tabs across the top:
+
+- Basic Information
+- Preferences
+- Team
+- Messages
+
+Open Preferences. Inside that tab you will find Communication, Invoice Settings, Equipment Maintenance, App Customization, and Service Types.
+
+Open App Customization. This is where the technician’s service form is built. It has five tabs:
+
+- Reading
+- Checklist
+- Consumables
+- Photos
+- Selectors
+
+A new company already comes with a default set of readings and chemicals. You can edit those defaults, add your own, or remove the ones you do not use. Nothing is saved to the field app until you press Save All and confirm.
+
+
+Readings
+
+The Reading tab is for water tests: free chlorine, pH, alkalinity, and anything else your technicians record on a visit.
+
+Each reading lives inside a reading group. Expand the group to see the definitions. Every row shows the name, the unit, the allowed range, the goal, and whether the reading is required.
+
+To change one, use the edit icon on that row. For free chlorine, a common default goal is 3 ppm. If your target is 4 ppm, change Goal Value to 4 and keep the unit as ppm. You can also set a minimum, a maximum, and a step size so the value stays inside a range that makes sense for that test.
+
+Check Required reading if the technician must enter that value before the service can be finished. With free chlorine marked required, the visit cannot be closed until the free chlorine level is typed in.
+
+You can add a definition, edit the wording, or delete one you do not want. Edits stay on the screen until you save. Changed rows are marked so you can see what is new, modified, or deleted. When the list looks right, click Save All, then Save Changes on the confirmation.
+
+That confirmation matters. Saving updates open services scheduled from today onward, and it signs technicians out of the app. They need to log in again before the new readings show up on their phones. Services that are already completed keep the readings that were recorded at the time. They are not rewritten.
+
+
+Checklists
+
+The Checklist tab holds checklist templates for the service report. Open a template to see its items, or click Add Template to create one, such as a pool cleaning checklist.
+
+Edit the template name and description, then change the items themselves. Add a line for anything you want the technician to confirm, rewrite an existing line, or remove one. You can reorder items by dragging them.
+
+Save the template when you are done. Those items are what the technician works through on the visit, so keep the wording short and specific.
+
+
+Photos
+
+The Photos tab is for the pictures you want taken on a service. A typical setup is a photo group for pool cleaning, with definitions such as a photo before the service and a photo after the service. Expand the group, then add or edit a definition.
+
+For each photo you can turn on three options:
+
+- Required. The technician cannot finish the service without that photo.
+- Allow Gallery. The technician can choose a picture that is already on the phone. Leave this off if you only want a photo taken in the moment.
+- Send On Email. That photo can be included when photo groups are sent on the service email.
+
+Edit the definitions you need, then Save All and confirm. The same rule applies here: open services from today onward pick up the new photo list, and technicians need to sign in again to see it.
+
+
+Selectors
+
+Selectors is the fifth tab in App Customization. It is for multiple-choice questions, such as whether the gate was closed or how the equipment looked. We cover that setup in a separate walkthrough. You do not need to change selectors to price chemicals or to run the chemical cost report.
+
+
+Consumables and price per unit
+
+Consumables is the part that feeds the chemical cost report. Expand the group your company uses for chemicals spent. The table lists each chemical with its unit, range, price per unit, and whether it is required.
+
+Open a chemical with the edit icon. Before you type a price, check the unit. The report multiplies the amount the technician enters by the price per unit, so a price of $1.99 only means $1.99 if the unit really is one gallon, one tablet, or whatever that row says.
+
+A few examples from the tutorial:
+
+- Chlorine tablets at $1.20 per unit.
+- Liquid chlorine at $1.99 per gallon.
+- Muriatic acid at about $5.00 per gallon, which is a typical price in our area. Use the price you actually pay.
+
+You can set a price on every chemical you want to track, or only on the ones that matter for cost. Mark Required consumable if the technician must enter how much was used before the service can be closed. Leave it unchecked if the chemical is optional.
+
+Update each definition, then click Save All and confirm Save Changes. Until you do that, the new prices exist only on your screen.
+
+Two things follow from that save, and they are easy to mix up.
+
+First, the chemical list itself — names, units, required flags — is applied to open services scheduled from today onward. Technicians are signed out and see the update after they log in again. In the field that can take a few minutes, or it can wait until the next time that technician opens the app. Plan on the new form being what they use for services going forward, not for visits they already closed.
+
+Second, the price per unit is used when the chemical is recorded on a service after you save it. It does not go back and reprice work that was already completed.
+
+Say you set these prices on November 18. Every service completed before November 18 stays on the books with whatever cost it already had. It will not appear in the report as if it had been done at $1.20, $1.99, or $5.00. Only services completed after the new price is saved use that price per unit. If you finish a service tomorrow and the technician enters the chemicals, that visit is the one that will show the new cost.
+
+
+Generate the chemical cost PDF
+
+Once prices are in place and services have been completed with those chemicals, you can download the report.
+
+On the left menu, open Reports, then Client Reports. Open Cost of Services by Client. The screen title is Chemical Costs Report, and the file you get is a PDF.
+
+Fill in Report configuration:
+
+1. Company. Choose the company whose services you want. This field is required.
+2. Clients. Pick one or more clients for that company, or use Select All. You need at least one client. The list only includes clients that belong to the company you selected.
+3. From Date and To Date. Both are required, and the start date has to be on or before the end date. The page opens with roughly the last 30 days already filled in. Change the range to whatever period you want to review.
+
+Click Generate Report. Aquatechy builds the PDF and downloads it. The file name includes the date range you chose.
+
+The report includes chemical costs for the clients and pools you selected, inside that date range. A visit is included when it has consumables recorded. If a service has no chemicals logged, it is left out.
+
+How to read the PDF
+
+The report is organized by client. For each client you get a summary of the total chemical spend in the period you selected. Under that summary, each service is listed on its own, with the date of the visit and the cost of the chemicals used on that visit. You can scan April 20, April 23, and the rest of the stops and see what that pool cost you that day.
+
+If you generate the report on the same day you first enter prices, and you pick a range that ends before today, do not expect the new prices in the file. Those older services were completed before the price per unit existed. Run the report again after a service is completed with the new prices, and choose a date range that includes that service. That is when the client total and the per-visit lines show the cost you set up.
+
+
+A short checklist before you leave the page
+
+- Readings, photos, and consumables are not live until you click Save All and confirm.
+- Required readings, required photos, and required consumables block the technician from finishing the service until they are filled in.
+- Check the unit before you type a price. Price per unit follows that unit.
+- New prices apply to services completed after the save. They do not rewrite services that were already closed.
+- Technicians need to log in again after you save, because their session is ended on purpose.
+- The PDF is under Reports, Client Reports, Cost of Services by Client.
+
+If something in the report does not match what you expected, start with the date of the service and the date you saved the price. Those two dates are usually the whole explanation.
+
+Questions are welcome. Call us and we will walk through it with you.

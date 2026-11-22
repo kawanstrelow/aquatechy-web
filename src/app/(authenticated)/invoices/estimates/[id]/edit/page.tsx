@@ -3,7 +3,7 @@
 import { addDays } from 'date-fns';
 import { useTranslations } from 'next-intl';
 import { notFound, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 
@@ -17,6 +17,10 @@ import SelectField from '@/components/SelectField';
 import InputField from '@/components/InputField';
 import DatePickerField from '@/components/DatePickerField';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { NO_REQUEST } from '@/app/(authenticated)/shopping-list/overview/_components/requestOptionLabel';
+import { useLinkEstimateRequest } from '@/hooks/react-query/estimates/useLinkEstimateRequest';
+
+import { EstimateRequestField } from '../../_components/EstimateRequestField';
 import { EstimatePreview } from '../../new/EstimatePreview';
 import { FieldType } from '@/ts/enums/enums';
 import { useUpdateEstimate } from '@/hooks/react-query/estimates/useUpdateEstimate';
@@ -33,6 +37,7 @@ interface EstimateLineItem {
 
 interface EstimateFormData {
   clientId: string;
+  requestId: string;
   estimateNumber: string;
   status: EstimateStatus;
   issuedDate: Date;
@@ -54,10 +59,12 @@ export default function EditEstimatePage({ params: { id } }: Props) {
   const { data: estimateData, isLoading: isLoadingEstimate, isError, error } = useGetEstimateById(id);
   const { data: clients = [], isLoading: isLoadingClients } = useGetAllClients();
   const { mutate: updateEstimate, isPending: isUpdating } = useUpdateEstimate();
+  const { mutate: linkRequest, isPending: isLinkingRequest } = useLinkEstimateRequest();
 
   const form = useForm<EstimateFormData>({
     defaultValues: {
       clientId: '',
+      requestId: NO_REQUEST,
       estimateNumber: '',
       status: 'draft',
       issuedDate: new Date(),
@@ -86,6 +93,7 @@ export default function EditEstimatePage({ params: { id } }: Props) {
     const toDollars = (cents: number) => (cents ?? 0) / 100;
     form.reset({
       clientId: est.clientId,
+      requestId: est.requestId || NO_REQUEST,
       estimateNumber: est.estimateNumber,
       status: est.status,
       issuedDate: new Date(est.issuedDate),
@@ -106,6 +114,15 @@ export default function EditEstimatePage({ params: { id } }: Props) {
       terms: est.terms || ''
     });
   }, [estimateData, form]);
+
+  const previousClientId = useRef('');
+
+  useEffect(() => {
+    if (previousClientId.current && previousClientId.current !== watchedClientId) {
+      form.setValue('requestId', NO_REQUEST);
+    }
+    previousClientId.current = watchedClientId;
+  }, [form, watchedClientId]);
 
   const selectedClient = useMemo(() => clients.find((c) => c.id === watchedClientId), [clients, watchedClientId]);
   const companyId = selectedClient?.companyOwner.id || '';
@@ -330,7 +347,8 @@ export default function EditEstimatePage({ params: { id } }: Props) {
       subtotal: Math.round(subtotalDollars * 100),
       discountRate: Number(formData.discountRate) || 0,
       notes: formData.notes || undefined,
-      terms: formData.terms || undefined
+      terms: formData.terms || undefined,
+      requestId: formData.requestId && formData.requestId !== NO_REQUEST ? formData.requestId : null
     };
   };
 
@@ -393,6 +411,24 @@ export default function EditEstimatePage({ params: { id } }: Props) {
                   label={t('fields.client')}
                   placeholder={t('placeholders.selectClient')}
                   options={clientOptions}
+                />
+                <EstimateRequestField
+                  clientId={watchedClientId}
+                  disabled={isLinkingRequest}
+                  onValueChange={(value) => {
+                    if (isDraft) return;
+                    const next = !value || value === NO_REQUEST ? null : value;
+                    const current = estimateData?.estimate.requestId ?? null;
+                    if (next === current) return;
+                    linkRequest(
+                      { estimateId: id, requestId: next },
+                      {
+                        onError: () => {
+                          form.setValue('requestId', current || NO_REQUEST);
+                        }
+                      }
+                    );
+                  }}
                 />
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <DatePickerField

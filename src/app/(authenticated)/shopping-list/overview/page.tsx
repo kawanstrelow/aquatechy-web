@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { SHOPPING_ITEM_STATUS_OPTIONS } from '@/constants/shopping';
 import useGetAllClients from '@/hooks/react-query/clients/getAllClients';
 import useGetCompanies from '@/hooks/react-query/companies/getCompanies';
+import useGetCompany from '@/hooks/react-query/companies/getCompany';
 import useGetShoppingItems from '@/hooks/react-query/shopping-items/useGetShoppingItems';
 import { useCreateShoppingItem } from '@/hooks/react-query/shopping-items/useCreateShoppingItem';
 import { useDeleteShoppingItem } from '@/hooks/react-query/shopping-items/useDeleteShoppingItem';
@@ -21,9 +22,12 @@ import { useUpdateShoppingItem } from '@/hooks/react-query/shopping-items/useUpd
 import { useUpdateShoppingItemStatus } from '@/hooks/react-query/shopping-items/useUpdateShoppingItemStatus';
 import { useUserStore } from '@/store/user';
 import { ShoppingItemStatus, ShoppingListRow } from '@/ts/interfaces/Shopping';
+import { getManagementCompanies } from '@/utils/aiChatAccess';
 import { getClientCompanyOwnerId, isClientActive } from '@/utils/clientUtils';
+import { companyRequiresShoppingItemInstallPhotos } from '@/utils/shoppingItemInstallPhotos';
 
 import { AddShoppingItemDialog } from './_components/AddShoppingItemDialog';
+import { InstallPhotosDialog } from './_components/InstallPhotosDialog';
 import { EditShoppingItemDialog } from './_components/EditShoppingItemDialog';
 import { ShoppingSummaryCards } from './_components/ShoppingSummaryCards';
 import { createColumns } from './DataTableShoppingItems/columns';
@@ -41,7 +45,8 @@ export default function ShoppingOverviewPage() {
   const common = useTranslations('common');
   const router = useRouter();
   const user = useUserStore((state) => state.user);
-  const { data: companies = [], isLoading: isLoadingCompanies } = useGetCompanies();
+  const { data: allCompanies = [], isLoading: isLoadingCompanies } = useGetCompanies();
+  const companies = useMemo(() => getManagementCompanies(allCompanies), [allCompanies]);
   const { data: allClients = [] } = useGetAllClients();
 
   const filtersForm = useForm<FilterFormData>({
@@ -65,7 +70,11 @@ export default function ShoppingOverviewPage() {
   }, [user, router]);
 
   useEffect(() => {
-    if (!companyId && companies.length > 0) {
+    if (companies.length === 0) {
+      if (companyId) filtersForm.setValue('companyId', '');
+      return;
+    }
+    if (!companies.some((company) => company.id === companyId)) {
       filtersForm.setValue('companyId', companies[0].id);
     }
   }, [companies, companyId, filtersForm]);
@@ -110,13 +119,18 @@ export default function ShoppingOverviewPage() {
 
   const { mutateAsync: createItem, isPending: isCreating } = useCreateShoppingItem();
   const { mutateAsync: updateItem, isPending: isUpdating } = useUpdateShoppingItem(companyId);
-  const { mutateAsync: updateStatus } = useUpdateShoppingItemStatus(companyId);
+  const { mutateAsync: updateStatus, isPending: isUpdatingStatus } = useUpdateShoppingItemStatus(companyId);
+  const { data: company } = useGetCompany(companyId);
+  const photosRequired = companyRequiresShoppingItemInstallPhotos(
+    company?.preferences?.requireShoppingItemInstallPhotos
+  );
   const { mutateAsync: deleteItem, isPending: isDeleting } = useDeleteShoppingItem(companyId);
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ShoppingListRow | null>(null);
   const [itemToEdit, setItemToEdit] = useState<ShoppingListRow | null>(null);
+  const [itemToInstall, setItemToInstall] = useState<ShoppingListRow | null>(null);
 
   const companyOptions = useMemo(
     () =>
@@ -183,10 +197,29 @@ export default function ShoppingOverviewPage() {
   };
 
   const handleUpdateStatus = async (item: ShoppingListRow, newStatus: ShoppingItemStatus) => {
+    if (newStatus === 'Installed' && item.status !== 'Installed' && photosRequired) {
+      setItemToInstall(item);
+      return;
+    }
+
     await updateStatus({
       shoppingItemId: item.id,
       data: { status: newStatus }
     });
+  };
+
+  const handleConfirmInstall = async (files: File[]) => {
+    if (!itemToInstall) return;
+    try {
+      await updateStatus({
+        shoppingItemId: itemToInstall.id,
+        data: { status: 'Installed' },
+        photos: files
+      });
+      setItemToInstall(null);
+    } catch {
+      // Error toast is shown by the mutation.
+    }
   };
 
   const handleEditClick = (item: ShoppingListRow) => {
@@ -209,6 +242,10 @@ export default function ShoppingOverviewPage() {
   const columns = createColumns(handleUpdateStatus, handleDeleteClick, handleEditClick);
 
   if (isLoadingCompanies) return <LoadingSpinner />;
+
+  if (companies.length === 0) {
+    return <p className="p-6 text-sm text-gray-600">{t('managementOnly')}</p>;
+  }
 
   return (
     <FormProvider {...filtersForm}>
@@ -273,7 +310,7 @@ export default function ShoppingOverviewPage() {
           {itemsQuery.isLoading ? (
             <LoadingSpinner />
           ) : (
-            <DataTableShoppingItems columns={columns} data={itemsQuery.data ?? []} />
+            <DataTableShoppingItems columns={columns} data={itemsQuery.data ?? []} onEdit={handleEditClick} />
           )}
         </div>
 
@@ -288,6 +325,16 @@ export default function ShoppingOverviewPage() {
             await createItem(params);
             setAddDialogOpen(false);
           }}
+        />
+
+        <InstallPhotosDialog
+          open={!!itemToInstall}
+          productName={itemToInstall?.productName ?? ''}
+          isLoading={isUpdatingStatus}
+          onOpenChange={(open) => {
+            if (!open) setItemToInstall(null);
+          }}
+          onConfirm={handleConfirmInstall}
         />
 
         <EditShoppingItemDialog

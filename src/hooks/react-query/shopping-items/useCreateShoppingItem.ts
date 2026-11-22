@@ -26,6 +26,8 @@ export function useCreateShoppingItem() {
     },
     onSuccess: (_, { companyId }) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items', companyId] });
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         title: translateMessage('toasts.itemAddedToShoppingList', 'Item added to shopping list'),
         variant: 'success'

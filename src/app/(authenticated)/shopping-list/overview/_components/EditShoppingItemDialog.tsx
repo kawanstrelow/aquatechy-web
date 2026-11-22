@@ -1,27 +1,25 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import SelectField from '@/components/SelectField';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import useGetProductCategories from '@/hooks/react-query/products/useGetProductCategories';
 import useGetProducts from '@/hooks/react-query/products/useGetProducts';
+import useGetRequestsByPool from '@/hooks/react-query/requests/getRequestsByPool';
+import { useUpdateShoppingItemStatus } from '@/hooks/react-query/shopping-items/useUpdateShoppingItemStatus';
 import { ShoppingListRow, UpdateShoppingItemRequest } from '@/ts/interfaces/Shopping';
+
+import { NO_REQUEST, requestOptionLabel } from './requestOptionLabel';
 
 const schema = z.object({
   categoryFilter: z.string().optional(),
@@ -29,7 +27,8 @@ const schema = z.object({
   quantity: z.coerce
     .number({ invalid_type_error: 'shopping.validation.quantityMin' })
     .refine((value) => Number.isFinite(value) && value > 0, 'shopping.validation.quantityMin'),
-  notes: z.string().max(1000, 'shopping.validation.notesMax')
+  notes: z.string().max(1000, 'shopping.validation.notesMax'),
+  requestId: z.string()
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -45,6 +44,10 @@ interface EditShoppingItemDialogProps {
   item: ShoppingListRow | null;
   onSubmit: (params: UpdateShoppingItemParams) => void;
   isLoading: boolean;
+}
+
+function requestLinkValue(requestId: string | null | undefined) {
+  return requestId || NO_REQUEST;
 }
 
 function buildUpdatePayload(item: ShoppingListRow, data: FormValues): UpdateShoppingItemRequest {
@@ -63,19 +66,25 @@ function buildUpdatePayload(item: ShoppingListRow, data: FormValues): UpdateShop
     payload.notes = nextNotes;
   }
 
+  const nextRequestId = data.requestId === NO_REQUEST ? null : data.requestId;
+  if (nextRequestId !== (item.requestId ?? null)) {
+    payload.requestId = nextRequestId;
+  }
+
   return payload;
 }
 
 function hasShoppingItemChanges(
   item: ShoppingListRow,
-  values: { productId: string; quantity: number | string; notes: string }
+  values: { productId: string; quantity: number | string; notes: string; requestId: string }
 ): boolean {
   const quantity = typeof values.quantity === 'number' ? values.quantity : Number(values.quantity);
   const quantityChanged = !Number.isFinite(quantity) || quantity !== item.quantity;
   const productChanged = values.productId !== item.productId;
   const notesChanged = (values.notes ?? '').trim() !== (item.notes ?? '');
+  const requestChanged = values.requestId !== requestLinkValue(item.requestId);
 
-  return quantityChanged || productChanged || notesChanged;
+  return quantityChanged || productChanged || notesChanged || requestChanged;
 }
 
 export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isLoading }: EditShoppingItemDialogProps) {
@@ -87,7 +96,8 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
       categoryFilter: 'all',
       productId: '',
       quantity: 1,
-      notes: ''
+      notes: '',
+      requestId: NO_REQUEST
     }
   });
 
@@ -95,7 +105,11 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
   const productId = form.watch('productId');
   const quantity = form.watch('quantity');
   const notes = form.watch('notes');
+  const requestId = form.watch('requestId');
   const companyId = open && item ? item.companyOwnerId : '';
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const { mutateAsync: updateStatus, isPending: isUpdatingPhotos } = useUpdateShoppingItemStatus(companyId);
+  const requestsQuery = useGetRequestsByPool(open && item ? item.poolId : null);
 
   const categoriesQuery = useGetProductCategories({
     companyId
@@ -125,8 +139,10 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
       categoryFilter: 'all',
       productId: item.productId,
       quantity: item.quantity,
-      notes: item.notes ?? ''
+      notes: item.notes ?? '',
+      requestId: requestLinkValue(item.requestId)
     });
+    setPhotoFiles([]);
   }, [open, item, form]);
 
   const categoryFilterOptions = useMemo(() => {
@@ -168,7 +184,42 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
     return options;
   }, [productsQuery.data, item, productId, categoryFilter, t]);
 
-  const hasChanges = item ? hasShoppingItemChanges(item, { productId, quantity, notes }) : false;
+  const requestOptions = useMemo(() => {
+    const options = [{ key: NO_REQUEST, value: NO_REQUEST, name: t('editDialog.noRequest') }];
+    const requests = requestsQuery.data ?? [];
+
+    requests.forEach((request) => {
+      options.push({
+        key: request.id,
+        value: request.id,
+        name: requestOptionLabel(request)
+      });
+    });
+
+    if (item?.requestId && !options.some((option) => option.value === item.requestId)) {
+      options.push({
+        key: item.requestId,
+        value: item.requestId,
+        name: t('linkedRequest')
+      });
+    }
+
+    return options;
+  }, [item?.requestId, requestsQuery.data, t]);
+
+  const hasChanges = item
+    ? hasShoppingItemChanges(item, { productId, quantity, notes, requestId })
+    : false;
+
+  const handleUpdatePhotos = async () => {
+    if (!item || photoFiles.length === 0) return;
+    await updateStatus({
+      shoppingItemId: item.id,
+      data: { status: 'Installed' },
+      photos: photoFiles
+    });
+    setPhotoFiles([]);
+  };
 
   const handleSubmit = (data: FormValues) => {
     if (!item) return;
@@ -187,23 +238,11 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>{t('editDialog.title')}</DialogTitle>
-          <DialogDescription>{t('editDialog.description')}</DialogDescription>
         </DialogHeader>
 
         {item && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 rounded-lg border border-line px-3 py-2">
-                <div>
-                  <p className="text-xs text-gray-500">{t('editDialog.client')}</p>
-                  <p className="text-sm font-medium text-gray-900">{item.clientName}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">{t('editDialog.pool')}</p>
-                  <p className="text-sm font-medium text-gray-900">{item.poolName}</p>
-                </div>
-              </div>
-
               <SelectField
                 name="categoryFilter"
                 label={t('addDialog.category')}
@@ -217,32 +256,42 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
                 }}
               />
 
-              <SelectField
-                name="productId"
-                label={t('addDialog.product')}
-                options={productOptions}
-                placeholder={
-                  productsQuery.isLoading
-                    ? t('addDialog.loadingProducts')
-                    : productOptions.length === 0
-                      ? t('addDialog.noProductsInCategory')
-                      : t('addDialog.selectProduct')
-                }
-                disabled={productsQuery.isLoading || productOptions.length === 0}
-              />
+              <div className="grid grid-cols-[7.5rem_1fr] items-start gap-3">
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <FormLabel>{t('addDialog.quantity')}</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={0.01} step="any" placeholder="1" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('addDialog.quantity')}</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0.01} step="any" placeholder="1" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                <SelectField
+                  name="productId"
+                  label={t('addDialog.product')}
+                  options={productOptions}
+                  placeholder={
+                    productsQuery.isLoading
+                      ? t('addDialog.loadingProducts')
+                      : productOptions.length === 0
+                        ? t('addDialog.noProductsInCategory')
+                        : t('addDialog.selectProduct')
+                  }
+                  disabled={productsQuery.isLoading || productOptions.length === 0}
+                />
+              </div>
+
+              <SelectField
+                name="requestId"
+                label={t('editDialog.requestAttached')}
+                options={requestOptions}
+                placeholder={requestsQuery.isLoading ? t('editDialog.loadingRequests') : t('editDialog.selectRequest')}
+                disabled={requestsQuery.isLoading}
               />
 
               <FormField
@@ -263,6 +312,38 @@ export function EditShoppingItemDialog({ open, onOpenChange, item, onSubmit, isL
                   </FormItem>
                 )}
               />
+
+              {(item.installPhotos?.length ?? 0) > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">{t('installPhotos')}</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {item.installPhotos.map((photo) => (
+                      <img key={photo} src={photo} alt="" className="aspect-square w-full rounded object-cover" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {item.status === 'Installed' && (
+                <div className="space-y-2">
+                  <Label htmlFor="replace-install-photos">{t('replaceInstallPhotos')}</Label>
+                  <Input
+                    id="replace-install-photos"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(event) => setPhotoFiles(Array.from(event.target.files ?? []))}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isUpdatingPhotos || photoFiles.length === 0}
+                    onClick={handleUpdatePhotos}
+                  >
+                    {isUpdatingPhotos ? t('updatingPhotos') : t('updatePhotos')}
+                  </Button>
+                </div>
+              )}
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>

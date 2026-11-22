@@ -9,6 +9,7 @@ export default function useGetCompany(companyId: string) {
 
       return response.data;
     },
+    enabled: !!companyId,
     staleTime: Infinity
   });
   return { data, isLoading, isSuccess };

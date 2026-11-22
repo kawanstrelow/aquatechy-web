@@ -2,12 +2,32 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
 import { SHOPPING_ITEM_STATUS_LABELS, SHOPPING_ITEM_STATUS_STYLES } from '@/constants/shopping';
+import useGetRequestsByPool from '@/hooks/react-query/requests/getRequestsByPool';
 import { translateMessage } from '@/i18n/runtime';
 import { ShoppingListRow } from '@/ts/interfaces/Shopping';
 
 import { ShoppingItemActions } from './components/ShoppingItemActions';
+
+function LinkedRequestCell({ item }: { item: ShoppingListRow }) {
+  const t = useTranslations('shopping');
+  const { data } = useGetRequestsByPool(item.requestId ? item.poolId : null);
+
+  if (!item.requestId) {
+    return <span className="text-gray-400">—</span>;
+  }
+
+  const match = data?.find((request) => request.id === item.requestId);
+  const label = match?.description?.trim() || t('linkedRequest');
+
+  return (
+    <div className="max-w-[200px] truncate text-gray-700" title={label}>
+      {label}
+    </div>
+  );
+}
 
 export const createColumns = (
   onUpdateStatus: (item: ShoppingListRow, status: ShoppingListRow['status']) => void,
@@ -49,6 +69,11 @@ export const createColumns = (
         {translateMessage(`shopping.statuses.${row.original.status}`, SHOPPING_ITEM_STATUS_LABELS[row.original.status])}
       </span>
     )
+  },
+  {
+    id: 'request',
+    header: () => translateMessage('shopping.columns.request', 'Request'),
+    cell: ({ row }) => <LinkedRequestCell item={row.original} />
   },
   {
     accessorKey: 'notes',

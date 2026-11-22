@@ -34,6 +34,8 @@ function toShoppingListRow(
 ): ShoppingListRow {
   return {
     ...item,
+    requestId: item.requestId ?? null,
+    installPhotos: item.installPhotos ?? [],
     productName: item.product.name,
     unitPrice: (item.product.unitPriceCents ?? 0) / 100,
     clientName: getClientName(item, clientNameById),
