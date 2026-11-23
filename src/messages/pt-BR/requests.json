@@ -60,7 +60,7 @@
   "estimatesEmpty": "Nenhum orçamento está vinculado a esta solicitação ainda.",
   "estimatesUnavailable": "Os orçamentos vinculados aparecem nas 10 solicitações mais recentes desta piscina. Abra esta solicitação na página de solicitações para ver vínculos mais antigos.",
   "unlinkEstimate": "Desvincular",
-  "newEstimate": "Novo orçamento",
+  "newEstimate": "Adicionar orçamento",
   "estimateOption": "#{number} · {status} · {total}",
   "noEstimate": "Sem orçamento",
   "viewEstimate": "Ver orçamento",
