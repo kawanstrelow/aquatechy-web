@@ -60,7 +60,7 @@
   "estimatesEmpty": "No estimates are linked to this request yet.",
   "estimatesUnavailable": "Linked estimates are shown for the 10 most recent requests on this pool. Open this request from the requests page to see older links.",
   "unlinkEstimate": "Unlink",
-  "newEstimate": "New estimate",
+  "newEstimate": "Add estimate",
   "estimateOption": "#{number} · {status} · {total}",
   "noEstimate": "No estimate",
   "viewEstimate": "View estimate",
