@@ -102,14 +102,20 @@ export default function Page() {
           ) : (
             <ul className="divide-y divide-line">
               {recentIssues.map((issue) => (
-                <li key={issue.id} className="px-5 py-3">
-                  <p className="truncate text-sm font-medium text-ink">{issue.client}</p>
-                  <p className="mt-0.5 text-xs text-ink-muted">
-                    {format(new Date(issue.date), 'MMM dd, yyyy hh:mma')}
-                    <span className="mx-1.5">·</span>
-                    {issue.technician}
-                  </p>
-                  <p className="mt-1 line-clamp-2 text-sm text-ink-muted">{issue.description}</p>
+                <li key={issue.id}>
+                  <button
+                    type="button"
+                    className="w-full px-5 py-3 text-left transition-colors hover:bg-canvas"
+                    onClick={() => router.push(`/requests/${issue.id}`)}
+                  >
+                    <p className="truncate text-sm font-medium text-ink">{issue.client}</p>
+                    <p className="mt-0.5 text-xs text-ink-muted">
+                      {format(new Date(issue.date), 'MMM dd, yyyy hh:mma')}
+                      <span className="mx-1.5">·</span>
+                      {issue.technician}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-sm text-ink-muted">{issue.description}</p>
+                  </button>
                 </li>
               ))}
             </ul>
