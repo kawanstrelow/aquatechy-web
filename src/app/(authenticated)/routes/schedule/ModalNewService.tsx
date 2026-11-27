@@ -22,6 +22,7 @@ import { FieldType, Frequency } from '@/ts/enums/enums';
 import { Client } from '@/ts/interfaces/Client';
 import { WeekdaysUppercase } from '@/ts/interfaces/Weekday';
 import { formatPoolNameWithBodyOfWater, isEmpty } from '@/utils';
+import { weekdayUppercaseFromDate } from '@/utils/weekday';
 
 import WeekdaySelect from '../assignments/WeekdaySelect';
 import { FormSchema } from './page';
@@ -137,7 +138,7 @@ export function DialogNewService({
       serviceTypeId: '',
       instructions: '',
       frequency: Frequency.ONCE,
-      weekday: format(new Date(), 'EEEE').toUpperCase() as WeekdaysUppercase,
+      weekday: weekdayUppercaseFromDate(),
       startOn: undefined,
       endAfter: undefined
     });
@@ -445,7 +446,7 @@ export function DialogNewService({
                   <>
                     <div className="mt-2">
                       <WeekdaySelect
-                        value={(weekday || format(new Date(), 'EEEE').toUpperCase()) as WeekdaysUppercase}
+                        value={(weekday || weekdayUppercaseFromDate()) as WeekdaysUppercase}
                         onChange={(nextWeekday: WeekdaysUppercase) => form.setValue('weekday', nextWeekday)}
                       />
                     </div>
