@@ -21,7 +21,7 @@ import { useMembersStore } from '@/store/members';
 import { useUserStore } from '@/store/user';
 import { normalizeToUTC12, useWeekdayStore } from '@/store/weekday';
 import { Frequency } from '@/ts/enums/enums';
-import { WeekdaysUppercase } from '@/ts/interfaces/Weekday';
+import { weekdayUppercaseFromDate } from '@/utils/weekday';
 
 import Map from './Map';
 import MemberSelect from './MemberSelect';
@@ -141,7 +141,7 @@ export default function Page() {
       serviceTypeId: '',
       instructions: '',
       frequency: Frequency.ONCE,
-      weekday: format(new Date(), 'EEEE').toUpperCase() as WeekdaysUppercase,
+      weekday: weekdayUppercaseFromDate(),
       startOn: undefined,
       endAfter: undefined
     }

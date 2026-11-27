@@ -2,7 +2,6 @@
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -27,6 +26,7 @@ import { useWeekdayStore } from '@/store/weekday';
 
 import { Assignment } from '@/ts/interfaces/Assignments';
 import { Weekdays, WeekdaysUppercase } from '@/ts/interfaces/Weekday';
+import { weekdayUppercaseFromDate } from '@/utils/weekday';
 
 import Map from './Map';
 import { AssignmentsList } from './AssignmentsList';
@@ -109,7 +109,7 @@ export default function Page() {
       poolId: '',
       client: '',
       serviceTypeId: '',
-      weekday: format(new Date(), 'EEEE').toUpperCase() as WeekdaysUppercase,
+      weekday: weekdayUppercaseFromDate(),
       frequency: 'WEEKLY',
       startOn: undefined,
       endAfter: undefined,
@@ -266,7 +266,7 @@ export default function Page() {
         <div className={`w-[50%] ${mdScreen && 'w-full'}`}>
           <Tabs
             onValueChange={(weekday) => handleChangeWeekday(weekday as WeekdaysUppercase)}
-            defaultValue={format(new Date(), 'EEEE').toUpperCase()}
+            defaultValue={weekdayUppercaseFromDate()}
             value={selectedWeekday}
           >
             <div className="inline-flex w-full flex-col items-center justify-start gap-2 rounded-lg bg-gray-50 py-2">

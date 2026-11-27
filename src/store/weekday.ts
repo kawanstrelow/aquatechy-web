@@ -1,8 +1,9 @@
-import { format, set, startOfDay } from 'date-fns';
+import { set } from 'date-fns';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { WeekdaysUppercase } from '@/ts/interfaces/Weekday';
+import { weekdayUppercaseFromDate } from '@/utils/weekday';
 
 // Função para normalizar qualquer data para 15:00 UTC
 export function normalizeToUTC12(dateStr: string) {
@@ -22,13 +23,14 @@ type Actions = {
 
 export const useWeekdayStore = create<Store & Actions>()(
   devtools((set) => ({
-    selectedWeekday: format(new Date(), 'EEEE').toUpperCase() as WeekdaysUppercase,
+    selectedWeekday: weekdayUppercaseFromDate(),
     selectedDay: normalizeToUTC12(new Date().toISOString()).toISOString(),
     setSelectedWeekday: (weekday: WeekdaysUppercase) => set({ selectedWeekday: weekday }),
     setSelectedDay: (day: string) => set({ selectedDay: day }),
-    resetWeekday: () => set({
-      selectedWeekday: format(new Date(), 'EEEE').toUpperCase() as WeekdaysUppercase,
-      selectedDay: normalizeToUTC12(new Date().toISOString()).toISOString()
-    })
+    resetWeekday: () =>
+      set({
+        selectedWeekday: weekdayUppercaseFromDate(),
+        selectedDay: normalizeToUTC12(new Date().toISOString()).toISOString()
+      })
   }))
 );
